@@ -1,1 +1,6 @@
 http://www.e7z.org/
+
+
+
+
+choco install jetbrainsmono
