@@ -1,0 +1,7 @@
+# https://github.com/marketplace/actions/psminifier
+- name: PSMinifier
+  uses: StartAutomating/PSMinifier@v1.1.3
+  with:
+    Include: "*.ps1"
+    CommitMessage: "Minifying $($_.Name)"
+    
