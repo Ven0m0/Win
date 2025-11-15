@@ -7,6 +7,7 @@
 	autocrlf = true
 	whitespace = trailing-space,space-before-tab
 	excludesfile = ~/.gitignore
+	attributesfile = ~/.gitattributes
 [init]
 	defaultBranch = main
 [pull]
@@ -16,6 +17,9 @@
 	autoSetupRemote = true
 [fetch]
 	prune = true
+	pruneTags = true
+[clone]
+  filterSubmodules = true
 [alias]
 	# Shortcuts
 	st = status
@@ -65,3 +69,19 @@
 # Include local overrides (not tracked by yadm)
 [include]
 	path = ~/.gitconfig.local
+[http]
+  version = HTTP/2
+  sslVersion = tlsv1.3
+[remote "origin"]
+	prune = true
+[fsck]
+  duplicateEntries = true
+  gitmodulesSymlink = true
+  gitmodulesUpdate = true
+[rebase]
+  autoSquash = true
+  autoStash = true
+  updateRefs = true
+  backend = merge
+  missingCommitsCheck = true
+  abbreviateCommands = true
