@@ -1,25 +1,42 @@
 # https://github.com/marketplace/actions/psminifier
 name: PSMinifier
+
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.ps1'
+  pull_request:
+    paths:
+      - '**.ps1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   minify:
+    name: Minify PowerShell Scripts
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: PSMinifier
+      - name: Minify PowerShell files
+        id: minify
         uses: StartAutomating/PSMinifier@v1.1.4
         with:
           Include: "*.ps1"
           CommitMessage: "Minifying $($_.Name)"
-          
-      - name: OutputMinifier
-        run: |    
-          echo Original Size ${{ steps.Minify.outputs.OriginalSize }} 
-          echo Minified Size ${{ steps.Minify.outputs.MinifiedSize }} 
-          echo Minified Percent ${{ steps.Minify.outputs.MinifiedPercent }}
+
+      - name: Display minification results
+        if: always()
+        run: |
+          echo "Original Size: ${{ steps.minify.outputs.OriginalSize }}"
+          echo "Minified Size: ${{ steps.minify.outputs.MinifiedSize }}"
+          echo "Minified Percent: ${{ steps.minify.outputs.MinifiedPercent }}"

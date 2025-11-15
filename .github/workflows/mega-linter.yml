@@ -1,15 +1,26 @@
 name: MegaLinter
+
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 concurrency:
-  group: ${{ github.ref }}-${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 permissions:
   contents: write
   issues: write
   pull-requests: write
+
 jobs:
   megalinter:
+    name: Run MegaLinter
     uses: Ven0m0/.github/.github/workflows/mega-linter.yml@main
     with:
       exclude_dirs: '.github,.git,.cache,go,node_modules,.var,.rustup,.wine,.zim,.void-editor,.vscode,.claude'

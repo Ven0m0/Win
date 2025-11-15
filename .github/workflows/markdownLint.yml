@@ -5,31 +5,36 @@ on:
     branches:
       - '**'
       - '!main'
-    tags-ignore:
-      - '**'
-  pull_request_target:
+  pull_request:
     branches:
       - '**'
-    tags-ignore:
-      - '**'
     types:
-      - 'opened'
-      - 'reopened'
-      - 'synchronize'
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
     name: Check Markdown linting
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - name: Checkout code
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
-    - uses: tj-actions/changed-files@v47
+
+    - name: Get changed markdown files
+      uses: tj-actions/changed-files@v48
       id: changed-files
       with:
         files: '**/*.md'
-    - uses: DavidAnson/markdownlint-cli2-action@v20
+
+    - name: Lint changed markdown files
+      uses: DavidAnson/markdownlint-cli2-action@v20
       if: steps.changed-files.outputs.any_changed == 'true'
       with:
         globs: ${{ steps.changed-files.outputs.all_changed_files }}
