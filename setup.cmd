@@ -7,39 +7,42 @@ reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f
 
 cd /d %userprofile%
 
+echo Winget updates...
+winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy
+
 echo Installing VCRedist...
-winget install --id=Microsoft.VCRedist.2015+.x64  -e && winget install --id=Microsoft.VCRedist.2013.x64  -e
+winget install --id=Microsoft.VCRedist.2015+.x64 -e -h && winget install --id=Microsoft.VCRedist.2013.x64 -e -h
 echo Installing DotNet runtimes...
 winget install --id=Microsoft.DotNet.DesktopRuntime.9 -h && winget install --id=Microsoft.DotNet.DesktopRuntime.8 -h && winget install --id=Microsoft.DotNet.DesktopRuntime.7 -h
 echo Installing DirectX...
-winget install --id=Microsoft.DirectX  -e
+winget install --id=Microsoft.DirectX -e -h
 echo Installing Vulkan runtime...
-winget install --id=KhronosGroup.VulkanRT  -e && winget install --id=Microsoft.XNARedist  -e
+winget install --id=KhronosGroup.VulkanRT -e -h && winget install --id=Microsoft.XNARedist -e -h
 echo Installing Java...
-winget install --id=Oracle.JavaRuntimeEnvironment -e
+winget install --id=Oracle.JavaRuntimeEnvironment -e -h
 echo Installing Media codecs...
-winget install --id=CodecGuide.K-LiteCodecPack.Standard  -h
+winget install --id=CodecGuide.K-LiteCodecPack.Standard -h
 echo Installing Software...
-winget install --id=AutoHotkey.AutoHotkey -e
-winget install --id=VideoLAN.VLC -e
-winget install --id=GIMP.GIMP -e
-winget install --id=Greenshot.Greenshot -e
-winget install --id=7zip.7zip -e
+winget install --id=AutoHotkey.AutoHotkey -e -h
+winget install --id=VideoLAN.VLC -e -h
+winget install --id=GIMP.GIMP -e -h
+winget install --id=Greenshot.Greenshot -e -h
+winget install --id=7zip.7zip -e -h
 
 echo Installing editors...
-winget install --id=Notepad++.Notepad++ -e
-winget install Microsoft.VisualStudioCode
-winget install Microsoft.Edit
+winget install --id=Notepad++.Notepad++ -e -h
+winget install Microsoft.VisualStudioCode -h
+winget install Microsoft.Edit -h
 
 echo Installing Browser...
-winget install --id=Mozilla.Firefox -e
+winget install --id=Mozilla.Firefox -e -h
 
 echo Game setup...
-winget install --id=EpicGames.EpicGamesLauncher -e && winget install --id=Valve.Steam -e
-winget install --id=Discord.Discord -e
+winget install --id=EpicGames.EpicGamesLauncher -e -h && winget install --id=Valve.Steam -e -h
+winget install --id=Discord.Discord -e -h
 
 echo Tuning...
-winget install --id=Guru3D.Afterburner.Beta -e
+winget install --id=Guru3D.Afterburner.Beta -e -h
 timeout 1
 
 echo Installing Chocolatey...
