@@ -93,7 +93,6 @@ indent_style = tab
 indent_size = 4
 tab_width = 4
 
-# Package managers
 [{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
 indent_size = 4
 
