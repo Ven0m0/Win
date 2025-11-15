@@ -9,7 +9,11 @@
 *.[Cc]ache
 *~
 node_modules/
-
+*.exe
+*.pdb
+*.db
+*.tmp
+.vs/
 
 # User-specific files
 *.rsuser
