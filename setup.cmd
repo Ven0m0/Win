@@ -25,14 +25,22 @@ winget install --id=VideoLAN.VLC -e
 winget install --id=GIMP.GIMP -e
 winget install --id=Greenshot.Greenshot -e
 winget install --id=7zip.7zip -e
+echo Installing editors...
 winget install --id=Notepad++.Notepad++ -e
+winget install Microsoft.VisualStudioCode
+
+echo Installing Browser...
 winget install --id=Mozilla.Firefox -e
+
+echo Game setup...
 winget install --id=EpicGames.EpicGamesLauncher -e && winget install --id=Valve.Steam -e
 winget install --id=Discord.Discord -e
+
+echo Tuning...
 winget install --id=Guru3D.Afterburner.Beta -e
 timeout 1
 
-echo Installing chocolatey...
+echo Installing Chocolatey...
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 timeout 1
 
