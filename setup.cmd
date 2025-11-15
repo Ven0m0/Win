@@ -1,6 +1,6 @@
 @echo off
 cls
-setlocal enabledelayedexpansion
+setlocal EnableExtensions DisableDelayedExpansion
 
 :: Enable ANSI Escape Sequences
 reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f
@@ -32,3 +32,4 @@ winget install --id=Guru3D.Afterburner.Beta -e
 echo Installing chocolatey...
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
+exit /b 0
