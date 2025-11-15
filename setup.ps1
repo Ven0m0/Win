@@ -1,136 +1,216 @@
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
     Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit	
+    Exit
 }
+
 # Enable ANSI Escape Sequences
-reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f
+$null = reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f 2>&1
 
-cd /d %userprofile%
+# Set location to user profile
+Set-Location -Path $env:USERPROFILE -ErrorAction SilentlyContinue
 
-echo Winget updates...
+Write-Host "Winget updates..." -ForegroundColor Cyan
 winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy
 
-echo Installing VCRedist...
-winget install --id=Microsoft.VCRedist.2015+.x64 -e -h && winget install --id=Microsoft.VCRedist.2013.x64 -e -h
-echo Installing DotNet runtimes...
-winget install --id=Microsoft.DotNet.DesktopRuntime.9 -h && winget install --id=Microsoft.DotNet.DesktopRuntime.8 -h && winget install --id=Microsoft.DotNet.DesktopRuntime.7 -h
-echo Installing DirectX...
+Write-Host "Installing VCRedist..." -ForegroundColor Cyan
+winget install --id=Microsoft.VCRedist.2015+.x64 -e -h
+winget install --id=Microsoft.VCRedist.2013.x64 -e -h
+
+Write-Host "Installing DotNet runtimes..." -ForegroundColor Cyan
+winget install --id=Microsoft.DotNet.DesktopRuntime.9 -h
+winget install --id=Microsoft.DotNet.DesktopRuntime.8 -h
+winget install --id=Microsoft.DotNet.DesktopRuntime.7 -h
+
+Write-Host "Installing DirectX..." -ForegroundColor Cyan
 winget install --id=Microsoft.DirectX -e -h
-echo Installing Vulkan runtime...
-winget install --id=KhronosGroup.VulkanRT -e -h && winget install --id=Microsoft.XNARedist -e -h
-echo Installing Java...
+
+Write-Host "Installing Vulkan runtime..." -ForegroundColor Cyan
+winget install --id=KhronosGroup.VulkanRT -e -h
+winget install --id=Microsoft.XNARedist -e -h
+
+Write-Host "Installing Java..." -ForegroundColor Cyan
 winget install --id=Oracle.JavaRuntimeEnvironment -e -h
-echo Installing Media codecs...
+
+Write-Host "Installing Media codecs..." -ForegroundColor Cyan
 winget install --id=CodecGuide.K-LiteCodecPack.Standard -h
-echo Installing Software...
+
+Write-Host "Installing Software..." -ForegroundColor Cyan
 winget install --id=AutoHotkey.AutoHotkey -e -h
 winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
 winget install --id=Greenshot.Greenshot -e -h
 winget install --id=7zip.7zip -e -h
 
-echo Installing editors...
+Write-Host "Installing editors..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
 winget install Microsoft.VisualStudioCode -h
 winget install Microsoft.Edit -h
 
-echo Installing Browser...
+Write-Host "Installing Browser..." -ForegroundColor Cyan
 winget install --id=Mozilla.Firefox -e -h
 
-echo Game setup...
-winget install --id=EpicGames.EpicGamesLauncher -e -h && winget install --id=Valve.Steam -e -h
+Write-Host "Game setup..." -ForegroundColor Cyan
+winget install --id=EpicGames.EpicGamesLauncher -e -h
+winget install --id=Valve.Steam -e -h
 winget install --id=Discord.Discord -e -h
 
-echo Tuning...
+Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
-timeout 1
+Start-Sleep -Seconds 1
 
-# install hevc video extension needed for amd recording
-Get-AppXPackage -AllUsers *Microsoft.HEVCVideoExtension* | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"}
-Timeout /T 2 | Out-Null
-# install heif image extension needed for some files
-Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"}
+# Install HEVC video extension needed for AMD recording
+Get-AppXPackage -AllUsers *Microsoft.HEVCVideoExtension* | ForEach-Object {
+    Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"
+}
+Start-Sleep -Seconds 2
 
-echo Installing Chocolatey...
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]#SecurityProtocol = [System.Net.ServicePointManager]#SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-timeout 1
+# Install HEIF image extension needed for some files
+Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | ForEach-Object {
+    Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"
+}
 
-echo Cleaning firefox...
-del /f /q "%ProgramFiles%\Mozilla Firefox\crashreporter.exe" 
-del /f /q "%ProgramFiles%\Mozilla Firefox\browser\features\pictureinpicture@mozilla.org.xpi"
-del /f /q "%ProgramFiles%\Mozilla Firefox\browser\features\screenshots@mozilla.org.xpi"
-del /f /q "%ProgramFiles%\Mozilla Firefox\browser\VisualElements\PrivateBrowsing_150.png"
-del /f /q "%ProgramFiles%\Mozilla Firefox\browser\VisualElements\VisualElements_150.png"
-timeout 1
+Write-Host "Installing Chocolatey..." -ForegroundColor Cyan
+Set-ExecutionPolicy Bypass -Scope Process -Force
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+Start-Sleep -Seconds 1
 
-echo Cleanup...
+Write-Host "Cleaning Firefox..." -ForegroundColor Cyan
+$firefoxFiles = @(
+    "$env:ProgramFiles\Mozilla Firefox\crashreporter.exe",
+    "$env:ProgramFiles\Mozilla Firefox\browser\features\pictureinpicture@mozilla.org.xpi",
+    "$env:ProgramFiles\Mozilla Firefox\browser\features\screenshots@mozilla.org.xpi",
+    "$env:ProgramFiles\Mozilla Firefox\browser\VisualElements\PrivateBrowsing_150.png",
+    "$env:ProgramFiles\Mozilla Firefox\browser\VisualElements\VisualElements_150.png"
+)
+foreach ($file in $firefoxFiles) {
+    Remove-Item -Path $file -Force -ErrorAction SilentlyContinue
+}
+Start-Sleep -Seconds 1
+
+Write-Host "Cleanup..." -ForegroundColor Cyan
 Dism /Cleanup-Mountpoints
 DISM /CleanUp-Wim
-DISM Online /Cleanup-Image /RestoreHealth
+DISM /Online /Cleanup-Image /RestoreHealth
 sfc /scannow
-ipconfig /release                          
-ipconfig /renew                           
-ipconfig /flushdns                        
-netsh winsock reset                        
-netsh int ip reset 
+ipconfig /release
+ipconfig /renew
+ipconfig /flushdns
+netsh winsock reset
+netsh int ip reset
 chkdsk /scan
 
-# clear %temp% folder
-Remove-Item -Path "$env:USERPROFILE\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-Remove-Item -Path "$env:WINDIR\TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-Remove-Item -Path "$env:SystemDrive\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-# Other
-Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-Remove-Item -Path "$env:USERPROFILE\AppData\Local\cache\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-# open disk cleanup
+# Clear temp folders
+Remove-Item -Path "$env:USERPROFILE\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:WINDIR\TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:SystemDrive\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# Clear other temporary locations
+Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:USERPROFILE\AppData\Local\cache\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+# Open disk cleanup
 Start-Process cleanmgr.exe
 
-# Root drive garbage
-for %%i in (bat,cmd,txt,log,jpg,jpeg,tmp,temp,bak,backup,exe) do (
-	del /F /Q "%SystemDrive%\*.%%i" 
+# Clear root drive garbage files
+$extensions = @('bat', 'cmd', 'txt', 'log', 'jpg', 'jpeg', 'tmp', 'temp', 'bak', 'backup', 'exe')
+foreach ($ext in $extensions) {
+    Remove-Item -Path "$env:SystemDrive\*.$ext" -Force -ErrorAction SilentlyContinue
+}
+
+# Clear additional unneeded files from NVIDIA driver installs
+$nvidiaPaths = @(
+    "$env:ProgramFiles\Nvidia Corporation\Installer2",
+    "$env:ProgramFiles\NVIDIA Corporation\Installer",
+    "$env:ProgramFiles\NVIDIA Corporation\Installer2",
+    "${env:ProgramFiles(x86)}\NVIDIA Corporation\Installer",
+    "${env:ProgramFiles(x86)}\NVIDIA Corporation\Installer2",
+    "$env:ProgramData\NVIDIA Corporation\Downloader",
+    "$env:ProgramData\NVIDIA\Downloader"
 )
-# JOB: Clear additional unneeded files from NVIDIA driver installs
-if exist "%ProgramFiles%\Nvidia Corporation\Installer2" rmdir /s /q "%ProgramFiles%\Nvidia Corporation\Installer2"
-if exist "%ALLUSERSPROFILE%\NVIDIA Corporation\NetService" del /f /q "%ALLUSERSPROFILE%\NVIDIA Corporation\NetService\*.exe"
-# JOB: Remove the Office installation cache. Usually around ~1.5 GB
-if exist %SystemDrive%\MSOCache rmdir /S /Q %SystemDrive%\MSOCache
-# JOB: Remove the Windows installation cache. Can be up to 1.0 GB
-if exist %SystemDrive%\i386 rmdir /S /Q %SystemDrive%\i386
-# JOB: Empty all recycle bins on Windows 5.1 (XP/2k3) and 6.x (Vista and up) systems
-if exist %SystemDrive%\RECYCLER rmdir /s /q %SystemDrive%\RECYCLER
-if exist %SystemDrive%\$Recycle.Bin rmdir /s /q %SystemDrive%\$Recycle.Bin
-# JOB: Clear MUI cache
-%REG% delete "HKCU\SOFTWARE\Classes\Local Settings\Muicache" /f
-# JOB: Clear queued and archived Windows Error Reporting (WER) reports
-echo. >> %LOGPATH%\%LOGFILE%
-if exist "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportArchive" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportArchive"
-if exist "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportQueue" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportQueue"
-# JOB: Clear Windows Defender Scan Results
-if exist "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Quick" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Quick"
-if exist "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Resource" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Resource"
-# JOB: Clear Windows Search Temp Data
-if exist "%ALLUSERSPROFILE%\Microsoft\Search\Data\Temp" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Search\Data\Temp"
-# JOB: Windows update logs & built-in backgrounds (space waste)
-del /F /Q %WINDIR%\*.log 
-del /F /Q %WINDIR%\*.txt 
-del /F /Q %WINDIR%\*.bmp 
-del /F /Q %WINDIR%\*.tmp 
-rmdir /S /Q %WINDIR%\Web\Wallpaper\Dell 
-# JOB: Clear cached NVIDIA driver updates
-if exist "%ProgramFiles%\NVIDIA Corporation\Installer" rmdir /s /q "%ProgramFiles%\NVIDIA Corporation\Installer" 
-if exist "%ProgramFiles%\NVIDIA Corporation\Installer2" rmdir /s /q "%ProgramFiles%\NVIDIA Corporation\Installer2" 
-if exist "%ProgramFiles(x86)%\NVIDIA Corporation\Installer" rmdir /s /q "%ProgramFiles(x86)%\NVIDIA Corporation\Installer" 
-if exist "%ProgramFiles(x86)%\NVIDIA Corporation\Installer2" rmdir /s /q "%ProgramFiles(x86)%\NVIDIA Corporation\Installer2" 
-if exist "%ProgramData%\NVIDIA Corporation\Downloader" rmdir /s /q "%ProgramData%\NVIDIA Corporation\Downloader" 
-if exist "%ProgramData%\NVIDIA\Downloader" rmdir /s /q "%ProgramData%\NVIDIA\Downloader" 
-# JOB: Windows CBS logs
-echo %WIN_VER% | findstr /v /i /c:"Microsoft" >NUL && del /F /Q %WINDIR%\logs\CBS\* 
+foreach ($path in $nvidiaPaths) {
+    if (Test-Path $path) {
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
 
-Reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration" /v "DisableResetbase" /t REG_DWORD /d "0" /f
-Reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f
-Reg add "HKLM\SYSTEM\CurrentControlSet\Policies" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f
+# Remove NVIDIA NetService executables
+if (Test-Path "$env:ALLUSERSPROFILE\NVIDIA Corporation\NetService") {
+    Remove-Item -Path "$env:ALLUSERSPROFILE\NVIDIA Corporation\NetService\*.exe" -Force -ErrorAction SilentlyContinue
+}
+
+# Remove the Office installation cache (usually around ~1.5 GB)
+if (Test-Path "$env:SystemDrive\MSOCache") {
+    Remove-Item -Path "$env:SystemDrive\MSOCache" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Remove the Windows installation cache (can be up to 1.0 GB)
+if (Test-Path "$env:SystemDrive\i386") {
+    Remove-Item -Path "$env:SystemDrive\i386" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Empty all recycle bins
+$recyclePaths = @(
+    "$env:SystemDrive\RECYCLER",
+    "$env:SystemDrive\`$Recycle.Bin"
+)
+foreach ($path in $recyclePaths) {
+    if (Test-Path $path) {
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Clear MUI cache
+reg delete "HKCU\SOFTWARE\Classes\Local Settings\Muicache" /f 2>&1 | Out-Null
+
+# Clear queued and archived Windows Error Reporting (WER) reports
+$werPaths = @(
+    "$env:ALLUSERSPROFILE\Microsoft\Windows\WER\ReportArchive",
+    "$env:ALLUSERSPROFILE\Microsoft\Windows\WER\ReportQueue"
+)
+foreach ($path in $werPaths) {
+    if (Test-Path $path) {
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Clear Windows Defender Scan Results
+$defenderPaths = @(
+    "$env:ALLUSERSPROFILE\Microsoft\Windows Defender\Scans\History\Results\Quick",
+    "$env:ALLUSERSPROFILE\Microsoft\Windows Defender\Scans\History\Results\Resource"
+)
+foreach ($path in $defenderPaths) {
+    if (Test-Path $path) {
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Clear Windows Search Temp Data
+if (Test-Path "$env:ALLUSERSPROFILE\Microsoft\Search\Data\Temp") {
+    Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Search\Data\Temp" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Windows update logs & built-in backgrounds
+$winFiles = @('*.log', '*.txt', '*.bmp', '*.tmp')
+foreach ($pattern in $winFiles) {
+    Remove-Item -Path "$env:WINDIR\$pattern" -Force -ErrorAction SilentlyContinue
+}
+
+# Remove Dell wallpapers
+if (Test-Path "$env:WINDIR\Web\Wallpaper\Dell") {
+    Remove-Item -Path "$env:WINDIR\Web\Wallpaper\Dell" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# Windows CBS logs
+Remove-Item -Path "$env:WINDIR\logs\CBS\*" -Force -ErrorAction SilentlyContinue 
+
+# Configure compression settings
+$null = reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration" /v "DisableResetbase" /t REG_DWORD /d "0" /f 2>&1
+$null = reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f 2>&1
+$null = reg add "HKLM\SYSTEM\CurrentControlSet\Policies" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f 2>&1
 fsutil behavior set disablecompression 0
-Dism Online /Cleanup-Image /StartComponentCleanup /ResetBase
+Dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
 
-exit /b 0
+Write-Host "Setup completed successfully!" -ForegroundColor Green
+exit 0
