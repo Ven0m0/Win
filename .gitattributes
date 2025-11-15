@@ -17,7 +17,7 @@
 # =============================================================================
 # Configuration & Data Formats
 # =============================================================================
-*.json text diff=json
+*.json text diff=json linguist-language=json
 *.jsonc diff=json linguist-language=JSONC
 *.yaml diff=yaml
 *.yml diff=yaml
