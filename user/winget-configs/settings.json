@@ -1,0 +1,45 @@
+{
+  "$schema": "https://aka.ms/winget-settings.schema.json",
+  "source": {
+    "autoUpdateIntervalInMinutes": 60
+  },
+  "visual": {
+    "enableSixels": true,
+    "progressBar": "rainbow",
+    "anonymizeDisplayedPaths": true
+  },
+  "experimentalFeatures": {
+    "directMSI": true,
+    "resume": true,
+    "fonts": true,
+    "experimentalARG": true,
+    "experimentalCMD": true
+  },
+  "installBehavior": {
+    "skipDependencies": false,
+    "disableInstallNotes": true,
+    "archiveExtractionMethod": "tar",
+    "maxResumes": 3,
+    "preferences": {
+      "scope": "machine",
+      "locale": ["en-US", "de-DE"],
+      "architectures": ["x64"],
+      "installerTypes": ["msix", "msi"]
+    }
+  },
+  "uninstallBehavior": {
+    "purgePortablePackage": true
+  },
+  "network": {
+    "downloader": "wininet"
+  },
+  "interactivity": {
+    "disable": true
+  },
+  "telemetry": {
+    "disable": true
+  },
+  "logging": {
+    "level": "warning"
+  }
+}
