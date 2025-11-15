@@ -64,6 +64,7 @@ echo Cleanup...
 Dism /Cleanup-Mountpoints
 DISM /CleanUp-Wim
 DISM Online /Cleanup-Image /RestoreHealth
+sfc /scannow
 ipconfig /release                          
 ipconfig /renew                           
 ipconfig /flushdns                        
@@ -71,14 +72,16 @@ netsh winsock reset
 netsh int ip reset 
 chkdsk /scan
 
-sfc /scannow
-del /F /Q /S "%WINDIR%\TEMP\*"
-del /F /Q /S "%temp%\*"
-del /F /Q /S "%WINDIR%\Prefetch\*"
-del /F /Q /S "%WINDIR%\Logs" 
-del /F /Q /S "%userprofile%\AppData\Local\cache" 
-rmdir /Q /S %SystemDrive%\Temp 
-
+# clear %temp% folder
+Remove-Item -Path "$env:USERPROFILE\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "$env:WINDIR\TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "$env:SystemDrive\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+# Other
+Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+Remove-Item -Path "$env:USERPROFILE\AppData\Local\cache\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+# open disk cleanup
+Start-Process cleanmgr.exe
 
 # Root drive garbage
 for %%i in (bat,cmd,txt,log,jpg,jpeg,tmp,temp,bak,backup,exe) do (
