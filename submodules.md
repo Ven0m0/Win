@@ -10,3 +10,4 @@
 - https://github.com/zoicware/PowerPlanSettingsEditor
 - https://github.com/zoicware/WindowsUpdateManager
 - https://github.com/zoicware/Server2025Unattend
+- https://github.com/rapid-community/RapidOS
