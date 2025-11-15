@@ -4,3 +4,9 @@
 *.json text eol=crlf
 .github/actions/spelling/** text eol=lf
 *.winget linguist-language=yaml
+
+*.jpg   binary
+*.png   binary
+*.webp   binary
+*.avif   binary
+*.gif   binary
