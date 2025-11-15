@@ -61,6 +61,14 @@ echo Cleanup...
 Dism /Cleanup-Mountpoints
 DISM /CleanUp-Wim
 DISM Online /Cleanup-Image /RestoreHealth
+ipconfig /release                          
+ipconfig /renew                           
+ipconfig /flushdns                        
+netsh winsock reset                        
+netsh int ip reset 
+chkdsk /scan
+
+sfc /scannow
 del /F /Q /S "%WINDIR%\TEMP\*"
 del /F /Q /S "%temp%\*"
 del /F /Q /S "%WINDIR%\Prefetch\*"
