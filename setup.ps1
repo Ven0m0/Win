@@ -1,8 +1,5 @@
-@echo off
-cls
-setlocal EnableExtensions DisableDelayedExpansion
 
-:: Enable ANSI Escape Sequences
+# Enable ANSI Escape Sequences
 reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f
 
 cd /d %userprofile%
@@ -45,8 +42,14 @@ echo Tuning...
 winget install --id=Guru3D.Afterburner.Beta -e -h
 timeout 1
 
+# install hevc video extension needed for amd recording
+Get-AppXPackage -AllUsers *Microsoft.HEVCVideoExtension* | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"}
+Timeout /T 2 | Out-Null
+# install heif image extension needed for some files
+Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"}
+
 echo Installing Chocolatey...
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]#SecurityProtocol = [System.Net.ServicePointManager]#SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 timeout 1
 
 echo Cleaning firefox...
@@ -77,45 +80,45 @@ del /F /Q /S "%userprofile%\AppData\Local\cache"
 rmdir /Q /S %SystemDrive%\Temp 
 
 
-:: Root drive garbage
+# Root drive garbage
 for %%i in (bat,cmd,txt,log,jpg,jpeg,tmp,temp,bak,backup,exe) do (
 	del /F /Q "%SystemDrive%\*.%%i" 
 )
-:: JOB: Clear additional unneeded files from NVIDIA driver installs
+# JOB: Clear additional unneeded files from NVIDIA driver installs
 if exist "%ProgramFiles%\Nvidia Corporation\Installer2" rmdir /s /q "%ProgramFiles%\Nvidia Corporation\Installer2"
 if exist "%ALLUSERSPROFILE%\NVIDIA Corporation\NetService" del /f /q "%ALLUSERSPROFILE%\NVIDIA Corporation\NetService\*.exe"
-:: JOB: Remove the Office installation cache. Usually around ~1.5 GB
+# JOB: Remove the Office installation cache. Usually around ~1.5 GB
 if exist %SystemDrive%\MSOCache rmdir /S /Q %SystemDrive%\MSOCache
-:: JOB: Remove the Windows installation cache. Can be up to 1.0 GB
+# JOB: Remove the Windows installation cache. Can be up to 1.0 GB
 if exist %SystemDrive%\i386 rmdir /S /Q %SystemDrive%\i386
-:: JOB: Empty all recycle bins on Windows 5.1 (XP/2k3) and 6.x (Vista and up) systems
+# JOB: Empty all recycle bins on Windows 5.1 (XP/2k3) and 6.x (Vista and up) systems
 if exist %SystemDrive%\RECYCLER rmdir /s /q %SystemDrive%\RECYCLER
 if exist %SystemDrive%\$Recycle.Bin rmdir /s /q %SystemDrive%\$Recycle.Bin
-:: JOB: Clear MUI cache
+# JOB: Clear MUI cache
 %REG% delete "HKCU\SOFTWARE\Classes\Local Settings\Muicache" /f
-:: JOB: Clear queued and archived Windows Error Reporting (WER) reports
+# JOB: Clear queued and archived Windows Error Reporting (WER) reports
 echo. >> %LOGPATH%\%LOGFILE%
 if exist "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportArchive" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportArchive"
 if exist "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportQueue" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows\WER\ReportQueue"
-:: JOB: Clear Windows Defender Scan Results
+# JOB: Clear Windows Defender Scan Results
 if exist "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Quick" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Quick"
 if exist "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Resource" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Windows Defender\Scans\History\Results\Resource"
-:: JOB: Clear Windows Search Temp Data
+# JOB: Clear Windows Search Temp Data
 if exist "%ALLUSERSPROFILE%\Microsoft\Search\Data\Temp" rmdir /s /q "%ALLUSERSPROFILE%\Microsoft\Search\Data\Temp"
-:: JOB: Windows update logs & built-in backgrounds (space waste)
+# JOB: Windows update logs & built-in backgrounds (space waste)
 del /F /Q %WINDIR%\*.log 
 del /F /Q %WINDIR%\*.txt 
 del /F /Q %WINDIR%\*.bmp 
 del /F /Q %WINDIR%\*.tmp 
 rmdir /S /Q %WINDIR%\Web\Wallpaper\Dell 
-:: JOB: Clear cached NVIDIA driver updates
+# JOB: Clear cached NVIDIA driver updates
 if exist "%ProgramFiles%\NVIDIA Corporation\Installer" rmdir /s /q "%ProgramFiles%\NVIDIA Corporation\Installer" 
 if exist "%ProgramFiles%\NVIDIA Corporation\Installer2" rmdir /s /q "%ProgramFiles%\NVIDIA Corporation\Installer2" 
 if exist "%ProgramFiles(x86)%\NVIDIA Corporation\Installer" rmdir /s /q "%ProgramFiles(x86)%\NVIDIA Corporation\Installer" 
 if exist "%ProgramFiles(x86)%\NVIDIA Corporation\Installer2" rmdir /s /q "%ProgramFiles(x86)%\NVIDIA Corporation\Installer2" 
 if exist "%ProgramData%\NVIDIA Corporation\Downloader" rmdir /s /q "%ProgramData%\NVIDIA Corporation\Downloader" 
 if exist "%ProgramData%\NVIDIA\Downloader" rmdir /s /q "%ProgramData%\NVIDIA\Downloader" 
-:: JOB: Windows CBS logs
+# JOB: Windows CBS logs
 echo %WIN_VER% | findstr /v /i /c:"Microsoft" >NUL && del /F /Q %WINDIR%\logs\CBS\* 
 
 Reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration" /v "DisableResetbase" /t REG_DWORD /d "0" /f
