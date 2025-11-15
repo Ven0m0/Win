@@ -1,59 +1,87 @@
-    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))
-    {Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit}
-    $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + " (Administrator)"
-    $Host.UI.RawUI.BackgroundColor = "Black"
-	$Host.PrivateData.ProgressBackgroundColor = "Black"
-    $Host.PrivateData.ProgressForegroundColor = "White"
+# keyboard-shortcuts.ps1 - Windows Keyboard Shortcuts Manager
+# Enables or disables keyboard shortcuts to prevent accidental game interruptions
+
+#Requires -RunAsAdministrator
+
+# Import common functions
+. "$PSScriptRoot\Common.ps1"
+
+# Request admin elevation
+Request-AdminElevation
+
+# Initialize console UI
+Initialize-ConsoleUI -Title "Keyboard Shortcuts Manager (Administrator)"
+
+function Disable-KeyboardShortcuts {
+    <#
+    .SYNOPSIS
+        Disables all keyboard shortcuts for gaming
+    #>
+    Clear-Host
+    Write-Host "Keyboard Shortcuts: Off" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  - Disables all keyboard shortcuts" -ForegroundColor Red
+    Write-Host "  - Prevents tabbing out of games" -ForegroundColor Red
+    Write-Host "  - Cut/copy/paste will still function" -ForegroundColor Red
+    Write-Host "  - ESC key rebound to =" -ForegroundColor Red
+    Write-Host ""
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     Clear-Host
 
-    Write-Host "1. Keyboard Shortcuts: Off"
-    Write-Host "2. Keyboard Shortcuts: Default"
-    while ($true) {
-    $choice = Read-Host " "
-    if ($choice -match '^[1-2]$') {
-    switch ($choice) {
-    1 {
+    # Disable media keys (Human Interface Device Service)
+    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\hidserv" -Name "Start" -Type REG_DWORD -Data "4"
 
-Clear-Host
-Write-Host "Keyboard Shortcuts: Off" -ForegroundColor Red
-Write-Host ""
-Write-Host "-disable all keyboard shortcuts" -ForegroundColor Red
-Write-Host "-to prevent tabbing out of a game" -ForegroundColor Red
-Write-Host "-cut copy paste will function" -ForegroundColor Red
-Write-Host "-esc rebound to =" -ForegroundColor Red
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-Clear-Host
-# disable media keys (human interface device service) regedit
-reg add "HKLM\SYSTEM\ControlSet001\Services\hidserv" /v "Start" /t REG_DWORD /d "4" /f | Out-Null
-# disable windows key hotkeys regedit
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v "NoWinKeys" /t REG_DWORD /d "1" /f | Out-Null
-# disable shortcut keys regedit
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "DisabledHotkeys" /t REG_DWORD /d "1" /f | Out-Null
-# disable win alt esc keys regedit
-# esc rebound to =
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" /v "Scancode Map" /t REG_BINARY /d "00000000000000000700000000005be000005ce000003800000038e00000010001000d0000000000" /f | Out-Null
-Clear-Host
-Write-Host "Restart to apply . . ."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-exit
+    # Disable Windows key hotkeys
+    Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoWinKeys" -Type REG_DWORD -Data "1"
 
-      }
-    2 {
+    # Disable shortcut keys
+    Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisabledHotkeys" -Type REG_DWORD -Data "1"
 
-Clear-Host
-# enable media keys (human interface device service) regedit
-reg add "HKLM\SYSTEM\ControlSet001\Services\hidserv" /v "Start" /t REG_DWORD /d "3" /f | Out-Null
-# enable windows key hotkeys regedit
-cmd /c "reg delete `"HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer`" /v `"NoWinKeys`" /f >nul 2>&1"
-# enable shortcut keys regedit
-cmd /c "reg delete `"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced`" /v `"DisabledHotkeys`" /f >nul 2>&1"
-# enable win alt esc keys regedit
-cmd /c "reg delete `"HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout`" /v `"Scancode Map`" /f >nul 2>&1"
-Clear-Host
-Write-Host "Restart to apply . . ."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-exit
+    # Disable Win, Alt, ESC keys (ESC rebound to =)
+    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" -Type REG_BINARY -Data "00000000000000000700000000005be000005ce000003800000038e00000010001000d0000000000"
 
-      }
-    } } else { Write-Host "Invalid input. Please select a valid option (1-2)." } }
+    Clear-Host
+    Write-Host "Keyboard shortcuts disabled successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+}
+
+function Enable-KeyboardShortcuts {
+    <#
+    .SYNOPSIS
+        Restores default keyboard shortcuts
+    #>
+    Clear-Host
+
+    # Enable media keys (Human Interface Device Service)
+    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\hidserv" -Name "Start" -Type REG_DWORD -Data "3"
+
+    # Enable Windows key hotkeys
+    Remove-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoWinKeys"
+
+    # Enable shortcut keys
+    Remove-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisabledHotkeys"
+
+    # Enable Win, Alt, ESC keys
+    Remove-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map"
+
+    Clear-Host
+    Write-Host "Keyboard shortcuts restored to default!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+}
+
+# Main menu
+Show-Menu -Title "" -Options @(
+    "Keyboard Shortcuts: Off"
+    "Keyboard Shortcuts: Default"
+)
+
+$choice = Get-MenuChoice -Min 1 -Max 2
+
+switch ($choice) {
+    1 { Disable-KeyboardShortcuts }
+    2 { Enable-KeyboardShortcuts }
+}

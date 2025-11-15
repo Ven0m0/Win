@@ -1,60 +1,93 @@
-If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit
+# msi-mode.ps1 - MSI (Message Signaled Interrupts) Mode Manager for GPUs
+# Enables or disables MSI mode for all display adapters to improve interrupt handling
+
+#Requires -RunAsAdministrator
+
+# Import common functions
+. "$PSScriptRoot\Common.ps1"
+
+# Request admin elevation
+Request-AdminElevation
+
+# Initialize console UI
+Initialize-ConsoleUI -Title "MSI Mode Manager (Administrator)"
+
+function Set-MSIMode {
+    <#
+    .SYNOPSIS
+        Configures MSI mode for all GPU devices
+    .PARAMETER Enable
+        $true to enable MSI mode, $false to disable
+    #>
+    param([bool]$Enable)
+
+    Clear-Host
+
+    # Get all GPU display devices
+    $gpuDevices = Get-PnpDevice -Class Display -ErrorAction SilentlyContinue
+
+    if ($gpuDevices.Count -eq 0) {
+        Write-Host "No display adapters found!" -ForegroundColor Yellow
+        return
+    }
+
+    $msiValue = if ($Enable) { "1" } else { "0" }
+    $status = if ($Enable) { "Enabling" } else { "Disabling" }
+
+    Write-Host "$status MSI Mode for all GPUs..." -ForegroundColor Cyan
+    Write-Host ""
+
+    # Set MSI mode for all GPUs
+    foreach ($gpu in $gpuDevices) {
+        $instanceID = $gpu.InstanceId
+        $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+        Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
+    }
+
+    # Display MSI mode status
+    Write-Host "MSI Mode Status:" -ForegroundColor Cyan
+    Write-Host ""
+
+    foreach ($gpu in $gpuDevices) {
+        $instanceID = $gpu.InstanceId
+        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+
+        Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
+        Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
+
+        try {
+            $msiSupported = (Get-ItemProperty -Path $regPath -Name "MSISupported" -ErrorAction Stop).MSISupported
+            $statusColor = if ($msiSupported -eq 1) { "Green" } else { "Yellow" }
+            $statusText = if ($msiSupported -eq 1) { "Enabled (1)" } else { "Disabled (0)" }
+            Write-Host "  MSI Mode: $statusText" -ForegroundColor $statusColor
+        } catch {
+            Write-Host "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
+        }
+        Write-Host ""
+    }
+
+    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
 }
 
-$Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + " (Administrator)"
-$Host.UI.RawUI.BackgroundColor = "Black"
-$Host.PrivateData.ProgressBackgroundColor = "Black"
-$Host.PrivateData.ProgressForegroundColor = "White"
-Clear-Host
+# Main menu
+Show-Menu -Title "MSI Mode Configuration" -Options @(
+    "MSI Mode: On (Recommended)"
+    "MSI Mode: Off"
+    "Exit"
+)
 
-Write-Host "1. MSI Mode: On (Recommended)"
-Write-Host "2. MSI Mode: Off"
+$choice = Get-MenuChoice -Min 1 -Max 3
 
-while ($true) {
-    $choice = Read-Host " "
-    if ($choice -match '^[1-2]$') {
-        switch ($choice) {
-            1 { $msiValue = "1"; break }
-            2 { $msiValue = "0"; break }
-        }
-
-        Clear-Host
-
-        # Get all GPU driver IDs
-        $gpuDevices = Get-PnpDevice -Class Display
-
-        # Set MSI mode for all GPUs
-        foreach ($gpu in $gpuDevices) {
-            $instanceID = $gpu.InstanceId
-            $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
-            $null = reg add $regPath /v "MSISupported" /t REG_DWORD /d $msiValue /f 2>&1
-        }
-
-        # Display MSI mode status for all GPUs
-        Write-Host "MSI Mode Status:" -ForegroundColor Cyan
-        Write-Host ""
-        foreach ($gpu in $gpuDevices) {
-            $instanceID = $gpu.InstanceId
-            $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
-            try {
-                $msiSupported = Get-ItemProperty -Path $regPath -Name "MSISupported" -ErrorAction Stop
-                Write-Host "$instanceID" -ForegroundColor Yellow
-                Write-Host "MSISupported: $($msiSupported.MSISupported)" -ForegroundColor Green
-            }
-            catch {
-                Write-Host "$instanceID" -ForegroundColor Yellow
-                Write-Host "MSISupported: Not found or error accessing the registry." -ForegroundColor Red
-            }
-            Write-Host ""
-        }
-
-        Write-Host "Restart to apply changes..." -ForegroundColor Cyan
+switch ($choice) {
+    1 {
+        Set-MSIMode -Enable $true
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-        exit
     }
-    else {
-        Write-Host "Invalid input. Please select a valid option (1-2)." -ForegroundColor Red
+    2 {
+        Set-MSIMode -Enable $false
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+    3 {
+        exit
     }
 }
