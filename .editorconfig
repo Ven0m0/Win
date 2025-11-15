@@ -2,9 +2,129 @@ root=true
 
 [*]
 end_of_line = crlf
-insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+tab_width = 2
+max_line_length = 120
+
+[**.{bat,cmd,ps1,psm1}]
+indent_style = tab
+indent_size = 4
+end_of_line = crlf
+
+# =============================================================================
+# Programming Languages
+# =============================================================================
+# C/C++
+[**.{c,cc,cpp,cxx,h,hpp,hxx}]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+# C#
+[**.cs]
+indent_style = space
+indent_size = 4
+
+# Go (requires tabs)
+[**.go,go.mod,go.sum]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Rust
+[**.rs,Cargo.toml,Cargo.lock]
+indent_style = space
+indent_size = 4
+max_line_length = 100
+
+# Zig
+[**.zig]
+indent_style = space
+indent_size = 4
+
+# Python
+[**.{py,pyw,pyi}]
+indent_style = space
+indent_size = 4
+max_line_length = 88
+quote_type = double
+
+# Ruby
+[**.rb,Gemfile,Rakefile]
 indent_style = space
 indent_size = 2
 
+# Java
+[**.java]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+# JavaScript/TypeScript
+[**.{js,mjs,cjs,jsx}]
+quote_type = single
+
+[**.{ts,mts,cts,tsx}]
+quote_type = single
+
+# PHP
+[**.php]
+indent_style = space
+indent_size = 4
+
+# Perl
+[**.{pl,pm}]
+indent_style = space
+indent_size = 4
+
+# =============================================================================
+# Configuration Files
+# =============================================================================
+# XML
+[**.{xml,svg}]
+indent_size = 4
+
+# =============================================================================
+# Markup/Documentation
+# =============================================================================
+[**.{md,markdown}]
+trim_trailing_whitespace = false
+
+[**.{patch,diff}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# =============================================================================
+# Build Systems & Package Managers
+# =============================================================================
+# Makefiles (require tabs)
+[{Makefile,**.mk,.gitmodules}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Package managers
+[{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
+indent_size = 4
+
+# =============================================================================
+# Git & Version Control
+# =============================================================================
+[.gitconfig]
+indent_style = tab
+tab_width = 4
+
+# =============================================================================
+# Special Cases
+# =============================================================================
+# Minified files
+[**.min.{js,css}]
+insert_final_newline = false
+
+# SVG
+[**.svg]
+insert_final_newline = false
