@@ -1,12 +1,34 @@
+# https://learn.microsoft.com/en-us/windows/package-manager/winget/settings
 {
     "$schema": "https://aka.ms/winget-settings.schema.json",
-    "telemetry": {
-        "disable": true
+    "source": { "autoUpdateIntervalInMinutes": 60 },
+    "visual": {
+      "enableSixels": true,
+      "progressBar": "rainbow",
+      "anonymizeDisplayedPaths": true
     },
    "experimentalFeatures": {
-       "directMSI": true
+       "directMSI": true,
+       "resume": true,
+       "fonts": true,
+       "experimentalARG": true,
+       "experimentalCMD": true
    },
     "installBehavior": {
-        "skipDependencies": false
+        "skipDependencies": false,
+        "disableInstallNotes": true
+        "archiveExtractionMethod": "tar" | "shellApi"
+        "maxResumes": 3
+        "preferences": {
+          "scope": "machine",
+          "locale": [ "en-US", "de-DE"],
+          "architectures": ["x64"],
+          "installerTypes": ["msix", "msi"]
+        }
     },
+    "uninstallBehavior": { "purgePortablePackage": true },
+    "network": { "downloader": "wininet" },
+    "interactivity": { "disable": true ],
+    "telemetry": { "disable": true },
+    "logging": { "level": "warning" },
 }
