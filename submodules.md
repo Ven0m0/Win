@@ -1,1 +1,1 @@
-- https://github.com/zoicware/ZOICWARE.git
+- https://github.com/zoicware/ZOICWARE
