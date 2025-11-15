@@ -1,0 +1,163 @@
+#!/usr/bin/env pwsh
+# yadm bootstrap script for Windows
+# This script runs after yadm clone to set up the Windows environment
+
+$ErrorActionPreference = 'Continue'
+
+Write-Host "=====================================" -ForegroundColor Cyan
+Write-Host "  Windows Dotfiles Bootstrap" -ForegroundColor Cyan
+Write-Host "=====================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Detect OS
+$isWindows = $IsWindows -or ($PSVersionTable.PSVersion.Major -le 5)
+if (-not $isWindows) {
+    Write-Host "This bootstrap script is for Windows only!" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "[1/7] Checking prerequisites..." -ForegroundColor Yellow
+
+# Check for admin privileges
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if (-not $isAdmin) {
+    Write-Host "  Note: Some operations require administrator privileges" -ForegroundColor Yellow
+}
+
+Write-Host "[2/7] Setting up PowerShell profile..." -ForegroundColor Yellow
+
+# Create PowerShell profile directory if it doesn't exist
+$profileDir = Split-Path $PROFILE -Parent
+if (-not (Test-Path $profileDir)) {
+    New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+}
+
+# Link PowerShell profile
+$dotfilesProfile = "$HOME\.config\powershell\profile.ps1"
+if (Test-Path $dotfilesProfile) {
+    if (-not (Test-Path $PROFILE)) {
+        Write-Host "  Creating PowerShell profile symlink..." -ForegroundColor Gray
+        # Copy instead of symlink for better compatibility
+        Copy-Item $dotfilesProfile $PROFILE -Force
+        Write-Host "  ✓ PowerShell profile installed" -ForegroundColor Green
+    } else {
+        Write-Host "  PowerShell profile already exists, skipping" -ForegroundColor Gray
+    }
+}
+
+Write-Host "[3/7] Setting up Windows Terminal..." -ForegroundColor Yellow
+
+# Link Windows Terminal settings
+$wtSettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+$wtSettingsDir = Split-Path $wtSettingsPath -Parent
+$dotfilesWtSettings = "$HOME\.config\windows-terminal\settings.json"
+
+if (Test-Path $dotfilesWtSettings) {
+    if (Test-Path $wtSettingsDir) {
+        if (-not (Test-Path $wtSettingsPath)) {
+            Write-Host "  Installing Windows Terminal settings..." -ForegroundColor Gray
+            Copy-Item $dotfilesWtSettings $wtSettingsPath -Force
+            Write-Host "  ✓ Windows Terminal settings installed" -ForegroundColor Green
+        } else {
+            Write-Host "  Windows Terminal settings already exist, skipping" -ForegroundColor Gray
+        }
+    } else {
+        Write-Host "  Windows Terminal not installed, skipping" -ForegroundColor Gray
+    }
+}
+
+Write-Host "[4/7] Setting up Git configuration..." -ForegroundColor Yellow
+
+# Git config is already managed by yadm in $HOME/.gitconfig
+if (Test-Path "$HOME\.gitconfig") {
+    Write-Host "  ✓ Git configuration found" -ForegroundColor Green
+} else {
+    Write-Host "  No .gitconfig found in dotfiles" -ForegroundColor Gray
+}
+
+Write-Host "[5/7] Installing/Updating development tools..." -ForegroundColor Yellow
+
+# Check if winget is available
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Write-Host "  Checking for winget updates..." -ForegroundColor Gray
+
+    # List of recommended tools
+    $tools = @(
+        @{id="Git.Git"; name="Git"},
+        @{id="Microsoft.PowerShell"; name="PowerShell 7+"},
+        @{id="Microsoft.WindowsTerminal"; name="Windows Terminal"},
+        @{id="Microsoft.VisualStudioCode"; name="VS Code"}
+    )
+
+    foreach ($tool in $tools) {
+        $installed = winget list --id $tool.id --exact 2>&1 | Select-String $tool.id
+        if ($installed) {
+            Write-Host "  ✓ $($tool.name) already installed" -ForegroundColor Green
+        } else {
+            Write-Host "  $($tool.name) not found - install with: winget install $($tool.id)" -ForegroundColor Yellow
+        }
+    }
+} else {
+    Write-Host "  winget not available, skipping tool check" -ForegroundColor Gray
+}
+
+Write-Host "[6/7] Setting up Scripts..." -ForegroundColor Yellow
+
+# Enable PowerShell script execution if needed
+$executionPolicy = Get-ExecutionPolicy -Scope CurrentUser
+if ($executionPolicy -eq 'Restricted' -or $executionPolicy -eq 'Undefined') {
+    Write-Host "  PowerShell execution policy is $executionPolicy" -ForegroundColor Yellow
+    Write-Host "  Run Scripts\allow-scripts.cmd to enable script execution" -ForegroundColor Yellow
+} else {
+    Write-Host "  ✓ PowerShell execution policy: $executionPolicy" -ForegroundColor Green
+}
+
+# Make Scripts directory accessible
+$scriptsPath = "$HOME\Scripts"
+if (Test-Path $scriptsPath) {
+    Write-Host "  ✓ Scripts directory found at $scriptsPath" -ForegroundColor Green
+
+    # Add Scripts to PATH if not already there
+    $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+    if ($userPath -notlike "*$scriptsPath*") {
+        Write-Host "  Add Scripts to PATH? (y/N): " -ForegroundColor Yellow -NoNewline
+        $response = Read-Host
+        if ($response -eq 'y' -or $response -eq 'Y') {
+            [Environment]::SetEnvironmentVariable('Path', "$userPath;$scriptsPath", 'User')
+            Write-Host "  ✓ Added Scripts to PATH" -ForegroundColor Green
+        }
+    }
+}
+
+Write-Host "[7/7] Final setup..." -ForegroundColor Yellow
+
+# Create common directories
+$commonDirs = @(
+    "$HOME\.local\bin",
+    "$HOME\.cache",
+    "$HOME\Projects"
+)
+
+foreach ($dir in $commonDirs) {
+    if (-not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        Write-Host "  ✓ Created $dir" -ForegroundColor Green
+    }
+}
+
+Write-Host ""
+Write-Host "=====================================" -ForegroundColor Cyan
+Write-Host "  Bootstrap Complete!" -ForegroundColor Cyan
+Write-Host "=====================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "  1. Restart your terminal to load the new profile" -ForegroundColor White
+Write-Host "  2. Run 'Scripts\allow-scripts.cmd' if you haven't already" -ForegroundColor White
+Write-Host "  3. Review and customize your dotfiles as needed" -ForegroundColor White
+Write-Host ""
+Write-Host "Useful commands:" -ForegroundColor Yellow
+Write-Host "  yadm status    - Check dotfiles status" -ForegroundColor White
+Write-Host "  yadm add <file> - Track a new dotfile" -ForegroundColor White
+Write-Host "  yadm commit    - Commit changes" -ForegroundColor White
+Write-Host "  yadm push      - Push to remote" -ForegroundColor White
+Write-Host ""
