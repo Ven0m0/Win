@@ -30,7 +30,7 @@ cmd /c "reg add `"HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling`" 
 
 # usb overclock with secure boot regedit
 cmd /c "reg add `"HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy`" /v `"WHQLSettings`" /t REG_DWORD /d `"1`" /f >nul 2>&1"
-
+reg add "HKCU\Control Panel\Mouse" /v "RawMouseThrottleEnabled" /t REG_DWORD /d "0" /f | Out-Null
 
 Write-Host "Network Adapter"
 $progresspreference = 'silentlycontinue'
