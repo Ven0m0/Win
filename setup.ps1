@@ -45,7 +45,10 @@ Write-Host "Installing editors..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
 winget install Microsoft.VisualStudioCode -h
 winget install Microsoft.Edit -h
-
+winget install Git.Git
+winget install Microsoft.PowerShell
+winget install Microsoft.WindowsTerminal
+winget install yadm
 Write-Host "Installing Browser..." -ForegroundColor Cyan
 winget install --id=Mozilla.Firefox -e -h
 
@@ -104,7 +107,6 @@ chkdsk /scan
 Remove-Item -Path "$env:USERPROFILE\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$env:WINDIR\TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$env:SystemDrive\Windows\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
-
 # Clear other temporary locations
 Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue
@@ -134,22 +136,18 @@ foreach ($path in $nvidiaPaths) {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-
 # Remove NVIDIA NetService executables
 if (Test-Path "$env:ALLUSERSPROFILE\NVIDIA Corporation\NetService") {
     Remove-Item -Path "$env:ALLUSERSPROFILE\NVIDIA Corporation\NetService\*.exe" -Force -ErrorAction SilentlyContinue
 }
-
 # Remove the Office installation cache (usually around ~1.5 GB)
 if (Test-Path "$env:SystemDrive\MSOCache") {
     Remove-Item -Path "$env:SystemDrive\MSOCache" -Recurse -Force -ErrorAction SilentlyContinue
 }
-
 # Remove the Windows installation cache (can be up to 1.0 GB)
 if (Test-Path "$env:SystemDrive\i386") {
     Remove-Item -Path "$env:SystemDrive\i386" -Recurse -Force -ErrorAction SilentlyContinue
 }
-
 # Empty all recycle bins
 $recyclePaths = @(
     "$env:SystemDrive\RECYCLER",
@@ -160,10 +158,8 @@ foreach ($path in $recyclePaths) {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-
 # Clear MUI cache
 reg delete "HKCU\SOFTWARE\Classes\Local Settings\Muicache" /f 2>&1 | Out-Null
-
 # Clear queued and archived Windows Error Reporting (WER) reports
 $werPaths = @(
     "$env:ALLUSERSPROFILE\Microsoft\Windows\WER\ReportArchive",
@@ -174,7 +170,6 @@ foreach ($path in $werPaths) {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-
 # Clear Windows Defender Scan Results
 $defenderPaths = @(
     "$env:ALLUSERSPROFILE\Microsoft\Windows Defender\Scans\History\Results\Quick",
@@ -185,23 +180,19 @@ foreach ($path in $defenderPaths) {
         Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
-
 # Clear Windows Search Temp Data
 if (Test-Path "$env:ALLUSERSPROFILE\Microsoft\Search\Data\Temp") {
     Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Search\Data\Temp" -Recurse -Force -ErrorAction SilentlyContinue
 }
-
 # Windows update logs & built-in backgrounds
 $winFiles = @('*.log', '*.txt', '*.bmp', '*.tmp')
 foreach ($pattern in $winFiles) {
     Remove-Item -Path "$env:WINDIR\$pattern" -Force -ErrorAction SilentlyContinue
 }
-
 # Remove Dell wallpapers
 if (Test-Path "$env:WINDIR\Web\Wallpaper\Dell") {
     Remove-Item -Path "$env:WINDIR\Web\Wallpaper\Dell" -Recurse -Force -ErrorAction SilentlyContinue
 }
-
 # Windows CBS logs
 Remove-Item -Path "$env:WINDIR\logs\CBS\*" -Force -ErrorAction SilentlyContinue 
 
