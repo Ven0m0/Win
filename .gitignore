@@ -209,8 +209,6 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
-
-## Test/Profiler/coverage
 _Chutzpah*
 *.psess
 *.vsp
@@ -294,6 +292,3 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .nfs*
-
-# Uncomment if needed
-#bower_components/
