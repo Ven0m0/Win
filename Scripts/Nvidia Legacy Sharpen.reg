@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; enable nvidia legacy sharpen
+; old location
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableGR535"=dword:00000000
+
+; new location
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS]
+"EnableGR535"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
+"EnableGR535"=dword:00000000
