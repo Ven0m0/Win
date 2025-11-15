@@ -8,6 +8,10 @@
 - https://github.com/ntdevlabs/tiny11builder
 
 
+## NVIDIA
+- https://github.com/Ixeoz/nvidiaProfileInspector-UNLOCKED
+- https://github.com/Orbmu2k/nvidiaProfileInspector
+
 
 
 ### Credit:
