@@ -1,30 +1,21 @@
 # Git Configuration
-# Managed by yadm
-# This is a template - copy to .gitconfig and customize
-
 [user]
-	name = Your Name
-	email = your.email@example.com
-
+	name = Ven0m0
+	email = ven0m0.wastaken@gmail.com
 [core]
 	editor = code --wait
 	autocrlf = true
 	whitespace = trailing-space,space-before-tab
-	excludesfile = ~/.gitignore_global
-
+	excludesfile = ~/.gitignore
 [init]
 	defaultBranch = main
-
 [pull]
-	rebase = false
-
+	rebase = true
 [push]
 	default = current
 	autoSetupRemote = true
-
 [fetch]
 	prune = true
-
 [alias]
 	# Shortcuts
 	st = status
@@ -32,58 +23,45 @@
 	br = branch
 	ci = commit
 	unstage = reset HEAD --
-
 	# Logging
 	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	last = log -1 HEAD
 	hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
-
 	# Diff
 	df = diff
 	dc = diff --cached
-
 	# Useful commands
 	amend = commit --amend --no-edit
 	undo = reset --soft HEAD~1
 	discard = checkout --
 	cleanup = !git branch --merged | grep -v '\\*\\|main\\|master\\|develop' | xargs -n 1 git branch -d
-
 [color]
 	ui = auto
-
 [color "branch"]
 	current = yellow reverse
 	local = yellow
 	remote = green
-
 [color "diff"]
 	meta = yellow bold
 	frag = magenta bold
 	old = red
 	new = green
-
 [color "status"]
 	added = yellow
 	changed = green
 	untracked = cyan
-
 [diff]
 	tool = vscode
-
 [difftool "vscode"]
 	cmd = code --wait --diff $LOCAL $REMOTE
-
 [merge]
 	tool = vscode
 	conflictstyle = diff3
-
 [mergetool "vscode"]
 	cmd = code --wait $MERGED
-
 # Windows specific
 [credential]
 	helper = manager-core
-
 # Include local overrides (not tracked by yadm)
 [include]
 	path = ~/.gitconfig.local
