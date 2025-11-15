@@ -1,10 +1,15 @@
 ## ------------------------
-## Git
+## Git & yadm
 ## ------------------------
 .git/
 .git
 .github-personal-access-token
 .gitconfig.local
+.gitconfig
+.yadm/
+
+## Local dotfile customizations (not tracked)
+.config/powershell/local.ps1
 
 ## Visual Studio & Windows
 *.bak
