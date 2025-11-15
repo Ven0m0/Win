@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "redhat.vscode-yaml",
+        "EditorConfig.EditorConfig",
+        "ms-vscode.powershell",
+        "davidanson.vscode-markdownlint"
+    ]
+}
