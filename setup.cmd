@@ -60,13 +60,13 @@ timeout 1
 echo Cleanup...
 Dism /Cleanup-Mountpoints
 DISM /CleanUp-Wim
+DISM Online /Cleanup-Image /RestoreHealth
 del /F /Q /S "%WINDIR%\TEMP\*"
 del /F /Q /S "%temp%\*"
 del /F /Q /S "%WINDIR%\Prefetch\*"
 del /F /Q /S "%WINDIR%\Logs" 
 del /F /Q /S "%userprofile%\AppData\Local\cache" 
 rmdir /Q /S %SystemDrive%\Temp 
-
 
 
 :: Root drive garbage
@@ -114,6 +114,6 @@ Reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration
 Reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f
 Reg add "HKLM\SYSTEM\CurrentControlSet\Policies" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f
 fsutil behavior set disablecompression 0
-Dism /Cleanup-Image /StartComponentCleanup /ResetBase
+Dism Online /Cleanup-Image /StartComponentCleanup /ResetBase
 
 exit /b 0
