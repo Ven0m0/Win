@@ -1,0 +1,12 @@
+{
+    "$schema": "https://aka.ms/winget-settings.schema.json",
+    "telemetry": {
+        "disable": true
+    },
+   "experimentalFeatures": {
+       "directMSI": true
+   },
+    "installBehavior": {
+        "skipDependencies": false
+    },
+}
