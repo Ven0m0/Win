@@ -20,13 +20,11 @@ end_of_line = crlf
 # =============================================================================
 # C/C++
 [**.{c,cc,cpp,cxx,h,hpp,hxx}]
-indent_style = space
 indent_size = 4
 max_line_length = 100
 
 # C#
 [**.cs]
-indent_style = space
 indent_size = 4
 
 # Go (requires tabs)
@@ -37,32 +35,22 @@ tab_width = 4
 
 # Rust
 [**.rs,Cargo.toml,Cargo.lock]
-indent_style = space
 indent_size = 4
 max_line_length = 100
 
 # Zig
 [**.zig]
-indent_style = space
 indent_size = 4
 
 # Python
 [**.{py,pyw,pyi}]
-indent_style = space
 indent_size = 4
 max_line_length = 88
 quote_type = double
 
-# Ruby
-[**.rb,Gemfile,Rakefile]
-indent_style = space
-indent_size = 2
-
 # Java
 [**.java]
-indent_style = space
 indent_size = 4
-max_line_length = 120
 
 # JavaScript/TypeScript
 [**.{js,mjs,cjs,jsx}]
@@ -73,12 +61,10 @@ quote_type = single
 
 # PHP
 [**.php]
-indent_style = space
 indent_size = 4
 
 # Perl
 [**.{pl,pm}]
-indent_style = space
 indent_size = 4
 
 # =============================================================================
