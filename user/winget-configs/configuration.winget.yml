@@ -16,9 +16,9 @@
    },
     "installBehavior": {
         "skipDependencies": false,
-        "disableInstallNotes": true
-        "archiveExtractionMethod": "tar" | "shellApi"
-        "maxResumes": 3
+        "disableInstallNotes": true,
+        "archiveExtractionMethod": "tar" | "shellApi",
+        "maxResumes": 3,
         "preferences": {
           "scope": "machine",
           "locale": [ "en-US", "de-DE"],
