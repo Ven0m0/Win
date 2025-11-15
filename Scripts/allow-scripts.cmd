@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: PowerShell Script Manager - Enable or disable PowerShell script execution
+:: This script provides a user-friendly menu to manage PowerShell execution policies
+
 REM Check for administrator privileges
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
 if '%errorlevel%' NEQ '0' (
@@ -25,17 +28,24 @@ CD /D "%~dp0"
 :menu
 cls
 echo.
-echo ================================
+echo =====================================
 echo   PowerShell Script Manager
-echo ================================
+echo =====================================
 echo.
-echo 1. Scripts: On (Recommended)
-echo 2. Scripts: Off
+echo   Allows you to enable or disable
+echo   PowerShell script execution
 echo.
-set /p choice=Select option (1-2):
+echo =====================================
+echo.
+echo 1. Scripts: Enable (Recommended)
+echo 2. Scripts: Disable
+echo 3. Exit
+echo.
+set /p choice=Select option (1-3):
 
 if "%choice%"=="1" goto EnableScripts
 if "%choice%"=="2" goto DisableScripts
+if "%choice%"=="3" exit
 echo Invalid choice. Please try again.
 timeout /t 2 >nul
 goto menu
@@ -45,21 +55,28 @@ cls
 echo Enabling PowerShell scripts...
 echo.
 
-REM Allow double-click PowerShell scripts
-reg add "HKCR\Applications\powershell.exe\shell\open\command" /ve /t REG_SZ /d "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -ExecutionPolicy unrestricted -File \"%%1\"" /f >nul 2>&1
+REM Configure PowerShell to allow double-click execution
+echo [1/3] Configuring PowerShell file associations...
+reg add "HKCR\Applications\powershell.exe\shell\open\command" /ve /t REG_SZ /d "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -ExecutionPolicy Unrestricted -File \"%%1\"" /f >nul 2>&1
 
-REM Allow PowerShell scripts execution
+REM Set execution policy to Unrestricted for current user and local machine
+echo [2/3] Setting execution policy to Unrestricted...
 reg add "HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" /v "ExecutionPolicy" /t REG_SZ /d "Unrestricted" /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" /v "ExecutionPolicy" /t REG_SZ /d "Unrestricted" /f >nul 2>&1
 
-REM Unblock all files in current directory
-echo Unblocking files in current directory...
+REM Unblock all PowerShell files in the current directory and subdirectories
+echo [3/3] Unblocking all scripts in current directory...
 cd /d "%~dp0"
 powershell -NoProfile -Command "Get-ChildItem -Path '%~dp0' -Recurse -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue"
 
 echo.
-echo PowerShell scripts enabled successfully!
-echo Files in current directory have been unblocked.
+echo =====================================
+echo   PowerShell Scripts Enabled!
+echo =====================================
+echo.
+echo - Scripts can now be run by double-clicking
+echo - Execution policy set to Unrestricted
+echo - All files in this directory unblocked
 echo.
 pause
 exit
@@ -69,16 +86,23 @@ cls
 echo Disabling PowerShell scripts...
 echo.
 
-REM Disallow double-click PowerShell scripts
+REM Remove PowerShell file associations
+echo [1/2] Removing PowerShell file associations...
 reg delete "HKCR\Applications\powershell.exe" /f >nul 2>&1
 reg delete "HKCR\ps1_auto_file" /f >nul 2>&1
 
-REM Disallow PowerShell scripts execution
+REM Set execution policy to Restricted
+echo [2/2] Setting execution policy to Restricted...
 reg add "HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" /v "ExecutionPolicy" /t REG_SZ /d "Restricted" /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" /v "ExecutionPolicy" /t REG_SZ /d "Restricted" /f >nul 2>&1
 
 echo.
-echo PowerShell scripts disabled successfully!
+echo =====================================
+echo   PowerShell Scripts Disabled!
+echo =====================================
+echo.
+echo - Script execution has been restricted
+echo - Double-click execution disabled
 echo.
 pause
 exit
