@@ -25,9 +25,11 @@ winget install --id=VideoLAN.VLC -e
 winget install --id=GIMP.GIMP -e
 winget install --id=Greenshot.Greenshot -e
 winget install --id=7zip.7zip -e
+
 echo Installing editors...
 winget install --id=Notepad++.Notepad++ -e
 winget install Microsoft.VisualStudioCode
+winget install Microsoft.Edit
 
 echo Installing Browser...
 winget install --id=Mozilla.Firefox -e
