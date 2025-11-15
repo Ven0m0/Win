@@ -5,6 +5,8 @@ setlocal EnableExtensions DisableDelayedExpansion
 :: Enable ANSI Escape Sequences
 reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f
 
+cd /d %userprofile%
+
 echo Installing VCRedist...
 winget install --id=Microsoft.VCRedist.2015+.x64  -e && winget install --id=Microsoft.VCRedist.2013.x64  -e
 echo Installing DotNet runtimes...
@@ -31,5 +33,12 @@ winget install --id=Guru3D.Afterburner.Beta -e
 
 echo Installing chocolatey...
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+echo Cleanup...
+del /f /q "%ProgramFiles%\Mozilla Firefox\crashreporter.exe" 
+del /f /q "%ProgramFiles%\Mozilla Firefox\browser\features\pictureinpicture@mozilla.org.xpi"
+del /f /q "%ProgramFiles%\Mozilla Firefox\browser\features\screenshots@mozilla.org.xpi"
+del /f /q "%ProgramFiles%\Mozilla Firefox\browser\VisualElements\PrivateBrowsing_150.png"
+del /f /q "%ProgramFiles%\Mozilla Firefox\browser\VisualElements\VisualElements_150.png"
 
 exit /b 0
