@@ -1,5 +1,8 @@
+# EditorConfig: https://editorconfig.org
 root=true
-
+# =============================================================================
+# Default Settings for All Files
+# =============================================================================
 [*]
 end_of_line = crlf
 charset = utf-8
@@ -9,6 +12,28 @@ indent_style = space
 indent_size = 2
 tab_width = 2
 max_line_length = 120
+
+# =============================================================================
+# Shell Scripts
+# =============================================================================
+[**.{sh,bash},bash_*,PKGBUILD,.bash*,.profile]
+shell_variant = bash
+spaces_around_operators = true
+spaces_around_brackets = false
+keep_padding = false
+space_redirects = false
+switch_case_indent = false
+function_next_line = false
+binary_next_line = true
+
+[.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
+shell_variant = bash
+
+[.profile]
+shell_variant = posix
+
+[**.{fish,fish_*},fishd.*,fish_*]
+indent_size = 4
 
 [**.{bat,cmd,ps1,psm1}]
 indent_style = tab
