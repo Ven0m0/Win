@@ -1,4 +1,3 @@
-# https://github.com/marketplace/actions/psminifier
 name: PSMinifier
 
 on:
@@ -8,9 +7,11 @@ on:
       - main
     paths:
       - '**.ps1'
+      - '**.psm1'
   pull_request:
     paths:
       - '**.ps1'
+      - '**.psm1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,13 +27,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Minify PowerShell files
         id: minify
         uses: StartAutomating/PSMinifier@v1.1.4
         with:
-          Include: "*.ps1"
-          CommitMessage: "Minifying $($_.Name)"
+          Include: "*.ps1,*.psm1"
 
       - name: Display minification results
         if: always()
@@ -40,3 +43,22 @@ jobs:
           echo "Original Size: ${{ steps.minify.outputs.OriginalSize }}"
           echo "Minified Size: ${{ steps.minify.outputs.MinifiedSize }}"
           echo "Minified Percent: ${{ steps.minify.outputs.MinifiedPercent }}"
+
+      - name: Commit changes
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: minify PowerShell scripts [skip ci]"
+          git push
+
+      - name: Create Pull Request
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: minify PowerShell scripts"
+          title: "chore: minify PowerShell scripts"
+          body: "Automated PowerShell minification"
+          branch: minify-ps-${{ github.event.pull_request.number }}
