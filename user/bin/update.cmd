@@ -54,6 +54,21 @@ if %errorlevel% equ 0 (
 )
 echo.
 
+where rustup >nul 2>&1
+if %errorlevel% equ 0 (
+  rustup update
+  )
+)
+where cargo-install-update >nul 2>&1
+if %errorlevel% equ 0 (
+  cargo install-update -a
+  )
+)
+where bun >nul 2>&1
+if %errorlevel% equ 0 (
+  bun update -g
+  )
+)
 echo ============================================
 echo All updates complete!
 echo ============================================
