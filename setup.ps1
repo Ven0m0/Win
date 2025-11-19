@@ -36,12 +36,21 @@ winget install --id=EclipseAdoptium.Temurin.25.JRE -e -h
 Write-Host "Installing toolchains..." -ForegroundColor Cyan
 winget install --id=MartinStorsjo.LLVM-MinGW.UCRT -e -h
 winget install --id=Rustlang.Rust.MSVC -e -h
+winget install --id=Oven-sh.Bun -e -h
+winget install --id=oxc-project.oxlint -e -h
+winget install --id=BiomeJS.Biome -e -h
+winget install --id=koalaman.shellcheck -e -h
+winget install --id=ast-grep.ast-grep -e -h
+winget install --id=SQLite.SQLite -e -h
 
 Write-Host "Installing Media codecs..." -ForegroundColor Cyan
-winget install --id=CodecGuide.K-LiteCodecPack.Standard -h
+winget install --id=CodecGuide.K-LiteCodecPack.Basic -e -h
 
 Write-Host "Installing Software..." -ForegroundColor Cyan
+winget install --id=Microsoft.Sysinternals.Autoruns -e -h
+winget install --id=Sysinternals.Autologon -e -h
 winget install --id=AutoHotkey.AutoHotkey -e -h
+winget install --id=UPX.UPX -e -h
 winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
 winget install --id=tannerhelland.PhotoDemon -e -h
@@ -55,15 +64,24 @@ winget install --id=XnSoft.XnViewMP -e -h
 winget install --id=XnSoft.XnConvert -e -h
 winget install --id=Avidemux.Avidemux -e -h
 winget install --id=Nikkho.FileOptimizer -e -h
+winget install --id=xanderfrangos.crushee -e -h
+winget install --id=SaeraSoft.CaesiumImageCompressor -e -h
 winget install --id=OptiPNG.OptiPNG -e -h
+winget install --id=fhanau.Efficient-Compression-Tool -e -h
+winget install --id=Kornelski.DSSIM -e -h
 winget install --id=chaiNNer-org.chaiNNer -e -h
 winget install --id=OBSProject.OBSStudio -e -h
 winget install --id=Meltytech.Shotcut -e -h
 winget install --id=7zip.7zip -e -h
+winget install --id=Meta.Zstandard -e -h
+winget install --id=IridiumIO.CompactGUI -e -h
 winget install --id=aria2.aria2 -e -h
 winget install --id=GiantPinkRobots.Varia -e -h
+winget install --id=aandrew-me.ytDownloader -e -h
 winget install --id=DevToys-app.DevToys -e -h
 winget install --id=TimVisee.ffsend -e -h
+winget install --id=Intel.PresentMon.Beta -e -h
+winget install --id=WindowsPostInstallWizard.UniversalSilentSwitchFinder -e -h
 
 Write-Host "Installing Updaters..." -ForegroundColor Cyan
 winget install jdx.mise -h
@@ -91,6 +109,7 @@ winget install --id=CodeSector.TeraCopy -e -h
 Write-Host "Installing cli-tools..." -ForegroundColor Cyan
 winget install --id=eza-community.eza -e -h
 winget install --id=BurntSushi.ripgrep.MSVC  -e -h
+winget install --id=Genivia.ugrep -e -h
 winget install --id=sharkdp.fd -e -h
 winget install --id=sharkdp.bat -e -h
 winget install --id=dandavison.delta -e -h
@@ -103,7 +122,11 @@ winget install --id=Ablaze.Floorp -e -h
 Write-Host "Game setup..." -ForegroundColor Cyan
 winget install --id=HeroicGamesLauncher.HeroicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
+winget install --id=MoonlightGameStreamingProject.Moonlight -e -h
 winget install --id=smartfrigde.Legcord -e -h
+winget install --id=PolyMC.PolyMC -e -h
+winget install --id=Cemu.Cemu -e -h
+winget install --id=Modrinth.ModrinthApp -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
