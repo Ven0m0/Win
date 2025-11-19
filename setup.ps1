@@ -39,8 +39,22 @@ winget install --id=AutoHotkey.AutoHotkey -e -h
 winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
 winget install --id=Greenshot.Greenshot -e -h
+winget install --id=Gyan.FFmpeg -e -h
+winget install --id=eibol.FFmpegBatchAVConverter -e -h
+winget install --id=HandBrake.HandBrake -e -h
+winget install --id=OBSProject.OBSStudio -e -h
+winget install --id=Meltytech.Shotcut -e -h
 winget install --id=7zip.7zip -e -h
 winget install --id=aria2.aria2 -e -h
+winget install --id=DevToys-app.DevToys -e -h
+winget install --id=TimVisee.ffsend -e -h
+winget install jdx.mise -h
+# scoop install mise
+# choco install mise
+winget install --id=topgrade-rs.topgrade -e -h
+winget install --id=MartiCliment.UniGetUI -e -h
+winget install --id chocolatey.chocolatey --source winget -h
+winget install --id=Chocolatey.ChocolateyGUI -e -h
 
 Write-Host "Installing Code environment..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
@@ -75,10 +89,12 @@ Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | ForEach-Object {
     Add-AppxPackage -DisableDevelopmentMode -Register -ErrorAction SilentlyContinue "$($_.InstallLocation)\AppXManifest.xml"
 }
 
-Write-Host "Installing Chocolatey..." -ForegroundColor Cyan
-Set-ExecutionPolicy Bypass -Scope Process -Force
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+Write-Host "Installing Scoop..." -ForegroundColor Cyan
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+irm get.scoop.sh -outfile 'install.ps1'
+.\install.ps1 -NoProxy | Out-Null
+Start-Sleep -Seconds 1
+scoop bucket add extras
 Start-Sleep -Seconds 1
 
 Write-Host "Cleaning Firefox..." -ForegroundColor Cyan
