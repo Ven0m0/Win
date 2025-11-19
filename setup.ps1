@@ -50,7 +50,9 @@ winget install CodeF0x.ffzap -h
 winget install PaulPacifico.ShutterEncoder -h
 winget install --id=eibol.FFmpegBatchAVConverter -e -h
 winget install --id=HandBrake.HandBrake -e -h
-winget install --id=Avidemux.Avidemux  -e -h
+winget install --id=XnSoft.XnViewMP -e -h
+winget install --id=XnSoft.XnConvert -e -h
+winget install --id=Avidemux.Avidemux -e -h
 winget install --id=OBSProject.OBSStudio -e -h
 winget install --id=Meltytech.Shotcut -e -h
 winget install --id=7zip.7zip -e -h
