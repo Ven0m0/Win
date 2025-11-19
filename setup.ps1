@@ -55,7 +55,7 @@ winget install --id=Mozilla.Firefox -e -h
 Write-Host "Game setup..." -ForegroundColor Cyan
 winget install --id=EpicGames.EpicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
-winget install --id=Discord.Discord -e -h
+winget install --id=smartfrigde.Legcord -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
