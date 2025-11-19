@@ -30,6 +30,8 @@ winget install --id=Microsoft.XNARedist -e -h
 
 Write-Host "Installing Java..." -ForegroundColor Cyan
 winget install --id=Oracle.JavaRuntimeEnvironment -e -h
+winget install --id=EclipseAdoptium.Temurin.21.JRE -e -h
+winget install --id=EclipseAdoptium.Temurin.25.JRE -e -h
 
 Write-Host "Installing Media codecs..." -ForegroundColor Cyan
 winget install --id=CodecGuide.K-LiteCodecPack.Standard -h
@@ -61,10 +63,21 @@ winget install --id=Notepad++.Notepad++ -e -h
 winget install --id=VSCodium.VSCodium -e -h
 winget install Microsoft.Edit -h
 winget install Git.Git -h
+winget install --id=GitHub.cli -e -h
+winget install --id=evilmartians.lefthook -e -h
 winget install yadm -h
 winget install Microsoft.PowerShell -h
 winget install Microsoft.WindowsTerminal -h
 winget install --id=Rustlang.Rust.MSVC -e -h
+
+Write-Host "Installing cli-tools..." -ForegroundColor Cyan
+winget install --id=eza-community.eza -e -h
+winget install --id=BurntSushi.ripgrep.MSVC  -e -h
+winget install --id=sharkdp.fd -e -h
+winget install --id=sharkdp.bat -e -h
+winget install --id=dandavison.delta -e -h
+winget install --id=Starship.Starship -e -h
+winget install --id=JanDeDobbeleer.OhMyPosh -e -h
 
 Write-Host "Installing Browser..." -ForegroundColor Cyan
 winget install --id=Ablaze.Floorp -e -h
@@ -73,6 +86,7 @@ Write-Host "Game setup..." -ForegroundColor Cyan
 winget install --id=HeroicGamesLauncher.HeroicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
 winget install --id=smartfrigde.Legcord -e -h
+winget install --id=GorillaDevs.Ferium -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
