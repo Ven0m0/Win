@@ -40,6 +40,7 @@ winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
 winget install --id=Greenshot.Greenshot -e -h
 winget install --id=7zip.7zip -e -h
+winget install --id=aria2.aria2 -e -h
 
 Write-Host "Installing Code environment..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
