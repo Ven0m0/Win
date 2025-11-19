@@ -45,7 +45,9 @@ winget install --id=AutoHotkey.AutoHotkey -e -h
 winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
 winget install --id=Greenshot.Greenshot -e -h
-winget install --id=Gyan.FFmpeg -e -h
+winget install "FFmpeg (Essentials Build)" -h
+winget install CodeF0x.ffzap -h
+winget install PaulPacifico.ShutterEncoder -h
 winget install --id=eibol.FFmpegBatchAVConverter -e -h
 winget install --id=HandBrake.HandBrake -e -h
 winget install --id=Avidemux.Avidemux  -e -h
