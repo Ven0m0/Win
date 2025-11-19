@@ -116,6 +116,8 @@ winget install --id=ViGEm.ViGEmBus -e -h
 winget install --id=lostindark.DriverStoreExplorer -e -h
 winget install --id=Microsoft.EdgeDriver -e -h
 winget install --id=Recol.DLSSUpdater -e -h
+irm http://offset-power.net/GMKDriver/setup.exe -outfile 'gmk.exe'
+.\gmk.exe | Out-Null
 
 Write-Host "Misc..." -ForegroundColor Cyan
 winget install --id=Nlitesoft.NTLite -e -h
