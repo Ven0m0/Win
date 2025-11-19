@@ -41,19 +41,21 @@ winget install --id=GIMP.GIMP -e -h
 winget install --id=Greenshot.Greenshot -e -h
 winget install --id=7zip.7zip -e -h
 
-Write-Host "Installing editors..." -ForegroundColor Cyan
+Write-Host "Installing Code environment..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
-winget install Microsoft.VisualStudioCode -h
+winget install --id=VSCodium.VSCodium -e -h
 winget install Microsoft.Edit -h
-winget install Git.Git
-winget install Microsoft.PowerShell
-winget install Microsoft.WindowsTerminal
-winget install yadm
+winget install Git.Git -h
+winget install yadm -h
+winget install Microsoft.PowerShell -h
+winget install Microsoft.WindowsTerminal -h
+winget install --id=Rustlang.Rust.MSVC -e -h
+
 Write-Host "Installing Browser..." -ForegroundColor Cyan
-winget install --id=Mozilla.Firefox -e -h
+winget install --id=Ablaze.Floorp -e -h
 
 Write-Host "Game setup..." -ForegroundColor Cyan
-winget install --id=EpicGames.EpicGamesLauncher -e -h
+winget install --id=HeroicGamesLauncher.HeroicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
 winget install --id=smartfrigde.Legcord -e -h
 
