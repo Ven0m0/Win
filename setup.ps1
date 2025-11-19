@@ -128,6 +128,7 @@ winget install --id=PrismLauncher.PrismLauncher -e -h
 winget install --id=Cemu.Cemu -e -h
 winget install --id=Modrinth.ModrinthApp -e -h
 winget install --id=Playnite.Playnite -e -h
+winget install --id=DevelopedMethods.playit -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
