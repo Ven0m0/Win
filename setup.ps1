@@ -145,6 +145,21 @@ Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction Silently
 Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$env:USERPROFILE\AppData\Local\cache\*" -Recurse -Force -ErrorAction SilentlyContinue
 
+set ODrive=%userprofile%\OneDrive
+cd /d %~dp0
+del /s /f /q %ODrive%\.bak
+del /s /f /q %ODrive%\*LOG
+del /s /f /q %ODrive%\*.old
+del /s /f /q %ODrive%\*.trace
+del /s /f /q %ODrive%\*.tmp
+rmdir /s /q "%ODrive%\Backup\Program\Win\Tools\NTLite\Cache"
+rmdir /s /q "%ODrive%\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\logs"
+del /s /f /q "%ODrive%\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\drivers"
+# Remove useless scaling factors
+for /r "%ODrive%" %%f in (chrome_200_percent.pak) do del /f /q "%%f"
+for /r "%ODrive%" %%f in (chrome_300_percent.pak) do del /f /q "%%f"
+for /r "%ODrive%" %%f in (chrome_400_percent.pak) do del /f /q "%%f"
+
 # Open disk cleanup
 Start-Process cleanmgr.exe
 
