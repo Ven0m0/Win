@@ -10,7 +10,7 @@ $null = reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f 
 Set-Location -Path $env:USERPROFILE -ErrorAction SilentlyContinue
 
 Write-Host "Winget updates..." -ForegroundColor Cyan
-winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy
+winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 
 
 Write-Host "Installing VCRedist..." -ForegroundColor Cyan
 winget install --id=Microsoft.VCRedist.2015+.x64 -e -h
@@ -356,6 +356,13 @@ $null = reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v "NtfsDisab
 $null = reg add "HKLM\SYSTEM\CurrentControlSet\Policies" /v "NtfsDisableCompression" /t REG_DWORD /d "0" /f 2>&1
 fsutil behavior set disablecompression 0
 Dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
+
+# Final updates
+winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements  --include-unknown --force --purge --disable-interactivity --nowarn --no-proxy
+scoop update -a
+choco upgrade all -y
+pip freeze > requirements.txt
+pip install -r requirements.txt --upgrade
 
 Write-Host "Setup completed successfully!" -ForegroundColor Green
 exit 0
