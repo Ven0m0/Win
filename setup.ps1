@@ -33,6 +33,10 @@ winget install --id=Oracle.JavaRuntimeEnvironment -e -h
 winget install --id=EclipseAdoptium.Temurin.21.JRE -e -h
 winget install --id=EclipseAdoptium.Temurin.25.JRE -e -h
 
+Write-Host "Installing toolchains..." -ForegroundColor Cyan
+winget install --id=MartinStorsjo.LLVM-MinGW.UCRT -e -h
+winget install --id=Rustlang.Rust.MSVC -e -h
+
 Write-Host "Installing Media codecs..." -ForegroundColor Cyan
 winget install --id=CodecGuide.K-LiteCodecPack.Standard -h
 
@@ -52,6 +56,8 @@ winget install --id=aria2.aria2 -e -h
 winget install --id=GiantPinkRobots.Varia -e -h
 winget install --id=DevToys-app.DevToys -e -h
 winget install --id=TimVisee.ffsend -e -h
+
+Write-Host "Installing Updaters..." -ForegroundColor Cyan
 winget install jdx.mise -h
 # scoop install mise
 # choco install mise
@@ -59,6 +65,7 @@ winget install --id=topgrade-rs.topgrade -e -h
 winget install --id=MartiCliment.UniGetUI -e -h
 winget install --id chocolatey.chocolatey --source winget -h
 winget install --id=Chocolatey.ChocolateyGUI -e -h
+winget install --id=GorillaDevs.Ferium -e -h
 
 Write-Host "Installing Code environment..." -ForegroundColor Cyan
 winget install --id=Notepad++.Notepad++ -e -h
@@ -71,7 +78,6 @@ winget install yadm -h
 winget install --id=MathiasCodes.Winstow  -e -h
 winget install Microsoft.PowerShell -h
 winget install Microsoft.WindowsTerminal -h
-winget install --id=Rustlang.Rust.MSVC -e -h
 
 Write-Host "Installing cli-tools..." -ForegroundColor Cyan
 winget install --id=eza-community.eza -e -h
@@ -89,7 +95,6 @@ Write-Host "Game setup..." -ForegroundColor Cyan
 winget install --id=HeroicGamesLauncher.HeroicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
 winget install --id=smartfrigde.Legcord -e -h
-winget install --id=GorillaDevs.Ferium -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
