@@ -297,3 +297,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .nfs*
+
+## Large config files (downloaded separately via Scripts/Download-LargeAssets.ps1)
+user/.dotfiles/config/msi-afterburner/Skins/defaultX.uxf
+user/.dotfiles/config/bleachbit/winapp2.ini

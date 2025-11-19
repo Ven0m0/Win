@@ -14,18 +14,3 @@ updates:
       timezone: "Europe/Berlin"
       time: "04:00"
     rebase-strategy: "auto"
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      timezone: "Europe/Berlin"
-      time: "04:00"
-    ignore:
-      - dependency-name: "pip"
-    rebase-strategy: "auto"
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      timezone: "Europe/Berlin"
-      time: "04:00"
