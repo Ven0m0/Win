@@ -36,7 +36,7 @@ winget install --id=EclipseAdoptium.Temurin.25.JRE -e -h
 Write-Host "Installing toolchains..." -ForegroundColor Cyan
 winget install --id=MartinStorsjo.LLVM-MinGW.UCRT -e -h
 winget install --id=Rustlang.Rust.MSVC -e -h
-winget install --id=astral-sh.uv -e -h
+winget install --id=astral-sh.uv -e -h && uv python install
 winget install --id=Oven-sh.Bun -e -h
 winget install --id=oxc-project.oxlint -e -h
 winget install --id=BiomeJS.Biome -e -h
