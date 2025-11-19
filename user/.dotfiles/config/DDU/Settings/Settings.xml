@@ -20,8 +20,8 @@
 		<RemoveIntelNpu>True</RemoveIntelNpu>
 		<RemoveAMDCP>True</RemoveAMDCP>
 		<UseRoamingConfig>False</UseRoamingConfig>
-		<CheckUpdates>False</CheckUpdates>
-		<CreateRestorePoint>False</CreateRestorePoint>
+		<CheckUpdates>True</CheckUpdates>
+		<CreateRestorePoint>True</CreateRestorePoint>
 		<SaveLogs>False</SaveLogs>
 		<RemoveVulkan>False</RemoveVulkan>
 		<ShowOffer>False</ShowOffer>
