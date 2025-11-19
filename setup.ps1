@@ -109,6 +109,7 @@ winget install --id=SingularLabs.CCEnhancer -e -h
 winget install --id=szTheory.exifcleaner -e -h
 winget install --id=RevoUninstaller.RevoUninstaller -e -h
 winget install --id=Klocman.BulkCrapUninstaller -e -h
+winget install --id=WinDirStat.WinDirStat -e -h
 
 Write-Host "Drivers..." -ForegroundColor Cyan
 winget install --id=GlennDelahoy.SnappyDriverInstallerOrigin -e -h
