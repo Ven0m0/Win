@@ -56,6 +56,7 @@ winget install --id=XnSoft.XnConvert -e -h
 winget install --id=Avidemux.Avidemux -e -h
 winget install --id=Nikkho.FileOptimizer -e -h
 winget install --id=OptiPNG.OptiPNG -e -h
+winget install --id=chaiNNer-org.chaiNNer -e -h
 winget install --id=OBSProject.OBSStudio -e -h
 winget install --id=Meltytech.Shotcut -e -h
 winget install --id=7zip.7zip -e -h
