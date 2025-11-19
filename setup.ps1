@@ -86,6 +86,7 @@ winget install yadm -h
 winget install --id=MathiasCodes.Winstow  -e -h
 winget install Microsoft.PowerShell -h
 winget install Microsoft.WindowsTerminal -h
+winget install --id=CodeSector.TeraCopy -e -h
 
 Write-Host "Installing cli-tools..." -ForegroundColor Cyan
 winget install --id=eza-community.eza -e -h
