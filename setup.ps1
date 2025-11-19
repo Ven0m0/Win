@@ -1,6 +1,21 @@
-If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit
+#Requires -RunAsAdministrator
+
+# Windows Setup Script - Automated installation of development tools and software
+# Optimized for silent installation and error handling
+
+# Import common functions if available
+if (Test-Path "$PSScriptRoot\Scripts\Common.ps1") {
+    . "$PSScriptRoot\Scripts\Common.ps1"
+    Request-AdminElevation
+    Initialize-ConsoleUI -Title "Windows Setup Script (Administrator)"
+} else {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+        Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+        Exit
+    }
+    $Host.UI.RawUI.WindowTitle = "Windows Setup Script (Administrator)"
+    $Host.UI.RawUI.BackgroundColor = "Black"
+    Clear-Host
 }
 
 # Enable ANSI Escape Sequences
@@ -9,8 +24,17 @@ $null = reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f 
 # Set location to user profile
 Set-Location -Path $env:USERPROFILE -ErrorAction SilentlyContinue
 
-Write-Host "Winget updates..." -ForegroundColor Cyan
-winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 
+# Configure error handling
+$ErrorActionPreference = 'Continue'
+$ProgressPreference = 'SilentlyContinue'
+
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  Windows Setup & Installation Script" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "[1/10] Updating existing packages..." -ForegroundColor Cyan
+winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 2>&1 | Out-Null 
 
 Write-Host "Installing VCRedist..." -ForegroundColor Cyan
 winget install --id=Microsoft.VCRedist.2015+.x64 -e -h
