@@ -17,11 +17,76 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  statuses: write
 
 jobs:
   megalinter:
     name: Run MegaLinter
-    uses: Ven0m0/.github/.github/workflows/mega-linter.yml@main
-    with:
-      exclude_dirs: '.github,.git,.cache,go,node_modules,.var,.rustup,.wine,.zim,.void-editor,.vscode,.claude'
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: MegaLinter
+        id: ml
+        uses: oxsecurity/megalinter@v8
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLY_FIXES: all
+          APPLY_FIXES_EVENT: all
+          APPLY_FIXES_MODE: commit
+          DEFAULT_BRANCH: main
+          FILTER_REGEX_EXCLUDE: '(\.github|\.git|\.cache|go|node_modules|\.var|\.rustup|\.wine|\.zim|\.void-editor|\.vscode|\.claude)/.*'
+          ENABLE_LINTERS: YAML_YAMLLINT,YAML_PRETTIER,JSON_JSONLINT,JSON_PRETTIER,JSON_V8R,TOML_TOML_LINT,XML_XMLLINT,BASH_SHELLCHECK,BASH_SHFMT,BASH_SHELLHARDEN,POWERSHELL_POWERSHELL,POWERSHELL_POWERSHELL_FORMATTER
+          YAML_YAMLLINT_FILTER_REGEX_INCLUDE: '\.(ya?ml)$'
+          JSON_JSONLINT_FILTER_REGEX_INCLUDE: '\.(json)$'
+          TOML_TOML_LINT_FILTER_REGEX_INCLUDE: '\.(toml)$'
+          XML_XMLLINT_FILTER_REGEX_INCLUDE: '\.(xml)$'
+          BASH_SHELLCHECK_FILTER_REGEX_INCLUDE: '\.(sh|bash)$'
+          POWERSHELL_POWERSHELL_FILTER_REGEX_INCLUDE: '\.(ps1|psm1|psd1)$'
+          YAML_PRETTIER_ARGUMENTS: '--write'
+          JSON_PRETTIER_ARGUMENTS: '--write'
+          BASH_SHFMT_ARGUMENTS: '-w -i 2 -ci -sr'
+          BASH_SHELLCHECK_ARGUMENTS: '-S style -o all'
+          LOG_LEVEL: INFO
+
+      - name: Archive production artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MegaLinter-reports
+          path: |
+            megalinter-reports
+            mega-linter.log
+
+      - name: Commit and push fixes
+        if: steps.ml.outputs.has_updated_sources == 1 && github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: apply MegaLinter fixes [skip ci]"
+          git push
+
+      - name: Create Pull Request with fixes
+        if: steps.ml.outputs.has_updated_sources == 1 && github.event_name == 'pull_request'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: apply MegaLinter fixes"
+          title: "chore: apply MegaLinter fixes"
+          body: |
+            This PR applies automated fixes from MegaLinter.
+
+            Linters applied:
+            - YAML (yamllint, prettier)
+            - JSON (jsonlint, prettier)
+            - TOML (toml-lint)
+            - XML (xmllint)
+            - Shell (shellcheck, shfmt, shellharden)
+            - PowerShell (PSScriptAnalyzer, formatter)
+          branch: megalinter-fixes-${{ github.event.pull_request.number }}
