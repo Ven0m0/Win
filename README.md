@@ -3,6 +3,7 @@
 - [Winget](https://winstall.app)
 - [Scoop](https://scoop.sh)
 - [Chocolatey](https://chocolatey.org)
+- CCT: `iwr -useb https://christitus.com/win | iex`
 
 My Windows configuration files and scripts, managed with [yadm](https://yadm.io/).
 
