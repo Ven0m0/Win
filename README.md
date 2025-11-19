@@ -43,9 +43,6 @@ Clone this repository using yadm:
 # Clone the dotfiles
 yadm clone https://github.com/Ven0m0/Win.git
 
-# Download large configuration files (required for MSI Afterburner, BleachBit)
-pwsh $HOME\Scripts\Download-LargeAssets.ps1
-
 # Run the bootstrap script (optional but recommended)
 pwsh $HOME\.yadm\bootstrap
 ```
@@ -105,7 +102,7 @@ The bootstrap script will:
 │   ├── allow-scripts.cmd       # PowerShell execution policy
 │   ├── steam.ps1               # Steam optimization
 │   ├── shader-cache.ps1        # Shader cache cleanup
-│   ├── Download-LargeAssets.ps1 # Large config file downloader
+│   ├── Network-Tweaker.ps1     # Network adapter optimization
 │   ├── UltimateDiskCleanup.ps1 # Disk cleanup GUI
 │   ├── DLSS-force-latest.ps1   # DLSS configuration
 │   ├── setup.ps1               # System setup script
@@ -137,12 +134,12 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Maintenance
 
-- **`Download-LargeAssets.ps1`** - Download large configuration files (MSI Afterburner skin, BleachBit config)
 - **`UltimateDiskCleanup.ps1`** - Comprehensive disk cleanup tool (GUI)
 - **`setup.ps1`** - Install common software and perform system maintenance
 
 ### Networking
 
+- **`Network-Tweaker.ps1`** - Advanced network adapter configuration GUI
 - **`Hostbuilder/BuildHosts.ps1`** - Build custom hosts file with ad/malware blocking
 
 ### Configuration
