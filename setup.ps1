@@ -44,6 +44,7 @@ Write-Host "Installing Software..." -ForegroundColor Cyan
 winget install --id=AutoHotkey.AutoHotkey -e -h
 winget install --id=VideoLAN.VLC -e -h
 winget install --id=GIMP.GIMP -e -h
+winget install --id=tannerhelland.PhotoDemon -e -h
 winget install --id=Greenshot.Greenshot -e -h
 winget install "FFmpeg (Essentials Build)" -h
 winget install CodeF0x.ffzap -h
