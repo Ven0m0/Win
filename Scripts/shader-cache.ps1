@@ -1,12 +1,12 @@
 # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 
-#--- Self-elevate as Administrator
-If (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()
-).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-  Write-Host "Requesting elevated rights..." -BackgroundColor Yellow -ForegroundColor Black
-  Start-Process powershell -ArgumentList "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
-  Exit
-}
+#Requires -RunAsAdministrator
+
+# Import common functions
+. "$PSScriptRoot\Common.ps1"
+
+# Request admin elevation
+Request-AdminElevation
 
 #--- Detect Steam
 try {
@@ -21,28 +21,13 @@ $apps = @(
   @{id=730; name='cs2';   mod='csgo';  installdir='Counter-Strike Global Offensive'},
 )
 
-#--- VDF parsing, minimal
-function vdf_parse {
-  param([string[]]$vdf)
-  [ref]$line=0; $re='\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\Z'
-  $obj = [ordered]@{}
-  while ($line.Value -lt $vdf.Count) {
-    if ($vdf[$line.Value] -match $re) {
-      if ($matches.k) { $key = $matches.k }
-      if ($matches.v) { $obj[$key] = $matches.v }
-      elseif ($matches.b -eq '{') { $line.Value++; $obj[$key] = vdf_parse -vdf $vdf -line $line }
-      elseif ($matches.b -eq '}') { break }
-    }
-    $line.Value++
-  }
-  return $obj
-}
-
-#--- Find per-app install locations
-$vdf=(gc "$STEAM\steamapps\libraryfolders.vdf" -Force -EA 0); if (!$vdf) { $vdf = @('"libraryfolders"','{','}') }
+#--- Find per-app install locations (using Common.ps1 VDF parser)
+$vdf=(Get-Content "$STEAM\steamapps\libraryfolders.vdf" -Force -ErrorAction SilentlyContinue)
+if (!$vdf) { $vdf = @('"libraryfolders"','{','}') }
 $roots = @()
-foreach ($nr in (vdf_parse $vdf).Item(0).Keys) {
-  $entry = (vdf_parse $vdf).Item(0)[$nr]; if ($entry -and $entry["path"]) {
+foreach ($nr in (ConvertFrom-VDF -Content $vdf).Item(0).Keys) {
+  $entry = (ConvertFrom-VDF -Content $vdf).Item(0)[$nr]
+  if ($entry -and $entry["path"]) {
     $roots += $entry["path"].Trim('"')
   }
 }
@@ -70,63 +55,52 @@ while (Get-Process steamwebhelper,steam -EA 0) {
   Start-Sleep -Milliseconds 250
 }
 
-#--- Helper to robocopy empty dirs (powershell-native fallback for robocopy)
-function empty_and_clear($target) {
-  if (!(Test-Path $target)) { return }
-  $empty="$target\-EMPTY-"
-  mkdir $empty -Force | Out-Null
-  # robocopy preferred for native performance (fallback: Remove-Item)
-  $null = robocopy "$empty" "$target" /MIR /R:1 /W:0 /ZB /NFL /NDL /NJH /NJS 2>&1
-  # fallback
-  Get-ChildItem "$target" -Recurse -File -Force -EA 0 | Remove-Item -Force -EA 0
-}
+Write-Host "`n• Clearing STEAM logs..." -ForegroundColor Cyan
+Clear-DirectorySafe "$STEAM\logs"
+Write-Host "`n• Clearing STEAM dumps..." -ForegroundColor Cyan
+Clear-DirectorySafe "$STEAM\dumps"
 
-Write-Host "`n• Clearing STEAM logs..." -F Cyan
-empty_and_clear "$STEAM\logs"
-Write-Host "`n• Clearing STEAM dumps..." -F Cyan
-empty_and_clear "$STEAM\dumps"
-
-Write-Host "`n• Clearing APP crash dumps..." -F Cyan
+Write-Host "`n• Clearing APP crash dumps..." -ForegroundColor Cyan
 foreach ($app in $apps) {
   if ($app.exe) {
     $dir=Split-Path $app.exe
-    Get-ChildItem "$dir\*.mdmp" -Force -EA 0 | Remove-Item -Force -EA 0
+    Get-ChildItem "$dir\*.mdmp" -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
   }
 }
 
-Write-Host "`n• Clearing APP shadercache..." -F Cyan
+Write-Host "`n• Clearing APP shadercache..." -ForegroundColor Cyan
 foreach ($app in $apps) {
   $targets=@()
   if ($app.game) { $targets+= "$($app.game)\shadercache" }
   if ($app.steamapps) { $targets+= "$($app.steamapps)\shadercache\$($app.id)" }
   if ($app.steamapps -ne "$STEAM\steamapps") { $targets+= "$STEAM\steamapps\shadercache\$($app.id)" }
-  foreach ($t in $targets) { empty_and_clear $t }
+  foreach ($t in $targets) { Clear-DirectorySafe $t }
 }
 
-Write-Host "`n• Clearing NVIDIA Compute cache..." -F Cyan
-$t = "$env:APPDATA\NVIDIA\ComputeCache"; empty_and_clear $t
+Write-Host "`n• Clearing NVIDIA Compute cache..." -ForegroundColor Cyan
+Clear-DirectorySafe "$env:APPDATA\NVIDIA\ComputeCache"
 
-Write-Host "`n• Clearing NV_Cache..." -F Cyan
-$t = "$env:ProgramData\NVIDIA Corporation\NV_Cache"; empty_and_clear $t
+Write-Host "`n• Clearing NV_Cache..." -ForegroundColor Cyan
+Clear-DirectorySafe "$env:ProgramData\NVIDIA Corporation\NV_Cache"
 
-Write-Host "`n• Clearing Local shader caches..." -F Cyan
+Write-Host "`n• Clearing Local shader caches..." -ForegroundColor Cyan
 @(
   'D3DSCache','NVIDIA\GLCache','NVIDIA\DXCache','NVIDIA\OptixCache','NVIDIA Corporation\NV_Cache',
   'AMD\DX9Cache','AMD\DxCache','AMD\DxcCache','AMD\GLCache','AMD\OglCache','AMD\VkCache','Intel\ShaderCache'
 ) | ForEach-Object {
-  $t = "$env:LOCALAPPDATA\$_"; empty_and_clear $t
+  Clear-DirectorySafe "$env:LOCALAPPDATA\$_"
 }
 
-Write-Host "`n• Clearing LocalLow shader caches..." -F Cyan
+Write-Host "`n• Clearing LocalLow shader caches..." -ForegroundColor Cyan
 @(
   'NVIDIA\PerDriverVersion\DXCache','NVIDIA\PerDriverVersion\GLCache','Intel\ShaderCache'
 ) | ForEach-Object {
-  $t = "$($env:LOCALAPPDATA)\..\LocalLow\$_"; empty_and_clear $t
+  Clear-DirectorySafe "$($env:LOCALAPPDATA)\..\LocalLow\$_"
 }
 
-Write-Host "`n• Clearing driver temp dirs..." -F Cyan
+Write-Host "`n• Clearing driver temp dirs..." -ForegroundColor Cyan
 @("$env:SystemDrive\AMD","$env:SystemDrive\NVIDIA","$env:SystemDrive\Intel") | ForEach-Object {
-  empty_and_clear $_
+  Clear-DirectorySafe $_
 }
 
 Write-Host "`nAll relevant shader/log/crash caches cleaned."

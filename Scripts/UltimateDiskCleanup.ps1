@@ -1,11 +1,21 @@
+#Requires -RunAsAdministrator
+
+# Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
+# Provides user-friendly interface for Windows cleanup utilities
+
+# Request admin elevation
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
     Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit	
+    Exit
 }
 
+# Load Windows Forms assemblies
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
+
+# Configure error handling
+$ErrorActionPreference = 'SilentlyContinue'
 
 # Create the form
 $form = New-Object System.Windows.Forms.Form
