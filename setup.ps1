@@ -44,10 +44,12 @@ winget install --id=Greenshot.Greenshot -e -h
 winget install --id=Gyan.FFmpeg -e -h
 winget install --id=eibol.FFmpegBatchAVConverter -e -h
 winget install --id=HandBrake.HandBrake -e -h
+winget install --id=Avidemux.Avidemux  -e -h
 winget install --id=OBSProject.OBSStudio -e -h
 winget install --id=Meltytech.Shotcut -e -h
 winget install --id=7zip.7zip -e -h
 winget install --id=aria2.aria2 -e -h
+winget install --id=GiantPinkRobots.Varia -e -h
 winget install --id=DevToys-app.DevToys -e -h
 winget install --id=TimVisee.ffsend -e -h
 winget install jdx.mise -h
@@ -66,6 +68,7 @@ winget install Git.Git -h
 winget install --id=GitHub.cli -e -h
 winget install --id=evilmartians.lefthook -e -h
 winget install yadm -h
+winget install --id=MathiasCodes.Winstow  -e -h
 winget install Microsoft.PowerShell -h
 winget install Microsoft.WindowsTerminal -h
 winget install --id=Rustlang.Rust.MSVC -e -h
@@ -90,6 +93,33 @@ winget install --id=GorillaDevs.Ferium -e -h
 
 Write-Host "Tuning..." -ForegroundColor Cyan
 winget install --id=Guru3D.Afterburner.Beta -e -h
+winget install --id=BleachBit.BleachBit -e -h
+winget install --id=qarmin.czkawka.gui -e -h
+winget install --id=EditorConfig-Checker.EditorConfig-Checker -e -h
+winget install --id=SingularLabs.CCEnhancer -e -h
+winget install --id=szTheory.exifcleaner -e -h
+winget install --id=RevoUninstaller.RevoUninstaller -e -h
+winget install --id=Klocman.BulkCrapUninstaller -e -h
+
+Write-Host "Drivers..." -ForegroundColor Cyan
+winget install --id=GlennDelahoy.SnappyDriverInstallerOrigin -e -h
+winget install --id=SteelSeries.SteelSeriesEngine -e -h
+# winget install --id=SteelSeries.GG -e -h
+winget install --id=TechPowerUp.NVCleanstall -e -h
+winget install --id=Wagnardsoft.DisplayDriverUninstaller -e -h
+winget install --id=ViGEm.ViGEmBus -e -h
+winget install --id=lostindark.DriverStoreExplorer -e -h
+winget install --id=Microsoft.EdgeDriver -e -h
+winget install --id=Recol.DLSSUpdater -e -h
+
+Write-Host "Misc..." -ForegroundColor Cyan
+winget install --id=Nlitesoft.NTLite -e -h
+winget install --id=CodingWondersSoftware.DISMTools.Stable  -e -h
+#winget install --id=Microsoft.OneDrive -e -h
+winget install --id=Rclone.Rclone -e -h
+winget install --id=Upscayl.Upscayl -e -h
+winget install --id=Universal-Debloater-Alliance.uad-ng -e -h
+
 Start-Sleep -Seconds 1
 
 # Install HEVC video extension needed for AMD recording
@@ -127,6 +157,34 @@ Start-Sleep -Seconds 1
 Write-Host "Cleanup..." -ForegroundColor Cyan
 Dism /Cleanup-Mountpoints
 DISM /CleanUp-Wim
+#Remove event logs.
+wevtutil.exe cl Application
+wevtutil.exe cl System
+#Remove all temporary files.
+del /f /s /q %tmp%\*.*
+del /f /s /q %temp%\*.*
+del /f /s /q %systemdrive%\*.tmp
+del /f /s /q %systemdrive%\*._mp
+del /f /s /q %windir%\temp\*.*
+del /f /s /q %AppData%\temp\*.*
+del /f /s /q %HomePath%\AppData\LocalLow\Temp\*.*
+# Remove log, trace, old and backup files.
+del /f /s /q %systemdrive%\*.log
+del /f /s /q %systemdrive%\*.old
+del /f /s /q C:\*.old
+del /f /s /q %systemdrive%\*.trace
+del /f /s /q %windir%\*.bak
+# Remove restored files created by an checkdisk utility.
+del /f /s /q %systemdrive%\*.chk
+#Remove old content from recycle bin.
+del /f /s /q %systemdrive%\recycled\*.*
+# Remove powercfg energy report.
+del /f /s /q %windir%\system32\energy-report.html
+#Remove extracted, not needed files of driver installators.
+del /f /s /q %systemdrive%\AMD\*.*
+del /f /s /q %systemdrive%\NVIDIA\*.*
+del /f /s /q %systemdrive%\INTEL\*.*
+# Repair
 DISM /Online /Cleanup-Image /RestoreHealth
 sfc /scannow
 ipconfig /release
@@ -161,7 +219,11 @@ for /r "%ODrive%" %%f in (chrome_300_percent.pak) do del /f /q "%%f"
 for /r "%ODrive%" %%f in (chrome_400_percent.pak) do del /f /q "%%f"
 
 # Open disk cleanup
-Start-Process cleanmgr.exe
+# Start-Process cleanmgr.exe
+start cmd.exe /c Cleanmgr /sageset:65535 & Cleanmgr /sagerun:6553
+
+# Msizap TODO: get msizap binary
+msizap G!
 
 # Clear root drive garbage files
 $extensions = @('bat', 'cmd', 'txt', 'log', 'jpg', 'jpeg', 'tmp', 'temp', 'bak', 'backup', 'exe')
