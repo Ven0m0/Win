@@ -124,7 +124,7 @@ winget install --id=HeroicGamesLauncher.HeroicGamesLauncher -e -h
 winget install --id=Valve.Steam -e -h
 winget install --id=MoonlightGameStreamingProject.Moonlight -e -h
 winget install --id=smartfrigde.Legcord -e -h
-winget install --id=PolyMC.PolyMC -e -h
+winget install --id=PrismLauncher.PrismLauncher -e -h
 winget install --id=Cemu.Cemu -e -h
 winget install --id=Modrinth.ModrinthApp -e -h
 
