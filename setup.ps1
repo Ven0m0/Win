@@ -120,6 +120,7 @@ Write-Host "Drivers..." -ForegroundColor Cyan
 winget install --id=GlennDelahoy.SnappyDriverInstallerOrigin -e -h
 winget install --id=SteelSeries.SteelSeriesEngine -e -h
 # winget install --id=SteelSeries.GG -e -h
+winget install --id=ToastyX.CustomResolutionUtility -e -h
 winget install --id=TechPowerUp.NVCleanstall -e -h
 winget install --id=Wagnardsoft.DisplayDriverUninstaller -e -h
 winget install --id=ViGEm.ViGEmBus -e -h
