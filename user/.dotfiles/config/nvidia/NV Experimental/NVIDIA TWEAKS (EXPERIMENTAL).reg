@@ -1,0 +1,39 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"RmClkPowerOffDramPllWhenUnused"=dword:00000000
+"EnablePerformanceMode"=dword:00000001
+"RMCtxswLog"=dword:00000000
+"RMSupportUserdMapDma"=dword:00000001
+"RmIgnoreHulkErrors"=dword:00000001
+"RmDisableFanDiag"=dword:00000001
+"PreferSystemMemoryContiguous"=dword:00000001
+; Disable P state
+"DisableDynamicPstate"=dword:00000001
+; Kboost
+"PerfLevelSrc"=dword:00002222
+"PowerMizerEnable"=dword:00000001
+"PowerMizerLevel"=dword:00000001
+"PowerMizerLevelAC"=dword:00000001
+; HDCP
+"RMHdcpKeyglobZero"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+"PreferSystemMemoryContiguous"=dword:00000001
+"PrimaryPushBufferSize"=dword:00000001
+"EnablePerformanceMode"=dword:00000001
+"DisableBugcheckCallback"=dword:00000001
+"EnableMidGfxpSharedBuffer"=dword:00000001
+"DisablePreemption"=dword:00000000
+"UvmDisable"=dword:00000001
+"EnableIommuIsolationOnWDDM216"=dword:00000000
+"WDDMV2_128K_PTE"=dword:00000001
+"EnableHDAudioD3Cold"=dword:00000000
+"WDDMv21Enable64KbSysmemSupport"=dword:00000001
+"DisableWriteCombining"=dword:00000001
+"WDDMv21Enable2MPageSupport"=dword:00000001
+"AllowMaxPerf"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler]
+"EnablePreemption"=dword:00000001
+"VsyncIdleTimeout"=dword:00000000
