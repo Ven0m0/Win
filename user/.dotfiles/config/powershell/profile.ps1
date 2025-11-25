@@ -1,5 +1,5 @@
 # PowerShell Profile
-# Location: $HOME\.config\powershell\profile.ps1
+# Location: $HOME\.dotfiles\config\powershell\profile.ps1
 # Managed by yadm
 
 #region UI Configuration
@@ -72,6 +72,17 @@ if (Get-Command docker -ErrorAction SilentlyContinue) {
 }
 #endregion
 
+#region Navigation Functions
+# Easy navigation
+function .. { Set-Location .. }
+function ... { Set-Location ../.. }
+function .... { Set-Location ../../.. }
+function ..... { Set-Location ../../../.. }
+
+# Common directories
+function dotfiles { Set-Location -Path "$env:USERPROFILE\.dotfiles\$args" }
+#endregion
+
 #region Functions
 function Get-DiskUsage {
     <#
@@ -127,12 +138,22 @@ function Update-Profile {
     Write-Host "Profile reloaded!" -ForegroundColor Green
 }
 
+# Reload PowerShell profile (alias)
+function sreload {
+    if (Test-Path $PROFILE) {
+        . $PROFILE
+        Write-Host "SUCCESS: PowerShell profile reloaded." -ForegroundColor Green
+    } else {
+        Write-Warning "PowerShell profile not found."
+    }
+}
+
 function Edit-Profile {
     <#
     .SYNOPSIS
         Edit PowerShell profile
     #>
-    & $env:EDITOR "$HOME\.config\powershell\profile.ps1"
+    & $env:EDITOR "$HOME\.dotfiles\config\powershell\profile.ps1"
 }
 
 function Get-PublicIP {
@@ -153,14 +174,16 @@ Set-Alias -Name myip -Value Get-PublicIP
 function touch {
     <#
     .SYNOPSIS
-        Create a new empty file or update timestamp
+        Create a new file or update timestamp
     #>
     param([Parameter(Mandatory)][string]$Path)
 
     if (Test-Path $Path) {
         (Get-Item $Path).LastWriteTime = Get-Date
+        Write-Warning "File $Path already exists. Timestamp updated."
     } else {
         New-Item -ItemType File -Path $Path | Out-Null
+        Write-Host "SUCCESS: File $Path created." -ForegroundColor Green
     }
 }
 
@@ -171,7 +194,11 @@ function mkcd {
     #>
     param([Parameter(Mandatory)][string]$Path)
 
-    New-Item -ItemType Directory -Path $Path -Force | Out-Null
+    if (Test-Path $Path) {
+        Write-Warning "Directory $Path already exists."
+    } else {
+        New-Item -ItemType Directory -Path $Path -Force | Out-Null
+    }
     Set-Location $Path
 }
 
@@ -201,6 +228,36 @@ function Clear-TempFiles {
     }
 
     Write-Host "Temp files cleared!" -ForegroundColor Green
+}
+
+# Update PowerShell and related tools
+function supdate {
+    $packages = @(
+        "Microsoft.Powershell",
+        "chrisant996.Clink",
+        "Starship.Starship"
+    )
+
+    foreach ($package in $packages) {
+        Write-Output "Checking for upgrades for $package"
+        & winget upgrade --id $package --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Output "Upgrade completed for $package`n"
+        } else {
+            Write-Output "No available upgrade found for $package or upgrade failed.`n"
+        }
+    }
+}
+
+# Update all winget packages
+function pupdate {
+    Write-Output "Upgrading all winget packages...`n"
+    & winget upgrade --all --accept-source-agreements --accept-package-agreements
+    if ($LASTEXITCODE -eq 0) {
+        Write-Output "All packages upgraded successfully.`n"
+    } else {
+        Write-Output "Some packages failed to upgrade or no upgrades were available.`n"
+    }
 }
 #endregion
 
@@ -239,36 +296,55 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 }
 #endregion
 
+#region Chocolatey Profile
+# Import Chocolatey Profile to enable tab-completions
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+    Import-Module "$ChocolateyProfile"
+}
+#endregion
+
 #region Prompt
-function prompt {
-    $location = Get-Location
-    $drive = Split-Path -Qualifier $location
-    $path = Split-Path -NoQualifier $location
+# Starship PreCommand Hook
+function Invoke-Starship-PreCommand {
+    $host.ui.RawUI.WindowTitle = (Get-Item $pwd).Name
+}
 
-    # Shorten path if too long
-    if ($path.Length -gt 30) {
-        $pathParts = $path.Split('\')
-        if ($pathParts.Count -gt 3) {
-            $path = "\..\$($pathParts[-2])\$($pathParts[-1])"
+# Initialize Starship prompt (if available)
+if (Get-Command starship -ErrorAction SilentlyContinue) {
+    Invoke-Expression (&starship init powershell)
+} else {
+    # Fallback to custom prompt if Starship is not installed
+    function prompt {
+        $location = Get-Location
+        $drive = Split-Path -Qualifier $location
+        $path = Split-Path -NoQualifier $location
+
+        # Shorten path if too long
+        if ($path.Length -gt 30) {
+            $pathParts = $path.Split('\')
+            if ($pathParts.Count -gt 3) {
+                $path = "\..\$($pathParts[-2])\$($pathParts[-1])"
+            }
         }
-    }
 
-    # Git branch (if in a git repo)
-    $gitBranch = ""
-    if (Get-Command git -ErrorAction SilentlyContinue) {
-        $branch = git branch --show-current 2>$null
-        if ($branch) {
-            $gitBranch = " [$branch]"
+        # Git branch (if in a git repo)
+        $gitBranch = ""
+        if (Get-Command git -ErrorAction SilentlyContinue) {
+            $branch = git branch --show-current 2>$null
+            if ($branch) {
+                $gitBranch = " [$branch]"
+            }
         }
-    }
 
-    # Build prompt
-    Write-Host "$drive$path" -NoNewline -ForegroundColor Cyan
-    if ($gitBranch) {
-        Write-Host $gitBranch -NoNewline -ForegroundColor Yellow
-    }
+        # Build prompt
+        Write-Host "$drive$path" -NoNewline -ForegroundColor Cyan
+        if ($gitBranch) {
+            Write-Host $gitBranch -NoNewline -ForegroundColor Yellow
+        }
 
-    return "> "
+        return "> "
+    }
 }
 #endregion
 
@@ -280,7 +356,7 @@ Write-Host ""
 #endregion
 
 # Load any local customizations (not tracked by yadm)
-$localProfile = "$HOME\.config\powershell\local.ps1"
+$localProfile = "$HOME\.dotfiles\config\powershell\local.ps1"
 if (Test-Path $localProfile) {
     . $localProfile
 }
