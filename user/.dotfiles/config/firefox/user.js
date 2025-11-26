@@ -121,8 +121,10 @@ user_pref("urlclassifier.features.socialtracking.skipURLs", "*.instagram.com, *.
 user_pref("image.jxl.enabled", true); // PREF: JPEG XL image format
 user_pref("browser.urlbar.trimHttps", true);
 /** COOKIE BANNER HANDLING ***/
-user_pref("cookiebanners.service.mode", 2);
-user_pref("cookiebanners.service.mode.privateBrowsing", 2);
+user_pref("cookiebanners.service.mode", 1);
+user_pref("cookiebanners.service.mode.privateBrowsing", 1);
+user_pref("cookiebanners.service.enableGlobalRules", true);
+user_pref("cookiebanners.service.enableGlobalRules.subFrames", true);
 /** FULLSCREEN NOTICE + Delays ***/
 user_pref("full-screen-api.transition-duration.enter", "0 0");
 user_pref("full-screen-api.transition-duration.leave", "0 0");
@@ -162,7 +164,6 @@ user_pref("media.mediasource.webm.enabled", true);
 user_pref("dom.webnotifications.enabled", false);
 user_pref("dom.webnotifications.serviceworker.enabled", false);
 user_pref("extensions.screenshots.upload-disabled", true); // Disable "Upload" feature on Screenshots
-user_pref("browser.aboutConfig.showWarning", false); // Don't warn when opening about:config 
 user_pref("layout.word_select.eat_space_to_next_word", true); // When double-clicking a word on a page, only copy the word itself, not the space character next to it 
 // Autoplay
 user_pref("media.block-autoplay-until-in-foreground", true);
@@ -173,7 +174,7 @@ user_pref("browser.tabs.insertRelatedAfterCurrent", true); // DEFAULT
 /** TELEMETRY ***/
 user_pref("dom.event.clipboardevents.enabled", false);
 user_pref("media.navigator.enabled", false);
-user_pref("network.cookie.cookieBehavior", 1;
+user_pref("network.cookie.cookieBehavior", 1);
 user_pref("dom.private-attribution.submission.enabled", false);
 user_pref("browser.shell.checkDefaultBrowser", false); // Disable check for default browser
 user_pref("browser.newtabpage.activity-stream.default.sites", ""); // new tab page
@@ -273,23 +274,12 @@ user_pref("extensions.webextensions.restrictedDomains", ""); // remove Mozilla d
 // PREF: Mozilla VPN
 user_pref("browser.privatebrowsing.vpnpromourl", "");
 user_pref("browser.vpn_promo.enabled", false);
-// PREF: disable about:addons' Recommendations pane (uses Google Analytics)
-user_pref("extensions.getAddons.showPane", false); // HIDDEN
-// PREF: disable recommendations in about:addons' Extensions and Themes panes
-user_pref("browser.discovery.enabled", false);
-user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false);
-user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false);
-user_pref("browser.aboutConfig.showWarning", false);
+user_pref("browser.aboutConfig.showWarning", false); // Don't warn when opening about:config
 user_pref("browser.aboutwelcome.enabled", false); // disable Intro screens
 user_pref("browser.messaging-system.whatsNewPanel.enabled", false);
 // PREF: add compact mode back to options
 user_pref("browser.compactmode.show", true);
 user_pref("layout.css.prefers-color-scheme.content-override", 0); // Dark color scheme for websites
-// Cookie banner
-user_pref("cookiebanners.service.mode", 1);
-user_pref("cookiebanners.service.mode.privateBrowsing", 1);
-user_pref("cookiebanners.service.enableGlobalRules", true);
-user_pref("cookiebanners.service.enableGlobalRules.subFrames", true);
 user_pref("toolkit.telemetry.pioneer-new-studies-available", false);
 user_pref("toolkit.telemetry.pioneerId", "");
 user_pref("toolkit.telemetry.log.level", "Fatal");
@@ -300,12 +290,9 @@ user_pref("toolkit.telemetry.cachedClientID", "");
 // HTTP/3 fix
 user_pref("network.dns.httpssvc.http3_fast_fallback_timeout", 0);
 // Media tweaks
-user_pref("media.gmp.decoder.multithreaded", true);
-user_pref("media.gmp.encoder.multithreaded", true);
 user_pref("media.av1.new-thread-count-strategy", true);
 user_pref("media.webrtc.simulcast.av1.enabled", false);
 user_pref("image.decode-immediately.enabled", true);
 user_pref("media.gmp.decoder.decode_batch", true);
 user_pref("media.decoder.recycle.enabled", true);
 user_pref("media.peerconnection.video.vp9_preferred", true);
-image.jxl.enabled

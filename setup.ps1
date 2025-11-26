@@ -223,37 +223,37 @@ foreach ($file in $firefoxFiles) {
 Start-Sleep -Seconds 1
 
 Write-Host "Cleanup..." -ForegroundColor Cyan
-Dism /Cleanup-Mountpoints
-DISM /CleanUp-Wim
-#Remove event logs.
-wevtutil.exe cl Application
-wevtutil.exe cl System
-#Remove all temporary files.
-del /f /s /q %tmp%\*.*
-del /f /s /q %temp%\*.*
-del /f /s /q %systemdrive%\*.tmp
-del /f /s /q %systemdrive%\*._mp
-del /f /s /q %windir%\temp\*.*
-del /f /s /q %AppData%\temp\*.*
-del /f /s /q %HomePath%\AppData\LocalLow\Temp\*.*
-# Remove log, trace, old and backup files.
-del /f /s /q %systemdrive%\*.log
-del /f /s /q %systemdrive%\*.old
-del /f /s /q C:\*.old
-del /f /s /q %systemdrive%\*.trace
-del /f /s /q %windir%\*.bak
-# Remove restored files created by an checkdisk utility.
-del /f /s /q %systemdrive%\*.chk
-#Remove old content from recycle bin.
-del /f /s /q %systemdrive%\recycled\*.*
-# Remove powercfg energy report.
-del /f /s /q %windir%\system32\energy-report.html
-#Remove extracted, not needed files of driver installators.
-del /f /s /q %systemdrive%\AMD\*.*
-del /f /s /q %systemdrive%\NVIDIA\*.*
-del /f /s /q %systemdrive%\INTEL\*.*
+# Remove event logs
+wevtutil.exe cl Application 2>&1 | Out-Null
+wevtutil.exe cl System 2>&1 | Out-Null
+
+# Remove all temporary files
+$tempCleanupPaths = @(
+    "$env:TEMP\*",
+    "$env:TMP\*",
+    "$env:SystemDrive\*.tmp",
+    "$env:SystemDrive\*._mp",
+    "$env:WINDIR\temp\*",
+    "$env:AppData\temp\*",
+    "$env:USERPROFILE\AppData\LocalLow\Temp\*",
+    "$env:SystemDrive\*.log",
+    "$env:SystemDrive\*.old",
+    "$env:SystemDrive\*.trace",
+    "$env:WINDIR\*.bak",
+    "$env:SystemDrive\*.chk",
+    "$env:WINDIR\system32\energy-report.html",
+    "$env:SystemDrive\AMD\*",
+    "$env:SystemDrive\NVIDIA\*",
+    "$env:SystemDrive\INTEL\*"
+)
+foreach ($path in $tempCleanupPaths) {
+    Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 # Repair
-DISM /Online /Cleanup-Image /RestoreHealth
+DISM /Online /Cleanup-Image /RestoreHealth /Quiet
+DISM /Cleanup-Mountpoints
+DISM /CleanUp-Wim
 sfc /scannow
 ipconfig /release
 ipconfig /renew
@@ -271,27 +271,39 @@ Remove-Item -Path "$env:WINDIR\Prefetch\*" -Recurse -Force -ErrorAction Silently
 Remove-Item -Path "$env:WINDIR\Logs\*" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "$env:USERPROFILE\AppData\Local\cache\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-set ODrive=%userprofile%\OneDrive
-cd /d %~dp0
-del /s /f /q %ODrive%\.bak
-del /s /f /q %ODrive%\*LOG
-del /s /f /q %ODrive%\*.old
-del /s /f /q %ODrive%\*.trace
-del /s /f /q %ODrive%\*.tmp
-rmdir /s /q "%ODrive%\Backup\Program\Win\Tools\NTLite\Cache"
-rmdir /s /q "%ODrive%\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\logs"
-del /s /f /q "%ODrive%\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\drivers"
-# Remove useless scaling factors
-for /r "%ODrive%" %%f in (chrome_200_percent.pak) do del /f /q "%%f"
-for /r "%ODrive%" %%f in (chrome_300_percent.pak) do del /f /q "%%f"
-for /r "%ODrive%" %%f in (chrome_400_percent.pak) do del /f /q "%%f"
+# Clean OneDrive folder
+$ODrive = "$env:USERPROFILE\OneDrive"
+if (Test-Path $ODrive) {
+    $oneDrivePatterns = @("*.bak", "*LOG", "*.old", "*.trace", "*.tmp")
+    foreach ($pattern in $oneDrivePatterns) {
+        Remove-Item -Path "$ODrive\$pattern" -Recurse -Force -ErrorAction SilentlyContinue
+    }
 
-# Open disk cleanup
-# Start-Process cleanmgr.exe
-start cmd.exe /c Cleanmgr /sageset:65535 & Cleanmgr /sagerun:6553
+    $oneDrivePaths = @(
+        "$ODrive\Backup\Program\Win\Tools\NTLite\Cache",
+        "$ODrive\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\logs",
+        "$ODrive\Backup\Program\Driver\Updates\Snappy Driver Installer Origin\drivers"
+    )
+    foreach ($path in $oneDrivePaths) {
+        if (Test-Path $path) {
+            Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
 
-# Msizap TODO: get msizap binary
-msizap G!
+    # Remove useless scaling factors
+    $scalingFactors = @("chrome_200_percent.pak", "chrome_300_percent.pak", "chrome_400_percent.pak")
+    foreach ($factor in $scalingFactors) {
+        Get-ChildItem -Path $ODrive -Filter $factor -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Run disk cleanup
+Start-Process -FilePath "cleanmgr.exe" -ArgumentList "/sagerun:65535" -NoNewWindow -Wait -ErrorAction SilentlyContinue
+
+# Msizap (if available)
+if (Get-Command msizap -ErrorAction SilentlyContinue) {
+    msizap G! 2>&1 | Out-Null
+}
 
 # Clear root drive garbage files
 $extensions = @('bat', 'cmd', 'txt', 'log', 'jpg', 'jpeg', 'tmp', 'temp', 'bak', 'backup', 'exe')
@@ -382,11 +394,20 @@ fsutil behavior set disablecompression 0
 Dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase
 
 # Final updates
-winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements  --include-unknown --force --purge --disable-interactivity --nowarn --no-proxy
-scoop update -a
-choco upgrade all -y
-pip freeze > requirements.txt
-pip install -r requirements.txt --upgrade
+Write-Host "Running final updates..." -ForegroundColor Cyan
+winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements --include-unknown --force --purge --disable-interactivity 2>&1 | Out-Null
+
+if (Get-Command scoop -ErrorAction SilentlyContinue) {
+    scoop update --all 2>&1 | Out-Null
+}
+
+if (Get-Command choco -ErrorAction SilentlyContinue) {
+    choco upgrade all -y 2>&1 | Out-Null
+}
+
+if (Get-Command pip -ErrorAction SilentlyContinue) {
+    pip list --outdated --format=freeze | ForEach-Object { pip install --upgrade ($_ -split '==')[0] } 2>&1 | Out-Null
+}
 
 Write-Host "Setup completed successfully!" -ForegroundColor Green
 exit 0

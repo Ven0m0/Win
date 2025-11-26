@@ -18,6 +18,7 @@
 [fetch]
 	prune = true
 	pruneTags = true
+	parallel = 0
 [clone]
   filterSubmodules = true
 [alias]
@@ -72,8 +73,7 @@
 [http]
   version = HTTP/2
   sslVersion = tlsv1.3
-[remote "origin"]
-	prune = true
+  postBuffer = 524288000
 [fsck]
   duplicateEntries = true
   gitmodulesSymlink = true
@@ -105,11 +105,11 @@
   enabled = true
 [index]
   version = 4
-  skipHash = true
+  skipHash = false
 [repack]
   useDeltaBaseOffset = true
 [gc]
   autoDetach = true
   packRefs = true
-  aggressive = true
-  repackFilter = blob:none
+  aggressive = false
+  auto = 256

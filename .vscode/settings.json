@@ -1,5 +1,27 @@
 {
     "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true,
+    "editor.trimAutoWhitespace": true,
+    "editor.renderWhitespace": "boundary",
+    "editor.minimap.enabled": true,
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.cursorBlinking": "phase",
+    "editor.smoothScrolling": true,
+    "editor.suggestSelection": "first",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": false,
+        "strings": false
+    },
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.eol": "\r\n",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
     "[powershell]": {
         "files.encoding": "utf8bom",
         "files.autoGuessEncoding": true

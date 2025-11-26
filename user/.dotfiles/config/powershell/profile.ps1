@@ -134,19 +134,14 @@ function Update-Profile {
     .SYNOPSIS
         Reload PowerShell profile
     #>
-    . $PROFILE
-    Write-Host "Profile reloaded!" -ForegroundColor Green
-}
-
-# Reload PowerShell profile (alias)
-function sreload {
     if (Test-Path $PROFILE) {
         . $PROFILE
-        Write-Host "SUCCESS: PowerShell profile reloaded." -ForegroundColor Green
+        Write-Host "Profile reloaded!" -ForegroundColor Green
     } else {
         Write-Warning "PowerShell profile not found."
     }
 }
+Set-Alias -Name sreload -Value Update-Profile
 
 function Edit-Profile {
     <#
@@ -239,31 +234,24 @@ function supdate {
     )
 
     foreach ($package in $packages) {
-        Write-Output "Checking for upgrades for $package"
-        & winget upgrade --id $package --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+        Write-Host "Upgrading $package..." -ForegroundColor Cyan
+        winget upgrade --id $package --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
-            Write-Output "Upgrade completed for $package`n"
-        } else {
-            Write-Output "No available upgrade found for $package or upgrade failed.`n"
+            Write-Host "✓ $package upgraded" -ForegroundColor Green
         }
     }
 }
 
 # Update all winget packages
 function pupdate {
-    Write-Output "Upgrading all winget packages...`n"
-    & winget upgrade --all --accept-source-agreements --accept-package-agreements
-    if ($LASTEXITCODE -eq 0) {
-        Write-Output "All packages upgraded successfully.`n"
-    } else {
-        Write-Output "Some packages failed to upgrade or no upgrades were available.`n"
-    }
+    Write-Host "Upgrading all packages..." -ForegroundColor Cyan
+    winget upgrade --all --accept-source-agreements --accept-package-agreements --disable-interactivity
 }
 #endregion
 
 #region PSReadLine Configuration
 if (Get-Module -ListAvailable -Name PSReadLine) {
-    Import-Module PSReadLine
+    Import-Module PSReadLine -ErrorAction SilentlyContinue
 
     # Set edit mode to Emacs (or Vi if you prefer)
     Set-PSReadLineOption -EditMode Emacs
@@ -349,10 +337,7 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 #endregion
 
 #region Startup Message
-Write-Host ""
-Write-Host "PowerShell $($PSVersionTable.PSVersion.ToString())" -ForegroundColor Cyan
-Write-Host "Type 'Get-Command' to see available commands" -ForegroundColor Gray
-Write-Host ""
+# Minimal startup for faster loading
 #endregion
 
 # Load any local customizations (not tracked by yadm)
