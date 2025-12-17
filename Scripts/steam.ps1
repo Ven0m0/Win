@@ -8,6 +8,9 @@ $NoJoystick    = 1
 $NoShaders     = 1
 $NoGPU         = 1
 
+# Import shared helpers
+. "$PSScriptRoot\Common.ps1"
+
 # Steam quick launch arguments
 $QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite " + (if ($NoJoystick) { "-nojoy " } else { "" })
 $QUICK += (if ($NoShaders) { "-noshaders " } else { "" }) + (if ($NoGPU) { "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox " } else { "" })
@@ -36,36 +39,7 @@ while (Get-Process -Name steamwebhelper,steam -ErrorAction SilentlyContinue) {
 }
 if ($focus) { $QUICK += " -foreground" }
 
-# --- VDF parse/print helpers
-function vdf_parse {
-  param([string[]]$vdf, [ref]$line=([ref]0), [string]$re='\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\Z')
-  $obj = [ordered]@{}
-  while ($line.Value -lt $vdf.Count) {
-    if ($vdf[$line.Value] -match $re) {
-      if ($matches.k) { $key = $matches.k }
-      if ($matches.v) { $obj[$key] = $matches.v }
-      elseif ($matches.b -eq '{') { $line.Value++; $obj[$key] = vdf_parse -vdf $vdf -line $line }
-      elseif ($matches.b -eq '}') { break }
-    }
-    $line.Value++
-  }
-  return $obj
-}
-function vdf_print {
-  param($vdf, [ref]$indent=([ref]0))
-  if ($vdf -isnot [System.Collections.Specialized.OrderedDictionary] -and $vdf -isnot [hashtable]) {return}
-  foreach ($key in $vdf.Keys) {
-    if ($vdf[$key] -is [System.Collections.Specialized.OrderedDictionary] -or $vdf[$key] -is [hashtable]) {
-      $tabs = "`t" * $indent.Value
-      Write-Output "$tabs""$key`n$tabs{`n"
-      $indent.Value++; vdf_print -vdf $vdf[$key] -indent $indent; $indent.Value--
-      Write-Output "$tabs}`n"
-    } else {
-      $tabs = "`t" * $indent.Value
-      Write-Output "$tabs""$key`t`t$($vdf[$key])`n"
-    }
-  }
-}
+# --- VDF helpers
 function vdf_mkdir {
   param($vdf, [string]$path = '')
   $s = $path -split '\\',2
@@ -82,8 +56,8 @@ function sc-nonew($fn, $txt) {
 Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
   $file = $_.FullName
   $write = $false
-  $vdf = vdf_parse -vdf (Get-Content $file -Force)
-  if ($vdf.Count -eq 0) { $vdf = vdf_parse @('"UserRoamingConfigStore"','{','}') }
+  $vdf = ConvertFrom-VDF -Content (Get-Content $file -Force)
+  if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"','{','}') }
   vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam\FriendsUI'
   $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
   if ($key["SteamDefaultDialog"] -ne '"#app_games"') { $key["SteamDefaultDialog"] = '"#app_games"'; $write = $true }
@@ -97,7 +71,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
     $ui = $ui.Replace('bDisableRoomEffects\":false','bDisableRoomEffects\":true'); $write = $true
   }
   $key["FriendsUI"]["FriendsUIJSON"] = $ui
-  if ($write) { sc-nonew $file (vdf_print $vdf); Write-Output "Updated $file" }
+  if ($write) { sc-nonew $file (ConvertTo-VDF -Data $vdf); Write-Output "Updated $file" }
 }
 
 # --- Update localconfig.vdf: library perf/small mode
@@ -106,8 +80,8 @@ if ($ShowGameIcons -eq 1) {$opt.LibraryDisplayIconInGameList = 1}
 Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
   $file = $_.FullName
   $write = $false
-  $vdf = vdf_parse -vdf (Get-Content $file -Force)
-  if ($vdf.Count -eq 0) { $vdf = vdf_parse @('"UserLocalConfigStore"','{','}') }
+  $vdf = ConvertFrom-VDF -Content (Get-Content $file -Force)
+  if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"','{','}') }
   vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam'; vdf_mkdir $vdf.Item(0) 'friends'
   $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
   if ($key["SmallMode"] -ne '"1"') { $key["SmallMode"] = '"1"'; $write = $true }
@@ -118,7 +92,7 @@ Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Obje
     $key = $vdf.Item(0)["friends"]
     if ($key["SignIntoFriends"] -ne '"0"') { $key["SignIntoFriends"] = '"0"'; $write = $true }
   }
-  if ($write) { sc-nonew $file (vdf_print $vdf); Write-Output "Updated $file" }
+  if ($write) { sc-nonew $file (ConvertTo-VDF -Data $vdf); Write-Output "Updated $file" }
 }
 
 # --- Refresh desktop shortcut: Steam_min
