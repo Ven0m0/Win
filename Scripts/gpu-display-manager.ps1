@@ -99,16 +99,6 @@ function Set-MSIMode {
 $REG_LOCATION = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
 $EDID_HEX = '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
 
-function Get-MonitorInstances {
-  try {
-    $monitors = (Get-WmiObject -Namespace root\wmi -Class WmiMonitorID -ErrorAction Stop).InstanceName -replace '_0', ''
-    return $monitors
-  } catch {
-    Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
-    return @()
-  }
-}
-
 function Set-EDIDOverride {
   $monitors = Get-MonitorInstances
 

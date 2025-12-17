@@ -383,6 +383,40 @@ function Show-RegistryStatus {
         Write-Host $NotFoundText -ForegroundColor Gray
     }
 }
+
+function Get-RegistryValueSafe {
+    <#
+    .SYNOPSIS
+        Safely retrieves a registry value with fallback
+    .DESCRIPTION
+        Attempts to read a registry value and returns $null if not found
+        Eliminates need for repeated try-catch blocks
+    .PARAMETER Path
+        Registry path (in PowerShell format like 'HKLM:\SOFTWARE\...')
+    .PARAMETER Name
+        Registry value name
+    .PARAMETER DefaultValue
+        Value to return if registry key/value not found (default: $null)
+    .EXAMPLE
+        $value = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\Test" -Name "Setting"
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [object]$DefaultValue = $null
+    )
+
+    try {
+        $value = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
+        return $value
+    } catch {
+        return $DefaultValue
+    }
+}
 #endregion
 
 #region File Download
@@ -465,6 +499,35 @@ function Get-FileFromWeb {
         if ($reader) { $reader.Close() }
         if ($writer) { $writer.Close() }
     }
+}
+#endregion
+
+#region Monitor Management
+$script:CachedMonitorInstances = $null
+
+function Get-MonitorInstances {
+  <#
+  .SYNOPSIS
+      Retrieves all monitor instance paths from WMI
+  .DESCRIPTION
+      Returns monitor instance paths with optional caching to reduce WMI queries
+  .PARAMETER ForceRefresh
+      Forces refresh of cached monitor instances
+  .EXAMPLE
+      $monitors = Get-MonitorInstances
+  #>
+  param([switch]$ForceRefresh)
+
+  if ($ForceRefresh -or -not $script:CachedMonitorInstances) {
+    try {
+      $script:CachedMonitorInstances = (Get-WmiObject -Namespace root\wmi -Class WmiMonitorID -ErrorAction Stop).InstanceName -replace '_0', ''
+    } catch {
+      Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
+      $script:CachedMonitorInstances = @()
+    }
+  }
+
+  return $script:CachedMonitorInstances
 }
 #endregion
 
