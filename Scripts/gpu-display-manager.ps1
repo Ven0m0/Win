@@ -14,68 +14,33 @@ Request-AdminElevation
 Initialize-ConsoleUI -Title "GPU & Display Manager (Administrator)"
 
 #region NVIDIA GPU Settings
-function Get-GpuPaths {
-  Get-NvidiaGpuRegistryPaths
-}
-
 function Set-P0State {
   param([string]$Value)
 
-  $gpuPaths = Get-GpuPaths
-  foreach ($path in $gpuPaths) {
-    Set-RegistryValue -Path $path -Name "DisableDynamicPstate" -Type REG_DWORD -Data $Value
-  }
+  $gpuPaths = Set-NvidiaGpuRegistryValue -Name "DisableDynamicPstate" -Type REG_DWORD -Data $Value
 
   Clear-Host
   Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
-  Show-NvidiaSettings -Setting "P0State"
+  Show-NvidiaSettings -Setting "P0State" -GpuPaths $gpuPaths
 }
 
 function Set-HDCP {
   param([string]$Value)
 
-  $gpuPaths = Get-GpuPaths
-  foreach ($path in $gpuPaths) {
-    Set-RegistryValue -Path $path -Name "RMHdcpKeyglobZero" -Type REG_DWORD -Data $Value
-  }
+  $gpuPaths = Set-NvidiaGpuRegistryValue -Name "RMHdcpKeyglobZero" -Type REG_DWORD -Data $Value
 
   Clear-Host
   Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
-  Show-NvidiaSettings -Setting "HDCP"
+  Show-NvidiaSettings -Setting "HDCP" -GpuPaths $gpuPaths
 }
 
 function Show-NvidiaSettings {
-  param([string]$Setting = "All")
+  param(
+    [string]$Setting = "All",
+    [string[]]$GpuPaths
+  )
 
-  $gpuPaths = Get-GpuPaths
-
-  Write-Host ""
-  Write-Host "Current NVIDIA GPU Settings:" -ForegroundColor Yellow
-  Write-Host ""
-
-  foreach ($path in $gpuPaths) {
-    $gpuName = ($path -split '\\')[-1]
-    Write-Host "GPU: $gpuName" -ForegroundColor Cyan
-
-    if ($Setting -eq "All" -or $Setting -eq "P0State") {
-      try {
-        $p0Value = (Get-ItemProperty -Path "Registry::$path" -Name 'DisableDynamicPstate' -ErrorAction Stop).DisableDynamicPstate
-        Write-Host "  P0 State (DisableDynamicPstate): $p0Value" -ForegroundColor Green
-      } catch {
-        Write-Host "  P0 State: Not configured" -ForegroundColor Gray
-      }
-    }
-
-    if ($Setting -eq "All" -or $Setting -eq "HDCP") {
-      try {
-        $hdcpValue = (Get-ItemProperty -Path "Registry::$path" -Name 'RMHdcpKeyglobZero' -ErrorAction Stop).RMHdcpKeyglobZero
-        Write-Host "  HDCP (RMHdcpKeyglobZero): $hdcpValue" -ForegroundColor Green
-      } catch {
-        Write-Host "  HDCP: Not configured" -ForegroundColor Gray
-      }
-    }
-    Write-Host ""
-  }
+  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting $Setting -GpuPaths $GpuPaths
 }
 #endregion
 

@@ -182,6 +182,155 @@ function Get-NvidiaGpuRegistryPaths {
     return $subkeys | Where-Object { $_ -notlike '*Configuration' }
 }
 
+$script:CachedNvidiaGpuPaths = $null
+
+function Get-NvidiaGpuPaths {
+  <#
+  .SYNOPSIS
+      Returns cached NVIDIA GPU registry paths
+  .PARAMETER ForceRefresh
+      Forces refresh of cached GPU registry paths
+  #>
+  param([switch]$ForceRefresh)
+
+  if ($ForceRefresh -or -not $script:CachedNvidiaGpuPaths) {
+    $script:CachedNvidiaGpuPaths = Get-NvidiaGpuRegistryPaths
+  }
+
+  return $script:CachedNvidiaGpuPaths
+}
+
+function Set-NvidiaGpuRegistryValue {
+  <#
+  .SYNOPSIS
+      Sets a registry value for all NVIDIA GPUs
+  .PARAMETER Name
+      Registry value name
+  .PARAMETER Type
+      Registry value type
+  .PARAMETER Data
+      Registry value data
+  .PARAMETER GpuPaths
+      Optional GPU registry paths (uses cached paths when omitted)
+  #>
+  param(
+    [Parameter(Mandatory)]
+    [string]$Name,
+    [Parameter(Mandatory)]
+    [string]$Type,
+    [Parameter(Mandatory)]
+    [string]$Data,
+    [string[]]$GpuPaths
+  )
+
+  if (!$GpuPaths) {
+    $GpuPaths = Get-NvidiaGpuPaths
+  }
+
+  foreach ($path in $GpuPaths) {
+    Set-RegistryValue -Path $path -Name $Name -Type $Type -Data $Data
+  }
+
+  return $GpuPaths
+}
+
+function Get-NvidiaGpuSettings {
+  <#
+  .SYNOPSIS
+      Retrieves NVIDIA GPU registry settings for display
+  .PARAMETER Setting
+      Filter to "All", "P0State", or "HDCP"
+  .PARAMETER GpuPaths
+      Optional GPU registry paths (uses cached paths when omitted)
+  #>
+  param(
+    [string]$Setting = "All",
+    [string[]]$GpuPaths
+  )
+
+  if (!$GpuPaths) {
+    $GpuPaths = Get-NvidiaGpuPaths
+  }
+
+  $results = @()
+
+  foreach ($path in $GpuPaths) {
+    $gpuName = ($path -split '\\')[-1]
+    $entry = [ordered]@{
+      GpuName = $gpuName
+      Path    = $path
+      P0State = $null
+      HDCP    = $null
+    }
+
+    if ($Setting -eq "All" -or $Setting -eq "P0State") {
+      try {
+        $entry.P0State = (Get-ItemProperty -Path "Registry::$path" -Name 'DisableDynamicPstate' -ErrorAction Stop).DisableDynamicPstate
+      } catch {
+        $entry.P0State = $null
+      }
+    }
+
+    if ($Setting -eq "All" -or $Setting -eq "HDCP") {
+      try {
+        $entry.HDCP = (Get-ItemProperty -Path "Registry::$path" -Name 'RMHdcpKeyglobZero' -ErrorAction Stop).RMHdcpKeyglobZero
+      } catch {
+        $entry.HDCP = $null
+      }
+    }
+
+    $results += [pscustomobject]$entry
+  }
+
+  return $results
+}
+
+function Show-NvidiaGpuSettings {
+  <#
+  .SYNOPSIS
+      Displays NVIDIA GPU settings for all detected GPUs
+  .PARAMETER Title
+      Optional title for output
+  .PARAMETER Setting
+      Filter to "All", "P0State", or "HDCP"
+  .PARAMETER GpuPaths
+      Optional GPU registry paths (uses cached paths when omitted)
+  #>
+  param(
+    [string]$Title = "Current NVIDIA GPU Settings:",
+    [string]$Setting = "All",
+    [string[]]$GpuPaths
+  )
+
+  $settings = Get-NvidiaGpuSettings -Setting $Setting -GpuPaths $GpuPaths
+
+  Write-Host ""
+  Write-Host $Title -ForegroundColor Yellow
+  Write-Host ""
+
+  foreach ($item in $settings) {
+    Write-Host "GPU: $($item.GpuName)" -ForegroundColor Cyan
+
+    if ($Setting -eq "All" -or $Setting -eq "P0State") {
+      if ($null -ne $item.P0State) {
+        Write-Host "  P0 State (DisableDynamicPstate): $($item.P0State)" -ForegroundColor Green
+      } else {
+        Write-Host "  P0 State: Not configured" -ForegroundColor Gray
+      }
+    }
+
+    if ($Setting -eq "All" -or $Setting -eq "HDCP") {
+      if ($null -ne $item.HDCP) {
+        Write-Host "  HDCP (RMHdcpKeyglobZero): $($item.HDCP)" -ForegroundColor Green
+      } else {
+        Write-Host "  HDCP: Not configured" -ForegroundColor Gray
+      }
+    }
+
+    Write-Host ""
+  }
+}
+
 function Show-RegistryStatus {
     <#
     .SYNOPSIS
