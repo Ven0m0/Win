@@ -96,29 +96,24 @@ while ($true) {
     switch ($choice) {
         1 {
             Set-P0State -Value "1"
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         2 {
             Set-P0State -Value "0"
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         3 {
             Set-HDCP -Value "1"
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         4 {
             Set-HDCP -Value "0"
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         5 {
             Clear-Host
             Show-CurrentSettings
-            Write-Host "Press any key to continue..." -ForegroundColor Cyan
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Wait-ForKeyPress -Message "Press any key to continue..." -UseReadHost
         }
         6 {
             exit

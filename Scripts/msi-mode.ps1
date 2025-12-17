@@ -65,8 +65,6 @@ function Set-MSIMode {
         }
         Write-Host ""
     }
-
-    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
 }
 
 # Main menu
@@ -81,11 +79,13 @@ $choice = Get-MenuChoice -Min 1 -Max 3
 switch ($choice) {
     1 {
         Set-MSIMode -Enable $true
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        Write-Host ""
+        Show-RestartRequired
     }
     2 {
         Set-MSIMode -Enable $false
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        Write-Host ""
+        Show-RestartRequired
     }
     3 {
         exit

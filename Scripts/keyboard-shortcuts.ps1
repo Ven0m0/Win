@@ -25,7 +25,7 @@ function Disable-KeyboardShortcuts {
     Write-Host "  - Cut/copy/paste will still function" -ForegroundColor Red
     Write-Host "  - ESC key rebound to =" -ForegroundColor Red
     Write-Host ""
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    Wait-ForKeyPress
     Clear-Host
 
     # Disable media keys (Human Interface Device Service)
@@ -42,9 +42,6 @@ function Disable-KeyboardShortcuts {
 
     Clear-Host
     Write-Host "Keyboard shortcuts disabled successfully!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }
 
 function Enable-KeyboardShortcuts {
@@ -68,9 +65,6 @@ function Enable-KeyboardShortcuts {
 
     Clear-Host
     Write-Host "Keyboard shortcuts restored to default!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }
 
 # Main menu
@@ -82,6 +76,14 @@ Show-Menu -Title "" -Options @(
 $choice = Get-MenuChoice -Min 1 -Max 2
 
 switch ($choice) {
-    1 { Disable-KeyboardShortcuts }
-    2 { Enable-KeyboardShortcuts }
+    1 {
+        Disable-KeyboardShortcuts
+        Write-Host ""
+        Show-RestartRequired
+    }
+    2 {
+        Enable-KeyboardShortcuts
+        Write-Host ""
+        Show-RestartRequired
+    }
 }
