@@ -1,5 +1,9 @@
 ﻿# settings.ps1 - System Performance Settings Manager
 # Optimizes various Windows settings for gaming and performance
+#
+# ⚠️ DEPRECATION NOTICE ⚠️
+# This script has been superseded by system-settings-manager.ps1
+# Please use: system-settings-manager.ps1 for all system settings
 
 #Requires -RunAsAdministrator
 
@@ -11,6 +15,24 @@ Request-AdminElevation
 
 # Initialize console UI
 Initialize-ConsoleUI -Title "System Performance Settings (Administrator)"
+
+# Show deprecation warning
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host "                    DEPRECATION NOTICE                     " -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "This script has been replaced by: " -ForegroundColor Cyan -NoNewline
+Write-Host "system-settings-manager.ps1" -ForegroundColor Green
+Write-Host ""
+Write-Host "The unified System Settings Manager provides performance" -ForegroundColor Cyan
+Write-Host "settings along with keyboard shortcut management." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Please use system-settings-manager.ps1 for better functionality." -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press Enter to continue with this legacy script or Ctrl+C to exit..."
+Read-Host
 
 function Set-PerformanceSettings {
     <#

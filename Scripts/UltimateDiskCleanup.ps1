@@ -3,11 +3,11 @@
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
 
+# Import common functions
+. "$PSScriptRoot\Common.ps1"
+
 # Request admin elevation
-If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit
-}
+Request-AdminElevation
 
 # Load Windows Forms assemblies
 Add-Type -AssemblyName System.Windows.Forms

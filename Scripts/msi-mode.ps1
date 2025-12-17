@@ -1,5 +1,9 @@
 ﻿# msi-mode.ps1 - MSI (Message Signaled Interrupts) Mode Manager for GPUs
 # Enables or disables MSI mode for all display adapters to improve interrupt handling
+#
+# ⚠️ DEPRECATION NOTICE ⚠️
+# This script has been superseded by gpu-display-manager.ps1
+# Please use: gpu-display-manager.ps1 for all GPU and display settings
 
 #Requires -RunAsAdministrator
 
@@ -11,6 +15,24 @@ Request-AdminElevation
 
 # Initialize console UI
 Initialize-ConsoleUI -Title "MSI Mode Manager (Administrator)"
+
+# Show deprecation warning
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host "                    DEPRECATION NOTICE                     " -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "This script has been replaced by: " -ForegroundColor Cyan -NoNewline
+Write-Host "gpu-display-manager.ps1" -ForegroundColor Green
+Write-Host ""
+Write-Host "The unified GPU & Display Manager provides MSI configuration" -ForegroundColor Cyan
+Write-Host "along with NVIDIA settings, EDID overrides, and gaming optimizations." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Please use gpu-display-manager.ps1 for better functionality." -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press Enter to continue with this legacy script or Ctrl+C to exit..."
+Read-Host
 
 function Set-MSIMode {
     <#

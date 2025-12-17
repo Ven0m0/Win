@@ -1,5 +1,9 @@
 ﻿# keyboard-shortcuts.ps1 - Windows Keyboard Shortcuts Manager
 # Enables or disables keyboard shortcuts to prevent accidental game interruptions
+#
+# ⚠️ DEPRECATION NOTICE ⚠️
+# This script has been superseded by system-settings-manager.ps1
+# Please use: system-settings-manager.ps1 for all system settings
 
 #Requires -RunAsAdministrator
 
@@ -11,6 +15,24 @@ Request-AdminElevation
 
 # Initialize console UI
 Initialize-ConsoleUI -Title "Keyboard Shortcuts Manager (Administrator)"
+
+# Show deprecation warning
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host "                    DEPRECATION NOTICE                     " -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "This script has been replaced by: " -ForegroundColor Cyan -NoNewline
+Write-Host "system-settings-manager.ps1" -ForegroundColor Green
+Write-Host ""
+Write-Host "The unified System Settings Manager provides keyboard" -ForegroundColor Cyan
+Write-Host "shortcut management along with performance settings." -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Please use system-settings-manager.ps1 for better functionality." -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press Enter to continue with this legacy script or Ctrl+C to exit..."
+Read-Host
 
 function Disable-KeyboardShortcuts {
     <#

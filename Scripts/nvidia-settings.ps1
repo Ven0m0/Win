@@ -1,5 +1,10 @@
 ﻿# nvidia-settings.ps1 - Unified NVIDIA GPU Registry Settings Manager
 # Combines P0-State and HDCP settings in one optimized script
+#
+# ⚠️ DEPRECATION NOTICE ⚠️
+# This script has been superseded by gpu-display-manager.ps1
+# Please use: gpu-display-manager.ps1 for all GPU and display settings
+# The consolidated script provides all NVIDIA settings plus EDID, MPO, and MSI mode
 
 #Requires -RunAsAdministrator
 
@@ -11,6 +16,27 @@ Request-AdminElevation
 
 # Initialize console UI
 Initialize-ConsoleUI -Title "NVIDIA GPU Settings Manager (Administrator)"
+
+# Show deprecation warning
+Write-Host ""
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host "                    DEPRECATION NOTICE                     " -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "This script has been replaced by: " -ForegroundColor Cyan -NoNewline
+Write-Host "gpu-display-manager.ps1" -ForegroundColor Green
+Write-Host ""
+Write-Host "The new unified script provides:" -ForegroundColor Cyan
+Write-Host "  • NVIDIA GPU Settings (P0 State, HDCP)" -ForegroundColor White
+Write-Host "  • MSI Mode Configuration" -ForegroundColor White
+Write-Host "  • EDID Override Manager" -ForegroundColor White
+Write-Host "  • Gaming Display Optimizations (FSO/FSE, MPO)" -ForegroundColor White
+Write-Host ""
+Write-Host "Please use gpu-display-manager.ps1 for better functionality." -ForegroundColor Yellow
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Press Enter to continue with this legacy script or Ctrl+C to exit..."
+Read-Host
 
 # Main menu
 function Show-MainMenu {
