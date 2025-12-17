@@ -1,0 +1,24 @@
+Perform the Defragment on all volumes
+defrag /C
+
+Perform the proper optimization for each media type
+defrag C: /O
+
+Perform free space consolidation
+defrag C: /X
+
+Retrim
+defrag C: /L
+
+Boot optimization
+defrag C: /B
+
+Optimize the storage tiers on the specified volumes
+defrag C: /G
+
+defrag C: /B
+defrag /C /O
+defrag C: /X
+defrag C: /G
+defrag /C /L
+defrag /c /d
