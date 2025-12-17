@@ -99,16 +99,6 @@ function Set-MSIMode {
 $REG_LOCATION = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
 $EDID_HEX = '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
 
-function Get-MonitorInstances {
-  try {
-    $monitors = (Get-WmiObject -Namespace root\wmi -Class WmiMonitorID -ErrorAction Stop).InstanceName -replace '_0', ''
-    return $monitors
-  } catch {
-    Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
-    return @()
-  }
-}
-
 function Set-EDIDOverride {
   $monitors = Get-MonitorInstances
 
@@ -187,121 +177,10 @@ function Show-EDIDStatus {
 #endregion
 
 #region Gaming Display Settings
-function Set-FullscreenMode {
-  param([string]$Mode)
-
-  Clear-Host
-
-  if ($Mode -eq 'FSO') {
-    # Fullscreen Optimizations (Default)
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "0"
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -Type REG_DWORD -Data "0"
-    Remove-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehavior"
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "0"
-
-    Write-Host "Fullscreen Optimizations (FSO) enabled." -ForegroundColor Green
-  } else {
-    # Fullscreen Exclusive
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "1"
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -Type REG_DWORD -Data "2"
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehavior" -Type REG_DWORD -Data "2"
-    Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "1"
-
-    Write-Host "Fullscreen Exclusive (FSE) enabled." -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Additional steps may be required:" -ForegroundColor Yellow
-    Write-Host "  1. Right-click game.exe"
-    Write-Host "  2. Select Properties"
-    Write-Host "  3. Go to Compatibility tab"
-    Write-Host "  4. Check 'Disable fullscreen optimizations'"
-    Write-Host "  5. Click Apply"
-    Write-Host ""
-    Write-Host "Note: DX12 engines do not support fullscreen exclusive mode." -ForegroundColor Cyan
-  }
-}
-
-function Set-MultiPlaneOverlay {
-  param([string]$Mode)
-
-  Clear-Host
-
-  switch ($Mode) {
-    'Enabled' {
-      # Enable multiplane overlay
-      Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode"
-
-      # Enable optimizations for windowed games
-      Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
-
-      Write-Host "Multiplane Overlay: Enabled" -ForegroundColor Green
-      Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
-    }
-    'Disabled' {
-      # Disable multiplane overlay
-      Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Type REG_DWORD -Data "5"
-
-      # Disable optimizations for windowed games
-      Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
-
-      Write-Host "Multiplane Overlay: Disabled" -ForegroundColor Yellow
-      Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
-    }
-    'Default' {
-      # Enable multiplane overlay (default)
-      Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode"
-
-      # Disable optimizations for windowed games
-      Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
-
-      Write-Host "Multiplane Overlay: Default (Enabled)" -ForegroundColor Cyan
-      Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Cyan
-    }
-  }
-}
-
-function Show-GamingDisplayStatus {
-  Clear-Host
-  Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
-  Write-Host ""
-
-  # Check FSO/FSE settings
-  try {
-    $fseMode = (Get-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -ErrorAction Stop).GameDVR_FSEBehaviorMode
-    if ($fseMode -eq 2) {
-      Write-Host "Fullscreen Mode: FSE (Fullscreen Exclusive)" -ForegroundColor Green
-    } else {
-      Write-Host "Fullscreen Mode: FSO (Fullscreen Optimizations)" -ForegroundColor Green
-    }
-  } catch {
-    Write-Host "Fullscreen Mode: Not configured" -ForegroundColor Gray
-  }
-
-  # Check MPO settings
-  try {
-    $mpoTest = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -ErrorAction Stop).OverlayTestMode
-    if ($mpoTest -eq 5) {
-      Write-Host "Multiplane Overlay: Disabled" -ForegroundColor Yellow
-    } else {
-      Write-Host "Multiplane Overlay: Enabled" -ForegroundColor Green
-    }
-  } catch {
-    Write-Host "Multiplane Overlay: Default (Enabled)" -ForegroundColor Green
-  }
-
-  # Check DirectX settings
-  try {
-    $dxSettings = (Get-ItemProperty -Path "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -ErrorAction Stop).DirectXUserGlobalSettings
-    if ($dxSettings -like '*SwapEffectUpgradeEnable=1*') {
-      Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
-    } else {
-      Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
-    }
-  } catch {
-    Write-Host "Windowed Game Optimizations: Not configured" -ForegroundColor Gray
-  }
-
-  Write-Host ""
-}
+# Gaming display functions now available from Common.ps1:
+# - Set-FullscreenMode
+# - Set-MultiPlaneOverlay
+# - Show-GamingDisplayStatus
 #endregion
 
 #region Menu System

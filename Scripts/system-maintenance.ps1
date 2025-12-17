@@ -28,11 +28,8 @@ param(
   [switch]$DryRun
 )
 
-function Assert-Admin {
-  if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw "Administrator privileges required (defrag needs admin)."
-  }
-}
+# Import common functions
+. "$PSScriptRoot\Common.ps1"
 
 function Invoke-Step {
   param(
@@ -120,7 +117,7 @@ function Invoke-MsiCleanup {
 }
 
 try {
-  Assert-Admin
+  Request-AdminElevation
 
   if (-not $NoDefrag) {
     Invoke-Defrag -TargetVolume $Volume -All:$AllVolumes
