@@ -162,37 +162,31 @@ while ($true) {
         1 {
             Set-FullscreenMode -Mode 'FSO'
             Write-Host ""
-            Write-Host "Press any key to continue..." -ForegroundColor Cyan
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Wait-ForKeyPress -Message "Press any key to continue..."
         }
         2 {
             Set-FullscreenMode -Mode 'FSE'
             Write-Host ""
-            Write-Host "Press any key to continue..." -ForegroundColor Cyan
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Wait-ForKeyPress -Message "Press any key to continue..."
         }
         3 {
             Set-MultiPlaneOverlay -Mode 'Enabled'
             Write-Host ""
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         4 {
             Set-MultiPlaneOverlay -Mode 'Disabled'
             Write-Host ""
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         5 {
             Set-MultiPlaneOverlay -Mode 'Default'
             Write-Host ""
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Show-RestartRequired
         }
         6 {
             Show-CurrentStatus
-            Write-Host "Press any key to continue..." -ForegroundColor Cyan
-            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+            Wait-ForKeyPress -Message "Press any key to continue..."
         }
         7 {
             exit

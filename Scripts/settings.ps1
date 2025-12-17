@@ -123,11 +123,11 @@ $choice = Get-MenuChoice -Min 1 -Max 3
 switch ($choice) {
     1 {
         Set-PerformanceSettings
-        $null = Read-Host "Press Enter to continue"
+        Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
     }
     2 {
         Restore-DefaultSettings
-        $null = Read-Host "Press Enter to continue"
+        Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
     }
     3 {
         exit

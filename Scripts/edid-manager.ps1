@@ -135,19 +135,16 @@ while ($true) {
         1 {
             Set-EDIDOverride
             Write-Host ""
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = Read-Host "Press Enter to continue"
+            Show-RestartRequired
         }
         2 {
             Remove-EDIDOverride
             Write-Host ""
-            Write-Host "Restart required to apply changes..." -ForegroundColor Yellow
-            $null = Read-Host "Press Enter to continue"
+            Show-RestartRequired
         }
         3 {
             Show-EDIDStatus
-            Write-Host "Press Enter to continue..." -ForegroundColor Cyan
-            $null = Read-Host
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
         }
         4 {
             exit

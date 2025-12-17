@@ -83,6 +83,46 @@ function Get-MenuChoice {
         Write-Host "Invalid input. Please select a valid option ($Min-$Max)." -ForegroundColor Red
     }
 }
+
+function Wait-ForKeyPress {
+    <#
+    .SYNOPSIS
+        Waits for user to press any key
+    .PARAMETER Message
+        Optional message to display before waiting
+    .PARAMETER UseReadHost
+        Use Read-Host instead of RawUI.ReadKey (useful for specific prompts)
+    #>
+    param(
+        [string]$Message = "",
+        [switch]$UseReadHost
+    )
+
+    if ($Message) {
+        Write-Host $Message -NoNewline
+    }
+
+    if ($UseReadHost) {
+        $null = Read-Host
+    } else {
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}
+
+function Show-RestartRequired {
+    <#
+    .SYNOPSIS
+        Displays a restart required message and waits for user acknowledgment
+    .PARAMETER CustomMessage
+        Optional custom message (defaults to standard restart message)
+    #>
+    param(
+        [string]$CustomMessage = "Restart required to apply changes..."
+    )
+
+    Write-Host $CustomMessage -ForegroundColor Yellow
+    Wait-ForKeyPress
+}
 #endregion
 
 #region Registry Helpers
@@ -140,6 +180,59 @@ function Get-NvidiaGpuRegistryPaths {
     $basePath = "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
     $subkeys = (Get-ChildItem -Path "Registry::$basePath" -Force -ErrorAction SilentlyContinue).Name
     return $subkeys | Where-Object { $_ -notlike '*Configuration' }
+}
+
+function Show-RegistryStatus {
+    <#
+    .SYNOPSIS
+        Displays registry value status with color-coded output
+    .PARAMETER Path
+        Registry path (in PowerShell format like 'HKLM:\SOFTWARE\...')
+    .PARAMETER Name
+        Registry value name
+    .PARAMETER Label
+        Display label for the setting
+    .PARAMETER EnabledValue
+        Value that indicates "enabled" state
+    .PARAMETER EnabledText
+        Text to show when enabled (default: "Enabled")
+    .PARAMETER DisabledText
+        Text to show when disabled (default: "Disabled")
+    .PARAMETER NotFoundText
+        Text to show when not found (default: "Not configured")
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [string]$Label,
+        [object]$EnabledValue = 1,
+        [string]$EnabledText = "Enabled",
+        [string]$DisabledText = "Disabled",
+        [string]$NotFoundText = "Not configured"
+    )
+
+    if (!$Label) {
+        $Label = $Name
+    }
+
+    try {
+        $value = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
+
+        if ($value -eq $EnabledValue) {
+            Write-Host "${Label}: " -NoNewline
+            Write-Host $EnabledText -ForegroundColor Green
+        } else {
+            Write-Host "${Label}: " -NoNewline
+            Write-Host $DisabledText -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "${Label}: " -NoNewline
+        Write-Host $NotFoundText -ForegroundColor Gray
+    }
 }
 #endregion
 
