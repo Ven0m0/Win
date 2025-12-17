@@ -233,6 +233,8 @@ function ConvertFrom-VDF {
         Parses Valve Data Format (VDF) files
     .PARAMETER Content
         VDF file content as string array
+    .PARAMETER line
+        Reference to the current line index used for recursive parsing
     #>
     param(
         [string[]]$Content,
