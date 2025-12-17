@@ -1,4 +1,4 @@
-# nvidia-settings.ps1 - Unified NVIDIA GPU Registry Settings Manager
+﻿# nvidia-settings.ps1 - Unified NVIDIA GPU Registry Settings Manager
 # Combines P0-State and HDCP settings in one optimized script
 
 #Requires -RunAsAdministrator

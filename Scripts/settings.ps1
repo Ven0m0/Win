@@ -1,4 +1,4 @@
-# settings.ps1 - System Performance Settings Manager
+﻿# settings.ps1 - System Performance Settings Manager
 # Optimizes various Windows settings for gaming and performance
 
 #Requires -RunAsAdministrator

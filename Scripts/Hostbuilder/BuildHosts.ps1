@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 # Import common functions
 . "$PSScriptRoot\..\Common.ps1"
@@ -48,8 +48,8 @@ $groupBox = New-Object System.Windows.Forms.GroupBox
 $groupBox.Text = 'DNS Blocklists'
 $groupBox.Size = New-Object System.Drawing.Size(385, 180)
 $groupBox.Location = New-Object System.Drawing.Point(10, 10)
-$groupBox.ForeColor = 'White' 
-$groupBox.BackColor = 'Gray' 
+$groupBox.ForeColor = 'White'
+$groupBox.BackColor = 'Gray'
 
 # Create the checkboxes
 $Global:checkBox1 = New-Object System.Windows.Forms.CheckBox
@@ -108,7 +108,7 @@ $buildHostsButton.Add_Click({
         #use getfilefrom web for big lists
         if ($checkBox1.Checked) {
             #tif
-            Get-FileFromWeb -URL 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/tif.txt' -File "$env:temp\tif.txt" 
+            Get-FileFromWeb -URL 'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/tif.txt' -File "$env:temp\tif.txt"
             $paths += 'tif.txt'
         }
         if ($checkBox2.Checked) {
@@ -151,7 +151,7 @@ $buildHostsButton.Add_Click({
             $paths += 'adguard.txt'
         }
 
-        
+
         #---------------------------------------- compress and compile
         Write-Host 'Compiling and Compressing Lists...'
         $i = 0
@@ -164,7 +164,7 @@ $buildHostsButton.Add_Click({
         #combine into file
         $combinetxt = New-Item $env:temp\Combine.txt -Force
         foreach ($path in $paths) {
-            $content = Get-Content "$env:TEMP\$($path)Comp.txt" 
+            $content = Get-Content "$env:TEMP\$($path)Comp.txt"
             Add-Content $combinetxt.FullName -Value $content
         }
 
@@ -183,17 +183,17 @@ $buildHostsButton.Add_Click({
         else {
             Start-Process "$env:temp\compressHosts.exe" -ArgumentList "-compression 9 -i $($combinetxt.FullName) -o `"$env:SystemRoot\System32\drivers\etc\hostsBuilder.txt`"" -Wait -WindowStyle Hidden
         }
-       
+
         Write-host 'Done!'
         #cleanup
-        
+
         foreach ($path in $paths) {
             Remove-Item "$env:temp\$path" -force -ErrorAction SilentlyContinue
             Remove-Item "$env:temp\$($path)Comp.txt" -force -ErrorAction SilentlyContinue
         }
         Remove-Item $combinetxt.FullName -Force -ErrorAction SilentlyContinue
         Remove-Item "$env:temp\compressHosts.exe" -Force -ErrorAction SilentlyContinue
-        
+
     })
 $form.Controls.Add($buildHostsButton)
 
@@ -234,7 +234,7 @@ $backUpDNS.Add_Click({
             else {
                 #generate a random 3 digit number
                 $randomNumber = Get-Random -Minimum 100 -Maximum 1000
-                Copy-Item -Path $hosts -Destination "$env:SystemRoot\System32\drivers\etc\hosts$randomNumber.bak" 
+                Copy-Item -Path $hosts -Destination "$env:SystemRoot\System32\drivers\etc\hosts$randomNumber.bak"
             }
         }
         else {
@@ -246,7 +246,7 @@ $backUpDNS.Add_Click({
         foreach ($backup in $backups) {
             Write-Host "[$backup]" -ForegroundColor Yellow
         }
-        
+
     })
 $form.Controls.Add($backUpDNS)
 
@@ -277,8 +277,8 @@ $clearHosts.Add_Click({
 #       38.25.63.10     x.acme.com              # x client host
 
 # localhost name resolution is handled within DNS itself.
-#	127.0.0.1       localhost
-#	::1             localhost
+# 127.0.0.1       localhost
+# ::1             localhost
 '@
         $message = 'Are you sure you want to reset hosts back to default?'
         $caption = 'Confirm Reset'

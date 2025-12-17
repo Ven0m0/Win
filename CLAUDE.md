@@ -5,6 +5,7 @@
 This is a **Windows dotfiles repository** managed with [yadm](https://yadm.io/), containing PowerShell configurations, optimization scripts, and Windows system tweaks. The repository is designed for managing Windows development environments and gaming optimizations across multiple machines.
 
 **Key Technologies:**
+
 - **yadm**: Dotfile management (git-based)
 - **PowerShell**: Scripting and automation
 - **Git**: Version control
@@ -12,6 +13,7 @@ This is a **Windows dotfiles repository** managed with [yadm](https://yadm.io/),
 - **Registry Tweaks**: System optimizations
 
 **Primary Use Cases:**
+
 1. Windows system optimization and gaming performance
 2. Dotfile synchronization across Windows machines
 3. Automated Windows environment setup
@@ -54,11 +56,13 @@ Win/
 #### `/Scripts` - Main Scripts Directory
 
 Contains PowerShell optimization and utility scripts. **All scripts require:**
+
 - PowerShell 5.1+ (PowerShell 7+ recommended)
 - Administrator privileges
 - `Common.ps1` module in the same directory
 
 **Script Categories:**
+
 1. **GPU/Display** - `nvidia-settings.ps1`, `edid-manager.ps1`, `gaming-display.ps1`, `msi-mode.ps1`
 2. **Gaming** - `steam.ps1`, `shader-cache.ps1`, `DLSS-force-latest.ps1`
 3. **System** - `settings.ps1`, `keyboard-shortcuts.ps1`, `UltimateDiskCleanup.ps1`
@@ -169,6 +173,7 @@ ConvertTo-VDF -Data $hashtable | Out-File "file.vdf"
 ### Line Endings and Encoding
 
 From `.editorconfig`:
+
 - **Default**: `CRLF` (Windows-style)
 - **Charset**: `UTF-8`
 - **PowerShell**: `UTF-8 with BOM` (`.vscode/settings.json`)
@@ -184,6 +189,7 @@ From `.editorconfig`:
 yadm is a **git wrapper** for dotfiles. It works identically to git but operates on `$HOME` as the working directory.
 
 **Key Differences:**
+
 - `git status` → `yadm status`
 - `git add` → `yadm add`
 - `git commit` → `yadm commit`
@@ -219,6 +225,7 @@ yadm ls-files
 From `.gitconfig`:
 
 **Important Settings:**
+
 - **Default branch**: `main`
 - **Pull strategy**: `rebase = true` (always rebase on pull)
 - **Push**: `autoSetupRemote = true` (auto-track remote branches)
@@ -228,6 +235,7 @@ From `.gitconfig`:
 - **Maintenance**: Incremental strategy enabled
 
 **Useful Aliases:**
+
 ```bash
 git st      # status
 git lg      # pretty log graph
@@ -241,6 +249,7 @@ git cleanup # delete merged branches
 When modifying this repository:
 
 1. **Check current state:**
+
    ```powershell
    yadm status
    yadm diff
@@ -249,12 +258,14 @@ When modifying this repository:
 2. **Make changes** to files
 
 3. **Review changes:**
+
    ```powershell
    yadm diff
    yadm status
    ```
 
 4. **Stage files:**
+
    ```powershell
    yadm add path/to/file
    # or stage all changes
@@ -262,6 +273,7 @@ When modifying this repository:
    ```
 
 5. **Commit with descriptive message:**
+
    ```powershell
    yadm commit -m "Brief description of changes"
    ```
@@ -464,6 +476,7 @@ When cloning this repository on a new machine:
 3. **Run bootstrap**: `pwsh $HOME\.yadm\bootstrap`
 
 The bootstrap script (`.yadm/bootstrap`):
+
 - Checks prerequisites (PowerShell, Git, etc.)
 - Sets up PowerShell profile
 - Configures Windows Terminal
@@ -482,11 +495,13 @@ Location: `user/.dotfiles/config/powershell/profile.ps1`
 ### Key Features
 
 **Environment Setup:**
+
 - Adds `~/Scripts` and `~/.local/bin` to PATH
 - Sets `$env:EDITOR` (VS Code → Vim → Notepad)
 - Configures Starship prompt (if installed)
 
 **Aliases:**
+
 ```powershell
 # Navigation
 ~          # cd $HOME
@@ -507,6 +522,7 @@ which, grep, df, du
 ```
 
 **Functions:**
+
 ```powershell
 Get-DiskUsage / df          # Show disk usage
 Get-FileSize / du           # Calculate directory size
@@ -521,6 +537,7 @@ pupdate                     # Update all winget packages
 ```
 
 **PSReadLine Config:**
+
 - Arrow keys for history search
 - Tab for menu completion
 - Predictive IntelliSense (PS7+)
@@ -546,18 +563,21 @@ $env:MY_CUSTOM_VAR = "value"
 Before committing scripts:
 
 ### 1. Syntax Check
+
 ```powershell
 # Run PSScriptAnalyzer if available
 Invoke-ScriptAnalyzer -Path Scripts/your-script.ps1
 ```
 
 ### 2. Execution Test
+
 ```powershell
 # Test as admin
 PowerShell.exe -ExecutionPolicy Bypass -File Scripts/your-script.ps1
 ```
 
 ### 3. Registry Change Verification
+
 ```powershell
 # Before running script
 Get-ItemProperty -Path "HKLM\..."
@@ -569,11 +589,13 @@ Get-ItemProperty -Path "HKLM\..."
 ```
 
 ### 4. Menu Navigation Test
+
 - Test all menu options
 - Verify exit functionality
 - Check invalid input handling
 
 ### 5. Error Handling Test
+
 - Test without admin privileges (should elevate)
 - Test with missing dependencies
 - Test with invalid input
@@ -583,17 +605,20 @@ Get-ItemProperty -Path "HKLM\..."
 ## External Resources
 
 ### Referenced in submodules.md
+
 - [zScripts](https://github.com/zoicware/zScripts) - Windows optimization base
 - [OverrideEDID](https://github.com/zoicware/OverrideEDID) - Display fixes
 - [RemoveWindowsAI](https://github.com/zoicware/RemoveWindowsAI) - AI removal
 
 ### Package Managers
+
 - [Winget](https://winstall.app) - Primary package manager
 - [Scoop](https://scoop.sh) - Alternative package manager
 - [Chocolatey](https://chocolatey.org) - Legacy package manager
 - [CCT](https://christitus.com/win) - ChrisTitus Tech utility
 
 ### Tools Referenced
+
 - [NVIDIA Profile Inspector](https://github.com/Orbmu2k/nvidiaProfileInspector)
 - [NVIDIA Profile Inspector Unlocked](https://github.com/Ixeoz/nvidiaProfileInspector-UNLOCKED)
 - [ExplorerPatcher](https://github.com/valinet/ExplorerPatcher)
@@ -610,12 +635,14 @@ Get-ItemProperty -Path "HKLM\..."
 **Problem**: "Running scripts is disabled on this system"
 
 **Solution**:
+
 ```cmd
 cd %USERPROFILE%\Scripts
 allow-scripts.cmd
 ```
 
 Or manually:
+
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 ```
@@ -625,6 +652,7 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 **Problem**: Bootstrap script doesn't execute after clone
 
 **Solution**:
+
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 pwsh $HOME\.yadm\bootstrap
@@ -635,6 +663,7 @@ pwsh $HOME\.yadm\bootstrap
 **Problem**: `yadm` command not recognized
 
 **Solution**:
+
 ```powershell
 winget install yadm
 # Restart terminal
@@ -645,6 +674,7 @@ winget install yadm
 **Problem**: Scripts fail with "Common.ps1 not found"
 
 **Solution**: Ensure `Common.ps1` is in the Scripts directory:
+
 ```powershell
 yadm status  # Check if Common.ps1 is present
 ```
@@ -654,6 +684,7 @@ yadm status  # Check if Common.ps1 is present
 **Problem**: Script runs but settings don't change
 
 **Checklist**:
+
 1. Running as Administrator?
 2. Correct registry path? (HKLM vs HKCU)
 3. Restart required?
@@ -666,12 +697,14 @@ yadm status  # Check if Common.ps1 is present
 ### What Gets Committed
 
 **✅ Safe to commit:**
+
 - Configuration files (without secrets)
 - PowerShell scripts
 - Documentation
 - VS Code settings
 
 **❌ Never commit:**
+
 - `.gitconfig` (has user email - use template)
 - `.gitconfig.local` (local overrides)
 - `.ssh/` directory (except `config`)
@@ -681,12 +714,14 @@ yadm status  # Check if Common.ps1 is present
 ### Script Safety
 
 All scripts in this repository:
+
 - Are open source and reviewable
 - Primarily modify registry settings
 - Require explicit user confirmation
 - Can be undone (most have "restore defaults" options)
 
 **Always review scripts before running**, especially:
+
 - Registry modifications
 - System file changes
 - Network configurations
@@ -704,6 +739,7 @@ All scripts in this repository:
 ```
 
 **Types:**
+
 - `feat`: New feature or script
 - `fix`: Bug fix
 - `docs`: Documentation update
@@ -712,6 +748,7 @@ All scripts in this repository:
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```
 feat: Add GPU power state optimization script
 
@@ -730,6 +767,7 @@ docs: Update README with new script organization
 **Main branch**: `main` (stable, tested changes)
 
 For experimental changes:
+
 ```powershell
 # Create feature branch
 git checkout -b feature/my-feature
@@ -752,16 +790,19 @@ git merge feature/my-feature
 From `Common.ps1` design:
 
 1. **Use robocopy for bulk operations**:
+
    ```powershell
    Clear-DirectorySafe -Path "C:\temp"  # Uses robocopy
    ```
 
 2. **Suppress unnecessary output**:
+
    ```powershell
    $null = reg add ... 2>&1
    ```
 
 3. **Minimize WMI calls**:
+
    ```powershell
    # Cache results
    $gpuPaths = Get-NvidiaGpuRegistryPaths
@@ -778,21 +819,25 @@ From `Common.ps1` design:
 ### Regular Tasks
 
 **Weekly:**
+
 - Review `TODO.MD` for pending items
 - Test critical scripts after Windows updates
 - Check for yadm updates: `winget upgrade yadm`
 
 **Monthly:**
+
 - Update PowerShell: `supdate`
 - Review and clean old configurations
 - Check for broken symlinks/references
 
 **After Windows Update:**
+
 - Test NVIDIA scripts (drivers may reset settings)
 - Verify PowerShell execution policy
 - Check Windows Terminal configuration
 
 **Before Major Changes:**
+
 - Backup registry: `regedit → Export`
 - Create system restore point
 - Document current state
@@ -890,6 +935,7 @@ Bootstrap copies to: `$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8weky
 ### Starship Prompt
 
 If Starship is installed:
+
 - Automatically initialized in PowerShell profile
 - Provides git-aware, customizable prompt
 - Install: `winget install Starship.Starship`
@@ -899,6 +945,7 @@ If Starship is installed:
 ## Summary
 
 This repository is a **comprehensive Windows dotfiles and optimization suite** designed for:
+
 - Gaming performance optimization
 - Developer environment setup
 - NVIDIA GPU configuration
@@ -906,6 +953,7 @@ This repository is a **comprehensive Windows dotfiles and optimization suite** d
 - Consistent cross-machine configurations
 
 **Core Principles:**
+
 - DRY (Don't Repeat Yourself) - Use `Common.ps1`
 - User Safety - Always allow reverting changes
 - Documentation - Keep docs current
@@ -913,6 +961,7 @@ This repository is a **comprehensive Windows dotfiles and optimization suite** d
 - Modularity - One concern per script
 
 **For AI Assistants:**
+
 - Always check `yadm status` before and after changes
 - Use `Common.ps1` functions exclusively
 - Follow PowerShell style guide strictly

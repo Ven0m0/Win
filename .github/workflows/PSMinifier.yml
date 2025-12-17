@@ -6,12 +6,12 @@ on:
     branches:
       - main
     paths:
-      - '**.ps1'
-      - '**.psm1'
+      - "**.ps1"
+      - "**.psm1"
   pull_request:
     paths:
-      - '**.ps1'
-      - '**.psm1'
+      - "**.ps1"
+      - "**.psm1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

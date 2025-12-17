@@ -1,4 +1,4 @@
-# gaming-display.ps1 - Gaming Display Optimizations Manager
+﻿# gaming-display.ps1 - Gaming Display Optimizations Manager
 # Manages Fullscreen Optimizations (FSO/FSE) and Multiplane Overlay (MPO) settings
 
 #Requires -RunAsAdministrator

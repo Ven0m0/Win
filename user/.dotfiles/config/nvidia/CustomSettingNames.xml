@@ -20,16 +20,15 @@
           when uncommenting sections of this file to ensure that you aren't uncommenting raw text, but also aren't missing
           part of the setting that needs to be uncommented after a code comment.
     -->
-
 <CustomSettingNames>
   <Settings>
-  <!--
+    <!--
     <CustomSetting>
       <HexSettingID>0x1075D972</HexSettingID>
       <Hidden>true</Hidden>
     </CustomSetting>
   -->
-  <!--
+    <!--
     <CustomSetting>
       <UserfriendlyName>StereoProfile</UserfriendlyName>
       <HexSettingID>0x701EB457</HexSettingID>
@@ -37,11 +36,11 @@
       <SettingValues>
         <CustomSettingValue>
   -->
-          <!--
+    <!--
             Not exactly the same behaviour as removing the setting from the
             profile, e.g. 3D still kicks in for windowed DX9 apps.
           -->
-  <!--
+    <!--
           <UserfriendlyName>No</UserfriendlyName>
           <HexValue>0x00000000</HexValue>
         </CustomSettingValue>
@@ -52,14 +51,13 @@
       </SettingValues>
     </CustomSetting>
   -->
-  <CustomSetting>
+    <CustomSetting>
       <UserfriendlyName>Ambient Occlusion - Compatibility</UserfriendlyName>
       <HexSettingID>0x002C7F45</HexSettingID>
       <GroupName>1 - Compatibility</GroupName>
       <SettingValues/>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Antialiasing - Compatibility (DX1x)</UserfriendlyName>
       <HexSettingID>0x00E32F8A</HexSettingID>
@@ -67,7 +65,6 @@
       <SettingValues/>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Antialiasing - Compatibility (DX9)</UserfriendlyName>
       <HexSettingID>0x00D55F7D</HexSettingID>
@@ -75,7 +72,6 @@
       <SettingValues/>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Antialiasing Fix</UserfriendlyName>
       <HexSettingID>0x000858F7</HexSettingID>
@@ -93,7 +89,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SLI - Compatibility Bits (DX10 + DX11)</UserfriendlyName>
       <HexSettingID>0x00A06946</HexSettingID>
@@ -136,14 +131,12 @@
         </CustomSettingMask>
       </SettingMasks>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SLI - Compatibility Bits (DX12)</UserfriendlyName>
       <HexSettingID>0x00A04746</HexSettingID>
       <GroupName>1 - Compatibility</GroupName>
       <SettingValues/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SLI - Compatibility Bits (DX9)</UserfriendlyName>
       <HexSettingID>0x1095DEF8</HexSettingID>
@@ -200,14 +193,12 @@
         </CustomSettingMask>
       </SettingMasks>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SLI - Compatibility Bits (OGL)</UserfriendlyName>
       <HexSettingID>0x209746C1</HexSettingID>
       <GroupName>1 - Compatibility</GroupName>
       <SettingValues/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Flip Indicator</UserfriendlyName>
       <HexSettingID>0x002CF156</HexSettingID>
@@ -244,7 +235,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Frame Rate Limiter - Background Application</UserfriendlyName>
       <HexSettingID>0x10835005</HexSettingID>
@@ -480,7 +470,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Frame Rate Limiter V3</UserfriendlyName>
       <HexSettingID>0x10835002</HexSettingID>
@@ -4418,7 +4407,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Application Mode</UserfriendlyName>
       <HexSettingID>0x1194F158</HexSettingID>
@@ -4440,7 +4428,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Application Requested State</UserfriendlyName>
       <HexSettingID>0x10A879AC</HexSettingID>
@@ -4470,7 +4457,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Application State</UserfriendlyName>
       <HexSettingID>0x10A879CF</HexSettingID>
@@ -4500,7 +4486,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Global Feature</UserfriendlyName>
       <HexSettingID>0x1094F157</HexSettingID>
@@ -4518,7 +4503,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Global Mode</UserfriendlyName>
       <HexSettingID>0x1094F1F7</HexSettingID>
@@ -4540,7 +4524,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Indicator Overlay</UserfriendlyName>
       <HexSettingID>0x10029538</HexSettingID>
@@ -4558,7 +4541,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>GSYNC - Support Indicator Overlay</UserfriendlyName>
       <HexSettingID>0X008DF510</HexSettingID>
@@ -4574,7 +4556,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Maximum Pre-Rendered Frames</UserfriendlyName>
       <HexSettingID>0x007BA09E</HexSettingID>
@@ -4619,7 +4600,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Prefered Refreshrate</UserfriendlyName>
       <HexSettingID>0x0064B541</HexSettingID>
@@ -4640,7 +4620,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Triple Buffering</UserfriendlyName>
       <HexSettingID>0x20FDD1F9</HexSettingID>
@@ -4657,7 +4636,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Ultra Low Latency - CPL State</UserfriendlyName>
       <HexSettingID>0x0005F543</HexSettingID>
@@ -4679,7 +4657,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Ultra Low Latency - Enabled</UserfriendlyName>
       <HexSettingID>0x10835000</HexSettingID>
@@ -4696,7 +4673,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Vertical Sync - Smooth AFR Behavior</UserfriendlyName>
       <HexSettingID>0x101AE763</HexSettingID>
@@ -4714,7 +4690,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Vertical Sync - Tear Control</UserfriendlyName>
       <HexSettingID>0x005A375C</HexSettingID>
@@ -4732,7 +4707,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Vertical Sync</UserfriendlyName>
       <HexSettingID>0x00A879CF</HexSettingID>
@@ -4769,7 +4743,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>MSAA Behavior Flags</UserfriendlyName>
       <HexSettingID>0x10ECDB82</HexSettingID>
@@ -4810,7 +4783,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>MSAA Mode</UserfriendlyName>
       <HexSettingID>0x107EFC5B</HexSettingID>
@@ -4831,157 +4803,151 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
-   <CustomSetting>
-  <UserfriendlyName>MSAA Type</UserfriendlyName>
-  <HexSettingID>0x10D773D2</HexSettingID>
-  <GroupName>0.4 - Anti-Aliasing</GroupName>
-  <SettingValues>
-    <!-- MSAA Settings -->
-    <CustomSettingValue>
-      <UserfriendlyName>Application-controlled / Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 2x</UserfriendlyName>
-      <HexValue>0x0000000E</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 4x</UserfriendlyName>
-      <HexValue>0x00000010</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 8x</UserfriendlyName>
-      <HexValue>0x00000025</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 16x</UserfriendlyName>
-      <HexValue>0x0000001C</HexValue>
-    </CustomSettingValue>
-
-    <!-- CSAA Settings -->
-    <CustomSettingValue>
-      <UserfriendlyName>CSAA 2x</UserfriendlyName>
-      <HexValue>0x0000000F</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>CSAA 8x</UserfriendlyName>
-      <HexValue>0x00000026</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>CSAA 16x (Performance)</UserfriendlyName>
-      <HexValue>0x00000027</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>CSAA 16x (Quality)</UserfriendlyName>
-      <HexValue>0x00000028</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>CSAA 32x</UserfriendlyName>
-      <HexValue>0x0000001D</HexValue>
-    </CustomSettingValue>
-
-    <!-- SSAA Settings -->
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 2x Horizontal (D3D)</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 2x Vertical (D3D)</UserfriendlyName>
-      <HexValue>0x00000002</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x (D3D)</UserfriendlyName>
-      <HexValue>0x00000005</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 9x (D3D)</UserfriendlyName>
-      <HexValue>0x0000000A</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 16x (D3D)</UserfriendlyName>
-      <HexValue>0x0000000C</HexValue>
-    </CustomSettingValue>
-
-    <!-- Hybrid SSAA + MSAA Settings -->
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 2x Vertical + MSAA 2x (D3D)</UserfriendlyName>
-      <HexValue>0x00000013</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 2x Vertical + MSAA 4x (D3D)</UserfriendlyName>
-      <HexValue>0x00000018</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + MSAA 2x (D3D)</UserfriendlyName>
-      <HexValue>0x00000019</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + OGMSAA 4x (D3D)</UserfriendlyName>
-      <HexValue>0x00000017</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + MSAA 4x (D3D)</UserfriendlyName>
-      <HexValue>0x0000001A</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + MSAA 8x (D3D)</UserfriendlyName>
-      <HexValue>0x00000029</HexValue>
-    </CustomSettingValue>
-
- <!-- Additional Anti-Aliasing Methods -->
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + Bias</UserfriendlyName>
-      <HexValue>0x00000006</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + Gaussian Filter</UserfriendlyName>
-      <HexValue>0x00000007</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 9x + Bias</UserfriendlyName>
-      <HexValue>0x0000000B</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 16x + Bias</UserfriendlyName>
-      <HexValue>0x0000000D</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + Gamma-Corrected</UserfriendlyName>
-      <HexValue>0x00000021</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>SSAA 4x + FOSGamma</UserfriendlyName>
-      <HexValue>0x00000024</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 4x + Gaussian Filter</UserfriendlyName>
-      <HexValue>0x00000012</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 4x + Gamma-Corrected</UserfriendlyName>
-      <HexValue>0x0000001B</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 16x</UserfriendlyName>
-      <HexValue>0x0000001C</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 2x Diagonal + Gamma-Corrected</UserfriendlyName>
-      <HexValue>0x00000020</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 4x + FOSGamma</UserfriendlyName>
-      <HexValue>0x00000022</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>MSAA 2x Diagonal + FOSGamma</UserfriendlyName>
-      <HexValue>0x00000023</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
+    <CustomSetting>
+      <UserfriendlyName>MSAA Type</UserfriendlyName>
+      <HexSettingID>0x10D773D2</HexSettingID>
+      <GroupName>0.4 - Anti-Aliasing</GroupName>
+      <SettingValues>
+        <!-- MSAA Settings -->
+        <CustomSettingValue>
+          <UserfriendlyName>Application-controlled / Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 2x</UserfriendlyName>
+          <HexValue>0x0000000E</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 4x</UserfriendlyName>
+          <HexValue>0x00000010</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 8x</UserfriendlyName>
+          <HexValue>0x00000025</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 16x</UserfriendlyName>
+          <HexValue>0x0000001C</HexValue>
+        </CustomSettingValue>
+        <!-- CSAA Settings -->
+        <CustomSettingValue>
+          <UserfriendlyName>CSAA 2x</UserfriendlyName>
+          <HexValue>0x0000000F</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>CSAA 8x</UserfriendlyName>
+          <HexValue>0x00000026</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>CSAA 16x (Performance)</UserfriendlyName>
+          <HexValue>0x00000027</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>CSAA 16x (Quality)</UserfriendlyName>
+          <HexValue>0x00000028</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>CSAA 32x</UserfriendlyName>
+          <HexValue>0x0000001D</HexValue>
+        </CustomSettingValue>
+        <!-- SSAA Settings -->
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 2x Horizontal (D3D)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 2x Vertical (D3D)</UserfriendlyName>
+          <HexValue>0x00000002</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x (D3D)</UserfriendlyName>
+          <HexValue>0x00000005</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 9x (D3D)</UserfriendlyName>
+          <HexValue>0x0000000A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 16x (D3D)</UserfriendlyName>
+          <HexValue>0x0000000C</HexValue>
+        </CustomSettingValue>
+        <!-- Hybrid SSAA + MSAA Settings -->
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 2x Vertical + MSAA 2x (D3D)</UserfriendlyName>
+          <HexValue>0x00000013</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 2x Vertical + MSAA 4x (D3D)</UserfriendlyName>
+          <HexValue>0x00000018</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + MSAA 2x (D3D)</UserfriendlyName>
+          <HexValue>0x00000019</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + OGMSAA 4x (D3D)</UserfriendlyName>
+          <HexValue>0x00000017</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + MSAA 4x (D3D)</UserfriendlyName>
+          <HexValue>0x0000001A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + MSAA 8x (D3D)</UserfriendlyName>
+          <HexValue>0x00000029</HexValue>
+        </CustomSettingValue>
+        <!-- Additional Anti-Aliasing Methods -->
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + Bias</UserfriendlyName>
+          <HexValue>0x00000006</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + Gaussian Filter</UserfriendlyName>
+          <HexValue>0x00000007</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 9x + Bias</UserfriendlyName>
+          <HexValue>0x0000000B</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 16x + Bias</UserfriendlyName>
+          <HexValue>0x0000000D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + Gamma-Corrected</UserfriendlyName>
+          <HexValue>0x00000021</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>SSAA 4x + FOSGamma</UserfriendlyName>
+          <HexValue>0x00000024</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 4x + Gaussian Filter</UserfriendlyName>
+          <HexValue>0x00000012</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 4x + Gamma-Corrected</UserfriendlyName>
+          <HexValue>0x0000001B</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 16x</UserfriendlyName>
+          <HexValue>0x0000001C</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 2x Diagonal + Gamma-Corrected</UserfriendlyName>
+          <HexValue>0x00000020</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 4x + FOSGamma</UserfriendlyName>
+          <HexValue>0x00000022</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>MSAA 2x Diagonal + FOSGamma</UserfriendlyName>
+          <HexValue>0x00000023</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
     <CustomSetting>
       <UserfriendlyName>FXAA Allowed</UserfriendlyName>
       <HexSettingID>0x1034CB89</HexSettingID>
@@ -4999,7 +4965,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>FXAA Mode</UserfriendlyName>
       <HexSettingID>0x1074C972</HexSettingID>
@@ -5017,7 +4982,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>FXAA Indicator Overlay</UserfriendlyName>
       <HexSettingID>0x1068FB9C</HexSettingID>
@@ -5035,7 +4999,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Antialiasing - Gamma Correction</UserfriendlyName>
       <HexSettingID>0x107D639D</HexSettingID>
@@ -5053,7 +5016,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Antialiasing - Line Gamma</UserfriendlyName>
       <HexSettingID>0x2089BF6C</HexSettingID>
@@ -5074,7 +5036,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>MFAA Mode</UserfriendlyName>
       <HexSettingID>0x0098C1AC</HexSettingID>
@@ -5092,7 +5053,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>MSAA Transparency</UserfriendlyName>
       <HexSettingID>0x10FC2D9C</HexSettingID>
@@ -5109,7 +5069,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SSAA Transparency</UserfriendlyName>
       <HexSettingID>0x10D48A85</HexSettingID>
@@ -5178,7 +5137,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>1 - NVSharpen Mode</UserfriendlyName>
       <HexSettingID>0x00ABAC21</HexSettingID>
@@ -5196,7 +5154,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>1 - NVSharpen Value</UserfriendlyName>
       <HexSettingID>0x00ABAB21</HexSettingID>
@@ -5290,7 +5247,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>3 - NVSharpen Denoising (Old)</UserfriendlyName>
       <HexSettingID>0x002ED8CE</HexSettingID>
@@ -5388,7 +5344,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>2 - NVSharpen Mode (Old)</UserfriendlyName>
       <HexSettingID>0x00598928</HexSettingID>
@@ -5406,7 +5361,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>2 - NVSharpen Value (Old)</UserfriendlyName>
       <HexSettingID>0x002ED8CD</HexSettingID>
@@ -5500,7 +5454,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Anisotropic Filter - Optimization</UserfriendlyName>
       <HexSettingID>0x0084CD70</HexSettingID>
@@ -5517,7 +5470,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Anisotropic Filter - Sample Optimization</UserfriendlyName>
       <HexSettingID>0x00E73211</HexSettingID>
@@ -5534,7 +5486,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Anisotropic Filtering - Mode</UserfriendlyName>
       <HexSettingID>0x10D2BB16</HexSettingID>
@@ -5551,7 +5502,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Anisotropic Filtering - Setting</UserfriendlyName>
       <HexSettingID>0x101E61A9</HexSettingID>
@@ -5592,7 +5542,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Prevent Anisotropic Filtering</UserfriendlyName>
       <HexSettingID>0x103BCCB5</HexSettingID>
@@ -5610,7 +5559,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Texture Filtering - Driver Controlled LOD Bias</UserfriendlyName>
       <HexSettingID>0x00638E8F</HexSettingID>
@@ -5628,7 +5576,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>4 - LOD Bias (DirectX)</UserfriendlyName>
       <HexSettingID>0x00738E8F</HexSettingID>
@@ -5833,7 +5780,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>4 - LOD Bias (OpenGL)</UserfriendlyName>
       <HexSettingID>0x20403F79</HexSettingID>
@@ -6166,7 +6112,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Texture Filtering - Negative LOD bias</UserfriendlyName>
       <HexSettingID>0x0019BB68</HexSettingID>
@@ -6183,7 +6128,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Texture Filtering - Quality Substitution</UserfriendlyName>
       <HexSettingID>0x00CE2692</HexSettingID>
@@ -6201,7 +6145,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Texture Filtering - Quality</UserfriendlyName>
       <HexSettingID>0x00CE2691</HexSettingID>
@@ -6226,7 +6169,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Texture Filtering - Trilinear Optimization</UserfriendlyName>
       <HexSettingID>0x002ECAF2</HexSettingID>
@@ -6243,7 +6185,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Ambient Occlusion - Setting</UserfriendlyName>
       <HexSettingID>0x00667329</HexSettingID>
@@ -6261,7 +6202,7 @@
           <UserfriendlyName>Quality</UserfriendlyName>
           <HexValue>0x00000002</HexValue>
         </CustomSettingValue>
-      <!--
+        <!--
         <CustomSettingValue>
           <UserfriendlyName>High quality</UserfriendlyName>
           <HexValue>0x00000003</HexValue>
@@ -6270,7 +6211,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Ambient Occlusion - Usage</UserfriendlyName>
       <HexSettingID>0x00664339</HexSettingID>
@@ -6287,7 +6227,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Ansel - Enabled</UserfriendlyName>
       <HexSettingID>0x1075D972</HexSettingID>
@@ -6303,7 +6242,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>CUDA - Force P2 State</UserfriendlyName>
       <HexSettingID>0x50166C5E</HexSettingID>
@@ -6321,7 +6259,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>CUDA - Sysmem Fallback Policy</UserfriendlyName>
       <HexSettingID>0x10ECECC9</HexSettingID>
@@ -6343,7 +6280,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Extension Limit (OGL)</UserfriendlyName>
       <HexSettingID>0x20FF7493</HexSettingID>
@@ -6360,7 +6296,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Multi-Display / Mixed-GPU Acceleration</UserfriendlyName>
       <HexSettingID>0x200AEBFC</HexSettingID>
@@ -6381,7 +6316,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>PhysX - Indicator Overlay</UserfriendlyName>
       <HexSettingID>0x1094F16F</HexSettingID>
@@ -6398,7 +6332,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Power Management - Mode</UserfriendlyName>
       <HexSettingID>0x1057EB71</HexSettingID>
@@ -6419,7 +6352,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Raytracing - (DXR) Enabled</UserfriendlyName>
       <HexSettingID>0X00DE429A</HexSettingID>
@@ -6436,7 +6368,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Raytracing - (Vulkan RT) Enabled </UserfriendlyName>
       <HexSettingID>0x20BC1A2B</HexSettingID>
@@ -6453,7 +6384,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Variable refresh Rate</UserfriendlyName>
       <HexSettingID>0x10A879CE</HexSettingID>
@@ -6474,7 +6404,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Vulkan/OpenGL present method</UserfriendlyName>
       <HexSettingID>0x20D690F8</HexSettingID>
@@ -6495,7 +6424,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>rBAR - Feature</UserfriendlyName>
       <HexSettingID>0X000F00BA</HexSettingID>
@@ -6511,20 +6439,17 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>rBAR - Options</UserfriendlyName>
       <HexSettingID>0X000F00BB</HexSettingID>
       <GroupName>5 - Common</GroupName>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>rBAR - Size Limit</UserfriendlyName>
       <HexSettingID>0X000F00FF</HexSettingID>
       <GroupName>5 - Common</GroupName>
       <DataType>BINARY</DataType>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Shadercache - Cachesize</UserfriendlyName>
       <HexSettingID>0x00AC8497</HexSettingID>
@@ -6572,7 +6497,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Shadercache - Enabled</UserfriendlyName>
       <HexSettingID>0x00198FFF</HexSettingID>
@@ -6591,7 +6515,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Threaded Optimization</UserfriendlyName>
       <HexSettingID>0x20C1221E</HexSettingID>
@@ -6612,7 +6535,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>Version Override (OGL)</UserfriendlyName>
       <HexSettingID>0x2046B3ED</HexSettingID>
@@ -6664,20 +6586,17 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>NVLINK - SLI Mode</UserfriendlyName>
       <HexSettingID>0x00A06948</HexSettingID>
       <GroupName>6 - SLI</GroupName>
       <MinRequiredDriverVersion>410.00</MinRequiredDriverVersion>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>SLI - CFR Mode</UserfriendlyName>
       <HexSettingID>0x20343843</HexSettingID>
       <GroupName>6 - SLI</GroupName>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>LaserXAdjust</UserfriendlyName>
       <HexSettingID>0x7057e831</HexSettingID>
@@ -6850,7 +6769,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>LaserYAdjust</UserfriendlyName>
       <HexSettingID>0x70225308</HexSettingID>
@@ -7023,7 +6941,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoConvergence</UserfriendlyName>
       <HexSettingID>0x708DB8C5</HexSettingID>
@@ -7195,7 +7112,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoCutoff</UserfriendlyName>
       <HexSettingID>0x709A1DDF</HexSettingID>
@@ -7212,7 +7128,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoCutoffDepthFar</UserfriendlyName>
       <HexSettingID>0x70ADD220</HexSettingID>
@@ -7220,7 +7135,6 @@
       <!-- this is an arbitrary float       -->
       <OverrideDefault>0x461C4000</OverrideDefault>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoCutoffDepthNear</UserfriendlyName>
       <HexSettingID>0x7050E011</HexSettingID>
@@ -7228,7 +7142,6 @@
       <!-- this is an arbitrary float       -->
       <OverrideDefault>0x3F800000</OverrideDefault>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoFlagsDX10</UserfriendlyName>
       <HexSettingID>0x702442FC</HexSettingID>
@@ -7244,7 +7157,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoTextureEnable</UserfriendlyName>
       <HexSettingID>0x70EDB381</HexSettingID>
@@ -7321,7 +7233,6 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>StereoUseMatrix</UserfriendlyName>
       <HexSettingID>0x70E34A78</HexSettingID>
@@ -7332,12 +7243,11 @@
           <HexValue>0x00000000</HexValue>
         </CustomSettingValue>
         <CustomSettingValue>
-          <UserfriendlyName>Correct many &quot;halo&quot; type rendering issues</UserfriendlyName>
+          <UserfriendlyName>Correct many "halo" type rendering issues</UserfriendlyName>
           <HexValue>0x00000001</HexValue>
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <!-- 
       MPO Indicator, sourced from Soliver84's massive Reference.xml version: 
       https://forums.guru3d.com/threads/nvidia-profile-inspector-crazy-all-nvida-stetings-reference-file.448873/#post-6176940
@@ -7358,9 +7268,8 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-
     <!-- TrueHDR, RTX Dynamic Vibrance, and DLSS 3.1.11+ settings, sourced from NexusMods: https://www.nexusmods.com/site/mods/781 -->
-	<CustomSetting>
+    <CustomSetting>
       <UserfriendlyName>RTX Dynamic Vibrance - Enabled</UserfriendlyName>
       <HexSettingID>0x00980880</HexSettingID>
       <Description/>
@@ -7377,7 +7286,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX Dynamic Vibrance - Saturation</UserfriendlyName>
       <HexSettingID>0x00ABAB13</HexSettingID>
@@ -7791,7 +7699,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX Dynamic Vibrance - Value</UserfriendlyName>
       <HexSettingID>0x00ABAB22</HexSettingID>
@@ -8205,7 +8112,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Contrast (NVIDIA App/Freestyle only)</UserfriendlyName>
       <HexSettingID>0x00DD48FE</HexSettingID>
@@ -8213,7 +8119,6 @@
       <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Enable Game Filters</UserfriendlyName>
       <HexSettingID>0x00980896</HexSettingID>
@@ -8231,7 +8136,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Enabled</UserfriendlyName>
       <HexSettingID>0x00DD48FB</HexSettingID>
@@ -8249,7 +8153,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Middle Grey (NVIDIA App/Freestyle only)</UserfriendlyName>
       <HexSettingID>0x00DD48FD</HexSettingID>
@@ -8257,7 +8160,6 @@
       <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Peak Brightness (NVIDIA App/Freestyle only)</UserfriendlyName>
       <HexSettingID>0x00DD48FC</HexSettingID>
@@ -8265,7 +8167,6 @@
       <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Quality</UserfriendlyName>
       <HexSettingID>0x00432F84</HexSettingID>
@@ -8299,7 +8200,6 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Saturation (NVIDIA App/Freestyle only)</UserfriendlyName>
       <HexSettingID>0x00DD48FF</HexSettingID>
@@ -8307,7 +8207,6 @@
       <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
       <SettingMasks/>
     </CustomSetting>
-
     <CustomSetting>
       <UserfriendlyName>RTX HDR - Allowed</UserfriendlyName>
       <HexSettingID>0x1077A11A</HexSettingID>
@@ -8325,499 +8224,486 @@
       </SettingValues>
       <SettingMasks/>
     </CustomSetting>
-
-	<CustomSetting>
-		<UserfriendlyName>1 - SR: Force DLAA</UserfriendlyName>
-		<HexSettingID>0x10E41DF4</HexSettingID>
-		<GroupName>0.2.1 - DLSS Extra</GroupName>
-		<MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-		<SettingValues>
-		  <CustomSettingValue>
-			<UserfriendlyName>Off</UserfriendlyName>
-			<HexValue>0x00000000</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>On (All levels act as DLAA)</UserfriendlyName>
-			<HexValue>0x00000001</HexValue>
-		  </CustomSettingValue>
-		</SettingValues>
-		<SettingMasks/>
-	  </CustomSetting>
-
-	  <CustomSetting>
-		<UserfriendlyName>1 - SR: Preset</UserfriendlyName>
-		<HexSettingID>0x10E41DF3</HexSettingID>
-		<GroupName>0.2 - DLSS Overrides</GroupName>
-		<MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-		<SettingValues>
-		  <CustomSettingValue>
-			<UserfriendlyName>N/A</UserfriendlyName>
-			<HexValue>0x00000000</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset A (v3.1+)</UserfriendlyName>
-			<HexValue>0x00000001</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset B (v3.1+)</UserfriendlyName>
-			<HexValue>0x00000002</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset C (v3.1+)</UserfriendlyName>
-			<HexValue>0x00000003</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset D (v3.1+)</UserfriendlyName>
-			<HexValue>0x00000004</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset E (v3.7+)</UserfriendlyName>
-			<HexValue>0x00000005</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset F (v3.1+)</UserfriendlyName>
-			<HexValue>0x00000006</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset G (Unused)</UserfriendlyName>
-			<HexValue>0x00000007</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset H (Unused)</UserfriendlyName>
-			<HexValue>0x00000008</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset I (Unused)</UserfriendlyName>
-			<HexValue>0x00000009</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset J (v310+)</UserfriendlyName>
-			<HexValue>0x0000000A</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset K (v310.2.1+)</UserfriendlyName>
-			<HexValue>0x0000000B</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset L (Unused)</UserfriendlyName>
-			<HexValue>0x0000000C</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset M (Unused)</UserfriendlyName>
-			<HexValue>0x0000000D</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset N (Unused)</UserfriendlyName>
-			<HexValue>0x0000000E</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset O (Unused)</UserfriendlyName>
-			<HexValue>0x0000000F</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Latest Preset (v310+)</UserfriendlyName>
-			<HexValue>0x00FFFFFF</HexValue>
-		  </CustomSettingValue>
-		</SettingValues>
-		<SettingMasks/>
-	  </CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>1 - SR: Latest DLL</UserfriendlyName>
-  <HexSettingID>0x10E41E01</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>On</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>2 - RR: Latest DLL</UserfriendlyName>
-  <HexSettingID>0x10E41E02</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>On</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>3 - FG: Latest DLL</UserfriendlyName>
-  <HexSettingID>0x10E41E03</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>On</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>2 - RR: Preset</UserfriendlyName>
-  <HexSettingID>0x10E41DF7</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-		  <CustomSettingValue>
-			<UserfriendlyName>N/A</UserfriendlyName>
-			<HexValue>0x00000000</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset A (v3.5+)</UserfriendlyName>
-			<HexValue>0x00000001</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset B (v3.5+)</UserfriendlyName>
-			<HexValue>0x00000002</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset C (v3.5+)</UserfriendlyName>
-			<HexValue>0x00000003</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset D (v3.5+)</UserfriendlyName>
-			<HexValue>0x00000004</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset E (v3.7+)</UserfriendlyName>
-			<HexValue>0x00000005</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset F (v3.5+)</UserfriendlyName>
-			<HexValue>0x00000006</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset G (Unused)</UserfriendlyName>
-			<HexValue>0x00000007</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset H (Unused)</UserfriendlyName>
-			<HexValue>0x00000008</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset I (Unused)</UserfriendlyName>
-			<HexValue>0x00000009</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset J (v310+)</UserfriendlyName>
-			<HexValue>0x0000000A</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset K (v310.2.1+)</UserfriendlyName>
-			<HexValue>0x0000000B</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset L (Unused)</UserfriendlyName>
-			<HexValue>0x0000000C</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset M (Unused)</UserfriendlyName>
-			<HexValue>0x0000000D</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset N (Unused)</UserfriendlyName>
-			<HexValue>0x0000000E</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Preset O (Unused)</UserfriendlyName>
-			<HexValue>0x0000000F</HexValue>
-		  </CustomSettingValue>
-		  <CustomSettingValue>
-			<UserfriendlyName>Latest Preset (v310+)</UserfriendlyName>
-			<HexValue>0x00FFFFFF</HexValue>
-		  </CustomSettingValue>
-		</SettingValues>
-		<SettingMasks/>
-	  </CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>1 - SR: Force Ultra Perf</UserfriendlyName>
-  <HexSettingID>0x10AFB76C</HexSettingID>
-  <GroupName>0.2.1 - DLSS Extra</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>On (Replaces Performance)</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>1 - SR: Scale Factor</UserfriendlyName>
-  <HexSettingID>0x10AFB768</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Default</UserfriendlyName>
-      <HexValue>0x00000003</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>100% DLAA</UserfriendlyName>
-      <HexValue>0x00000004</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>67% Quality</UserfriendlyName>
-      <HexValue>0x00000002</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>58% Balanced</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>50% Performance</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>33% Ultra Performance</UserfriendlyName>
-      <HexValue>0x00000005</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>Custom</UserfriendlyName>
-      <HexValue>0x00000006</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>1 - SR: Scale Factor Custom</UserfriendlyName>
-  <HexSettingID>0x10E41DF5</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>100% - DLAA</UserfriendlyName>
-      <HexValue>0x00000064</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>99% - DLAA (If 100% Breaks)</UserfriendlyName>
-      <HexValue>0x00000063</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>88% - DLAA Lite (Transformer Cost Removed)</UserfriendlyName>
-      <HexValue>0x00000058</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>83% - Ultra Quality+</UserfriendlyName>
-      <HexValue>0x00000053</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>77% - Ultra Quality</UserfriendlyName>
-      <HexValue>0x0000004D</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>72% - High Quality</UserfriendlyName>
-      <HexValue>0x00000048</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>67% - Quality</UserfriendlyName>
-      <HexValue>0x00000042</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>62% - Balanced Quality</UserfriendlyName>
-      <HexValue>0x0000003E</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>58% - Balanced</UserfriendlyName>
-      <HexValue>0x0000003A</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>54% - Balanced Performance</UserfriendlyName>
-      <HexValue>0x00000036</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>50% - Performance</UserfriendlyName>
-      <HexValue>0x00000032</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>45% - Extra Performance</UserfriendlyName>
-      <HexValue>0x0000002D</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>41% - High Performance</UserfriendlyName>
-      <HexValue>0x00000029</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>37% - Extreme Performance</UserfriendlyName>
-      <HexValue>0x00000025</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>33% - Ultra Performance</UserfriendlyName>
-      <HexValue>0x00000021</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>2 - RR: Scale Factor</UserfriendlyName>
-  <HexSettingID>0x10BD9423</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Default</UserfriendlyName>
-      <HexValue>0x00000003</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>100% DLAA</UserfriendlyName>
-      <HexValue>0x00000004</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>67% Quality</UserfriendlyName>
-      <HexValue>0x00000002</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>58% Balanced</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>50% Performance</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>33% Ultra Performance</UserfriendlyName>
-      <HexValue>0x00000005</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>Custom</UserfriendlyName>
-      <HexValue>0x00000006</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>2 - RR: Scale Factor Custom</UserfriendlyName>
-  <HexSettingID>0x10C7D4A2</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>Off</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>100% - DLAA</UserfriendlyName>
-      <HexValue>0x00000064</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>99% - DLAA (If 100% Breaks)</UserfriendlyName>
-      <HexValue>0x00000063</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>88% - DLAA Lite (Transformer Cost Removed)</UserfriendlyName>
-      <HexValue>0x00000058</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>83% - Ultra Quality+</UserfriendlyName>
-      <HexValue>0x00000053</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>77% - Ultra Quality</UserfriendlyName>
-      <HexValue>0x0000004D</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>72% - High Quality</UserfriendlyName>
-      <HexValue>0x00000048</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>67% - Quality</UserfriendlyName>
-      <HexValue>0x00000042</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>62% - Balanced Quality</UserfriendlyName>
-      <HexValue>0x0000003E</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>58% - Balanced</UserfriendlyName>
-      <HexValue>0x0000003A</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>54% - Balanced Performance</UserfriendlyName>
-      <HexValue>0x00000036</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>50% - Performance</UserfriendlyName>
-      <HexValue>0x00000032</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>45% - Extra Performance</UserfriendlyName>
-      <HexValue>0x0000002D</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>41% - High Performance</UserfriendlyName>
-      <HexValue>0x00000029</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>37% - Extreme Performance</UserfriendlyName>
-      <HexValue>0x00000025</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>33% - Ultra Performance</UserfriendlyName>
-      <HexValue>0x00000021</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-<CustomSetting>
-  <UserfriendlyName>3 - FG: Multiplier</UserfriendlyName>
-  <HexSettingID>0x104D6667</HexSettingID>
-  <GroupName>0.2 - DLSS Overrides</GroupName>
-  <OverrideDefault>0x00000000</OverrideDefault>
-  <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
-  <SettingValues>
-    <CustomSettingValue>
-      <UserfriendlyName>2x</UserfriendlyName>
-      <HexValue>0x00000000</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>3x (50 Series+ Only)</UserfriendlyName>
-      <HexValue>0x00000001</HexValue>
-    </CustomSettingValue>
-    <CustomSettingValue>
-      <UserfriendlyName>4x (50 Series+ Only)</UserfriendlyName>
-      <HexValue>0x0000000F</HexValue>
-    </CustomSettingValue>
-  </SettingValues>
-  <SettingMasks/>
-</CustomSetting>
-
-	</Settings>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Force DLAA</UserfriendlyName>
+      <HexSettingID>0x10E41DF4</HexSettingID>
+      <GroupName>0.2.1 - DLSS Extra</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>On (All levels act as DLAA)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Preset</UserfriendlyName>
+      <HexSettingID>0x10E41DF3</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>N/A</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset A (v3.1+)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset B (v3.1+)</UserfriendlyName>
+          <HexValue>0x00000002</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset C (v3.1+)</UserfriendlyName>
+          <HexValue>0x00000003</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset D (v3.1+)</UserfriendlyName>
+          <HexValue>0x00000004</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset E (v3.7+)</UserfriendlyName>
+          <HexValue>0x00000005</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset F (v3.1+)</UserfriendlyName>
+          <HexValue>0x00000006</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset G (Unused)</UserfriendlyName>
+          <HexValue>0x00000007</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset H (Unused)</UserfriendlyName>
+          <HexValue>0x00000008</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset I (Unused)</UserfriendlyName>
+          <HexValue>0x00000009</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset J (v310+)</UserfriendlyName>
+          <HexValue>0x0000000A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset K (v310.2.1+)</UserfriendlyName>
+          <HexValue>0x0000000B</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset L (Unused)</UserfriendlyName>
+          <HexValue>0x0000000C</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset M (Unused)</UserfriendlyName>
+          <HexValue>0x0000000D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset N (Unused)</UserfriendlyName>
+          <HexValue>0x0000000E</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset O (Unused)</UserfriendlyName>
+          <HexValue>0x0000000F</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Latest Preset (v310+)</UserfriendlyName>
+          <HexValue>0x00FFFFFF</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Latest DLL</UserfriendlyName>
+      <HexSettingID>0x10E41E01</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>On</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>2 - RR: Latest DLL</UserfriendlyName>
+      <HexSettingID>0x10E41E02</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>On</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>3 - FG: Latest DLL</UserfriendlyName>
+      <HexSettingID>0x10E41E03</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>On</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>2 - RR: Preset</UserfriendlyName>
+      <HexSettingID>0x10E41DF7</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>N/A</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset A (v3.5+)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset B (v3.5+)</UserfriendlyName>
+          <HexValue>0x00000002</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset C (v3.5+)</UserfriendlyName>
+          <HexValue>0x00000003</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset D (v3.5+)</UserfriendlyName>
+          <HexValue>0x00000004</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset E (v3.7+)</UserfriendlyName>
+          <HexValue>0x00000005</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset F (v3.5+)</UserfriendlyName>
+          <HexValue>0x00000006</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset G (Unused)</UserfriendlyName>
+          <HexValue>0x00000007</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset H (Unused)</UserfriendlyName>
+          <HexValue>0x00000008</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset I (Unused)</UserfriendlyName>
+          <HexValue>0x00000009</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset J (v310+)</UserfriendlyName>
+          <HexValue>0x0000000A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset K (v310.2.1+)</UserfriendlyName>
+          <HexValue>0x0000000B</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset L (Unused)</UserfriendlyName>
+          <HexValue>0x0000000C</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset M (Unused)</UserfriendlyName>
+          <HexValue>0x0000000D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset N (Unused)</UserfriendlyName>
+          <HexValue>0x0000000E</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Preset O (Unused)</UserfriendlyName>
+          <HexValue>0x0000000F</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Latest Preset (v310+)</UserfriendlyName>
+          <HexValue>0x00FFFFFF</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Force Ultra Perf</UserfriendlyName>
+      <HexSettingID>0x10AFB76C</HexSettingID>
+      <GroupName>0.2.1 - DLSS Extra</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>On (Replaces Performance)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Scale Factor</UserfriendlyName>
+      <HexSettingID>0x10AFB768</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Default</UserfriendlyName>
+          <HexValue>0x00000003</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>100% DLAA</UserfriendlyName>
+          <HexValue>0x00000004</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>67% Quality</UserfriendlyName>
+          <HexValue>0x00000002</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>58% Balanced</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>50% Performance</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>33% Ultra Performance</UserfriendlyName>
+          <HexValue>0x00000005</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Custom</UserfriendlyName>
+          <HexValue>0x00000006</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>1 - SR: Scale Factor Custom</UserfriendlyName>
+      <HexSettingID>0x10E41DF5</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>100% - DLAA</UserfriendlyName>
+          <HexValue>0x00000064</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>99% - DLAA (If 100% Breaks)</UserfriendlyName>
+          <HexValue>0x00000063</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>88% - DLAA Lite (Transformer Cost Removed)</UserfriendlyName>
+          <HexValue>0x00000058</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>83% - Ultra Quality+</UserfriendlyName>
+          <HexValue>0x00000053</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>77% - Ultra Quality</UserfriendlyName>
+          <HexValue>0x0000004D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>72% - High Quality</UserfriendlyName>
+          <HexValue>0x00000048</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>67% - Quality</UserfriendlyName>
+          <HexValue>0x00000042</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>62% - Balanced Quality</UserfriendlyName>
+          <HexValue>0x0000003E</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>58% - Balanced</UserfriendlyName>
+          <HexValue>0x0000003A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>54% - Balanced Performance</UserfriendlyName>
+          <HexValue>0x00000036</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>50% - Performance</UserfriendlyName>
+          <HexValue>0x00000032</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>45% - Extra Performance</UserfriendlyName>
+          <HexValue>0x0000002D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>41% - High Performance</UserfriendlyName>
+          <HexValue>0x00000029</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>37% - Extreme Performance</UserfriendlyName>
+          <HexValue>0x00000025</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>33% - Ultra Performance</UserfriendlyName>
+          <HexValue>0x00000021</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>2 - RR: Scale Factor</UserfriendlyName>
+      <HexSettingID>0x10BD9423</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Default</UserfriendlyName>
+          <HexValue>0x00000003</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>100% DLAA</UserfriendlyName>
+          <HexValue>0x00000004</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>67% Quality</UserfriendlyName>
+          <HexValue>0x00000002</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>58% Balanced</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>50% Performance</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>33% Ultra Performance</UserfriendlyName>
+          <HexValue>0x00000005</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>Custom</UserfriendlyName>
+          <HexValue>0x00000006</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>2 - RR: Scale Factor Custom</UserfriendlyName>
+      <HexSettingID>0x10C7D4A2</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>Off</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>100% - DLAA</UserfriendlyName>
+          <HexValue>0x00000064</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>99% - DLAA (If 100% Breaks)</UserfriendlyName>
+          <HexValue>0x00000063</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>88% - DLAA Lite (Transformer Cost Removed)</UserfriendlyName>
+          <HexValue>0x00000058</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>83% - Ultra Quality+</UserfriendlyName>
+          <HexValue>0x00000053</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>77% - Ultra Quality</UserfriendlyName>
+          <HexValue>0x0000004D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>72% - High Quality</UserfriendlyName>
+          <HexValue>0x00000048</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>67% - Quality</UserfriendlyName>
+          <HexValue>0x00000042</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>62% - Balanced Quality</UserfriendlyName>
+          <HexValue>0x0000003E</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>58% - Balanced</UserfriendlyName>
+          <HexValue>0x0000003A</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>54% - Balanced Performance</UserfriendlyName>
+          <HexValue>0x00000036</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>50% - Performance</UserfriendlyName>
+          <HexValue>0x00000032</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>45% - Extra Performance</UserfriendlyName>
+          <HexValue>0x0000002D</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>41% - High Performance</UserfriendlyName>
+          <HexValue>0x00000029</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>37% - Extreme Performance</UserfriendlyName>
+          <HexValue>0x00000025</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>33% - Ultra Performance</UserfriendlyName>
+          <HexValue>0x00000021</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+    <CustomSetting>
+      <UserfriendlyName>3 - FG: Multiplier</UserfriendlyName>
+      <HexSettingID>0x104D6667</HexSettingID>
+      <GroupName>0.2 - DLSS Overrides</GroupName>
+      <OverrideDefault>0x00000000</OverrideDefault>
+      <MinRequiredDriverVersion>0</MinRequiredDriverVersion>
+      <SettingValues>
+        <CustomSettingValue>
+          <UserfriendlyName>2x</UserfriendlyName>
+          <HexValue>0x00000000</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>3x (50 Series+ Only)</UserfriendlyName>
+          <HexValue>0x00000001</HexValue>
+        </CustomSettingValue>
+        <CustomSettingValue>
+          <UserfriendlyName>4x (50 Series+ Only)</UserfriendlyName>
+          <HexValue>0x0000000F</HexValue>
+        </CustomSettingValue>
+      </SettingValues>
+      <SettingMasks/>
+    </CustomSetting>
+  </Settings>
 </CustomSettingNames>
