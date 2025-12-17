@@ -234,9 +234,10 @@ function ConvertFrom-VDF {
     .PARAMETER Content
         VDF file content as string array
     #>
-    param([string[]]$Content)
-
-    [ref]$line = 0
+    param(
+        [string[]]$Content,
+        [ref]$line = ([ref]0)
+    )
     $re = '\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\Z'
     $obj = [ordered]@{}
 
