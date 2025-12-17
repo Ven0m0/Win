@@ -1,4 +1,4 @@
-# keyboard-shortcuts.ps1 - Windows Keyboard Shortcuts Manager
+﻿# keyboard-shortcuts.ps1 - Windows Keyboard Shortcuts Manager
 # Enables or disables keyboard shortcuts to prevent accidental game interruptions
 
 #Requires -RunAsAdministrator

@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 # Windows Setup Script - Automated installation of development tools and software
 # Optimized for silent installation and error handling
@@ -34,7 +34,7 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "[1/10] Updating existing packages..." -ForegroundColor Cyan
-winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 2>&1 | Out-Null 
+winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 2>&1 | Out-Null
 
 Write-Host "Installing VCRedist..." -ForegroundColor Cyan
 winget install --id=Microsoft.VCRedist.2015+.x64 -e -h
@@ -384,7 +384,7 @@ if (Test-Path "$env:WINDIR\Web\Wallpaper\Dell") {
     Remove-Item -Path "$env:WINDIR\Web\Wallpaper\Dell" -Recurse -Force -ErrorAction SilentlyContinue
 }
 # Windows CBS logs
-Remove-Item -Path "$env:WINDIR\logs\CBS\*" -Force -ErrorAction SilentlyContinue 
+Remove-Item -Path "$env:WINDIR\logs\CBS\*" -Force -ErrorAction SilentlyContinue
 
 # Configure compression settings
 $null = reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration" /v "DisableResetbase" /t REG_DWORD /d "0" /f 2>&1

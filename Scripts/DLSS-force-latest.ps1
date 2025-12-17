@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
@@ -27,19 +27,19 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "Ena
 Clear-Host
 
     function show-menu {
-	Clear-Host
+  Clear-Host
     Write-Host "1. DLSS Force Latest: On"
-	Write-Host "2. DLSS Force Latest: Off (Default)"
+  Write-Host "2. DLSS Force Latest: Off (Default)"
     Write-Host "3. DLSS Overlay: On"
     Write-Host "4. DLSS Overlay: Off (Default)"
-	Write-Host "5. Read Only"
-	Write-Host "6. Inspector"
-	Write-Host ""
+  Write-Host "5. Read Only"
+  Write-Host "6. Inspector"
+  Write-Host ""
     Write-Host "DLSSv3 v310.X.X or above = DLSS 4" -ForegroundColor Red
-	Write-Host "DLSSv3 v3.X.X  or below = DLSS 3" -ForegroundColor Red
-	Write-Host ""
-	              }
-	show-menu
+  Write-Host "DLSSv3 v3.X.X  or below = DLSS 3" -ForegroundColor Red
+  Write-Host ""
+                }
+  show-menu
     while ($true) {
     $choice = Read-Host " "
     if ($choice -match '^[1-6]$') {
@@ -490,7 +490,7 @@ show-menu
 
       }
     4 {
-		
+
 Clear-Host
 cmd.exe /c "reg delete `"HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore`" /v `"ShowDlssIndicator`" /f >nul 2>&1"
 Write-Host "DLSS Overlay: Off (Default) . . ."

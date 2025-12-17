@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
@@ -29,7 +29,7 @@ $label.Location = New-Object System.Drawing.Point(60, 10)
 $label.Size = New-Object System.Drawing.Size(250, 25)
 $label.Text = 'Disk Cleanup Options'
 $label.ForeColor = 'White'
-$label.Font = New-Object System.Drawing.Font('segoe ui', 10) 
+$label.Font = New-Object System.Drawing.Font('segoe ui', 10)
 $form.Controls.Add($label)
 
 # Create the CheckedListBox
@@ -101,7 +101,7 @@ $buttonClean.Add_MouseEnter({
 $buttonClean.Add_MouseLeave({
         $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
     })
-  
+
 $checkALL = New-Object System.Windows.Forms.CheckBox
 $checkALL.Text = 'Check All'
 $checkALL.Location = New-Object System.Drawing.Point(40, 40)
@@ -124,7 +124,7 @@ $checkALL.add_CheckedChanged({
         }
     })
 $form.Controls.Add($checkALL)
-  
+
 # Add controls to the form
 $form.Controls.Add($checkedListBox)
 $form.Controls.Add($checkBox1)
@@ -142,61 +142,61 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     $usedInGB = [math]::Round($drive.Used / 1GB, 4)
     Write-Host 'BEFORE CLEANING' -ForegroundColor Red
     Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Red
-    
+
 
 
     if ($checkBox1.Checked) {
         Write-Host 'Clearing Event Viewer Logs...'
-        wevtutil el | Foreach-Object { wevtutil cl "$_" >$null 2>&1 } 
+        wevtutil el | Foreach-Object { wevtutil cl "$_" >$null 2>&1 }
     }
     if ($checkBox2.Checked) {
         #CLEAR LOGS
         Write-Host 'Clearing Windows Log Files...'
         #Clear Distributed Transaction Coordinator logs
-        Remove-Item -Path $env:SystemRoot\DtcInstall.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\DtcInstall.log -Force -ErrorAction SilentlyContinue
         #Clear Optional Component Manager and COM+ components logs
-        Remove-Item -Path $env:SystemRoot\comsetup.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\comsetup.log -Force -ErrorAction SilentlyContinue
         #Clear Pending File Rename Operations logs
-        Remove-Item -Path $env:SystemRoot\PFRO.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\PFRO.log -Force -ErrorAction SilentlyContinue
         #Clear Windows Deployment Upgrade Process Logs
-        Remove-Item -Path $env:SystemRoot\setupact.log -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\setuperr.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\setupact.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\setuperr.log -Force -ErrorAction SilentlyContinue
         #Clear Windows Setup Logs
-        Remove-Item -Path $env:SystemRoot\setupapi.log -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\Panther\* -Force -Recurse -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.app.log -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.dev.log -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.offline.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\setupapi.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\Panther\* -Force -Recurse -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\inf\setupapi.app.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\inf\setupapi.dev.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\inf\setupapi.offline.log -Force -ErrorAction SilentlyContinue
         #Clear Windows System Assessment Tool logs
-        Remove-Item -Path $env:SystemRoot\Performance\WinSAT\winsat.log -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\Performance\WinSAT\winsat.log -Force -ErrorAction SilentlyContinue
         #Clear Password change events
-        Remove-Item -Path $env:SystemRoot\debug\PASSWD.LOG -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\debug\PASSWD.LOG -Force -ErrorAction SilentlyContinue
         #Clear DISM (Deployment Image Servicing and Management) Logs
-        Remove-Item -Path $env:SystemRoot\Logs\CBS\CBS.log -Force -ErrorAction SilentlyContinue  
-        Remove-Item -Path $env:SystemRoot\Logs\DISM\DISM.log -Force -ErrorAction SilentlyContinue  
+        Remove-Item -Path $env:SystemRoot\Logs\CBS\CBS.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\Logs\DISM\DISM.log -Force -ErrorAction SilentlyContinue
         #Clear Server-initiated Healing Events Logs
-        Remove-Item -Path "$env:SystemRoot\Logs\SIH\*" -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path "$env:SystemRoot\Logs\SIH\*" -Force -ErrorAction SilentlyContinue
         #Common Language Runtime Logs
-        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0\UsageTraces\*" -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0_32\UsageTraces\*" -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0\UsageTraces\*" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0_32\UsageTraces\*" -Force -ErrorAction SilentlyContinue
         #Network Setup Service Events Logs
-        Remove-Item -Path "$env:SystemRoot\Logs\NetSetup\*" -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path "$env:SystemRoot\Logs\NetSetup\*" -Force -ErrorAction SilentlyContinue
         #Disk Cleanup tool (Cleanmgr.exe) Logs
-        Remove-Item -Path "$env:SystemRoot\System32\LogFiles\setupcln\*" -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path "$env:SystemRoot\System32\LogFiles\setupcln\*" -Force -ErrorAction SilentlyContinue
         #Clear Windows update and SFC scan logs
-        Remove-Item -Path $env:SystemRoot\Temp\CBS\* -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\Temp\CBS\* -Force -ErrorAction SilentlyContinue
         #Clear Windows Update Medic Service logs
         takeown /f $env:SystemRoot\Logs\waasmedic /r -Value y *>$null
         icacls $env:SystemRoot\Logs\waasmedic /grant administrators:F /t *>$null
-        Remove-Item -Path $env:SystemRoot\Logs\waasmedic -Recurse -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\Logs\waasmedic -Recurse -ErrorAction SilentlyContinue
         #Clear Cryptographic Services Traces
-        Remove-Item -Path $env:SystemRoot\System32\catroot2\dberr.txt -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.log -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.jrs -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.edb -Force -ErrorAction SilentlyContinue 
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.chk -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path $env:SystemRoot\System32\catroot2\dberr.txt -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\System32\catroot2.log -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\System32\catroot2.jrs -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\System32\catroot2.edb -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path $env:SystemRoot\System32\catroot2.chk -Force -ErrorAction SilentlyContinue
         #Windows Update Logs
-        Remove-Item -Path "$env:SystemRoot\Traces\WindowsUpdate\*" -Force -ErrorAction SilentlyContinue 
+        Remove-Item -Path "$env:SystemRoot\Traces\WindowsUpdate\*" -Force -ErrorAction SilentlyContinue
     }
     if ($checkBox3.Checked) {
         Write-Host 'Clearing TEMP Files...'
@@ -222,7 +222,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     $usedInGB = [math]::Round($drive.Used / 1GB, 4)
     Write-Host 'AFTER CLEANING' -ForegroundColor Green
     Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Green
-    
+
 }
 
-  
+

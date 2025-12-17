@@ -20,10 +20,13 @@ My Windows configuration files and scripts, managed with [yadm](https://yadm.io/
 ### Prerequisites
 
 1. Install [yadm](https://yadm.io/):
+
    ```powershell
    winget install yadm
    ```
+
    Or via Chocolatey:
+
    ```powershell
    choco install yadm
    ```
@@ -49,6 +52,7 @@ pwsh $HOME\.yadm\bootstrap
 ```
 
 The bootstrap script will:
+
 - Set up PowerShell profile
 - Configure Windows Terminal
 - Check for required tools
@@ -58,16 +62,19 @@ The bootstrap script will:
 ### Manual Setup (if bootstrap doesn't run)
 
 1. **PowerShell Profile**:
+
    ```powershell
    Copy-Item "$HOME\.config\powershell\profile.ps1" $PROFILE -Force
    ```
 
 2. **Windows Terminal Settings**:
+
    ```powershell
    Copy-Item "$HOME\.config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
 3. **Git Config**:
+
    ```powershell
    # Copy template and customize
    Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
@@ -256,14 +263,17 @@ Similarly, for git: `~/.gitconfig.local` (already included in `.gitconfig##templ
 ## Useful Resources
 
 ### Windows Customization
+
 - [ExplorerPatcher](https://github.com/valinet/ExplorerPatcher) - Enhance Windows 11 taskbar and explorer
 
 ### ISO Building
+
 - [Unattend Generator](https://schneegans.de/windows/unattend-generator) - Create unattended Windows installation configs
 - [UUP dump](https://uupdump.net) - Download Windows updates and builds
 - [Tiny11 Builder](https://github.com/ntdevlabs/tiny11builder) - Create lightweight Windows 11 images
 
 ### NVIDIA Tools
+
 - [NVIDIA Profile Inspector (Unlocked)](https://github.com/Ixeoz/nvidiaProfileInspector-UNLOCKED) - Advanced NVIDIA settings
 - [NVIDIA Profile Inspector](https://github.com/Orbmu2k/nvidiaProfileInspector) - Original version
 
@@ -276,6 +286,7 @@ Run `Scripts\allow-scripts.cmd` as administrator to enable script execution.
 ### Bootstrap Script Doesn't Run
 
 Manually run:
+
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 pwsh $HOME\.yadm\bootstrap
@@ -284,6 +295,7 @@ pwsh $HOME\.yadm\bootstrap
 ### Windows Terminal Settings Not Applied
 
 Manually copy:
+
 ```powershell
 Copy-Item "$HOME\.config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
 ```
@@ -291,6 +303,7 @@ Copy-Item "$HOME\.config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Pack
 ### yadm Commands Not Working
 
 Make sure yadm is in your PATH:
+
 ```powershell
 where.exe yadm
 ```
@@ -304,6 +317,7 @@ Feel free to fork and customize for your own use!
 ## Credits
 
 This repository builds upon work from:
+
 - [zScripts](https://github.com/zoicware/zScripts) - Windows optimization scripts
 - [AveYo](https://github.com/AveYo) - Various Windows tools and scripts
 - [FR33THYFR33THY](https://github.com/FR33THYFR33THY) - Gaming optimizations

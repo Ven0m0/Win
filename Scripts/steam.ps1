@@ -1,4 +1,4 @@
-# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
+﻿# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
 
 # Options
 $FriendsSignIn = 0

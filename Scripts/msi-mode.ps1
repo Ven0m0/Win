@@ -1,4 +1,4 @@
-# msi-mode.ps1 - MSI (Message Signaled Interrupts) Mode Manager for GPUs
+﻿# msi-mode.ps1 - MSI (Message Signaled Interrupts) Mode Manager for GPUs
 # Enables or disables MSI mode for all display adapters to improve interrupt handling
 
 #Requires -RunAsAdministrator

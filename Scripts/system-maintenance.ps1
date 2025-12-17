@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Defrag/optimize volumes and clean MSI Afterburner skins/docs (Windows-only).
 .PARAMETER Volume

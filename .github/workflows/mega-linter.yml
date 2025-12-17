@@ -48,10 +48,10 @@ jobs:
           XML_XMLLINT_FILTER_REGEX_INCLUDE: '\.(xml)$'
           BASH_SHELLCHECK_FILTER_REGEX_INCLUDE: '\.(sh|bash)$'
           POWERSHELL_POWERSHELL_FILTER_REGEX_INCLUDE: '\.(ps1|psm1|psd1)$'
-          YAML_PRETTIER_ARGUMENTS: '--write'
-          JSON_PRETTIER_ARGUMENTS: '--write'
-          BASH_SHFMT_ARGUMENTS: '-w -i 2 -ci -sr'
-          BASH_SHELLCHECK_ARGUMENTS: '-S style -o all'
+          YAML_PRETTIER_ARGUMENTS: "--write"
+          JSON_PRETTIER_ARGUMENTS: "--write"
+          BASH_SHFMT_ARGUMENTS: "-w -i 2 -ci -sr"
+          BASH_SHELLCHECK_ARGUMENTS: "-S style -o all"
           LOG_LEVEL: INFO
 
       - name: Archive production artifacts

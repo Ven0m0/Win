@@ -13,7 +13,7 @@ DOSKEY nano=micro $*
 
 DOSKEY dotfiles=cd "%USERPROFILE%\.dotfiles\$*"
 
-  
+
 :: Easy navigation
 
 DOSKEY ..=cd ..

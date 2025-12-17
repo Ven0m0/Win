@@ -1,4 +1,4 @@
-# edid-manager.ps1 - EDID Override Manager
+﻿# edid-manager.ps1 - EDID Override Manager
 # Manages EDID overrides for all monitors to fix display driver stuttering bugs
 
 #Requires -RunAsAdministrator
