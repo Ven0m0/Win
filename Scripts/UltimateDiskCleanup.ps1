@@ -1,22 +1,16 @@
 ﻿#Requires -RunAsAdministrator
-
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
-
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
-
 # Request admin elevation
 Request-AdminElevation
-
 # Load Windows Forms assemblies
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
-
 # Configure error handling
 $ErrorActionPreference = 'SilentlyContinue'
-
 # Create the form
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Ultimate Cleanup'
@@ -31,7 +25,6 @@ $label.Text = 'Disk Cleanup Options'
 $label.ForeColor = 'White'
 $label.Font = New-Object System.Drawing.Font('segoe ui', 10)
 $form.Controls.Add($label)
-
 # Create the CheckedListBox
 $checkedListBox = New-Object System.Windows.Forms.CheckedListBox
 $checkedListBox.Location = New-Object System.Drawing.Point(40, 60)
@@ -66,7 +59,6 @@ $options = @(
 foreach ($option in $options) {
     $checkedListBox.Items.Add($option, $false) | Out-Null
 }
-
 # Create the checkboxes
 $checkBox1 = New-Object System.Windows.Forms.CheckBox
 $checkBox1.Text = 'Clear Event Viewer Logs'
@@ -85,7 +77,6 @@ $checkBox3.Text = 'Clear TEMP Cache'
 $checkBox3.Location = New-Object System.Drawing.Point(250, 130)
 $checkBox3.ForeColor = 'White'
 $checkBox3.AutoSize = $true
-
 # Create the Clean button
 $buttonClean = New-Object System.Windows.Forms.Button
 $buttonClean.Text = 'Clean'
@@ -97,11 +88,9 @@ $buttonClean.DialogResult = [System.Windows.Forms.DialogResult]::OK
 $buttonClean.Add_MouseEnter({
         $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(64, 64, 64)
     })
-
 $buttonClean.Add_MouseLeave({
         $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
     })
-
 $checkALL = New-Object System.Windows.Forms.CheckBox
 $checkALL.Text = 'Check All'
 $checkALL.Location = New-Object System.Drawing.Point(40, 40)
@@ -142,9 +131,21 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     $usedInGB = [math]::Round($drive.Used / 1GB, 4)
     Write-Host 'BEFORE CLEANING' -ForegroundColor Red
     Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Red
-
-
-
+    # add clear cache logic here
+    Write-Host "Clearing cache..." -ForegroundColor Cyan
+    # Clear Windows Prefetch
+    Write-Host "Clearing Windows Prefetch..." -ForegroundColor Yellow
+    Remove-Item -Path "$env:SystemRoot\Prefetch\*" -Force -ErrorAction SilentlyContinue
+    # Clear Windows Temp
+    Write-Host "Clearing Windows Temp..." -ForegroundColor Yellow
+    Remove-Item -Path "$env:SystemRoot\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+    # Clear User Temp
+    Write-Host "Clearing User Temp..." -ForegroundColor Yellow
+    Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+    # Clear Internet Explorer Cache
+    Write-Host "Clearing Internet Explorer Cache..." -ForegroundColor Yellow
+    Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "Cache clearing completed." -ForegroundColor Green
     if ($checkBox1.Checked) {
         Write-Host 'Clearing Event Viewer Logs...'
         wevtutil el | Foreach-Object { wevtutil cl "$_" >$null 2>&1 }
@@ -217,12 +218,8 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         #nice
         Start-Process cleanmgr.exe -ArgumentList '/sagerun:69 /autoclean' -Wait
     }
-
     $drive = Get-PSDrive $driveletter
     $usedInGB = [math]::Round($drive.Used / 1GB, 4)
     Write-Host 'AFTER CLEANING' -ForegroundColor Green
     Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Green
-
 }
-
-
