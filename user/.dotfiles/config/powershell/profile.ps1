@@ -29,14 +29,12 @@ $localBin = "$HOME\.local\bin"
 if ((Test-Path $localBin) -and ($env:Path -notlike "*$localBin*")) {
     $env:Path = "$env:Path;$localBin"
 }
-
-# Set default editor
-if (Get-Command code -ErrorAction SilentlyContinue) {
-    $env:EDITOR = "code"
-} elseif (Get-Command vim -ErrorAction SilentlyContinue) {
-    $env:EDITOR = "vim"
-} else {
-    $env:EDITOR = "notepad"
+{
+    $EDITOR = if (Test-CommandExists code) { 'code' }
+          elseif (Test-CommandExists codium) { 'codium' }
+          elseif (Test-CommandExists notepad++) { 'notepad++' }
+          else { 'notepad' }
+    Set-Alias -Name vim -Value $EDITOR
 }
 #endregion
 
@@ -239,6 +237,184 @@ function mkcd {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
     }
     Set-Location $Path
+}
+
+# Network Utilities
+function Get-PubIP { (Invoke-WebRequest http://ifconfig.me/ip).Content }
+
+# Open WinUtil full-release
+function winutil { irm https://christitus.com/win | iex }
+
+# System Utilities
+function admin {
+    if ($args.Count -gt 0) {
+        $argList = $args -join ' '
+        Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -NoExit -Command $argList"
+    } else {
+        Start-Process wt -Verb runAs
+    }
+}
+Set-Alias -Name sudo -Value admin
+Set-Alias -Name su -Value admin
+function reload-profile {
+    & $profile
+}
+function unzip ($file) {
+    Write-Output("Extracting", $file, "to", $pwd)
+    $fullFile = Get-ChildItem -Path $pwd -Filter $file | ForEach-Object { $_.FullName }
+    Expand-Archive -Path $fullFile -DestinationPath $pwd
+}
+function grep($regex, $dir) {
+    if ( $dir ) {
+        Get-ChildItem $dir | select-string $regex
+        return
+    }
+    $input | select-string $regex
+}
+function df {
+    get-volume
+}
+
+function sed($file, $find, $replace) {
+    (Get-Content $file).replace("$find", $replace) | Set-Content $file
+}
+
+function which($name) {
+    Get-Command $name | Select-Object -ExpandProperty Definition
+}
+
+function export($name, $value) {
+    set-item -force -path "env:$name" -value $value;
+}
+
+function pkill($name) {
+    Get-Process $name -ErrorAction SilentlyContinue | Stop-Process
+}
+
+function pgrep($name) {
+    Get-Process $name
+}
+
+function head {
+  param($Path, $n = 10)
+  Get-Content $Path -Head $n
+}
+
+function tail {
+  param($Path, $n = 10, [switch]$f = $false)
+  Get-Content $Path -Tail $n -Wait:$f
+}
+# Quick File Creation
+function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
+
+# Directory Management
+function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
+
+function trash($path) {
+    $fullPath = (Resolve-Path -Path $path).Path
+
+    if (Test-Path $fullPath) {
+        $item = Get-Item $fullPath
+
+        if ($item.PSIsContainer) {
+          # Handle directory
+            $parentPath = $item.Parent.FullName
+        } else {
+            # Handle file
+            $parentPath = $item.DirectoryName
+        }
+
+        $shell = New-Object -ComObject 'Shell.Application'
+        $shellItem = $shell.NameSpace($parentPath).ParseName($item.Name)
+
+        if ($item) {
+            $shellItem.InvokeVerb('delete')
+            Write-Host "Item '$fullPath' has been moved to the Recycle Bin."
+        } else {
+            Write-Host "Error: Could not find the item '$fullPath' to trash."
+        }
+    } else {
+        Write-Host "Error: Item '$fullPath' does not exist."
+    }
+}
+# Simplified Process Management
+function k9 { Stop-Process -Name $args[0] }
+# Enhanced Listing
+function la { Get-ChildItem | Format-Table -AutoSize }
+function ll { Get-ChildItem -Force | Format-Table -AutoSize }
+# Git Shortcuts
+function gs { git status }
+function ga { git add -A }
+function gc { param($m) git commit -m "$m" }
+function gpush { git push }
+
+function gpull { git pull }
+function gcl { git clone "$args" }
+function gcom {
+    git add -A
+    git commit -m "$args"
+}
+function lazyg {
+    git add -A
+    git commit -m "$args"
+    git push
+}
+# Quick Access to System Information
+function sysinfo { Get-ComputerInfo }
+
+# Networking Utilities
+function flushdns {
+	Clear-DnsClientCache
+	Write-Host "DNS has been flushed"
+}
+# Clipboard Utilities
+function cpy { Set-Clipboard $args[0] }
+function pst { Get-Clipboard }
+
+# Enhanced PSReadLine Configuration
+$PSReadLineOptions = @{
+    EditMode = 'Windows'
+    HistoryNoDuplicates = $true
+    HistorySearchCursorMovesToEnd = $true
+    PredictionSource = 'History'
+    PredictionViewStyle = 'ListView'
+    BellStyle = 'None'
+}
+Set-PSReadLineOption @PSReadLineOptions
+# Custom key handlers
+Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+Set-PSReadLineKeyHandler -Chord 'Ctrl+d' -Function DeleteChar
+Set-PSReadLineKeyHandler -Chord 'Ctrl+w' -Function BackwardDeleteWord
+Set-PSReadLineKeyHandler -Chord 'Alt+d' -Function DeleteWord
+Set-PSReadLineKeyHandler -Chord 'Ctrl+LeftArrow' -Function BackwardWord
+Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
+Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
+Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
+function Set-PredictionSource {
+    # If function "Set-PredictionSource_Override" is defined in profile.ps1 file
+    # then call it instead.
+    if (Get-Command -Name "Set-PredictionSource_Override" -ErrorAction SilentlyContinue) {
+        Set-PredictionSource_Override;
+    } else {
+	# Improved prediction settings
+	Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+	Set-PSReadLineOption -MaximumHistoryCount 10000
+    }
+}
+Set-PredictionSource
+if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+    Invoke-Expression (& { (zoxide init --cmd z powershell | Out-String) })
+} else {
+    Write-Host "zoxide command not found. Attempting to install via winget..."
+    try {
+        winget install -e --id ajeetdsouza.zoxide
+        Write-Host "zoxide installed successfully. Initializing..."
+        Invoke-Expression (& { (zoxide init --cmd z powershell | Out-String) })
+    } catch {
+        Write-Error "Failed to install zoxide. Error: $_"
+    }
 }
 
 function Get-CommandPath {
