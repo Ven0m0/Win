@@ -1,0 +1,1 @@
+. $PSScriptRoot\Compress-ScriptBlock.ps1
