@@ -11,3 +11,9 @@
 - https://github.com/zoicware/WindowsUpdateManager
 - https://github.com/zoicware/Server2025Unattend
 - https://github.com/rapid-community/RapidOS
+
+
+# Auto build-script for media-autobuild_suite
+- https://github.com/m-ab-s/media-autobuild_suite
+
+# Auto windows 10/11 iso creation script
