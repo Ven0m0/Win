@@ -269,5 +269,5 @@ cd ~/Scripts
 ## See Also
 
 - [Main README](README.md) - Complete NVIDIA configuration guide
-- [Scripts/Common.ps1](../../Scripts/Common.ps1) - Shared functions used by all scripts
-- [Scripts/OPTIMIZATION_NOTES.md](../../Scripts/OPTIMIZATION_NOTES.md) - Script optimization history
+- [Scripts/Common.ps1](../../../../Scripts/Common.ps1) - Shared functions used by all scripts
+- [Scripts/OPTIMIZATION_NOTES.md](../../../../Scripts/OPTIMIZATION_NOTES.md) - Script optimization history
