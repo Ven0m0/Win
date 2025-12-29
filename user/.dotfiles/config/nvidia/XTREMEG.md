@@ -99,7 +99,8 @@ XtremeG drivers typically include these tweaks pre-applied:
 
 ```powershell
 # Run as Administrator
-cd ~/user/.dotfiles/config/nvidia
+# Run as Administrator
+# Navigate to this script's directory, then run:
 .\xtremeg-installer.ps1
 ```
 
