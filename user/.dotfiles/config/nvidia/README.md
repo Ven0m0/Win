@@ -7,13 +7,25 @@ Optimized and consolidated NVIDIA driver tweaks, telemetry removal, and configur
 ```
 nvidia/
 ├── README.md                          # This file
+├── XTREMEG.md                         # XtremeG custom drivers guide
+├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
 ├── nvidia-performance-tweaks.reg      # ⭐ Main performance optimizations (consolidated)
 ├── nvidia-telemetry-cleanup.bat      # ⭐ Complete telemetry removal script
+├── nvidia-shader-cache-cleanup.bat   # ⭐ Clear NVIDIA shader caches
+├── xtremeg-installer.ps1              # 🔥 XtremeG custom driver installer (advanced)
 ├── toggles/                           # Quick enable/disable settings
 │   ├── disable-dlss-indicator.reg
 │   ├── enable-dlss-indicator.reg
 │   ├── enable-nis-new.reg
-│   └── disable-nis-new.reg
+│   ├── disable-nis-new.reg
+│   ├── enable-mpo.reg
+│   ├── disable-mpo.reg
+│   ├── enable-hardware-scheduling.reg
+│   ├── disable-hardware-scheduling.reg
+│   ├── enable-p-state-0-lock.reg
+│   ├── disable-p-state-0-lock.reg
+│   ├── enable-hdcp.reg
+│   └── disable-hdcp.reg
 ├── optional-tweaks/                   # Advanced/risky tweaks (use with caution!)
 │   ├── disable-ecc.reg
 │   ├── disable-preemption.reg
@@ -27,9 +39,6 @@ nvidia/
 │   ├── Bo6.nip                        # Black Ops 6 optimized
 │   └── Bo6-light.nip                  # Black Ops 6 light version
 ├── nvcpl/                            # NVIDIA Control Panel utilities
-│   ├── add-contexmenu.bat            # Add NVCPL to context menu
-│   ├── del-contextmenu.bat           # Remove NVCPL from context menu
-│   └── Nvidia Control Panel.vbs      # Launch NVCPL directly
 └── archive/                          # Old/deprecated files (for reference)
 ```
 
@@ -420,4 +429,111 @@ This directory contains static registry files extracted from interactive PowerSh
 - **Use Registry Files:** Quick toggles, automation, no PowerShell needed
 
 See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for complete integration guide.
+
+
+## 🔥 XtremeG Custom Drivers (Advanced Users Only)
+
+### ⚠️ CRITICAL WARNING
+
+**XtremeG drivers are UNOFFICIAL, MODIFIED drivers - NOT from NVIDIA!**
+
+- ❌ **Use at your own risk**
+- ❌ **May void warranty**
+- ❌ **No official support**
+- ❌ **May cause instability**
+
+**Only for advanced users who understand the risks!**
+
+### What are XtremeG Drivers?
+
+**XtremeG** = Community-modified NVIDIA drivers optimized for maximum gaming performance
+
+**Key Features:**
+- ✅ Pre-configured performance registry tweaks
+- ✅ Telemetry completely removed
+- ✅ All bloatware stripped (GeForce Experience, etc.)
+- ✅ Optimized for low latency
+- ✅ Smaller download size (~400MB vs ~700MB)
+- ✅ Based on official Game Ready Drivers
+
+**Source:** [r/XtremeG](https://www.reddit.com/r/XtremeG)
+
+### Quick Install
+
+```powershell
+# Run as Administrator
+cd user/.dotfiles/config/nvidia
+.\xtremeg-installer.ps1
+```
+
+The script will:
+1. Guide you through downloading from MEGA.nz
+2. Extract the driver package
+3. Optionally run DDU (Display Driver Uninstaller)
+4. Install the XtremeG driver
+5. Offer post-installation tweaks
+
+### Manual Install (Alternative)
+
+1. Visit [r/XtremeG](https://www.reddit.com/r/XtremeG)
+2. Download latest driver from MEGA.nz link
+3. Extract ZIP/7z file
+4. Run `setup.exe` as Administrator
+5. Reboot
+
+### Example Download URL Format
+
+```
+https://mega.nz/file/rkc20QAY#Xp0RksAw2_omqeB98N1WSJnTDvogzaq1UqCX-rcI9N4
+```
+
+*(Check subreddit for current version)*
+
+### Should You Use XtremeG?
+
+**Use XtremeG if you:**
+- ✅ Want absolute maximum performance
+- ✅ Don't need GeForce Experience
+- ✅ Are comfortable with unofficial software
+- ✅ Can troubleshoot driver issues
+- ✅ Want telemetry completely removed
+
+**Stick with official drivers if you:**
+- ❌ Want official NVIDIA support
+- ❌ Need GeForce Experience features
+- ❌ Want automatic updates
+- ❌ Prefer stability over maximum performance
+- ❌ Are uncomfortable with modified software
+
+### Comparison
+
+| Feature | Official NVIDIA | XtremeG | Official + Our Tweaks |
+|---------|----------------|---------|----------------------|
+| **Source** | NVIDIA | Modified | NVIDIA |
+| **Safety** | ✅ Official | ⚠️ Unofficial | ✅ Official |
+| **Size** | ~700MB | ~400MB | ~700MB |
+| **Telemetry** | Yes | Removed | You remove |
+| **Bloat** | Yes (GFE) | Removed | You remove |
+| **Tweaks** | Default | Pre-applied | You apply |
+| **Updates** | Auto (GFE) | Manual | Manual |
+| **Support** | Official | Community | Official |
+
+**Recommendation:** For most users, **official drivers + our tweaks** is the best balance of safety and performance.
+
+### Full Documentation
+
+See [XTREMEG.md](XTREMEG.md) for:
+- Complete installation guide
+- Troubleshooting
+- Reverting to official drivers
+- Security considerations
+- FAQ
+
+### Alternative: NVCleanstall (Safer)
+
+If you want customized drivers but prefer safety:
+- [NVCleanstall](https://www.techpowerup.com/nvcleanstall/)
+- Customize official NVIDIA drivers during install
+- Remove telemetry/bloat safely
+- GUI-based, user-friendly
 
