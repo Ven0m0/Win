@@ -1,4 +1,3 @@
-- https://github.com/zoicware/ZOICWARE
 - https://github.com/zoicware/uup-dump-get-windows-iso
 - https://github.com/zoicware/RepairBadTweaks
 - https://github.com/zoicware/WindowsDeviceRemover
