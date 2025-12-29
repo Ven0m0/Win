@@ -32,7 +32,11 @@ nvidia/
 │   ├── enable-preemption.reg
 │   ├── enable-signature-override.reg
 │   ├── enable-windows-game-mode.reg
-│   └── force-directflip.reg
+│   ├── force-directflip.reg
+│   ├── advanced-shader-memory-tweaks.reg
+│   ├── cuda-optimizations.reg
+│   ├── display-scaling-vrr.reg
+│   └── opengl-vulkan-optimizations.reg
 ├── profiles/                          # NVIDIA Profile Inspector profiles
 │   ├── Best.nip                       # General performance profile
 │   ├── Settings.nip                   # Custom settings profile
@@ -200,6 +204,118 @@ bcdedit /set nointegritychecks on
 bcdedit /set testsigning on
 ```
 
+### Advanced Community Tweaks
+
+These tweaks are based on well-established performance tuning practices from the NVIDIA community, tech forums, and advanced user testing.
+
+#### Shader Cache & Memory Optimizations
+
+**What it does:**
+- Enables unlimited shader cache size
+- Optimizes shader cache location (manual SSD path option)
+- Increases TDR (Timeout Detection and Recovery) delays to prevent false positives
+- Sets WDDM mode to 2.x for Windows 10+
+- DX12 on hybrid/Optimus systems
+
+**How to apply:**
+```cmd
+regedit /s optional-tweaks/advanced-shader-memory-tweaks.reg
+```
+
+**Benefits:**
+- ✅ Faster shader loading after first compile
+- ✅ Reduced stuttering in games
+- ✅ Prevents driver timeout errors under heavy load
+
+**Notes:**
+- Shader cache will grow over time (monitor disk space)
+- Optionally edit the file to set custom cache path to SSD
+
+#### CUDA Optimizations
+
+**What it does:**
+- Disables CUDA Force P2 State (prevents memory downclocking during compute)
+- Sets CUDA sysmem fallback policy to prefer local memory
+- Disables compute preemption for lower latency
+
+**How to apply:**
+```cmd
+regedit /s optional-tweaks/cuda-optimizations.reg
+```
+
+**Benefits:**
+- ✅ Better performance in CUDA-accelerated applications
+- ✅ Prevents memory clock throttling during compute tasks
+- ✅ Lower latency for GPU compute workloads
+
+**Notes:**
+- Most beneficial for workloads mixing gaming and compute
+- Compute preemption disabled may reduce stability in heavy compute tasks
+- Also configurable via NVIDIA Profile Inspector (CUDA - Force P2 State)
+
+**⚠️ WARNING:** Disabling compute preemption reduces multitasking capability. Only use on dedicated gaming systems.
+
+#### Display Scaling & VRR (Variable Refresh Rate)
+
+**What it does:**
+- Forces GPU scaling instead of display scaling
+- Sets maximum color depth (10-bit if supported)
+- Sets RGB color format
+- Enables Variable Refresh Rate (G-SYNC/FreeSync)
+- Disables refresh rate switching (keeps at max)
+- Enables Ultra Low Latency Mode
+
+**How to apply:**
+```cmd
+regedit /s optional-tweaks/display-scaling-vrr.reg
+```
+
+**Benefits:**
+- ✅ GPU scaling has better quality than display scaling
+- ✅ Maximum color output (10-bit on supported monitors)
+- ✅ G-SYNC Compatible mode for FreeSync monitors
+- ✅ Locked maximum refresh rate
+- ✅ Ultra low latency mode
+
+**Notes:**
+- Verify your monitor supports 10-bit color before expecting benefits
+- G-SYNC Compatible requires compatible FreeSync monitor
+- Better to set some of these via NVIDIA Control Panel for easier toggling
+- Commented MPO setting (use toggles instead)
+
+#### OpenGL & Vulkan Optimizations
+
+**What it does:**
+- Disables OpenGL triple buffering (reduces input lag)
+- Enables Vulkan heap budget optimization
+- Enables Vulkan timeline semaphores
+- Disables OpenGL overlay
+- Forces maximum OpenGL performance
+- Enables threaded optimization for D3D9/D3D11
+
+**How to apply:**
+```cmd
+regedit /s optional-tweaks/opengl-vulkan-optimizations.reg
+```
+
+**Benefits:**
+- ✅ Lower input latency in OpenGL games
+- ✅ Better Vulkan memory management
+- ✅ Reduced API overhead
+- ✅ Better multi-threaded API performance
+
+**Notes:**
+- OpenGL is used by older games (pre-2010s) and some emulators
+- Vulkan is used by modern titles (DOOM Eternal, Cyberpunk 2077, etc.)
+- Threaded optimization "use with caution" per NVIDIA - test in your games
+- Some settings better controlled via NVIDIA Control Panel
+
+**When to use:**
+- You play older OpenGL games or use emulators
+- You play modern Vulkan games
+- You want to squeeze every bit of performance
+- You've already applied main tweaks and want more
+
 ## 🔧 NVIDIA Profile Inspector
 
 ### Download & Install
@@ -321,6 +437,23 @@ Check Device Manager → Display adapters → Properties → Details → Driver 
 - [Gaming PC Setup Research](https://github.com/djdallmann/GamingPCSetup)
 
 ## 📜 Changelog
+
+### 2025-12-29 - Advanced Community Tweaks
+- ✅ Added `optional-tweaks/advanced-shader-memory-tweaks.reg`
+- ✅ Added `optional-tweaks/cuda-optimizations.reg`
+- ✅ Added `optional-tweaks/display-scaling-vrr.reg`
+- ✅ Added `optional-tweaks/opengl-vulkan-optimizations.reg`
+- ✅ Comprehensive documentation for all advanced tweaks
+
+### 2025-12-29 - XtremeG Custom Driver Support
+- ✅ Added `XTREMEG.md` comprehensive guide
+- ✅ Added `xtremeg-installer.ps1` automated installer
+- ✅ Documentation for unofficial driver installation
+
+### 2025-12-29 - Scripts Integration
+- ✅ Added 8 new toggle files (MPO, Hardware Scheduling, P-State, HDCP)
+- ✅ Added `nvidia-shader-cache-cleanup.bat`
+- ✅ Created `SCRIPTS-REFERENCE.md` integration guide
 
 ### 2025-12-29 - Major Cleanup
 - ✅ Consolidated 3 experimental reg files into `nvidia-performance-tweaks.reg`
