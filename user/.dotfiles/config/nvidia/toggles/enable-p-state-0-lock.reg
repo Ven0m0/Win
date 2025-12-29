@@ -1,0 +1,19 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable P-State 0 Lock (Maximum Performance)
+; ============================================================
+; Forces GPU to stay at maximum clocks (P-State 0)
+; Pros: Consistent performance, no clock ramping delays
+; Cons: Higher power consumption and temperatures
+; Note: Change 0000 to your GPU index if needed
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"DisableDynamicPstate"=dword:00000001
+
+; Also set power level source to maximum
+"PerfLevelSrc"=dword:00002222
+"PowerMizerEnable"=dword:00000001
+"PowerMizerLevel"=dword:00000001
+"PowerMizerLevelAC"=dword:00000001

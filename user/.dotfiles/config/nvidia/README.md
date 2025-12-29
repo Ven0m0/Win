@@ -327,3 +327,97 @@ Check Device Manager → Display adapters → Properties → Details → Driver 
 **Last Updated:** 2025-12-29
 **Maintainer:** Ven0m0
 **Repository:** https://github.com/Ven0m0/Win
+
+## 🔧 Additional Toggles (From Scripts Integration)
+
+### Multiplane Overlay (MPO)
+
+Fix flickering/tearing in games like Black Ops 6:
+
+```cmd
+# Disable MPO (recommended for gaming, fixes flickering)
+regedit /s toggles/disable-mpo.reg
+
+# Enable MPO (Windows default, better for video playback)
+regedit /s toggles/enable-mpo.reg
+```
+
+**Note:** Reboot required after MPO changes.
+
+### Hardware-Accelerated GPU Scheduling
+
+Windows 10 2004+ feature for lower latency (requires compatible GPU):
+
+```cmd
+# Enable (recommended for RTX 20/30/40 series)
+regedit /s toggles/enable-hardware-scheduling.reg
+
+# Disable (if you have issues or older GPU)
+regedit /s toggles/disable-hardware-scheduling.reg
+```
+
+**Note:** Reboot required. Check Windows Settings → Display → Graphics to verify it's enabled.
+
+### P-State 0 Lock Toggles
+
+Individual toggles for P-State 0 (included in main tweaks, use these to revert):
+
+```cmd
+# Force max clocks (best for gaming)
+regedit /s toggles/enable-p-state-0-lock.reg
+
+# Restore dynamic clocking (saves power when idle)
+regedit /s toggles/disable-p-state-0-lock.reg
+```
+
+### HDCP Toggles
+
+Individual toggles for HDCP (included in main tweaks, use these to revert):
+
+```cmd
+# Disable HDCP (lower latency, breaks Netflix/DRM)
+regedit /s toggles/disable-hdcp.reg
+
+# Enable HDCP (restore DRM support)
+regedit /s toggles/enable-hdcp.reg
+```
+
+## 🧼 Shader Cache Cleanup
+
+Clear NVIDIA shader caches to fix stuttering, crashes, or visual artifacts:
+
+```cmd
+# Quick NVIDIA-only cleanup
+nvidia-shader-cache-cleanup.bat
+```
+
+**When to use:**
+- After driver updates
+- If games are stuttering or crashing
+- If you see visual artifacts/corruption
+- To free up disk space
+
+**Advanced:** For comprehensive cleanup including Steam games:
+```powershell
+cd ~/Scripts
+.\shader-cache.ps1
+```
+
+See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for detailed comparison.
+
+## 📚 PowerShell Scripts Integration
+
+This directory contains static registry files extracted from interactive PowerShell scripts:
+
+| PowerShell Script | What It Does | Equivalent Registry Files |
+|-------------------|--------------|---------------------------|
+| `Scripts/gpu-display-manager.ps1` | Interactive menu for GPU/display settings | P-State, HDCP, MPO toggles |
+| `Scripts/DLSS-force-latest.ps1` | Force latest DLSS, overlay toggle | DLSS indicator toggles |
+| `Scripts/shader-cache.ps1` | Comprehensive cache cleanup with Steam | `nvidia-shader-cache-cleanup.bat` |
+
+**When to use scripts vs registry files:**
+- **Use Scripts:** Interactive menus, advanced features (MSI Mode, EDID Override)
+- **Use Registry Files:** Quick toggles, automation, no PowerShell needed
+
+See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for complete integration guide.
+

@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable Multiplane Overlay (MPO) - Windows Default
+; ============================================================
+; MPO allows multiple video planes to be composited by hardware
+; Pros: Lower CPU usage for video playback, better power efficiency
+; Cons: Can cause flickering/artifacts in some games
+; This is the default Windows behavior
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Dwm]
+"OverlayTestMode"=dword:00000005
