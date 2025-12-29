@@ -7,7 +7,7 @@
 :: Run as Administrator
 :: ============================================================
 
-setlocal EnableExtensions DisableDelayedExpansion
+setlocal enabledelayedexpansion
 
 echo ============================================================
 echo NVIDIA Telemetry and Bloat Removal
