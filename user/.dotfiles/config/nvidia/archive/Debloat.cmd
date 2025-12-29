@@ -1,0 +1,16 @@
+cd /d %~dp0
+rmdir /s /q "Display.Nview"
+rmdir /s /q "FrameViewSDK"
+rmdir /s /q "HDAudio"
+rmdir /s /q "MSVCRT"
+rmdir /s /q "NvApp"
+rmdir /s /q "NvApp.MessageBus"
+rmdir /s /q "NvBackend"
+rmdir /s /q "NvContainer"
+rmdir /s /q "NvDLISR"
+rmdir /s /q "NVPCF"
+rmdir /s /q "NvTelemetry"
+rmdir /s /q "NvVAD"
+rmdir /s /q "PPC"
+rmdir /s /q "ShadowPlay"
+exit
