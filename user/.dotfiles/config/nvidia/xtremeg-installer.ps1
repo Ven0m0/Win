@@ -26,14 +26,6 @@ if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   }
 }
 
-# Request admin elevation
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-  Write-Warning "This script requires Administrator privileges!"
-  $arguments = "& '" + $myinvocation.mycommand.definition + "'"
-  Start-Process powershell -Verb runAs -ArgumentList $arguments
-  exit
-}
-
 # Initialize
 Clear-Host
 $ErrorActionPreference = "Stop"
