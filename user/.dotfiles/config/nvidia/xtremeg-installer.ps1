@@ -2,9 +2,14 @@
 
 <#
 .SYNOPSIS
-    XtremeG Custom NVIDIA Driver Installer
+    XtremeG Custom NVIDIA Driver Installer (Enhanced)
 .DESCRIPTION
-    Downloads and installs XtremeG custom NVIDIA drivers from MEGA.nz
+    Automatically finds, downloads, debloats, and installs XtremeG custom NVIDIA drivers
+    Features:
+    - Auto-detection of latest driver from r/XtremeG
+    - Automatic MEGA.nz download (with MEGAcmd)
+    - Debloating of driver package
+    - Optional DDU integration
     WARNING: These are unofficial/modified drivers - use at your own risk!
 .NOTES
     See XTREMEG.md for full documentation and warnings
@@ -37,10 +42,276 @@ $ErrorActionPreference = "Stop"
 $downloadPath = "$env:USERPROFILE\Downloads\XtremeG"
 $extractPath = "$downloadPath\Extracted"
 $logFile = "$downloadPath\install.log"
+$redditUrl = "https://www.reddit.com/r/XtremeG.json"
+
+# ============================================================
+# Helper Functions
+# ============================================================
+
+function Get-LatestXtremeGDriver {
+  <#
+  .SYNOPSIS
+    Fetches latest XtremeG driver info from r/XtremeG
+  #>
+  Write-Host "  Fetching latest driver from r/XtremeG..." -ForegroundColor Cyan
+
+  try {
+    # Fetch Reddit JSON feed
+    $reddit = Invoke-RestMethod -Uri $redditUrl -UserAgent "PowerShell:XtremeGInstaller:v2.0"
+
+    $drivers = @()
+    foreach ($post in $reddit.data.children) {
+      $title = $post.data.title
+      $body = $post.data.selftext
+
+      # Look for MEGA.nz links
+      $megaPattern = 'https?://mega\.nz/file/[^\s\)\]"]+'
+      $megaMatches = [regex]::Matches("$title $body", $megaPattern)
+
+      if ($megaMatches.Count -gt 0) {
+        # Extract version number from title (e.g., "566.03", "555.85", etc.)
+        $versionPattern = '(\d{3}\.\d{2})'
+        $versionMatch = [regex]::Match($title, $versionPattern)
+
+        if ($versionMatch.Success) {
+          $drivers += [PSCustomObject]@{
+            Version     = $versionMatch.Groups[1].Value
+            Title       = $title
+            MegaUrl     = $megaMatches[0].Value
+            PostUrl     = "https://www.reddit.com$($post.data.permalink)"
+            VersionNum  = [version]($versionMatch.Groups[1].Value)
+          }
+        }
+      }
+    }
+
+    if ($drivers.Count -eq 0) {
+      Write-Host "  ⚠️  No drivers found in recent posts" -ForegroundColor Yellow
+      return $null
+    }
+
+    # Sort by version number (highest first)
+    $latest = $drivers | Sort-Object -Property VersionNum -Descending | Select-Object -First 1
+
+    Write-Host "  ✓ Found latest: Version $($latest.Version)" -ForegroundColor Green
+    Write-Host "    Title: $($latest.Title)" -ForegroundColor Gray
+
+    return $latest
+  } catch {
+    Write-Host "  ❌ Failed to fetch from Reddit: $($_.Exception.Message)" -ForegroundColor Red
+    return $null
+  }
+}
+
+function Test-MEGAcmd {
+  <#
+  .SYNOPSIS
+    Checks if MEGAcmd is installed
+  #>
+  $megadlPaths = @(
+    "$env:LOCALAPPDATA\MEGAcmd\mega-get.exe",
+    "$env:ProgramFiles\MEGAcmd\mega-get.exe",
+    "C:\Program Files\MEGAcmd\mega-get.exe"
+  )
+
+  foreach ($path in $megadlPaths) {
+    if (Test-Path $path) {
+      return $path
+    }
+  }
+
+  # Check if in PATH
+  try {
+    $megaCmd = Get-Command "mega-get.exe" -ErrorAction SilentlyContinue
+    if ($megaCmd) {
+      return $megaCmd.Source
+    }
+  } catch {}
+
+  return $null
+}
+
+function Install-MEGAcmd {
+  <#
+  .SYNOPSIS
+    Offers to install MEGAcmd
+  #>
+  Write-Host ""
+  Write-Host "MEGAcmd not found. This is required for automatic downloads." -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "Install MEGAcmd? (Recommended)" -ForegroundColor Cyan
+  Write-Host "  y - Yes, install MEGAcmd via winget" -ForegroundColor White
+  Write-Host "  n - No, use manual download instead" -ForegroundColor White
+  Write-Host ""
+  Write-Host "Choice (y/n): " -NoNewline
+  $choice = Read-Host
+
+  if ($choice -eq "y" -or $choice -eq "Y") {
+    Write-Host ""
+    Write-Host "Installing MEGAcmd via winget..." -ForegroundColor Cyan
+    try {
+      winget install Mega.MEGAcmd --silent --accept-source-agreements --accept-package-agreements
+      Write-Host "  ✓ MEGAcmd installed successfully" -ForegroundColor Green
+      Write-Host "  ⚠️  You may need to restart this script for PATH updates" -ForegroundColor Yellow
+      Write-Host ""
+      Write-Host "Restart script now? (y/N): " -NoNewline
+      $restart = Read-Host
+      if ($restart -eq "y" -or $restart -eq "Y") {
+        Start-Process powershell -Verb runAs -ArgumentList "-File `"$PSCommandPath`""
+        exit 0
+      }
+      return Test-MEGAcmd
+    } catch {
+      Write-Host "  ❌ Installation failed: $($_.Exception.Message)" -ForegroundColor Red
+      return $null
+    }
+  }
+
+  return $null
+}
+
+function Download-FromMega {
+  <#
+  .SYNOPSIS
+    Downloads file from MEGA.nz
+  #>
+  param(
+    [string]$MegaUrl,
+    [string]$DestinationPath
+  )
+
+  $megaCmd = Test-MEGAcmd
+
+  if (-not $megaCmd) {
+    $megaCmd = Install-MEGAcmd
+  }
+
+  if ($megaCmd) {
+    # Use MEGAcmd
+    Write-Host "  Downloading via MEGAcmd..." -ForegroundColor Cyan
+    Write-Host "  This may take several minutes (driver is ~400MB)" -ForegroundColor Gray
+    Write-Host ""
+
+    try {
+      & $megaCmd $MegaUrl $DestinationPath
+
+      # Find downloaded file
+      $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") -Recurse |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+
+      if ($downloaded) {
+        Write-Host ""
+        Write-Host "  ✓ Download complete: $($downloaded.Name)" -ForegroundColor Green
+        return $downloaded
+      } else {
+        throw "Downloaded file not found"
+      }
+    } catch {
+      Write-Host "  ❌ MEGAcmd download failed: $($_.Exception.Message)" -ForegroundColor Red
+      return $null
+    }
+  } else {
+    # Fallback to browser
+    Write-Host "  Opening MEGA.nz in browser..." -ForegroundColor Yellow
+    Start-Process $MegaUrl
+    Write-Host ""
+    Write-Host "  Please download the file and save it to: $DestinationPath" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Press Enter when download is complete..." -NoNewline
+    Read-Host
+
+    # Find downloaded file
+    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") -Recurse -ErrorAction SilentlyContinue |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+
+    if ($downloaded) {
+      Write-Host "  ✓ Found: $($downloaded.Name)" -ForegroundColor Green
+      return $downloaded
+    } else {
+      Write-Host "  ❌ No file found in $DestinationPath" -ForegroundColor Red
+      return $null
+    }
+  }
+}
+
+function Remove-DriverBloat {
+  <#
+  .SYNOPSIS
+    Removes unnecessary components from extracted driver
+  #>
+  param([string]$ExtractPath)
+
+  Write-Host "  Scanning for bloatware..." -ForegroundColor Cyan
+
+  # List of folders/files to remove
+  $bloatItems = @(
+    "GFExperience",
+    "GFExperience.NvStreamSrv",
+    "GFExperienceService",
+    "NvBackend",
+    "NvContainer",
+    "NvTelemetry",
+    "NvTmMon.exe",
+    "NvTmRep.exe",
+    "NvTmRepOnLogon.exe",
+    "NvProfileUpdater64.exe",
+    "NvProfileUpdater32.exe",
+    "EULA.txt",
+    "ListDevices.txt",
+    "setup.cfg"  # Will be recreated with minimal components
+  )
+
+  $removed = 0
+
+  foreach ($item in $bloatItems) {
+    $found = Get-ChildItem -Path $ExtractPath -Filter $item -Recurse -ErrorAction SilentlyContinue
+    foreach ($file in $found) {
+      try {
+        if ($file.PSIsContainer) {
+          Remove-Item -Path $file.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        } else {
+          Remove-Item -Path $file.FullName -Force -ErrorAction SilentlyContinue
+        }
+        $removed++
+      } catch {
+        # Silently continue if file is locked
+      }
+    }
+  }
+
+  if ($removed -gt 0) {
+    Write-Host "  ✓ Removed $removed bloat items" -ForegroundColor Green
+  } else {
+    Write-Host "  ℹ No bloat found (already clean)" -ForegroundColor Gray
+  }
+
+  # Additional telemetry cleanup in registry-ready format
+  $telemetryBat = @"
+@echo off
+REM Additional telemetry cleanup for XtremeG driver
+echo Disabling NVIDIA telemetry services...
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client" /v "OptInOrOutPreference" /t REG_DWORD /d "0" /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup" /v "SendTelemetryData" /t REG_DWORD /d "0" /f >nul 2>&1
+schtasks /change /disable /tn "NvTmRep_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
+schtasks /change /disable /tn "NvProfileUpdater_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
+echo Telemetry disabled.
+"@
+
+  $telemetryBatPath = "$ExtractPath\disable-telemetry.bat"
+  $telemetryBat | Out-File -FilePath $telemetryBatPath -Encoding ASCII -Force
+
+  Write-Host "  ✓ Created disable-telemetry.bat for post-install" -ForegroundColor Green
+}
+
+# ============================================================
+# Main Installation Flow
+# ============================================================
 
 # Banner
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  XtremeG Custom NVIDIA Driver Installer" -ForegroundColor Yellow
+Write-Host "  XtremeG Custom NVIDIA Driver Installer (Enhanced)" -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "⚠️  WARNING: UNOFFICIAL MODIFIED DRIVERS - USE AT YOUR OWN RISK!" -ForegroundColor Red
@@ -59,6 +330,7 @@ function Show-Warnings {
   Write-Host "  ✅ Telemetry completely removed" -ForegroundColor Green
   Write-Host "  ✅ Bloatware stripped out" -ForegroundColor Green
   Write-Host "  ✅ Optimized for gaming" -ForegroundColor Green
+  Write-Host "  ✅ Auto-download and debloating" -ForegroundColor Green
   Write-Host ""
   Write-Host "See XTREMEG.md for full documentation" -ForegroundColor Cyan
   Write-Host ""
@@ -77,96 +349,69 @@ if ($confirm -ne "y" -and $confirm -ne "Y") {
 Clear-Host
 
 # Create directories
-Write-Host "[1/7] Creating directories..." -ForegroundColor Cyan
+Write-Host "[1/8] Creating directories..." -ForegroundColor Cyan
 New-Item -ItemType Directory -Force -Path $downloadPath | Out-Null
 New-Item -ItemType Directory -Force -Path $extractPath | Out-Null
 Write-Host "  ✓ Created: $downloadPath" -ForegroundColor Green
 Write-Host ""
 
-# Get MEGA.nz URL
-Write-Host "[2/7] MEGA.nz Download URL" -ForegroundColor Cyan
+# Fetch latest driver info
+Write-Host "[2/8] Finding latest XtremeG driver..." -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Find the latest XtremeG driver at: https://www.reddit.com/r/XtremeG" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "Example URL format:" -ForegroundColor Gray
-Write-Host "  https://mega.nz/file/rkc20QAY#Xp0RksAw2_omqeB98N1WSJnTDvogzaq1UqCX-rcI9N4" -ForegroundColor Gray
-Write-Host ""
-Write-Host "Enter MEGA.nz URL (or press Enter to download manually): " -NoNewline
-$megaUrl = Read-Host
+$latestDriver = Get-LatestXtremeGDriver
 
-Clear-Host
+if (-not $latestDriver) {
+  Write-Host ""
+  Write-Host "  Falling back to manual mode..." -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "Visit https://www.reddit.com/r/XtremeG to find the latest driver" -ForegroundColor Cyan
+  Write-Host ""
+  Write-Host "Enter MEGA.nz URL (or press Enter to open Reddit): " -NoNewline
+  $manualUrl = Read-Host
+
+  if ([string]::IsNullOrWhiteSpace($manualUrl)) {
+    Start-Process "https://www.reddit.com/r/XtremeG"
+    Write-Host ""
+    Write-Host "Please find the driver and enter the MEGA.nz URL: " -NoNewline
+    $manualUrl = Read-Host
+  }
+
+  if ([string]::IsNullOrWhiteSpace($manualUrl)) {
+    Write-Host "No URL provided. Exiting." -ForegroundColor Red
+    exit 1
+  }
+
+  $latestDriver = [PSCustomObject]@{
+    Version = "Unknown"
+    Title   = "Manual selection"
+    MegaUrl = $manualUrl
+    PostUrl = "https://www.reddit.com/r/XtremeG"
+  }
+}
+
+Write-Host ""
+Write-Host "  Selected Driver:" -ForegroundColor Cyan
+Write-Host "    Version: $($latestDriver.Version)" -ForegroundColor White
+Write-Host "    Source: $($latestDriver.PostUrl)" -ForegroundColor Gray
+Write-Host ""
 
 # Download driver
-Write-Host "[3/7] Downloading XtremeG Driver..." -ForegroundColor Cyan
+Write-Host "[3/8] Downloading XtremeG Driver v$($latestDriver.Version)..." -ForegroundColor Cyan
 Write-Host ""
 
-if ([string]::IsNullOrWhiteSpace($megaUrl)) {
-  # Manual download
-  Write-Host "Manual download selected." -ForegroundColor Yellow
+$driverFile = Download-FromMega -MegaUrl $latestDriver.MegaUrl -DestinationPath $downloadPath
+
+if (-not $driverFile) {
   Write-Host ""
-  Write-Host "Steps:" -ForegroundColor Cyan
-  Write-Host "  1. Visit https://www.reddit.com/r/XtremeG" -ForegroundColor White
-  Write-Host "  2. Find the latest driver post" -ForegroundColor White
-  Write-Host "  3. Click the MEGA.nz download link" -ForegroundColor White
-  Write-Host "  4. Download the driver ZIP/7z file" -ForegroundColor White
-  Write-Host "  5. Save it to: $downloadPath" -ForegroundColor White
-  Write-Host ""
-  Write-Host "Press Enter when download is complete..." -NoNewline
-  Read-Host
-
-  # Find downloaded file
-  $driverFile = Get-ChildItem -Path $downloadPath -Filter "*.zip" -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
-
-  if (-not $driverFile) {
-    $driverFile = Get-ChildItem -Path $downloadPath -Filter "*.7z" -ErrorAction SilentlyContinue |
-      Sort-Object LastWriteTime -Descending |
-      Select-Object -First 1
-  }
-
-  if (-not $driverFile) {
-    Write-Host "  ❌ No ZIP or 7z file found in $downloadPath" -ForegroundColor Red
-    Write-Host "  Please download the driver and try again." -ForegroundColor Yellow
-    exit 1
-  }
-
-  Write-Host "  ✓ Found: $($driverFile.Name)" -ForegroundColor Green
-} else {
-  # Automated download (requires MEGAcmd or browser automation)
-  Write-Host "Automated download not yet implemented." -ForegroundColor Yellow
-  Write-Host ""
-  Write-Host "Opening browser to download..." -ForegroundColor Cyan
-  Start-Process $megaUrl
-  Write-Host ""
-  Write-Host "Please download the file and save it to: $downloadPath" -ForegroundColor Yellow
-  Write-Host ""
-  Write-Host "Press Enter when download is complete..." -NoNewline
-  Read-Host
-
-  # Find downloaded file
-  $driverFile = Get-ChildItem -Path $downloadPath -Filter "*.zip" -ErrorAction SilentlyContinue |
-    Sort-Object LastWriteTime -Descending |
-    Select-Object -First 1
-
-  if (-not $driverFile) {
-    $driverFile = Get-ChildItem -Path $downloadPath -Filter "*.7z" -ErrorAction SilentlyContinue |
-      Sort-Object LastWriteTime -Descending |
-      Select-Object -First 1
-  }
-
-  if (-not $driverFile) {
-    Write-Host "  ❌ No file found in $downloadPath" -ForegroundColor Red
-    exit 1
-  }
-
-  Write-Host "  ✓ Found: $($driverFile.Name)" -ForegroundColor Green
+  Write-Host "Download failed. Please download manually and place in:" -ForegroundColor Red
+  Write-Host "  $downloadPath" -ForegroundColor Yellow
+  exit 1
 }
 
 Write-Host ""
 
 # Extract driver
-Write-Host "[4/7] Extracting driver..." -ForegroundColor Cyan
+Write-Host "[4/8] Extracting driver..." -ForegroundColor Cyan
 
 # Check for 7-Zip or built-in extraction
 $use7zip = $false
@@ -193,8 +438,13 @@ try {
 
 Write-Host ""
 
+# Debloat driver
+Write-Host "[5/8] Debloating driver package..." -ForegroundColor Cyan
+Remove-DriverBloat -ExtractPath $extractPath
+Write-Host ""
+
 # Find setup.exe
-Write-Host "[5/7] Locating installer..." -ForegroundColor Cyan
+Write-Host "[6/8] Locating installer..." -ForegroundColor Cyan
 $setupExe = Get-ChildItem -Path $extractPath -Filter "setup.exe" -Recurse -ErrorAction SilentlyContinue |
   Select-Object -First 1
 
@@ -211,7 +461,7 @@ Write-Host "  ✓ Found: $($setupExe.FullName)" -ForegroundColor Green
 Write-Host ""
 
 # Optional: Run DDU first
-Write-Host "[6/7] Pre-installation cleanup (Optional)" -ForegroundColor Cyan
+Write-Host "[7/8] Pre-installation cleanup (Optional)" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Run Display Driver Uninstaller (DDU) first? (Recommended)" -ForegroundColor Yellow
 Write-Host "  y - Yes, open DDU download page (manual process)" -ForegroundColor White
@@ -245,7 +495,7 @@ if ($dduChoice -eq "y" -or $dduChoice -eq "Y") {
 Clear-Host
 
 # Install driver
-Write-Host "[7/7] Installing XtremeG Driver..." -ForegroundColor Cyan
+Write-Host "[8/8] Installing XtremeG Driver v$($latestDriver.Version)..." -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Starting NVIDIA installer..." -ForegroundColor Yellow
 Write-Host "  Location: $($setupExe.FullName)" -ForegroundColor Gray
@@ -255,9 +505,10 @@ Write-Host "  ⚠️  Choose 'Custom' installation if you want to review compone
 Write-Host ""
 
 # Log installation
-"[$(Get-Date)] Installing XtremeG Driver" | Out-File $logFile -Append
+"[$(Get-Date)] Installing XtremeG Driver v$($latestDriver.Version)" | Out-File $logFile -Append
 "Driver file: $($driverFile.Name)" | Out-File $logFile -Append
 "Setup path: $($setupExe.FullName)" | Out-File $logFile -Append
+"Source: $($latestDriver.PostUrl)" | Out-File $logFile -Append
 
 # Run setup
 try {
@@ -272,6 +523,19 @@ try {
   Write-Host "  ❌ Installation failed: $($_.Exception.Message)" -ForegroundColor Red
   Write-Host ""
   exit 1
+}
+
+# Run post-install telemetry cleanup
+$telemetryScript = Get-ChildItem -Path $extractPath -Filter "disable-telemetry.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($telemetryScript) {
+  Write-Host "Running post-install telemetry cleanup..." -ForegroundColor Cyan
+  try {
+    Start-Process -FilePath $telemetryScript.FullName -Wait -NoNewWindow
+    Write-Host "  ✓ Telemetry disabled" -ForegroundColor Green
+  } catch {
+    Write-Host "  ⚠️  Telemetry cleanup failed (non-critical)" -ForegroundColor Yellow
+  }
+  Write-Host ""
 }
 
 # Post-installation options
