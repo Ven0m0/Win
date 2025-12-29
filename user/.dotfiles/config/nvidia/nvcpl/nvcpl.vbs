@@ -25,7 +25,7 @@ Function run(app)
     currentDir = objShell.CurrentDirectory
     ' Cambiar al directorio del script
     objShell.CurrentDirectory = GetScriptFolder()
-    ' Ejecutar la aplicación
+    ' Ejecutar la aplicaciÃ³n
     objShell.Run app, 1, True
 End Function
 
