@@ -595,7 +595,7 @@ See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for complete integration guide.
 
 ```powershell
 # Run as Administrator
-cd user/.dotfiles/config/nvidia
+# Navigate to this directory in PowerShell, then run:
 .\xtremeg-installer.ps1
 ```
 
