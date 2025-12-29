@@ -1,0 +1,24 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable NVIDIA Driver Signature Override - RISKY!
+; ============================================================
+; WARNING: This is VERY risky and not recommended!
+; - Enables test signing mode in Windows
+; - Disables integrity checks
+; - Allows unsigned driver modifications
+; - May cause system instability
+; - May prevent Windows updates
+; - Use ONLY if you're modding NVIDIA drivers
+; ============================================================
+; This registry file ONLY sets the NVIDIA-specific keys
+; You must also run these commands as administrator:
+;   bcdedit /set nointegritychecks on
+;   bcdedit /set testsigning on
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global]
+"{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"=hex:01
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm]
+"{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"=hex:01

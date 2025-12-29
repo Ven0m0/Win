@@ -1,0 +1,46 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; NVIDIA CUDA Force P2 State Disable
+; ============================================================
+; Prevents GPU memory from downclocking during CUDA workloads
+; Recommended by NVIDIA Profile Inspector community
+; Keeps memory at full speed during compute tasks
+; ============================================================
+; NOTE: This is typically set via NVIDIA Profile Inspector
+; but can also be set via registry for the Base Profile
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableRID66983"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\FTS]
+"EnableRID66983"=dword:00000000
+
+; ============================================================
+; CUDA Optimization Settings
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; CUDA Sysmem Fallback Policy - prefer local memory
+"CUDASysmemFallbackPolicy"=dword:00000001
+
+; Enable CUDA optimizations
+"EnableCudaOptimizations"=dword:00000001
+
+; ============================================================
+; Compute Preemption Settings
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; Disable compute preemption for lower latency (may reduce stability)
+; Only use if you're not running heavy compute tasks alongside gaming
+"DisableComputePreemption"=dword:00000001
+
+; ============================================================
+; Note: For NVIDIA Profile Inspector CUDA settings:
+; ============================================================
+; Use NVIDIA Profile Inspector (GUI) to set:
+; - CUDA - Force P2 State: Off (ID: 0x00598924)
+; - This prevents memory downclocking during CUDA workloads
+; ============================================================
