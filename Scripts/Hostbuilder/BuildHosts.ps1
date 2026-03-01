@@ -155,9 +155,12 @@ $buildHostsButton.Add_Click({
         #---------------------------------------- compress and compile
         Write-Host 'Compiling and Compressing Lists...'
         $i = 0
-        foreach ($path in $paths) {
+        $compressJobs = foreach ($path in $paths) {
             $i++
-            Start-Process "$env:temp\compressHosts.exe" -ArgumentList "-compression 1 -i `"$env:temp\$path`" -o $env:temp\$($path)Comp.txt" -WindowStyle Hidden -Wait
+            Start-Process "$env:temp\compressHosts.exe" -ArgumentList "-compression 1 -i `"$env:temp\$path`" -o $env:temp\$($path)Comp.txt" -WindowStyle Hidden -PassThru
+        }
+        if ($null -ne $compressJobs) {
+            $compressJobs | Wait-Process
         }
 
 
