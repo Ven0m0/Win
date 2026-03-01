@@ -742,48 +742,66 @@ if (!(Check-Internet)) {
     #get monitor info
     <#
     $monitors = Get-WmiObject -Namespace root\wmi -Class WmiMonitorID
-    $manufacturerNames = @()
+    $manufacturerNames = [System.Collections.Generic.List[string]]::new()
     $soundDevices = Get-WmiObject -Class Win32_SoundDevice
     $pnpDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
     $videoControllers = Get-WmiObject -Class Win32_VideoController
     #>
     $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID
-    $manufacturerNames = @()
+    $manufacturerNames = [System.Collections.Generic.List[string]]::new()
     $soundDevices = Get-CimInstance -ClassName Win32_SoundDevice
     $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
     $videoControllers = Get-CimInstance -ClassName Win32_VideoController
 
-    $allmonitors = @()
+    $allmonitors = [System.Collections.Generic.List[PSCustomObject]]::new()
     #find related sound device
     foreach ($monitor in $monitors) {
         $manufacturerName = [System.Text.Encoding]::ASCII.GetString($monitor.UserFriendlyName -ne 0)
-        $manufacturerNames += $manufacturerName
+        $manufacturerNames.Add($manufacturerName)
 
         $monitorInstance = $monitor.InstanceName
 
         # Try to find a matching PnP device for the monitor
-        $monitorPnp = $pnpDevices | Where-Object {
-            $_.PNPDeviceID -like "*$monitorInstance*" -or
-            $_.Name -like "*$manufacturerName*" -or
-            $_.PNPDeviceID -match 'DISPLAY\\'
+                $monitorPnp = $null
+        foreach ($pnp in $pnpDevices) {
+            if ($pnp.PNPDeviceID -like "*$monitorInstance*" -or
+                $pnp.Name -like "*$manufacturerName*" -or
+                $pnp.PNPDeviceID -match 'DISPLAY\\') {
+                $monitorPnp = $pnp
+                break
+            }
         }
 
         # Find the video controller associated with the monitor
-        $relatedVideoController = $videoControllers | Where-Object {
-            $_.PNPDeviceID -like "*$monitorInstance*" -or
-            $_.Name -like '*NVIDIA*' -or 
-            $_.PNPDeviceID -match 'PCI\\VEN_10DE'  
+                $relatedVideoController = $null
+        foreach ($vc in $videoControllers) {
+            if ($vc.PNPDeviceID -like "*$monitorInstance*" -or
+                $vc.Name -like '*NVIDIA*' -or
+                $vc.PNPDeviceID -match 'PCI\\VEN_10DE') {
+                $relatedVideoController = $vc
+                break
+            }
         }
 
         if ($monitorPnp -or $relatedVideoController) {
             # Look for sound devices tied to the monitor
-            $relatedSound = $soundDevices | Where-Object {
-                $soundPnp = $pnpDevices | Where-Object { $_.PNPDeviceID -like "*$($_.DeviceID)*" }
-                $soundPnp -and (
-                    ($relatedVideoController -and $_.DeviceID -like '*VEN_10DE*') -or 
+                        $relatedSound = $null
+            foreach ($soundDevice in $soundDevices) {
+                $soundPnp = $null
+                foreach ($pnp in $pnpDevices) {
+                    if ($pnp.PNPDeviceID -like "*$($soundDevice.DeviceID)*") {
+                        $soundPnp = $pnp
+                        break
+                    }
+                }
+                if ($soundPnp -and (
+                    ($relatedVideoController -and $soundDevice.DeviceID -like '*VEN_10DE*') -or
                     ($monitorPnp -and $soundPnp.PNPDeviceID -like "*$($monitorPnp.PNPDeviceID)*") -or
-                    ($soundPnp.Service -eq 'HDAUDIO' -and $_.DeviceID -like '*VEN_10DE*')  
-                )
+                    ($soundPnp.Service -eq 'HDAUDIO' -and $soundDevice.DeviceID -like '*VEN_10DE*')
+                )) {
+                    $relatedSound = $soundDevice
+                    break
+                }
             }
 
             if ($relatedSound) {
@@ -791,7 +809,7 @@ if (!(Check-Internet)) {
                     MonitorName   = $manufacturerName
                     SoundDeviceID = $relatedSound.DeviceID
                 }
-                $allmonitors += $monitorObj
+                $allmonitors.Add($monitorObj)
             }
     
         }
