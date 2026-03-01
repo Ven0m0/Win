@@ -50,8 +50,8 @@ foreach ($location in $cacheLocations) {
         Remove-Item -Path $browserPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 
-    # old_* folders can be anywhere in the root
-    Get-ChildItem -Path $location -Filter "old_*" -Directory -ErrorAction SilentlyContinue |
+    # old_* items (files or folders) can be anywhere in the root
+    Get-ChildItem -Path $location -Filter "old_*" -ErrorAction SilentlyContinue |
         Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
     Write-Host "Cleaned Spotify cache at $location."
