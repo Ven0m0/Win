@@ -732,10 +732,16 @@ if (!(Check-Internet)) {
 
 
     #adding saturation reg key paths to an array
-    $paths = @()
-    for ($i = 0; $i -lt $dList.Length; $i++) {
-        $paths += Get-ChildItem -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\' | Where-Object { $_.Name -like "*$($dList[$i])*" } | Select-Object -First 1
-
+    $paths = if ($null -ne $dList -and $dList.Length -gt 0) {
+        $allDisplayDbKeys = @(Get-ChildItem -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
+        foreach ($deviceId in $dList) {
+            $match = $allDisplayDbKeys | Where-Object { $_.Name -like "*$deviceId*" } | Select-Object -First 1
+            if ($null -ne $match) {
+                $match
+            }
+        }
+    } else {
+        @()
     }
  
   
