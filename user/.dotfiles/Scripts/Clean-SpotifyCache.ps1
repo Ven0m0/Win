@@ -39,7 +39,6 @@ if ($cacheLocations.Count -eq 0 -and (Test-Path $defaultCache)) {
 foreach ($location in $cacheLocations) {
     $storagePath = Join-Path $location "Storage\*"
     $browserPath = Join-Path $location "Browser\*"
-    $oldPath = Join-Path $location "old_*"
 
     Write-Host "Cleaning Spotify cache at $location..."
 
