@@ -126,14 +126,14 @@ $buildHostsButton.Add_Click({
             Invoke-WebRequest -Uri 'https://urlhaus.abuse.ch/downloads/hostfile' -UseBasicParsing -OutFile "$env:temp\haus.txt"
             #replace 127.0.0.1 with 0.0.0.0
             $content = Get-Content "$env:temp\haus.txt"
-            $fixed = @()
-            foreach ($line in $content) {
+            $fixed = foreach ($line in $content) {
+
                 if ($line -like '127.0.0.1*') {
-                    $newLine = $line -replace '127.0.0.1' , '0.0.0.0'
-                    $fixed += $newLine
+                    $line -replace '127.0.0.1' , '0.0.0.0'
+
                 }
                 else {
-                    $fixed += $line
+                    $line
                 }
             }
             set-content "$env:temp\fixedHaus.txt" -Value $fixed -Force
