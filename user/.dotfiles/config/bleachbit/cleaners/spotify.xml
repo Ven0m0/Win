@@ -34,8 +34,9 @@
   <option id="cache">
     <label>Cache</label>
     <description>Delete the cache</description>
-    <!-- @todo The Storage Folder can be moved. The location is saved in
-         "%AppData%\Spotify\prefs" as storage.location="D:\\TEMP\\Spotify" -->
+    <!-- The Storage Folder can be moved. The location is saved in
+         "%AppData%\Spotify\prefs" as storage.location="D:\\TEMP\\Spotify".
+         Use Scripts/Clean-SpotifyCache.ps1 to clean the custom storage location. -->
     <action command="delete" search="walk.all" path="$LOCALAPPDATA\Spotify\Storage\"/>
     <action command="delete" search="walk.all" path="$LOCALAPPDATA\Spotify\Browser\"/>
     <action command="delete" search="glob" path="$LOCALAPPDATA\Spotify\old_*"/>
