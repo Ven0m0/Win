@@ -22,8 +22,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<cleaner id="coding" os="linux">
-  <!-- FIXME: Does it work under Windows? -->
+<cleaner id="coding">
   <label>Coding caches</label>
   <description>Clean development tools cache</description>
   <option id="gradle">
