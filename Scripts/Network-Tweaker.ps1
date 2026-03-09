@@ -2415,9 +2415,10 @@ function a {
           $AdapterDeviceNumber = "00"+$DeviceID
             }
 
-        $Global:EthernetClassGuid = Get-WmiObject Win32_PnPEntity | Where-Object{$_.Name -like "$NIC_Desc" } | Select -expand ClassGuid
-            $Global:EthernetPNPDeviceID = Get-WmiObject Win32_PnPEntity | Where-Object{$_.Name -like "$NIC_Desc" } | Select -expand PNPDeviceID
-        $Global:NetConnectionID = Get-WmiObject -Class Win32_NetworkAdapter | Where-Object{$_.Name -like "$NIC_Desc" } | Select -expand NetConnectionID
+        $PnPEntity = Get-WmiObject Win32_PnPEntity | Where-Object{$_.Name -like "$NIC_Desc" }
+        $Global:EthernetClassGuid = $PnPEntity.ClassGuid
+        $Global:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
+        $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID
     #check whether the registry path exists.
     #SupressTerminationErrors
     $ErrorActionPreference="SilentlyContinue"
