@@ -240,7 +240,7 @@ function mkcd {
 }
 
 # Network Utilities
-function Get-PubIP { (Invoke-WebRequest http://ifconfig.me/ip).Content }
+function Get-PubIP { (Invoke-WebRequest https://ifconfig.me/ip).Content }
 
 # Open WinUtil full-release
 function winutil { irm https://christitus.com/win | iex }

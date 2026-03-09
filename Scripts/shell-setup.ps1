@@ -175,7 +175,7 @@ if (-not (Get-AppPackage -name "Microsoft.DesktopAppInstaller")) {
   @'
 $releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Register-PackageSource -Name Nuget -Location "http://www.nuget.org/api/v2" -ProviderName Nuget -Trusted
+Register-PackageSource -Name Nuget -Location "https://www.nuget.org/api/v2" -ProviderName Nuget -Trusted
 Install-Package Microsoft.UI.Xaml -RequiredVersion 2.7.1
 $releases = Invoke-RestMethod -uri $releases_url
 $latestRelease = $releases.assets | Where { $_.browser_download_url.EndsWith('msixbundle') } | Select-Object -First 1
@@ -306,8 +306,8 @@ sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command busy
 sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command tdmgr*.exe).Source)\tdmgr.exe" -Target (Get-Command tdmgr*.exe).Source
 
 # Custom packages
-Install-CustomApp -URL "http://www.chrysocome.net/downloads/0d23e6a31f1d37850fc2040eec98e9f9/rawwritewin-0.7.zip" -Folder "RawWrite"
-Install-CustomApp -URL "http://www.handshake.de/user/chmaas/delphi/download/xvi32.zip" -Folder "XVI32"
+Install-CustomApp -URL "https://www.chrysocome.net/downloads/0d23e6a31f1d37850fc2040eec98e9f9/rawwritewin-0.7.zip" -Folder "RawWrite"
+Install-CustomApp -URL "https://www.handshake.de/user/chmaas/delphi/download/xvi32.zip" -Folder "XVI32"
 Install-CustomApp -URL "https://code.kliu.org/misc/winisoutils/eicfg_removal_utility.zip"  -Folder "ei.cfg-removal-utility"
 Install-CustomPackage -URL "https://downloads.sourceforge.net/project/catacombae/HFSExplorer/2021.10.9/hfsexplorer-2021.10.9-setup.exe"
 New-Item -Path "$Env:UserProfile\bin\RipMe" -ItemType Directory -ErrorAction Ignore | Out-Null
