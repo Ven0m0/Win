@@ -502,6 +502,37 @@ function Get-FileFromWeb {
 }
 #endregion
 
+#region Network Helpers
+function New-QueryString {
+  <#
+  .SYNOPSIS
+      Converts a hashtable to a URL query string
+  .DESCRIPTION
+      Takes a hashtable of parameters and converts them into a URL-encoded query string.
+      Keys are sorted alphabetically for deterministic output.
+  .PARAMETER Parameters
+      Hashtable of key-value pairs to encode
+  .EXAMPLE
+      New-QueryString -Parameters @{ id = 123; name = "test & run" }
+  #>
+  param(
+    [Parameter(Mandatory)]
+    [hashtable]$Parameters
+  )
+
+  if ($Parameters.Count -eq 0) { return "" }
+
+  $queryParts = foreach ($key in ($Parameters.Keys | Sort-Object)) {
+    $value = $Parameters[$key]
+    $encodedKey = [System.Net.WebUtility]::UrlEncode($key.ToString())
+    $encodedValue = if ($null -ne $value) { [System.Net.WebUtility]::UrlEncode($value.ToString()) } else { "" }
+    "$encodedKey=$encodedValue"
+  }
+
+  return $queryParts -join '&'
+}
+#endregion
+
 #region Monitor Management
 $script:CachedMonitorInstances = $null
 
