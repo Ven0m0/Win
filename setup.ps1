@@ -245,7 +245,7 @@ winget install Microsoft.Edit -h 2>&1 | Out-Null
 winget install yadm -h 2>&1 | Out-Null
 
 # GMK Driver
-Invoke-RestMethod http://offset-power.net/GMKDriver/setup.exe -OutFile "$env:TEMP\gmk.exe"
+Invoke-RestMethod https://offset-power.net/GMKDriver/setup.exe -OutFile "$env:TEMP\gmk.exe"
 & "$env:TEMP\gmk.exe" 2>&1 | Out-Null
 
 # HEVC/HEIF Extensions
@@ -258,7 +258,7 @@ Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | ForEach-Object {
 
 # Scoop
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-Invoke-RestMethod get.scoop.sh -OutFile "$env:TEMP\install.ps1"
+Invoke-RestMethod https://get.scoop.sh -OutFile "$env:TEMP\install.ps1"
 & "$env:TEMP\install.ps1" -NoProxy 2>&1 | Out-Null
 if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop bucket add extras 2>&1 | Out-Null }
 
