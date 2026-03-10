@@ -1,3 +1,8 @@
+# Import common functions
+. "$PSScriptRoot\..\Common.ps1"
+
+
+
 function UUP-Dump-GetISO {
     param(
         [string]$windowsTargetName,
@@ -53,11 +58,6 @@ function UUP-Dump-GetISO {
    
     }
 
-    function New-QueryString([hashtable]$parameters) {
-        @($parameters.GetEnumerator() | ForEach-Object {
-                "$($_.Key)=$([System.Web.HttpUtility]::UrlEncode($_.Value))"
-            }) -join '&'
-    }
 
     function Invoke-UupDumpApi([string]$name, [hashtable]$body) {
         # see https://git.uupdump.net/uup-dump/json-api

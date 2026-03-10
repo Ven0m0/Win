@@ -502,6 +502,59 @@ function Get-FileFromWeb {
 }
 #endregion
 
+#region Network Helpers
+function New-QueryString {
+  <#
+  .SYNOPSIS
+      Converts a hashtable to a URL query string
+  .DESCRIPTION
+      Takes a hashtable of parameters and converts them into a URL-encoded query string.
+      Keys are sorted alphabetically for deterministic output.
+  .PARAMETER Parameters
+      Hashtable of key-value pairs to encode
+  .EXAMPLE
+      New-QueryString -Parameters @{ id = 123; name = "test & run" }
+  #>
+  param(
+    [Parameter(Mandatory)]
+    [hashtable]$Parameters
+  )
+
+  if ($Parameters.Count -eq 0) { return "" }
+
+  # Use ordinal sorting for deterministic, culture-independent key order
+  $keys = @($Parameters.Keys)
+  [System.Array]::Sort($keys, [System.StringComparer]::Ordinal)
+
+  $queryParts = foreach ($key in $keys) {
+    $value = $Parameters[$key]
+
+    # Format key using invariant culture when possible
+    if ($key -is [System.IFormattable]) {
+      $keyString = $key.ToString($null, [System.Globalization.CultureInfo]::InvariantCulture)
+    } else {
+      $keyString = $key.ToString()
+    }
+    $encodedKey = [System.Net.WebUtility]::UrlEncode($keyString)
+
+    if ($null -ne $value) {
+      # Format value using invariant culture when possible
+      if ($value -is [System.IFormattable]) {
+        $valueString = $value.ToString($null, [System.Globalization.CultureInfo]::InvariantCulture)
+      } else {
+        $valueString = $value.ToString()
+      }
+      $encodedValue = [System.Net.WebUtility]::UrlEncode($valueString)
+    } else {
+      $encodedValue = ""
+    }
+    "$encodedKey=$encodedValue"
+  }
+
+  return $queryParts -join '&'
+}
+#endregion
+
 #region Monitor Management
 $script:CachedMonitorInstances = $null
 
