@@ -2415,7 +2415,7 @@ function a {
           $AdapterDeviceNumber = "00"+$DeviceID
             }
 
-        $PnPEntity = Get-WmiObject Win32_PnPEntity | Where-Object{$_.Name -like "$NIC_Desc" }
+        $PnPEntity = Get-WmiObject -Class Win32_PnPEntity -Filter "Name = '$NIC_Desc'"
         $Global:EthernetClassGuid = $PnPEntity.ClassGuid
         $Global:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
         $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID
