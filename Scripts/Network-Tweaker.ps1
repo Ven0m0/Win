@@ -2511,7 +2511,6 @@ function a {
         #    Write-Host "NumberOfReceiveQueues is equal."
         #}else{
         #    Write-Warning "NumberOfReceiveQueues is not the same. (Powershell and Registry not equal!) Using Registry Value."
-        #}
 
         #RSS Profiles
         $OSRSSProfiles = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetAdapterRss.Profile].GetEnumValues()
@@ -2793,7 +2792,6 @@ function a {
         $cb_FastSendDatagramThreshold.Text=$AFDFastSendDatagramThreshold
     #if ($cb_FastSendDatagramThreshold.Text -eq $null -or $cb_FastSendDatagramThreshold.Text -eq '' ){
         #    $cb_FastSendDatagramThreshold.Text='65536'
-        #}
 
 
     #FastCopyReceiveThreshold /Check Value
@@ -2801,7 +2799,6 @@ function a {
         $cb_FastCopyReceiveThreshold.Text=$AFDFastCopyReceiveThreshold
         #if ($cb_FastCopyReceiveThreshold.Text -eq $null -or $cb_FastCopyReceiveThreshold.Text -eq '' ){
         #    $cb_FastCopyReceiveThreshold.Text='0'
-        #}
 
 
         #IgnorePushBitOnReceives /Check Value
@@ -3448,19 +3445,25 @@ function RSSEnable{
         }
 
         #Adding more then Default RSSQueues
-        function RSSQueuesUnlock{
-        $NumRssQueues1 = Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues"
-        $NumRssQueues2 = Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum"
-        $AdapterQueuesOriginal = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
+        function RSSQueuesUnlock {
+            if (Test-Path "$KeyPath\Ndi\Params\*NumRssQueues") {
+                try {
+                    $AdapterQueuesOriginal = (Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -ErrorAction Stop).default
+                }
+                catch {
+                    # Fallback if the key exists but the 'default' value is missing
+                    $AdapterQueuesOriginal = "1"
+                }
+            }
+            else {
+                # Fallback if the key does not exist yet
+                $AdapterQueuesOriginal = "1"
+            }
 
-
-        #If($NumRssQueues1 -eq $False){
             New-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "ParamDesc" -PropertyTyp "String" -Value "Maximum Number of RSS Queues" -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -PropertyTyp "String" -Value $AdapterQueuesOriginal -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "type" -PropertyTyp "String" -Value "enum" -Force
-        #}
-        #If($NumRssQueues2 -eq $False){
             New-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Force
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "1" -PropertyType STRING -Value "1 Queue" -Force
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "2" -PropertyType STRING -Value "2 Queues" -Force
@@ -3474,14 +3477,13 @@ function RSSEnable{
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "10" -PropertyType STRING -Value "10 Queues" -Force
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "11" -PropertyType STRING -Value "11 Queues" -Force
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "12" -PropertyType STRING -Value "12 Queues" -Force
-        #}
-        $cb_rssqueues.Items.Clear()
-        $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
-        #Query Avaible RSSQueues
-        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
-        @($AdapterQueues) | ForEach-Object {[void] $cb_rssqueues.Items.Add($_)}
-        $cb_rssqueues.Text = $AdapterQueuesDefault
-        #$btn_unqueues.Enabled = $False
+            $cb_rssqueues.Items.Clear()
+            $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
+            #Query Avaible RSSQueues
+            $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
+            @($AdapterQueues) | ForEach-Object {[void] $cb_rssqueues.Items.Add($_)}
+            $cb_rssqueues.Text = $AdapterQueuesDefault
+            #$btn_unqueues.Enabled = $False
         }
 
 
