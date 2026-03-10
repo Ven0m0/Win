@@ -3445,7 +3445,19 @@ function RSSEnable{
 
         #Adding more then Default RSSQueues
         function RSSQueuesUnlock {
-            $AdapterQueuesOriginal = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
+            if (Test-Path "$KeyPath\Ndi\Params\*NumRssQueues") {
+                try {
+                    $AdapterQueuesOriginal = (Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -ErrorAction Stop).default
+                }
+                catch {
+                    # Fallback if the key exists but the 'default' value is missing
+                    $AdapterQueuesOriginal = "1"
+                }
+            }
+            else {
+                # Fallback if the key does not exist yet
+                $AdapterQueuesOriginal = "1"
+            }
 
             New-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "ParamDesc" -PropertyTyp "String" -Value "Maximum Number of RSS Queues" -Force
