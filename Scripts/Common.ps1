@@ -522,10 +522,32 @@ function New-QueryString {
 
   if ($Parameters.Count -eq 0) { return "" }
 
-  $queryParts = foreach ($key in ($Parameters.Keys | Sort-Object)) {
+  # Use ordinal sorting for deterministic, culture-independent key order
+  $keys = @($Parameters.Keys)
+  [System.Array]::Sort($keys, [System.StringComparer]::Ordinal)
+
+  $queryParts = foreach ($key in $keys) {
     $value = $Parameters[$key]
-    $encodedKey = [System.Net.WebUtility]::UrlEncode($key.ToString())
-    $encodedValue = if ($null -ne $value) { [System.Net.WebUtility]::UrlEncode($value.ToString()) } else { "" }
+
+    # Format key using invariant culture when possible
+    if ($key -is [System.IFormattable]) {
+      $keyString = $key.ToString($null, [System.Globalization.CultureInfo]::InvariantCulture)
+    } else {
+      $keyString = $key.ToString()
+    }
+    $encodedKey = [System.Net.WebUtility]::UrlEncode($keyString)
+
+    if ($null -ne $value) {
+      # Format value using invariant culture when possible
+      if ($value -is [System.IFormattable]) {
+        $valueString = $value.ToString($null, [System.Globalization.CultureInfo]::InvariantCulture)
+      } else {
+        $valueString = $value.ToString()
+      }
+      $encodedValue = [System.Net.WebUtility]::UrlEncode($valueString)
+    } else {
+      $encodedValue = ""
+    }
     "$encodedKey=$encodedValue"
   }
 
