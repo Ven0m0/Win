@@ -196,16 +196,21 @@ function Show-MainMenu {
 
 function Show-NvidiaMenu {
   while ($true) {
+    $sigStatus = Get-NvidiaSignatureStatus
+    $isSigEnabled = $sigStatus.GlobalOverride -and $sigStatus.ServiceOverride
+
     Show-Menu -Title "NVIDIA GPU Settings" -Options @(
       "P0 State (Highest Performance): On"
       "P0 State (Highest Performance): Default"
       "HDCP (Content Protection): Off"
       "HDCP (Content Protection): Default"
+      "Driver Signature Override: $(if ($isSigEnabled) { 'Enabled' } else { 'Disabled' })"
+      "XtremeG Custom Driver Installer"
       "View Current Settings"
       "Back to Main Menu"
     )
 
-    $choice = Get-MenuChoice -Min 1 -Max 6
+    $choice = Get-MenuChoice -Min 1 -Max 8
 
     switch ($choice) {
       1 {
@@ -225,11 +230,28 @@ function Show-NvidiaMenu {
         Show-RestartRequired
       }
       5 {
+        Set-NvidiaSignatureOverride -Enabled (-not $isSigEnabled)
+        Show-RestartRequired
+      }
+      6 {
+        $installerPath = "$PSScriptRoot\..\user\.dotfiles\config\nvidia\xtremeg-installer.ps1"
+        if (Test-Path $installerPath) {
+          Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath) -Verb RunAs
+        } else {
+          Write-Host "XtremeG Installer not found at: $installerPath" -ForegroundColor Red
+          Wait-ForKeyPress
+        }
+      }
+      7 {
         Clear-Host
         Show-NvidiaSettings
+        Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
+        Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' })
+        Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' })
+        Write-Host ""
         Wait-ForKeyPress -Message "Press any key to continue..." -UseReadHost
       }
-      6 { return }
+      8 { return }
     }
   }
 }

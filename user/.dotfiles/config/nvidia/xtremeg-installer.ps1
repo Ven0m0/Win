@@ -18,6 +18,8 @@
 # Import common functions if available
 if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1"
+} elseif (Test-Path "$PSScriptRoot\..\..\..\Scripts\Common.ps1") {
+  . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
 } else {
   # Minimal functions if Common.ps1 not available
   function Write-ColorOutput {
@@ -35,6 +37,22 @@ $downloadPath = "$env:USERPROFILE\Downloads\XtremeG"
 $extractPath = "$downloadPath\Extracted"
 $logFile = "$downloadPath\install.log"
 $redditUrl = "https://www.reddit.com/r/XtremeG.json"
+
+# Pre-verified MEGA links
+$verifiedDrivers = @(
+  [PSCustomObject]@{
+    Version = "Latest (Verified)"
+    MegaUrl = "https://mega.nz/file/rkc20QAY#Xp0RksAw2_omqeB98N1WSJnTDvogzaq1UqCX-rcI9N4"
+    PostUrl = "https://www.reddit.com/r/XtremeG"
+    Title   = "Verified XtremeG Driver Link 1"
+  },
+  [PSCustomObject]@{
+    Version = "Alternative (Verified)"
+    MegaUrl = "https://mega.nz/file/3l8CjLwD#ufO8tz8LrY66vqLyjzcf5xfgOvq38SNbTjtO2nwPaYM"
+    PostUrl = "https://www.reddit.com/r/XtremeG"
+    Title   = "Verified XtremeG Driver Link 2"
+  }
+)
 
 # ============================================================
 # Helper Functions
@@ -330,6 +348,34 @@ function Show-Warnings {
 
 Show-Warnings
 
+# Check/Enable Signature Override
+Write-Host "Driver Signature Override:" -ForegroundColor Cyan
+try {
+  $sigStatus = Get-NvidiaSignatureStatus
+  $isSigEnabled = $sigStatus.GlobalOverride -and $sigStatus.ServiceOverride
+
+  if ($isSigEnabled) {
+    Write-Host "  ✓ Driver Signature Override is already enabled" -ForegroundColor Green
+  } else {
+    Write-Host "  ⚠️  Driver Signature Override is NOT fully enabled" -ForegroundColor Yellow
+    Write-Host "     This is often required for XtremeG drivers." -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Enable Signature Override now? (y/N): " -NoNewline
+    $sigChoice = Read-Host
+    if ($sigChoice -eq "y" -or $sigChoice -eq "Y") {
+      Set-NvidiaSignatureOverride -Enabled $true
+      Write-Host ""
+      Write-Host "⚠️  Reboot may be required for BCDEDIT changes to take effect!" -ForegroundColor Yellow
+      Write-Host "Continue anyway? (y/N): " -NoNewline
+      $cont = Read-Host
+      if ($cont -ne "y" -and $cont -ne "Y") { exit 0 }
+    }
+  }
+} catch {
+  Write-Host "  ⚠️  Could not verify signature status (Common.ps1 functions missing)" -ForegroundColor Yellow
+}
+Write-Host ""
+
 # Confirm user wants to proceed
 Write-Host "Do you want to continue? (y/N): " -NoNewline -ForegroundColor Yellow
 $confirm = Read-Host
@@ -350,7 +396,25 @@ Write-Host ""
 # Fetch latest driver info
 Write-Host "[2/8] Finding latest XtremeG driver..." -ForegroundColor Cyan
 Write-Host ""
-$latestDriver = Get-LatestXtremeGDriver
+
+$latestDriver = $null
+
+# Option to use verified links
+Write-Host "Choose driver source:" -ForegroundColor Cyan
+Write-Host "  1. Auto-detect latest from r/XtremeG (Recommended)"
+Write-Host "  2. Use Verified Link 1 (MEGA)"
+Write-Host "  3. Use Verified Link 2 (MEGA)"
+Write-Host "  4. Manual URL entry"
+Write-Host ""
+Write-Host "Choice (1-4): " -NoNewline
+$sourceChoice = Read-Host
+
+switch ($sourceChoice) {
+  "1" { $latestDriver = Get-LatestXtremeGDriver }
+  "2" { $latestDriver = $verifiedDrivers[0] }
+  "3" { $latestDriver = $verifiedDrivers[1] }
+  "4" { # Manual entry handled below }
+}
 
 if (-not $latestDriver) {
   Write-Host ""

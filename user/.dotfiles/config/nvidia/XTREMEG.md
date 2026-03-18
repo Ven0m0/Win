@@ -34,6 +34,10 @@
 - **Distribution:** MEGA.nz hosting
 - **Base:** Official NVIDIA Game Ready Drivers (modified)
 
+### Recommended/Verified Links:
+- **Latest Verified:** [MEGA Link 1](https://mega.nz/file/rkc20QAY#Xp0RksAw2_omqeB98N1WSJnTDvogzaq1UqCX-rcI9N4)
+- **Alternative Verified:** [MEGA Link 2](https://mega.nz/file/3l8CjLwD#ufO8tz8LrY66vqLyjzcf5xfgOvq38SNbTjtO2nwPaYM)
+
 ## Comparison: Official vs XtremeG
 
 | Feature | Official NVIDIA | XtremeG Custom |
@@ -88,9 +92,15 @@ XtremeG drivers typically include these tweaks pre-applied:
 2. **Disable Secure Boot (may be required):**
    - Enter BIOS/UEFI
    - Disable Secure Boot
-   - Some XtremeG versions use modified signatures
+   - Some XtremeG versions use modified signatures.
 
-3. **Create System Restore Point:**
+3. **Enable Driver Signature Override (Required for modified drivers):**
+   - Run: `bcdedit /set nointegritychecks on`
+   - Run: `bcdedit /set testsigning on`
+   - Apply NVIDIA-specific registry signature overrides.
+   - *Note: Our tools automate this in `xtremeg-installer.ps1` and `Scripts/gpu-display-manager.ps1`.*
+
+4. **Create System Restore Point:**
    - Important for easy rollback if needed
 
 ### Installation Methods
@@ -105,7 +115,7 @@ XtremeG drivers typically include these tweaks pre-applied:
 ```
 
 The script will:
-1. Prompt for MEGA.nz download URL
+1. Prompt for MEGA.nz download URL (with pre-verified options)
 2. Download driver (requires MEGAcmd or browser download)
 3. Extract driver
 4. Optionally run DDU first
@@ -239,7 +249,7 @@ A: Yes, NVIDIA Profile Inspector works normally with XtremeG drivers.
 **Q: What about driver signature enforcement?**
 A: XtremeG drivers are usually signed, but you may need to:
 - Disable Secure Boot in BIOS
-- Enable test signing mode (usually not required)
+- Enable Driver Signature Override (test signing mode)
 
 **Q: Are there other alternatives?**
 A: Yes:

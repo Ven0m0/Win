@@ -199,6 +199,7 @@ regedit /s optional-tweaks/force-directflip.reg
 # May prevent Windows updates
 # May cause system instability
 
+# Recommended: Use Scripts/gpu-display-manager.ps1 to toggle this safely
 regedit /s optional-tweaks/enable-signature-override.reg
 bcdedit /set nointegritychecks on
 bcdedit /set testsigning on

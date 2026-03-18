@@ -417,6 +417,67 @@ function Get-RegistryValueSafe {
         return $DefaultValue
     }
 }
+
+function Set-NvidiaSignatureOverride {
+  <#
+  .SYNOPSIS
+      Enables or disables NVIDIA driver signature override
+  .PARAMETER Enabled
+      $true to enable, $false to disable
+  #>
+  param([Parameter(Mandatory)][bool]$Enabled)
+
+  $value = if ($Enabled) { "on" } else { "off" }
+  $regData = if ($Enabled) { "01" } else { "00" }
+
+  Write-Host "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." -ForegroundColor Cyan
+
+  # BCDEDIT settings
+  try {
+    $null = bcdedit.exe /set nointegritychecks $value 2>&1
+    $null = bcdedit.exe /set testsigning $value 2>&1
+    Write-Host "  ✓ BCDEDIT settings updated ($value)" -ForegroundColor Green
+  } catch {
+    Write-Host "  ⚠️  Failed to update BCDEDIT settings (may require Secure Boot disabled)" -ForegroundColor Yellow
+  }
+
+  # NVIDIA Registry Keys
+  Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+
+  Write-Host "  ✓ NVIDIA signature registry keys updated" -ForegroundColor Green
+}
+
+function Get-NvidiaSignatureStatus {
+  <#
+  .SYNOPSIS
+      Returns status of NVIDIA signature override settings
+  #>
+  $status = [ordered]@{
+    GlobalOverride  = $false
+    ServiceOverride = $false
+  }
+
+  $globalVal = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+  if ($null -ne $globalVal) {
+    if ($globalVal -is [array]) {
+      $status.GlobalOverride = $globalVal[0] -eq 1
+    } else {
+      $status.GlobalOverride = $globalVal -eq 1
+    }
+  }
+
+  $serviceVal = Get-RegistryValueSafe -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+  if ($null -ne $serviceVal) {
+    if ($serviceVal -is [array]) {
+      $status.ServiceOverride = $serviceVal[0] -eq 1
+    } else {
+      $status.ServiceOverride = $serviceVal -eq 1
+    }
+  }
+
+  return [pscustomobject]$status
+}
 #endregion
 
 #region File Download
