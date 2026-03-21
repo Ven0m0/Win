@@ -433,12 +433,24 @@ function Set-NvidiaSignatureOverride {
   Write-Host "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." -ForegroundColor Cyan
 
   # BCDEDIT settings
-  try {
-    $null = bcdedit.exe /set nointegritychecks $value 2>&1
-    $null = bcdedit.exe /set testsigning $value 2>&1
+  $bcdNoIntegrityOutput = & bcdedit.exe /set nointegritychecks $value 2>&1
+  $bcdNoIntegrityExitCode = $LASTEXITCODE
+
+  $bcdTestSigningOutput = & bcdedit.exe /set testsigning $value 2>&1
+  $bcdTestSigningExitCode = $LASTEXITCODE
+
+  if (($bcdNoIntegrityExitCode -eq 0) -and ($bcdTestSigningExitCode -eq 0)) {
     Write-Host "  ✓ BCDEDIT settings updated ($value)" -ForegroundColor Green
-  } catch {
-    Write-Host "  ⚠️  Failed to update BCDEDIT settings (may require Secure Boot disabled)" -ForegroundColor Yellow
+  } else {
+    Write-Host "  ⚠️  Failed to update BCDEDIT settings (may require Secure Boot disabled or elevated PowerShell)" -ForegroundColor Yellow
+    if ($bcdNoIntegrityExitCode -ne 0 -and $bcdNoIntegrityOutput) {
+      Write-Host "    nointegritychecks error (exit code $bcdNoIntegrityExitCode):" -ForegroundColor Yellow
+      Write-Host "      $bcdNoIntegrityOutput"
+    }
+    if ($bcdTestSigningExitCode -ne 0 -and $bcdTestSigningOutput) {
+      Write-Host "    testsigning error (exit code $bcdTestSigningExitCode):" -ForegroundColor Yellow
+      Write-Host "      $bcdTestSigningOutput"
+    }
   }
 
   # NVIDIA Registry Keys
