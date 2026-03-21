@@ -442,10 +442,21 @@ function Set-NvidiaSignatureOverride {
   }
 
   # NVIDIA Registry Keys
+  $regError = $false
   Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+  if ($LASTEXITCODE -ne 0) {
+    $regError = $true
+  }
   Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+  if ($LASTEXITCODE -ne 0) {
+    $regError = $true
+  }
 
-  Write-Host "  ✓ NVIDIA signature registry keys updated" -ForegroundColor Green
+  if (-not $regError) {
+    Write-Host "  ✓ NVIDIA signature registry keys updated" -ForegroundColor Green
+  } else {
+    Write-Host "  ⚠️  Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
+  }
 }
 
 function Get-NvidiaSignatureStatus {
