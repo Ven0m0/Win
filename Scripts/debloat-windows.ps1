@@ -268,15 +268,22 @@ function Run-SystemCleanup {
     @{ Path = (Join-Path -Path $systemRoot -ChildPath "SoftwareDistribution\Download"); Desc = "Windows Update Cache" }
   )
 
+  # Capture original wuauserv running state so we can restore it correctly after cleanup
+  $wuauservWasRunning = $false
+  $wuauservService = Get-Service -Name wuauserv -ErrorAction SilentlyContinue
+  if ($null -ne $wuauservService -and $wuauservService.Status -eq 'Running') {
+    $wuauservWasRunning = $true
+  }
+
   foreach ($cp in $cleanupPaths) {
     $sizeBefore = Get-FolderSize $cp.Path
     if ($sizeBefore -gt 0) {
       Write-Host "  Cleaning: $($cp.Desc) ($(Format-Size $sizeBefore))" -ForegroundColor Yellow
-      if ($cp.Desc -eq "Windows Update Cache") {
+      if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
         Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
       }
-      Clear-DirectorySafe -Path $cp.Path
-      if ($cp.Desc -eq "Windows Update Cache") {
+      Remove-Item -Path "$($cp.Path)\*" -Recurse -Force -ErrorAction SilentlyContinue
+      if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
         Start-Service -Name wuauserv -ErrorAction SilentlyContinue
       }
       $sizeAfter = Get-FolderSize $cp.Path
