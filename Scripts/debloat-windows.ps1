@@ -275,7 +275,7 @@ function Run-SystemCleanup {
       if ($cp.Desc -eq "Windows Update Cache") {
         Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
       }
-      Remove-Item -Path "$($cp.Path)\*" -Recurse -Force -ErrorAction SilentlyContinue
+      Clear-DirectorySafe -Path $cp.Path
       if ($cp.Desc -eq "Windows Update Cache") {
         Start-Service -Name wuauserv -ErrorAction SilentlyContinue
       }
