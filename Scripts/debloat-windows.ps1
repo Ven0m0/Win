@@ -260,11 +260,12 @@ function Run-SystemCleanup {
   Write-Host "=== Phase 6: System Cleanup ===" -ForegroundColor Cyan
   $freedSpace = 0
 
+  $systemRoot = $env:SystemRoot
   $cleanupPaths = @(
     @{ Path = $env:TEMP; Desc = "User Temp Files" }
-    @{ Path = "C:\Windows\Temp"; Desc = "Windows Temp Files" }
-    @{ Path = "C:\Windows\Prefetch"; Desc = "Prefetch" }
-    @{ Path = "C:\Windows\SoftwareDistribution\Download"; Desc = "Windows Update Cache" }
+    @{ Path = (Join-Path -Path $systemRoot -ChildPath "Temp"); Desc = "Windows Temp Files" }
+    @{ Path = (Join-Path -Path $systemRoot -ChildPath "Prefetch"); Desc = "Prefetch" }
+    @{ Path = (Join-Path -Path $systemRoot -ChildPath "SoftwareDistribution\Download"); Desc = "Windows Update Cache" }
   )
 
   foreach ($cp in $cleanupPaths) {
