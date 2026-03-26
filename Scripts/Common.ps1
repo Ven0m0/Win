@@ -886,5 +886,77 @@ function Clear-DirectorySafe {
 }
 #endregion
 
+
+#region System Management
+function New-RestorePoint {
+  <#
+  .SYNOPSIS
+      Creates a system restore point
+  .PARAMETER Description
+      Restore point description
+  #>
+  param(
+    [string]$Description = "Before Optimization"
+  )
+
+  Write-Host "Creating System Restore Point..." -ForegroundColor Yellow
+  try {
+    # Enable System Restore if not enabled
+    Enable-ComputerRestore -Drive "$($env:SystemDrive)\" -ErrorAction SilentlyContinue
+
+    # Create restore point
+    Checkpoint-Computer -Description "$Description $(Get-Date -Format 'yyyy-MM-dd HH:mm')" -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
+    Write-Host "  Restore point created successfully" -ForegroundColor Green
+  } catch {
+    Write-Host "  Warning: Could not create restore point" -ForegroundColor Yellow
+    Write-Host "  Error: $_" -ForegroundColor DarkGray
+    Write-Host "  Continuing anyway..." -ForegroundColor Yellow
+  }
+}
+#endregion
+
+#region App Management
+function Remove-AppxPackageSafe {
+  <#
+  .SYNOPSIS
+      Safely removes an Appx package for all users and its provisioned counterpart
+  .PARAMETER AppName
+      Name or wildcard for the Appx package
+  #>
+  param(
+    [Parameter(Mandatory)]
+    [string]$AppName
+  )
+
+  $packages = Get-AppxPackage -Name $AppName -AllUsers 2>$null
+  if ($packages) {
+    foreach ($package in $packages) {
+      Write-Host "  Removing: $($package.Name)" -ForegroundColor Yellow
+      try {
+        Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
+      } catch {
+        try {
+          Remove-AppxPackage -Package $package.PackageFullName 2>$null
+        } catch {
+          Write-Host "    Failed to remove $($package.Name)" -ForegroundColor Red
+        }
+      }
+    }
+  }
+
+  $provisioned = Get-AppxProvisionedPackage -Online 2>$null | Where-Object { $_.PackageName -like "*$AppName*" }
+  if ($provisioned) {
+    foreach ($package in $provisioned) {
+      Write-Host "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
+      try {
+        Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
+      } catch {
+        Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" -ForegroundColor Red
+      }
+    }
+  }
+}
+#endregion
+
 # Export functions
 Export-ModuleMember -Function *

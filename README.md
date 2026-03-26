@@ -105,6 +105,7 @@ The bootstrap script will:
 │   ├── edid-manager.ps1         # Display EDID management
 │   ├── gaming-display.ps1       # Gaming display optimizations
 │   ├── keyboard-shortcuts.ps1   # Keyboard shortcut manager
+│   ├── debloat-windows.ps1      # System debloating suite
 │   ├── msi-mode.ps1            # MSI mode configuration
 │   ├── settings.ps1            # System performance settings
 │   ├── allow-scripts.cmd       # PowerShell execution policy
@@ -133,6 +134,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 - **`msi-mode.ps1`** - Enable MSI mode for GPUs
 - **`settings.ps1`** - Apply system performance optimizations
 - **`keyboard-shortcuts.ps1`** - Disable/enable keyboard shortcuts for gaming
+- **`debloat-windows.ps1`** - Comprehensive system debloater (Apps, Services, Tasks, Features)
 
 ### Gaming Utilities
 
@@ -143,6 +145,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 ### Maintenance
 
 - **`UltimateDiskCleanup.ps1`** - Comprehensive disk cleanup tool (GUI)
+- **`debloat-windows.ps1`** - Automated debloating and optimization suite
 - **`setup.ps1`** - Install common software and perform system maintenance
 
 ### Networking
