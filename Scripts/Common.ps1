@@ -949,9 +949,9 @@ function Remove-AppxPackageSafe {
     foreach ($package in $provisioned) {
       Write-Host "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
       try {
-        Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName 2>$null
+        Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
       } catch {
-        Write-Host "    Failed to remove provisioned package" -ForegroundColor Red
+        Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" -ForegroundColor Red
       }
     }
   }
