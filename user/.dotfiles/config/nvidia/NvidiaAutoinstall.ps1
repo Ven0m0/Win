@@ -336,8 +336,7 @@ if (!(Check-Internet)) {
     $highlights = $sections[1..4]
 
     # cleanup the text
-    $releaseHighlights = @()
-    foreach ($highlight in $highlights) {
+    $releaseHighlights = foreach ($highlight in $highlights) {
         $trimmedHighlight = $highlight.Trim() -replace '\s+', ' '
         $trimmedHighlight = $trimmedHighlight -replace 'Learn More in our Game Ready Driver article here. GeForce Game Ready Driver&nbsp;' , ''
         $trimmedHighlight = $trimmedHighlight -replace '&amp;' , '&'
@@ -348,7 +347,7 @@ if (!(Check-Internet)) {
         $trimmedHighlight = $trimmedHighlight -replace '&nbsp;' , ' ' 
         $trimmedHighlight = $trimmedHighlight -replace '&quot;' , '"' 
         $trimmedHighlight = $trimmedHighlight -replace '&gt;' , '>' 
-        $releaseHighlights += $trimmedHighlight
+        $trimmedHighlight
     }
 
 
@@ -715,19 +714,19 @@ if (!(Check-Internet)) {
     $monitorDevices = pnputil /enum-devices | Select-String -Pattern 'DISPLAY'
 
     if ($monitorDevices) {
-        $dList = @()
+        $dList = [System.Collections.Generic.List[string]]::new()
     
         foreach ($device in $monitorDevices) {
             $deviceId = $device.ToString() -replace '^.*?DISPLAY\\(.*?)\\.*$', '$1'
         
             if ($deviceId.Length -eq 7 -and !$dList.Contains($deviceId)) {
             
-                $dList += $deviceId
+                $dList.Add($deviceId)
             
                 
             }
         }
-        
+        $dList = $dList.ToArray()
     }
 
 
@@ -1015,8 +1014,8 @@ if (!(Check-Internet)) {
     $tabPage2.Controls.Add($vibrance)
         
     $trackbarValues = @{}
-    $checkboxes = @()
-    $checkboxesColor = @()
+    $checkboxes = [System.Collections.Generic.List[System.Windows.Forms.checkbox]]::new()
+    $checkboxesColor = [System.Collections.Generic.List[System.Windows.Forms.checkbox]]::new()
     for ($i = 0; $i -lt $dList.Length; $i++) {
         $y = 35 + ($i * 80)
 
@@ -1031,7 +1030,7 @@ if (!(Check-Internet)) {
         $checkbox.Tag = $allmonitors[$i].SoundDeviceID
         $Form.Controls.Add($checkbox)
         $TabPage2.Controls.Add($checkBox)
-        $checkboxes += $checkbox
+        $checkboxes.Add($checkbox)
 
         $checkboxColor = new-object System.Windows.Forms.checkbox
         $checkboxColor.Location = new-object System.Drawing.Size(10, ($y + 40))
@@ -1043,7 +1042,7 @@ if (!(Check-Internet)) {
         $checkboxColor.Tag = $paths[$i]
         $Form.Controls.Add($checkboxColor)
         $TabPage2.Controls.Add($checkboxColor)
-        $checkboxesColor += $checkboxColor
+        $checkboxesColor.Add($checkboxColor)
 
         # Create a label for the manufacturer name
         $nameLabel = New-Object System.Windows.Forms.Label
