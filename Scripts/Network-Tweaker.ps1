@@ -2494,7 +2494,8 @@ function a {
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
     if($rssstatus -eq $null -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
         #Write-Host "Powershell"
-        $Global:AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | select -expand NumberOfReceiveQueues
+        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfReceiveQueues
+        $Global:AdapterQueues = $AdapterQueues
         [void] $cb_rssqueues.Items.Add($AdapterQueues)
         $cb_rssqueues.Text = $AdapterQueues
         }else{
