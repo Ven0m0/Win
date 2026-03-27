@@ -43,9 +43,14 @@ function Invoke-NativeCommand {
     [int[]]$AllowedExitCodes = @(0)
   )
 
-  & $FilePath @ArgumentList 2>&1 | Out-Null
-  if ($LASTEXITCODE -notin $AllowedExitCodes) {
-    throw "$Action failed with exit code $LASTEXITCODE."
+  $output = & $FilePath @ArgumentList 2>&1
+  $exitCode = $LASTEXITCODE
+  if ($exitCode -notin $AllowedExitCodes) {
+    if ($output) {
+      Write-Host (($output | Out-String).Trim()) -ForegroundColor Red
+    }
+
+    throw "$Action failed with exit code $exitCode."
   }
 }
 
@@ -64,10 +69,7 @@ function Set-RegistryValueChecked {
     [string]$Data
   )
 
-  Set-RegistryValue -Path $Path -Name $Name -Type $Type -Data $Data
-  if ($LASTEXITCODE -ne 0) {
-    throw "Failed to set registry value '$Name' at '$Path'."
-  }
+  Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', $Path, '/v', $Name, '/t', $Type, '/d', $Data, '/f') -Action "Set registry value '$Name' at '$Path'"
 }
 
 function Remove-RegistryValueChecked {
@@ -80,18 +82,23 @@ function Remove-RegistryValueChecked {
     [switch]$IgnoreMissing
   )
 
-  Remove-RegistryValue -Path $Path -Name $Name
-  if ($LASTEXITCODE -ne 0) {
-    if ($IgnoreMissing -and $LASTEXITCODE -eq 1) {
-      return
-    }
-
-    if ($Name) {
-      throw "Failed to remove registry value '$Name' at '$Path'."
-    }
-
-    throw "Failed to remove registry key '$Path'."
+  $argumentList = @('delete', $Path)
+  if ($Name) {
+    $argumentList += @('/v', $Name)
   }
+  $argumentList += @('/f')
+
+  $allowedExitCodes = @(0)
+  if ($IgnoreMissing) {
+    $allowedExitCodes += 1
+  }
+
+  if ($Name) {
+    Invoke-NativeCommand -FilePath 'reg' -ArgumentList $argumentList -Action "Remove registry value '$Name' at '$Path'" -AllowedExitCodes $allowedExitCodes
+    return
+  }
+
+  Invoke-NativeCommand -FilePath 'reg' -ArgumentList $argumentList -Action "Remove registry key '$Path'" -AllowedExitCodes $allowedExitCodes
 }
 
 function Invoke-Winget {
@@ -108,9 +115,11 @@ function Invoke-Winget {
 
 function Get-ActivePhysicalAdapterAlias {
   try {
-    return @(Get-NetAdapter -Physical -ErrorAction Stop |
+    $adapterNames = Get-NetAdapter -Physical -ErrorAction Stop |
       Where-Object { $_.Status -eq 'Up' } |
-      Select-Object -ExpandProperty Name -Unique)
+      ForEach-Object { $_.Name }
+
+    return [string[]]$adapterNames
   } catch {
     Write-Host "  Unable to enumerate physical adapters: $($_.Exception.Message)" -ForegroundColor Yellow
     return @()
@@ -137,6 +146,21 @@ function Set-DnsServersForActiveAdapters {
       Write-Host "  Skipping DNS configuration for ${adapterAlias}: $($_.Exception.Message)" -ForegroundColor Yellow
     }
   }
+}
+
+function Remove-ItemBestEffort {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Path,
+
+    [switch]$Recurse
+  )
+
+  Remove-Item -Path $Path -Force -Recurse:$Recurse -ErrorAction SilentlyContinue
+}
+
+if (-not (Get-Command Remove-AppxPackageSafe -ErrorAction SilentlyContinue)) {
+  throw 'Remove-AppxPackageSafe is unavailable. Ensure Common.ps1 is sourced from the Scripts directory before running setup.ps1.'
 }
 
 try {
@@ -244,12 +268,12 @@ Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Policies' -Name 'N
 # ============================================
 Set-SetupStep -Name 'power management'
 Write-Host "[2/12] Configuring power settings..." -ForegroundColor Cyan
-powercfg -h off
-powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 2>&1 | Out-Null
-powercfg /S e9a42b02-d5df-448d-aa00-03f14749eb61
-powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 100
-powercfg -setactive SCHEME_CURRENT
-fsutil behavior set disablecompression 0 2>&1 | Out-Null
+Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-h', 'off') -Action 'Disable hibernation'
+Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-duplicatescheme', 'e9a42b02-d5df-448d-aa00-03f14749eb61') -Action 'Duplicate ultimate performance plan'
+Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('/S', 'e9a42b02-d5df-448d-aa00-03f14749eb61') -Action 'Select ultimate performance plan'
+Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-setacvalueindex', 'SCHEME_CURRENT', 'SUB_PROCESSOR', 'PROCTHROTTLEMIN', '100') -Action 'Set minimum processor state'
+Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-setactive', 'SCHEME_CURRENT') -Action 'Activate current power scheme'
+Invoke-NativeCommand -FilePath 'fsutil' -ArgumentList @('behavior', 'set', 'disablecompression', '0') -Action 'Enable NTFS compression behavior'
 
 # ============================================
 # SERVICE MANAGEMENT
@@ -258,7 +282,13 @@ Set-SetupStep -Name 'service management'
 Write-Host "[3/12] Disabling unnecessary services..." -ForegroundColor Cyan
 $servicesToDisable = @('SysMain', 'NvTelemetryContainer', 'icssvc', 'Fax')
 foreach ($service in $servicesToDisable) {
-  $serviceObject = Get-Service -Name $service -ErrorAction Stop
+  try {
+    $serviceObject = Get-Service -Name $service -ErrorAction Stop
+  } catch [Microsoft.PowerShell.Commands.ServiceCommandException] {
+    Write-Host "  Service $service not found; skipping" -ForegroundColor Yellow
+    continue
+  }
+
   Set-Service -Name $serviceObject.Name -StartupType Disabled -ErrorAction Stop
   if ($serviceObject.Status -ne 'Stopped') {
     Stop-Service -Name $serviceObject.Name -Force -ErrorAction Stop
@@ -277,7 +307,17 @@ Set-DnsServersForActiveAdapters -ServerAddresses @('1.1.1.1', '1.0.0.1')
 # ============================================
 Set-SetupStep -Name 'bloatware removal'
 Write-Host "[5/12] Removing bloatware..." -ForegroundColor Cyan
-Invoke-NativeCommand -FilePath 'taskkill' -ArgumentList @('/f', '/im', 'OneDrive.exe') -Action 'Stop OneDrive' -AllowedExitCodes @(0, 128, 255)
+try {
+  $oneDriveProcess = Get-Process -Name 'OneDrive' -ErrorAction Stop
+} catch [Microsoft.PowerShell.Commands.ProcessCommandException] {
+  $oneDriveProcess = $null
+}
+
+if ($oneDriveProcess) {
+  Invoke-NativeCommand -FilePath 'taskkill' -ArgumentList @('/f', '/im', 'OneDrive.exe') -Action 'Stop OneDrive'
+} else {
+  Write-Host "  OneDrive is not running; skipping process stop" -ForegroundColor Yellow
+}
 Invoke-NativeCommand -FilePath "$env:SystemRoot\System32\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (System32)'
 if (Test-Path "$env:SystemRoot\SysWOW64\OneDriveSetup.exe") {
   Invoke-NativeCommand -FilePath "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (SysWOW64)'
@@ -329,7 +369,9 @@ $toolchains = @(
 foreach ($pkg in $toolchains) {
   Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install toolchain package '$pkg'"
 }
-if (Get-Command uv -ErrorAction SilentlyContinue) { uv python install 2>&1 | Out-Null }
+if (Get-Command uv -ErrorAction SilentlyContinue) {
+  Invoke-NativeCommand -FilePath 'uv' -ArgumentList @('python', 'install') -Action 'Install uv-managed Python runtimes'
+}
 
 Set-SetupStep -Name 'development tool installation'
 Write-Host "[9/12] Installing development tools..." -ForegroundColor Cyan
@@ -391,21 +433,33 @@ Invoke-Winget -ArgumentList @('install', 'yadm', '-h') -Action 'Install yadm'
 
 # GMK Driver
 Invoke-RestMethod https://offset-power.net/GMKDriver/setup.exe -OutFile "$env:TEMP\gmk.exe"
-& "$env:TEMP\gmk.exe" 2>&1 | Out-Null
+Invoke-NativeCommand -FilePath "$env:TEMP\gmk.exe" -Action 'Run GMK driver installer'
 
 # HEVC/HEIF Extensions
 Get-AppXPackage -AllUsers *Microsoft.HEVCVideoExtension* | ForEach-Object {
-  Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" 2>&1 | Out-Null
+  try {
+    Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -ErrorAction Stop
+  } catch {
+    Write-Host "  Skipping HEVC extension registration: $($_.Exception.Message)" -ForegroundColor Yellow
+  }
 }
 Get-AppXPackage -AllUsers *Microsoft.HEIFImageExtension* | ForEach-Object {
-  Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" 2>&1 | Out-Null
+  try {
+    Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -ErrorAction Stop
+  } catch {
+    Write-Host "  Skipping HEIF extension registration: $($_.Exception.Message)" -ForegroundColor Yellow
+  }
 }
 
 # Scoop
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+$hadScoop = [bool](Get-Command scoop -ErrorAction SilentlyContinue)
 Invoke-RestMethod https://get.scoop.sh -OutFile "$env:TEMP\install.ps1"
-& "$env:TEMP\install.ps1" -NoProxy 2>&1 | Out-Null
-if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop bucket add extras 2>&1 | Out-Null }
+& "$env:TEMP\install.ps1" -NoProxy
+if (-not $hadScoop -and -not (Get-Command scoop -ErrorAction SilentlyContinue)) {
+  throw 'Scoop installation failed.'
+}
+Invoke-NativeCommand -FilePath 'scoop' -ArgumentList @('bucket', 'add', 'extras') -Action 'Add Scoop extras bucket'
 
 # ============================================
 # CLEANUP & MAINTENANCE
@@ -421,11 +475,11 @@ $firefoxFiles = @(
   "$env:ProgramFiles\Mozilla Firefox\browser\VisualElements\PrivateBrowsing_150.png",
   "$env:ProgramFiles\Mozilla Firefox\browser\VisualElements\VisualElements_150.png"
 )
-foreach ($file in $firefoxFiles) { Remove-Item -Path $file -Force 2>&1 | Out-Null }
+foreach ($file in $firefoxFiles) { Remove-ItemBestEffort -Path $file }
 
 # Event Logs
-wevtutil.exe cl Application 2>&1 | Out-Null
-wevtutil.exe cl System 2>&1 | Out-Null
+Invoke-NativeCommand -FilePath 'wevtutil.exe' -ArgumentList @('cl', 'Application') -Action 'Clear Application event log'
+Invoke-NativeCommand -FilePath 'wevtutil.exe' -ArgumentList @('cl', 'System') -Action 'Clear System event log'
 
 # Temp Files
 $tempPaths = @(
@@ -438,7 +492,7 @@ $tempPaths = @(
   "$env:WINDIR\Prefetch\*", "$env:WINDIR\Logs\*", "$env:USERPROFILE\AppData\Local\cache\*",
   "$env:WINDIR\logs\CBS\*"
 )
-foreach ($path in $tempPaths) { Remove-Item -Path $path -Recurse -Force 2>&1 | Out-Null }
+foreach ($path in $tempPaths) { Remove-ItemBestEffort -Path $path -Recurse }
 
 # NVIDIA Cleanup
 $nvidiaPaths = @(
@@ -447,7 +501,7 @@ $nvidiaPaths = @(
   "$env:ProgramData\NVIDIA Corporation\Downloader", "$env:ProgramData\NVIDIA\Downloader",
   "$env:ALLUSERSPROFILE\NVIDIA Corporation\NetService\*.exe"
 )
-foreach ($path in $nvidiaPaths) { Remove-Item -Path $path -Recurse -Force 2>&1 | Out-Null }
+foreach ($path in $nvidiaPaths) { Remove-ItemBestEffort -Path $path -Recurse }
 
 # System Cleanup
 $systemPaths = @(
@@ -458,54 +512,65 @@ $systemPaths = @(
   "$env:ALLUSERSPROFILE\Microsoft\Windows Defender\Scans\History\Results\Resource",
   "$env:ALLUSERSPROFILE\Microsoft\Search\Data\Temp", "$env:WINDIR\Web\Wallpaper\Dell"
 )
-foreach ($path in $systemPaths) { Remove-Item -Path $path -Recurse -Force 2>&1 | Out-Null }
+foreach ($path in $systemPaths) { Remove-ItemBestEffort -Path $path -Recurse }
 
 # OneDrive Cleanup
 $ODrive = "$env:USERPROFILE\OneDrive"
 if (Test-Path $ODrive) {
   $oneDrivePatterns = @("*.bak", "*LOG", "*.old", "*.trace", "*.tmp")
-  foreach ($pattern in $oneDrivePatterns) { Remove-Item -Path "$ODrive\$pattern" -Recurse -Force 2>&1 | Out-Null }
+  foreach ($pattern in $oneDrivePatterns) { Remove-ItemBestEffort -Path "$ODrive\$pattern" -Recurse }
   $scalingFactors = @("chrome_200_percent.pak", "chrome_300_percent.pak", "chrome_400_percent.pak")
   foreach ($factor in $scalingFactors) {
-    Get-ChildItem -Path $ODrive -Filter $factor -Recurse 2>&1 | Remove-Item -Force 2>&1 | Out-Null
+    Get-ChildItem -Path $ODrive -Filter $factor -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
   }
 }
 
 # Root Drive Cleanup
 $extensions = @('bat', 'cmd', 'txt', 'log', 'jpg', 'jpeg', 'tmp', 'temp', 'bak', 'backup', 'exe')
-foreach ($ext in $extensions) { Remove-Item -Path "$env:SystemDrive\*.$ext" -Force 2>&1 | Out-Null }
+foreach ($ext in $extensions) { Remove-ItemBestEffort -Path "$env:SystemDrive\*.$ext" }
 
 # Windows Files
 $winFiles = @('*.log', '*.txt', '*.bmp', '*.tmp')
-foreach ($pattern in $winFiles) { Remove-Item -Path "$env:WINDIR\$pattern" -Force 2>&1 | Out-Null }
+foreach ($pattern in $winFiles) { Remove-ItemBestEffort -Path "$env:WINDIR\$pattern" }
 
 # Registry Cleanup
-$null = reg delete "HKCU\SOFTWARE\Classes\Local Settings\Muicache" /f 2>&1
+Remove-RegistryValueChecked -Path 'HKCU\SOFTWARE\Classes\Local Settings\Muicache' -IgnoreMissing
 
 # Disk Operations
-Start-Process -FilePath "cleanmgr.exe" -ArgumentList "/sagerun:65535" -NoNewWindow -Wait 2>&1 | Out-Null
-if (Get-Command msizap -ErrorAction SilentlyContinue) { msizap G! 2>&1 | Out-Null }
+Invoke-NativeCommand -FilePath 'cleanmgr.exe' -ArgumentList @('/sagerun:65535') -Action 'Run Disk Cleanup'
+if (Get-Command msizap -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'msizap' -ArgumentList @('G!') -Action 'Run MSI cleanup' }
 
 # System Maintenance
-DISM /Online /Cleanup-Image /RestoreHealth /Quiet
-DISM /Cleanup-Mountpoints
-DISM /CleanUp-Wim
-DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase
-sfc /scannow
-ipconfig /release 2>&1 | Out-Null
-ipconfig /renew 2>&1 | Out-Null
-ipconfig /flushdns 2>&1 | Out-Null
-netsh winsock reset 2>&1 | Out-Null
-netsh int ip reset 2>&1 | Out-Null
-chkdsk /scan 2>&1 | Out-Null
+Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Online', '/Cleanup-Image', '/RestoreHealth', '/Quiet') -Action 'Restore Windows image health'
+Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Cleanup-Mountpoints') -Action 'Clean DISM mount points'
+Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/CleanUp-Wim') -Action 'Clean WIM resources'
+Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Online', '/Cleanup-Image', '/StartComponentCleanup', '/ResetBase') -Action 'Start component cleanup'
+Invoke-NativeCommand -FilePath 'sfc' -ArgumentList @('/scannow') -Action 'Run System File Checker'
+Invoke-NativeCommand -FilePath 'ipconfig' -ArgumentList @('/release') -Action 'Release IP configuration'
+Invoke-NativeCommand -FilePath 'ipconfig' -ArgumentList @('/renew') -Action 'Renew IP configuration'
+Invoke-NativeCommand -FilePath 'ipconfig' -ArgumentList @('/flushdns') -Action 'Flush DNS cache'
+Invoke-NativeCommand -FilePath 'netsh' -ArgumentList @('winsock', 'reset') -Action 'Reset Winsock'
+Invoke-NativeCommand -FilePath 'netsh' -ArgumentList @('int', 'ip', 'reset') -Action 'Reset TCP/IP stack'
+Invoke-NativeCommand -FilePath 'chkdsk' -ArgumentList @('/scan') -Action 'Run disk scan'
 
 # Final Updates
 Set-SetupStep -Name 'final package upgrades'
 Invoke-Winget -ArgumentList @('upgrade', '-h', '-r', '-u', '--accept-package-agreements', '--accept-source-agreements', '--include-unknown', '--force', '--purge', '--disable-interactivity') -Action 'Run final winget upgrades'
-if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop update --all 2>&1 | Out-Null }
-if (Get-Command choco -ErrorAction SilentlyContinue) { choco upgrade all -y 2>&1 | Out-Null }
+if (Get-Command scoop -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'scoop' -ArgumentList @('update', '--all') -Action 'Update Scoop packages' }
+if (Get-Command choco -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'choco' -ArgumentList @('upgrade', 'all', '-y') -Action 'Update Chocolatey packages' }
 if (Get-Command pip -ErrorAction SilentlyContinue) {
-  pip list --outdated --format=freeze | ForEach-Object { pip install --upgrade ($_ -split '==')[0] } 2>&1 | Out-Null
+  $outdatedPackages = & pip list --outdated --format=freeze 2>&1
+  $pipListExitCode = $LASTEXITCODE
+  if ($pipListExitCode -ne 0) {
+    Write-Host "  Skipping pip upgrades: unable to list outdated packages." -ForegroundColor Yellow
+  } else {
+    foreach ($package in $outdatedPackages) {
+      $packageName = ($package -split '==')[0]
+      if ($packageName) {
+        Invoke-NativeCommand -FilePath 'pip' -ArgumentList @('install', '--upgrade', $packageName) -Action "Upgrade pip package '$packageName'"
+      }
+    }
+  }
 }
 
 Write-Host "Setup completed successfully!" -ForegroundColor Green
