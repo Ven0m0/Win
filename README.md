@@ -1,7 +1,7 @@
 # Windows Dotfiles
 
 - [Winget](https://winstall.app)
-- [Scoop](https://scoop.sh)
+- [Scoop](https://scoop.sh) `iex "& {$(irm get.scoop.sh)} -RunAsAdmin"`
 - [Chocolatey](https://chocolatey.org)
 - CCT: `iwr -useb https://christitus.com/win | iex`
 
