@@ -3,6 +3,7 @@
 # This script runs after yadm clone to set up the Windows environment
 
 $ErrorActionPreference = 'Continue'
+$configRoot = Join-Path $HOME 'user\.dotfiles\config'
 
 Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host "  Windows Dotfiles Bootstrap" -ForegroundColor Cyan
@@ -33,7 +34,7 @@ if (-not (Test-Path $profileDir)) {
 }
 
 # Link PowerShell profile
-$dotfilesProfile = "$HOME\.config\powershell\profile.ps1"
+$dotfilesProfile = Join-Path $configRoot 'powershell\profile.ps1'
 if (Test-Path $dotfilesProfile) {
     if (-not (Test-Path $PROFILE)) {
         Write-Host "  Creating PowerShell profile symlink..." -ForegroundColor Gray
@@ -50,7 +51,7 @@ Write-Host "[3/7] Setting up Windows Terminal..." -ForegroundColor Yellow
 # Link Windows Terminal settings
 $wtSettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 $wtSettingsDir = Split-Path $wtSettingsPath -Parent
-$dotfilesWtSettings = "$HOME\.config\windows-terminal\settings.json"
+$dotfilesWtSettings = Join-Path $configRoot 'windows-terminal\settings.json'
 
 if (Test-Path $dotfilesWtSettings) {
     if (Test-Path $wtSettingsDir) {
