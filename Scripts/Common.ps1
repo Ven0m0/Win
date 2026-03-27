@@ -959,4 +959,4 @@ function Remove-AppxPackageSafe {
 #endregion
 
 # Export functions
-if ($MyInvocation.MyCommand.CommandType -eq 'Function') { Export-ModuleMember -Function * }
+        try { Export-ModuleMember -Function * } catch { }
