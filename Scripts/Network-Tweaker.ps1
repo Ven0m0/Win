@@ -107,7 +107,7 @@ $lbl_rssstatus.ForeColor         = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rss_onoff                    = New-Object system.Windows.Forms.ComboBox
 $cb_rss_onoff.width              = 108
 $cb_rss_onoff.height             = 20
-@('Enable','Disable') | ForEach-Object {[void] $cb_rss_onoff.Items.Add($_)}
+[void] $cb_rss_onoff.Items.AddRange([object[]]@('Enable','Disable'))
 $cb_rss_onoff.location           = New-Object System.Drawing.Point(117,17)
 $cb_rss_onoff.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_rss_onoff.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -157,7 +157,7 @@ $Label7.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssbaseproc                  = New-Object system.Windows.Forms.ComboBox
 $cb_rssbaseproc.width            = 108
 $cb_rssbaseproc.height           = 20
-@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $cb_rssbaseproc.Items.Add($_)}
+[void] $cb_rssbaseproc.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssbaseproc.location         = New-Object System.Drawing.Point(117,89)
 $cb_rssbaseproc.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssbaseproc.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -175,7 +175,7 @@ $Label8.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssmaxproc                   = New-Object system.Windows.Forms.ComboBox
 $cb_rssmaxproc.width             = 108
 $cb_rssmaxproc.height            = 20
-@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $cb_rssmaxproc.Items.Add($_)}
+[void] $cb_rssmaxproc.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssmaxproc.location          = New-Object System.Drawing.Point(117,112)
 $cb_rssmaxproc.Font              = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssmaxproc.ForeColor         = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -193,7 +193,7 @@ $Label9.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssmaxprocs                  = New-Object system.Windows.Forms.ComboBox
 $cb_rssmaxprocs.width            = 108
 $cb_rssmaxprocs.height           = 20
-@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $cb_rssmaxprocs.Items.Add($_)}
+[void] $cb_rssmaxprocs.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssmaxprocs.location         = New-Object System.Drawing.Point(117,136)
 $cb_rssmaxprocs.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssmaxprocs.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -225,7 +225,7 @@ $Label10.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_osrss                        = New-Object system.Windows.Forms.ComboBox
 $cb_osrss.width                  = 108
 $cb_osrss.height                 = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_osrss.Items.Add($_)}
+[void] $cb_osrss.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_osrss.location               = New-Object System.Drawing.Point(194,17)
 $cb_osrss.Font                   = New-Object System.Drawing.Font('Calibri',9)
 $cb_osrss.ForeColor              = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -243,7 +243,7 @@ $Label11.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_osrsc                        = New-Object system.Windows.Forms.ComboBox
 $cb_osrsc.width                  = 108
 $cb_osrsc.height                 = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_osrsc.Items.Add($_)}
+[void] $cb_osrsc.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_osrsc.location               = New-Object System.Drawing.Point(194,40)
 $cb_osrsc.Font                   = New-Object System.Drawing.Font('Calibri',9)
 $cb_osrsc.ForeColor              = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -261,7 +261,7 @@ $Label12.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_oschimney                    = New-Object system.Windows.Forms.ComboBox
 $cb_oschimney.width              = 108
 $cb_oschimney.height             = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_oschimney.Items.Add($_)}
+[void] $cb_oschimney.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_oschimney.location           = New-Object System.Drawing.Point(194,63)
 $cb_oschimney.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_oschimney.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -279,7 +279,7 @@ $Label13.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_ostaskoff                    = New-Object system.Windows.Forms.ComboBox
 $cb_ostaskoff.width              = 108
 $cb_ostaskoff.height             = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_ostaskoff.Items.Add($_)}
+[void] $cb_ostaskoff.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_ostaskoff.location           = New-Object System.Drawing.Point(194,86)
 $cb_ostaskoff.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_ostaskoff.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -288,7 +288,7 @@ $cb_ostaskoff.BackColor          = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_osntd                        = New-Object system.Windows.Forms.ComboBox
 $cb_osntd.width                  = 108
 $cb_osntd.height                 = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_osntd.Items.Add($_)}
+[void] $cb_osntd.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_osntd.location               = New-Object System.Drawing.Point(194,109)
 $cb_osntd.Font                   = New-Object System.Drawing.Font('Calibri',9)
 $cb_osntd.ForeColor              = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -306,7 +306,7 @@ $Label14.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_osntdais                     = New-Object system.Windows.Forms.ComboBox
 $cb_osntdais.width               = 108
 $cb_osntdais.height              = 20
-@('Blocked','Allowed') | ForEach-Object {[void] $cb_osntdais.Items.Add($_)}
+[void] $cb_osntdais.Items.AddRange([object[]]@('Blocked','Allowed'))
 $cb_osntdais.location            = New-Object System.Drawing.Point(194,132)
 $cb_osntdais.Font                = New-Object System.Drawing.Font('Calibri',9)
 $cb_osntdais.ForeColor           = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -324,7 +324,7 @@ $Label15.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_ospcf                        = New-Object system.Windows.Forms.ComboBox
 $cb_ospcf.width                  = 108
 $cb_ospcf.height                 = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_ospcf.Items.Add($_)}
+[void] $cb_ospcf.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_ospcf.location               = New-Object System.Drawing.Point(194,156)
 $cb_ospcf.Font                   = New-Object System.Drawing.Font('Calibri',9)
 $cb_ospcf.ForeColor              = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -365,7 +365,7 @@ $Label17.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_flowcontrol                  = New-Object system.Windows.Forms.ComboBox
 $cb_flowcontrol.width            = 190
 $cb_flowcontrol.height           = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_flowcontrol.Items.Add($_)}
+[void] $cb_flowcontrol.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_flowcontrol.location         = New-Object System.Drawing.Point(193,17)
 $cb_flowcontrol.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_flowcontrol.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -428,7 +428,7 @@ $Label23.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_InterruptModeration          = New-Object system.Windows.Forms.ComboBox
 $cb_InterruptModeration.width    = 190
 $cb_InterruptModeration.height   = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_InterruptModeration.Items.Add($_)}
+[void] $cb_InterruptModeration.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_InterruptModeration.location  = New-Object System.Drawing.Point(193,321)
 $cb_InterruptModeration.Font     = New-Object System.Drawing.Font('Calibri',9)
 $cb_InterruptModeration.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -453,7 +453,7 @@ $btn_adaptrest.ForeColor         = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_IPChecksumOffloadIPv4        = New-Object system.Windows.Forms.ComboBox
 $cb_IPChecksumOffloadIPv4.width  = 190
 $cb_IPChecksumOffloadIPv4.height  = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_IPChecksumOffloadIPv4.Items.Add($_)}
+[void] $cb_IPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_IPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,39)
 $cb_IPChecksumOffloadIPv4.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_IPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -462,7 +462,7 @@ $cb_IPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHtm
 $cb_TCPChecksumOffloadIPv4       = New-Object system.Windows.Forms.ComboBox
 $cb_TCPChecksumOffloadIPv4.width  = 190
 $cb_TCPChecksumOffloadIPv4.height  = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_TCPChecksumOffloadIPv4.Items.Add($_)}
+[void] $cb_TCPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_TCPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,61)
 $cb_TCPChecksumOffloadIPv4.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_TCPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -471,7 +471,7 @@ $cb_TCPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_TCPChecksumOffloadIPv6       = New-Object system.Windows.Forms.ComboBox
 $cb_TCPChecksumOffloadIPv6.width  = 190
 $cb_TCPChecksumOffloadIPv6.height  = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_TCPChecksumOffloadIPv6.Items.Add($_)}
+[void] $cb_TCPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_TCPChecksumOffloadIPv6.location  = New-Object System.Drawing.Point(193,83)
 $cb_TCPChecksumOffloadIPv6.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_TCPChecksumOffloadIPv6.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -480,7 +480,7 @@ $cb_TCPChecksumOffloadIPv6.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_UDPChecksumOffloadIPv4       = New-Object system.Windows.Forms.ComboBox
 $cb_UDPChecksumOffloadIPv4.width  = 190
 $cb_UDPChecksumOffloadIPv4.height  = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_UDPChecksumOffloadIPv4.Items.Add($_)}
+[void] $cb_UDPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_UDPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,105)
 $cb_UDPChecksumOffloadIPv4.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_UDPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -489,7 +489,7 @@ $cb_UDPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_UDPChecksumOffloadIPv6       = New-Object system.Windows.Forms.ComboBox
 $cb_UDPChecksumOffloadIPv6.width  = 190
 $cb_UDPChecksumOffloadIPv6.height  = 20
-@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled') | ForEach-Object {[void] $cb_UDPChecksumOffloadIPv6.Items.Add($_)}
+[void] $cb_UDPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_UDPChecksumOffloadIPv6.location  = New-Object System.Drawing.Point(193,127)
 $cb_UDPChecksumOffloadIPv6.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_UDPChecksumOffloadIPv6.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -507,7 +507,7 @@ $Label24.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_InterruptModerationRate      = New-Object system.Windows.Forms.ComboBox
 $cb_InterruptModerationRate.width  = 190
 $cb_InterruptModerationRate.height  = 20
-@('0 - Disabled','200 - Minimal','400 - Low','950 - Medium','2000 - High','3600 - Extreme','65535 - Adaptive') | ForEach-Object {[void] $cb_InterruptModerationRate.Items.Add($_)}
+[void] $cb_InterruptModerationRate.Items.AddRange([object[]]@('0 - Disabled','200 - Minimal','400 - Low','950 - Medium','2000 - High','3600 - Extreme','65535 - Adaptive'))
 $cb_InterruptModerationRate.location  = New-Object System.Drawing.Point(193,343)
 $cb_InterruptModerationRate.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_InterruptModerationRate.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -534,7 +534,7 @@ $Label26.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_LsoV2IPv4                    = New-Object system.Windows.Forms.ComboBox
 $cb_LsoV2IPv4.width              = 190
 $cb_LsoV2IPv4.height             = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_LsoV2IPv4.Items.Add($_)}
+[void] $cb_LsoV2IPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_LsoV2IPv4.location           = New-Object System.Drawing.Point(193,171)
 $cb_LsoV2IPv4.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_LsoV2IPv4.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -543,7 +543,7 @@ $cb_LsoV2IPv4.BackColor          = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_LsoV2IPv6                    = New-Object system.Windows.Forms.ComboBox
 $cb_LsoV2IPv6.width              = 190
 $cb_LsoV2IPv6.height             = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_LsoV2IPv6.Items.Add($_)}
+[void] $cb_LsoV2IPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_LsoV2IPv6.location           = New-Object System.Drawing.Point(193,193)
 $cb_LsoV2IPv6.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_LsoV2IPv6.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -561,7 +561,7 @@ $Label27.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_LsoV1IPv4                    = New-Object system.Windows.Forms.ComboBox
 $cb_LsoV1IPv4.width              = 190
 $cb_LsoV1IPv4.height             = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_LsoV1IPv4.Items.Add($_)}
+[void] $cb_LsoV1IPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_LsoV1IPv4.location           = New-Object System.Drawing.Point(193,149)
 $cb_LsoV1IPv4.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_LsoV1IPv4.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -579,7 +579,7 @@ $Label28.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PMNSOffload                  = New-Object system.Windows.Forms.ComboBox
 $cb_PMNSOffload.width            = 190
 $cb_PMNSOffload.height           = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_PMNSOffload.Items.Add($_)}
+[void] $cb_PMNSOffload.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_PMNSOffload.location         = New-Object System.Drawing.Point(193,235)
 $cb_PMNSOffload.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_PMNSOffload.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -597,7 +597,7 @@ $Label29.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PMARPOffload                 = New-Object system.Windows.Forms.ComboBox
 $cb_PMARPOffload.width           = 190
 $cb_PMARPOffload.height          = 20
-@('0 - Disabled','1 - Enabled') | ForEach-Object {[void] $cb_PMARPOffload.Items.Add($_)}
+[void] $cb_PMARPOffload.Items.AddRange([object[]]@('0 - Disabled','1 - Enabled'))
 $cb_PMARPOffload.location        = New-Object System.Drawing.Point(193,213)
 $cb_PMARPOffload.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_PMARPOffload.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -606,7 +606,7 @@ $cb_PMARPOffload.BackColor       = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PriorityVLANTag              = New-Object system.Windows.Forms.ComboBox
 $cb_PriorityVLANTag.width        = 190
 $cb_PriorityVLANTag.height       = 20
-@('0 - Paketpriorität and VLAN disabled','1 - Paketpriorität enabled','2 - VLAN enabled','3 - Paketpriorität and VLAN enabled') | ForEach-Object {[void] $cb_PriorityVLANTag.Items.Add($_)}
+[void] $cb_PriorityVLANTag.Items.AddRange([object[]]@('0 - Paketpriorität and VLAN disabled','1 - Paketpriorität enabled','2 - VLAN enabled','3 - Paketpriorität and VLAN enabled'))
 $cb_PriorityVLANTag.location     = New-Object System.Drawing.Point(193,256)
 $cb_PriorityVLANTag.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_PriorityVLANTag.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -715,7 +715,7 @@ $Label34.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_EnablePME                    = New-Object system.Windows.Forms.ComboBox
 $cb_EnablePME.width              = 108
 $cb_EnablePME.height             = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_EnablePME.Items.Add($_)}
+[void] $cb_EnablePME.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_EnablePME.location           = New-Object System.Drawing.Point(204,15)
 $cb_EnablePME.Font               = New-Object System.Drawing.Font('Calibri',9)
 $cb_EnablePME.ForeColor          = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -741,7 +741,7 @@ $Label36.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_EnableDynamicPowerGating     = New-Object system.Windows.Forms.ComboBox
 $cb_EnableDynamicPowerGating.width  = 108
 $cb_EnableDynamicPowerGating.height  = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_EnableDynamicPowerGating.Items.Add($_)}
+[void] $cb_EnableDynamicPowerGating.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_EnableDynamicPowerGating.location  = New-Object System.Drawing.Point(204,37)
 $cb_EnableDynamicPowerGating.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_EnableDynamicPowerGating.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -759,7 +759,7 @@ $Label37.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_EnableConnectedPowerGating   = New-Object system.Windows.Forms.ComboBox
 $cb_EnableConnectedPowerGating.width  = 108
 $cb_EnableConnectedPowerGating.height  = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_EnableConnectedPowerGating.Items.Add($_)}
+[void] $cb_EnableConnectedPowerGating.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_EnableConnectedPowerGating.location  = New-Object System.Drawing.Point(204,59)
 $cb_EnableConnectedPowerGating.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_EnableConnectedPowerGating.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -777,7 +777,7 @@ $Label38.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_AutoPowerSaveModeEnabled     = New-Object system.Windows.Forms.ComboBox
 $cb_AutoPowerSaveModeEnabled.width  = 108
 $cb_AutoPowerSaveModeEnabled.height  = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_AutoPowerSaveModeEnabled.Items.Add($_)}
+[void] $cb_AutoPowerSaveModeEnabled.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_AutoPowerSaveModeEnabled.location  = New-Object System.Drawing.Point(204,81)
 $cb_AutoPowerSaveModeEnabled.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_AutoPowerSaveModeEnabled.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -786,7 +786,7 @@ $cb_AutoPowerSaveModeEnabled.BackColor  = [System.Drawing.ColorTranslator]::From
 $cb_NicAutoPowerSaver            = New-Object system.Windows.Forms.ComboBox
 $cb_NicAutoPowerSaver.width      = 108
 $cb_NicAutoPowerSaver.height     = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_NicAutoPowerSaver.Items.Add($_)}
+[void] $cb_NicAutoPowerSaver.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_NicAutoPowerSaver.location   = New-Object System.Drawing.Point(204,103)
 $cb_NicAutoPowerSaver.Font       = New-Object System.Drawing.Font('Calibri',9)
 $cb_NicAutoPowerSaver.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -813,7 +813,7 @@ $Label40.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisableDelayedPowerUp        = New-Object system.Windows.Forms.ComboBox
 $cb_DisableDelayedPowerUp.width  = 108
 $cb_DisableDelayedPowerUp.height  = 20
-@('Enabled','Disabled') | ForEach-Object {[void] $cb_DisableDelayedPowerUp.Items.Add($_)}
+[void] $cb_DisableDelayedPowerUp.Items.AddRange([object[]]@('Enabled','Disabled'))
 $cb_DisableDelayedPowerUp.location  = New-Object System.Drawing.Point(204,125)
 $cb_DisableDelayedPowerUp.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisableDelayedPowerUp.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -831,7 +831,7 @@ $Label41.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_ReduceSpeedOnPowerDown       = New-Object system.Windows.Forms.ComboBox
 $cb_ReduceSpeedOnPowerDown.width  = 108
 $cb_ReduceSpeedOnPowerDown.height  = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_ReduceSpeedOnPowerDown.Items.Add($_)}
+[void] $cb_ReduceSpeedOnPowerDown.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_ReduceSpeedOnPowerDown.location  = New-Object System.Drawing.Point(204,147)
 $cb_ReduceSpeedOnPowerDown.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_ReduceSpeedOnPowerDown.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -849,7 +849,7 @@ $Label35.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisablePortScaling           = New-Object system.Windows.Forms.ComboBox
 $cb_DisablePortScaling.width     = 108
 $cb_DisablePortScaling.height    = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_DisablePortScaling.Items.Add($_)}
+[void] $cb_DisablePortScaling.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_DisablePortScaling.location  = New-Object System.Drawing.Point(117,160)
 $cb_DisablePortScaling.Font      = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisablePortScaling.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -867,7 +867,7 @@ $Label42.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_ManyCoreScaling              = New-Object system.Windows.Forms.ComboBox
 $cb_ManyCoreScaling.width        = 108
 $cb_ManyCoreScaling.height       = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_ManyCoreScaling.Items.Add($_)}
+[void] $cb_ManyCoreScaling.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_ManyCoreScaling.location     = New-Object System.Drawing.Point(117,184)
 $cb_ManyCoreScaling.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_ManyCoreScaling.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1320,7 +1320,7 @@ $lb_MsiMode.ForeColor            = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_MsiMode                      = New-Object system.Windows.Forms.ComboBox
 $cb_MsiMode.width                = 108
 $cb_MsiMode.height               = 20
-@('Disabled','Enabled') | ForEach-Object {[void] $cb_MsiMode.Items.Add($_)}
+[void] $cb_MsiMode.Items.AddRange([object[]]@('Disabled','Enabled'))
 $cb_MsiMode.location             = New-Object System.Drawing.Point(114,11)
 $cb_MsiMode.Font                 = New-Object System.Drawing.Font('Calibri',9)
 $cb_MsiMode.ForeColor            = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1338,7 +1338,7 @@ $lb_InterruptPriority.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_InterruptPriority            = New-Object system.Windows.Forms.ComboBox
 $cb_InterruptPriority.width      = 108
 $cb_InterruptPriority.height     = 20
-@('Undefined','Low','Normal','High') | ForEach-Object {[void] $cb_InterruptPriority.Items.Add($_)}
+[void] $cb_InterruptPriority.Items.AddRange([object[]]@('Undefined','Low','Normal','High'))
 $cb_InterruptPriority.location   = New-Object System.Drawing.Point(114,33)
 $cb_InterruptPriority.Font       = New-Object System.Drawing.Font('Calibri',9)
 $cb_InterruptPriority.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1356,7 +1356,7 @@ $lb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DevicePolicy                 = New-Object system.Windows.Forms.ComboBox
 $cb_DevicePolicy.width           = 214
 $cb_DevicePolicy.height          = 20
-@('MachineDefault','AllCloseProcessors','OneCloseProcessor','AllProcessorsInMachine','SpecifiedProcessors','SreadMessagesAcrossAllProcessors') | ForEach-Object {[void] $cb_DevicePolicy.Items.Add($_)}
+[void] $cb_DevicePolicy.Items.AddRange([object[]]@('MachineDefault','AllCloseProcessors','OneCloseProcessor','ProcessorsInMachine','SpecifiedProcessors','SreadMessagesAcrossAllProcessors'))
 $cb_DevicePolicy.location        = New-Object System.Drawing.Point(7,81)
 $cb_DevicePolicy.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1436,7 +1436,7 @@ $Label74.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PacketDirect                 = New-Object system.Windows.Forms.ComboBox
 $cb_PacketDirect.width           = 190
 $cb_PacketDirect.height          = 20
-@('Disabled','Enabled','Undefined') | ForEach-Object {[void] $cb_PacketDirect.Items.Add($_)}
+[void] $cb_PacketDirect.Items.AddRange([object[]]@('Disabled','Enabled','Undefined'))
 $cb_PacketDirect.location        = New-Object System.Drawing.Point(193,387)
 $cb_PacketDirect.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_PacketDirect.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1454,7 +1454,7 @@ $Label75.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_EnableCoalesce               = New-Object system.Windows.Forms.ComboBox
 $cb_EnableCoalesce.width         = 190
 $cb_EnableCoalesce.height        = 20
-@('Disabled','Enabled','Undefined') | ForEach-Object {[void] $cb_EnableCoalesce.Items.Add($_)}
+[void] $cb_EnableCoalesce.Items.AddRange([object[]]@('Disabled','Enabled','Undefined'))
 $cb_EnableCoalesce.location      = New-Object System.Drawing.Point(193,409)
 $cb_EnableCoalesce.Font          = New-Object System.Drawing.Font('Calibri',9)
 $cb_EnableCoalesce.ForeColor     = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1472,7 +1472,7 @@ $Label76.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_EnableUdpTxScaling           = New-Object system.Windows.Forms.ComboBox
 $cb_EnableUdpTxScaling.width     = 190
 $cb_EnableUdpTxScaling.height    = 20
-@('Disabled','Enabled','Undefined') | ForEach-Object {[void] $cb_EnableUdpTxScaling.Items.Add($_)}
+[void] $cb_EnableUdpTxScaling.Items.AddRange([object[]]@('Disabled','Enabled','Undefined'))
 $cb_EnableUdpTxScaling.location  = New-Object System.Drawing.Point(193,454)
 $cb_EnableUdpTxScaling.Font      = New-Object System.Drawing.Font('Calibri',9)
 $cb_EnableUdpTxScaling.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1539,7 +1539,7 @@ $btn_registrytweaksapply.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml
 $cb_Afd_defaultrecWin            = New-Object system.Windows.Forms.ComboBox
 $cb_Afd_defaultrecWin.width      = 190
 $cb_Afd_defaultrecWin.height     = 20
-@('8192','32767') | ForEach-Object {[void] $cb_Afd_defaultrecWin.Items.Add($_)}
+[void] $cb_Afd_defaultrecWin.Items.AddRange([object[]]@('8192','32767'))
 $cb_Afd_defaultrecWin.location   = New-Object System.Drawing.Point(177,17)
 $cb_Afd_defaultrecWin.Font       = New-Object System.Drawing.Font('Calibri',9)
 $cb_Afd_defaultrecWin.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1548,7 +1548,7 @@ $cb_Afd_defaultrecWin.BackColor  = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_Afd_defaultSendWin           = New-Object system.Windows.Forms.ComboBox
 $cb_Afd_defaultSendWin.width     = 190
 $cb_Afd_defaultSendWin.height    = 20
-@('8192','32767') | ForEach-Object {[void] $cb_Afd_defaultSendWin.Items.Add($_)}
+[void] $cb_Afd_defaultSendWin.Items.AddRange([object[]]@('8192','32767'))
 $cb_Afd_defaultSendWin.location  = New-Object System.Drawing.Point(177,39)
 $cb_Afd_defaultSendWin.Font      = New-Object System.Drawing.Font('Calibri',9)
 $cb_Afd_defaultSendWin.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1574,7 +1574,7 @@ $Label78.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisableAddressSharing        = New-Object system.Windows.Forms.ComboBox
 $cb_DisableAddressSharing.width  = 190
 $cb_DisableAddressSharing.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_DisableAddressSharing.Items.Add($_)}
+[void] $cb_DisableAddressSharing.Items.AddRange([object[]]@('0','1'))
 $cb_DisableAddressSharing.location  = New-Object System.Drawing.Point(177,281)
 $cb_DisableAddressSharing.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisableAddressSharing.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1592,7 +1592,7 @@ $Label79.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DoNotHoldNICBuffers          = New-Object system.Windows.Forms.ComboBox
 $cb_DoNotHoldNICBuffers.width    = 190
 $cb_DoNotHoldNICBuffers.height   = 20
-@('0','1') | ForEach-Object {[void] $cb_DoNotHoldNICBuffers.Items.Add($_)}
+[void] $cb_DoNotHoldNICBuffers.Items.AddRange([object[]]@('0','1'))
 $cb_DoNotHoldNICBuffers.location  = New-Object System.Drawing.Point(177,105)
 $cb_DoNotHoldNICBuffers.Font     = New-Object System.Drawing.Font('Calibri',9)
 $cb_DoNotHoldNICBuffers.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1610,7 +1610,7 @@ $Label80.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_SmallBufferSize              = New-Object system.Windows.Forms.ComboBox
 $cb_SmallBufferSize.width        = 190
 $cb_SmallBufferSize.height       = 20
-@('128') | ForEach-Object {[void] $cb_SmallBufferSize.Items.Add($_)}
+[void] $cb_SmallBufferSize.Items.AddRange([object[]]@('128'))
 $cb_SmallBufferSize.location     = New-Object System.Drawing.Point(177,127)
 $cb_SmallBufferSize.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_SmallBufferSize.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1628,7 +1628,7 @@ $Label81.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_MediumBufferSize             = New-Object system.Windows.Forms.ComboBox
 $cb_MediumBufferSize.width       = 190
 $cb_MediumBufferSize.height      = 20
-@('1504') | ForEach-Object {[void] $cb_MediumBufferSize.Items.Add($_)}
+[void] $cb_MediumBufferSize.Items.AddRange([object[]]@('1504'))
 $cb_MediumBufferSize.location    = New-Object System.Drawing.Point(177,149)
 $cb_MediumBufferSize.Font        = New-Object System.Drawing.Font('Calibri',9)
 $cb_MediumBufferSize.ForeColor   = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1646,7 +1646,7 @@ $Label82.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_LargeBufferSize              = New-Object system.Windows.Forms.ComboBox
 $cb_LargeBufferSize.width        = 190
 $cb_LargeBufferSize.height       = 20
-@('3876') | ForEach-Object {[void] $cb_LargeBufferSize.Items.Add($_)}
+[void] $cb_LargeBufferSize.Items.AddRange([object[]]@('3876'))
 $cb_LargeBufferSize.location     = New-Object System.Drawing.Point(177,171)
 $cb_LargeBufferSize.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_LargeBufferSize.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1672,7 +1672,7 @@ $cb_HugeBufferSize.BackColor     = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_BufferAlignment              = New-Object system.Windows.Forms.ComboBox
 $cb_BufferAlignment.width        = 190
 $cb_BufferAlignment.height       = 20
-@('32','64','128','256') | ForEach-Object {[void] $cb_BufferAlignment.Items.Add($_)}
+[void] $cb_BufferAlignment.Items.AddRange([object[]]@('32','64','128','256'))
 $cb_BufferAlignment.location     = New-Object System.Drawing.Point(177,83)
 $cb_BufferAlignment.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_BufferAlignment.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1690,7 +1690,7 @@ $Label84.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_BufferMultiplier             = New-Object system.Windows.Forms.ComboBox
 $cb_BufferMultiplier.width       = 190
 $cb_BufferMultiplier.height      = 20
-@('512') | ForEach-Object {[void] $cb_BufferMultiplier.Items.Add($_)}
+[void] $cb_BufferMultiplier.Items.AddRange([object[]]@('512'))
 $cb_BufferMultiplier.location    = New-Object System.Drawing.Point(177,61)
 $cb_BufferMultiplier.Font        = New-Object System.Drawing.Font('Calibri',9)
 $cb_BufferMultiplier.ForeColor   = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1717,7 +1717,7 @@ $Label86.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_SmallBufferListDepth         = New-Object system.Windows.Forms.ComboBox
 $cb_SmallBufferListDepth.width   = 190
 $cb_SmallBufferListDepth.height  = 20
-@('8','16') | ForEach-Object {[void] $cb_SmallBufferListDepth.Items.Add($_)}
+[void] $cb_SmallBufferListDepth.Items.AddRange([object[]]@('8','16'))
 $cb_SmallBufferListDepth.location  = New-Object System.Drawing.Point(177,215)
 $cb_SmallBufferListDepth.Font    = New-Object System.Drawing.Font('Calibri',9)
 $cb_SmallBufferListDepth.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1735,7 +1735,7 @@ $Label87.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_MediumBufferListDepth        = New-Object system.Windows.Forms.ComboBox
 $cb_MediumBufferListDepth.width  = 190
 $cb_MediumBufferListDepth.height  = 20
-@('4','8','16') | ForEach-Object {[void] $cb_MediumBufferListDepth.Items.Add($_)}
+[void] $cb_MediumBufferListDepth.Items.AddRange([object[]]@('4','8','16'))
 $cb_MediumBufferListDepth.location  = New-Object System.Drawing.Point(177,237)
 $cb_MediumBufferListDepth.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_MediumBufferListDepth.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1753,7 +1753,7 @@ $Label88.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_LargBufferListDepth          = New-Object system.Windows.Forms.ComboBox
 $cb_LargBufferListDepth.width    = 190
 $cb_LargBufferListDepth.height   = 20
-@('0','2','10') | ForEach-Object {[void] $cb_LargBufferListDepth.Items.Add($_)}
+[void] $cb_LargBufferListDepth.Items.AddRange([object[]]@('0','2','10'))
 $cb_LargBufferListDepth.location  = New-Object System.Drawing.Point(177,259)
 $cb_LargBufferListDepth.Font     = New-Object System.Drawing.Font('Calibri',9)
 $cb_LargBufferListDepth.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1771,7 +1771,7 @@ $Label89.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisableChainedReceive        = New-Object system.Windows.Forms.ComboBox
 $cb_DisableChainedReceive.width  = 190
 $cb_DisableChainedReceive.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_DisableChainedReceive.Items.Add($_)}
+[void] $cb_DisableChainedReceive.Items.AddRange([object[]]@('0','1'))
 $cb_DisableChainedReceive.location  = New-Object System.Drawing.Point(177,303)
 $cb_DisableChainedReceive.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisableChainedReceive.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1789,7 +1789,7 @@ $Label90.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisableDirectAcceptEx        = New-Object system.Windows.Forms.ComboBox
 $cb_DisableDirectAcceptEx.width  = 190
 $cb_DisableDirectAcceptEx.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_DisableDirectAcceptEx.Items.Add($_)}
+[void] $cb_DisableDirectAcceptEx.Items.AddRange([object[]]@('0','1'))
 $cb_DisableDirectAcceptEx.location  = New-Object System.Drawing.Point(177,325)
 $cb_DisableDirectAcceptEx.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisableDirectAcceptEx.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1807,7 +1807,7 @@ $Label91.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DisableRawSecurity           = New-Object system.Windows.Forms.ComboBox
 $cb_DisableRawSecurity.width     = 190
 $cb_DisableRawSecurity.height    = 20
-@('0','1') | ForEach-Object {[void] $cb_DisableRawSecurity.Items.Add($_)}
+[void] $cb_DisableRawSecurity.Items.AddRange([object[]]@('0','1'))
 $cb_DisableRawSecurity.location  = New-Object System.Drawing.Point(177,347)
 $cb_DisableRawSecurity.Font      = New-Object System.Drawing.Font('Calibri',9)
 $cb_DisableRawSecurity.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1825,7 +1825,7 @@ $Label92.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DynamicSendBufferDisable     = New-Object system.Windows.Forms.ComboBox
 $cb_DynamicSendBufferDisable.width  = 190
 $cb_DynamicSendBufferDisable.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_DynamicSendBufferDisable.Items.Add($_)}
+[void] $cb_DynamicSendBufferDisable.Items.AddRange([object[]]@('0','1'))
 $cb_DynamicSendBufferDisable.location  = New-Object System.Drawing.Point(177,369)
 $cb_DynamicSendBufferDisable.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_DynamicSendBufferDisable.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1843,7 +1843,7 @@ $Label93.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_FastSendDatagramThreshold    = New-Object system.Windows.Forms.ComboBox
 $cb_FastSendDatagramThreshold.width  = 190
 $cb_FastSendDatagramThreshold.height  = 20
-@('1024') | ForEach-Object {[void] $cb_FastSendDatagramThreshold.Items.Add($_)}
+[void] $cb_FastSendDatagramThreshold.Items.AddRange([object[]]@('1024'))
 $cb_FastSendDatagramThreshold.location  = New-Object System.Drawing.Point(177,391)
 $cb_FastSendDatagramThreshold.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_FastSendDatagramThreshold.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1861,7 +1861,7 @@ $Label94.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_FastCopyReceiveThreshold     = New-Object system.Windows.Forms.ComboBox
 $cb_FastCopyReceiveThreshold.width  = 190
 $cb_FastCopyReceiveThreshold.height  = 20
-@('1024') | ForEach-Object {[void] $cb_FastCopyReceiveThreshold.Items.Add($_)}
+[void] $cb_FastCopyReceiveThreshold.Items.AddRange([object[]]@('1024'))
 $cb_FastCopyReceiveThreshold.location  = New-Object System.Drawing.Point(177,413)
 $cb_FastCopyReceiveThreshold.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_FastCopyReceiveThreshold.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1879,7 +1879,7 @@ $Label95.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_IgnorePushBitOnReceives      = New-Object system.Windows.Forms.ComboBox
 $cb_IgnorePushBitOnReceives.width  = 190
 $cb_IgnorePushBitOnReceives.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_IgnorePushBitOnReceives.Items.Add($_)}
+[void] $cb_IgnorePushBitOnReceives.Items.AddRange([object[]]@('0','1'))
 $cb_IgnorePushBitOnReceives.location  = New-Object System.Drawing.Point(177,435)
 $cb_IgnorePushBitOnReceives.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_IgnorePushBitOnReceives.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1897,7 +1897,7 @@ $Label96.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_IgnoreOrderlyRelease         = New-Object system.Windows.Forms.ComboBox
 $cb_IgnoreOrderlyRelease.width   = 190
 $cb_IgnoreOrderlyRelease.height  = 20
-@('0','1') | ForEach-Object {[void] $cb_IgnoreOrderlyRelease.Items.Add($_)}
+[void] $cb_IgnoreOrderlyRelease.Items.AddRange([object[]]@('0','1'))
 $cb_IgnoreOrderlyRelease.location  = New-Object System.Drawing.Point(177,457)
 $cb_IgnoreOrderlyRelease.Font    = New-Object System.Drawing.Font('Calibri',9)
 $cb_IgnoreOrderlyRelease.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1915,7 +1915,7 @@ $Label97.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_TransmitWorker               = New-Object system.Windows.Forms.ComboBox
 $cb_TransmitWorker.width         = 190
 $cb_TransmitWorker.height        = 20
-@('16','32') | ForEach-Object {[void] $cb_TransmitWorker.Items.Add($_)}
+[void] $cb_TransmitWorker.Items.AddRange([object[]]@('16','32'))
 $cb_TransmitWorker.location      = New-Object System.Drawing.Point(177,479)
 $cb_TransmitWorker.Font          = New-Object System.Drawing.Font('Calibri',9)
 $cb_TransmitWorker.ForeColor     = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1933,7 +1933,7 @@ $Label98.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PriorityBoost                = New-Object system.Windows.Forms.ComboBox
 $cb_PriorityBoost.width          = 190
 $cb_PriorityBoost.height         = 20
-@('2','1','0','16') | ForEach-Object {[void] $cb_PriorityBoost.Items.Add($_)}
+[void] $cb_PriorityBoost.Items.AddRange([object[]]@('2','1','0','16'))
 $cb_PriorityBoost.location       = New-Object System.Drawing.Point(177,501)
 $cb_PriorityBoost.Font           = New-Object System.Drawing.Font('Calibri',9)
 $cb_PriorityBoost.ForeColor      = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1959,7 +1959,7 @@ $Label68.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_CoalesceBufferSize           = New-Object system.Windows.Forms.ComboBox
 $cb_CoalesceBufferSize.width     = 190
 $cb_CoalesceBufferSize.height    = 20
-@('2048') | ForEach-Object {[void] $cb_CoalesceBufferSize.Items.Add($_)}
+[void] $cb_CoalesceBufferSize.Items.AddRange([object[]]@('2048'))
 $cb_CoalesceBufferSize.location  = New-Object System.Drawing.Point(193,432)
 $cb_CoalesceBufferSize.Font      = New-Object System.Drawing.Font('Calibri',9)
 $cb_CoalesceBufferSize.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1985,7 +1985,7 @@ $Label99.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_IrpStackSize                 = New-Object system.Windows.Forms.ComboBox
 $cb_IrpStackSize.width           = 190
 $cb_IrpStackSize.height          = 20
-@('2','4','64') | ForEach-Object {[void] $cb_IrpStackSize.Items.Add($_)}
+[void] $cb_IrpStackSize.Items.AddRange([object[]]@('2','4','64'))
 $cb_IrpStackSize.location        = New-Object System.Drawing.Point(177,523)
 $cb_IrpStackSize.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_IrpStackSize.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -2396,7 +2396,7 @@ $NetworkDirectGlobalFlags = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHI
 $AdapterName = Get-NetAdapter -physical | where status -eq 'up' | Select -expand InterfaceDescription
 #$AdapterName = Get-NetAdapter -IncludeHidden | Select -expand InterfaceDescription
 #if($AdapterName )
-@($AdapterName) | ForEach-Object {[void] $cb_AdapterNamesCombo.Items.Add($_)}
+[void] $cb_AdapterNamesCombo.Items.AddRange([object[]]@($AdapterName))
 
 function a {
     cls
@@ -2494,13 +2494,14 @@ function a {
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
     if($rssstatus -eq $null -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
         #Write-Host "Powershell"
-        $Global:AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | select -expand NumberOfReceiveQueues
-        $cb_rssqueues.Items.Add($AdapterQueues)
+        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfReceiveQueues
+        $Global:AdapterQueues = $AdapterQueues
+        [void] $cb_rssqueues.Items.Add($AdapterQueues)
         $cb_rssqueues.Text = $AdapterQueues
         }else{
         #Write-Host "Registry"
         $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
-            @($AdapterQueues) | ForEach-Object {[void] $cb_rssqueues.Items.Add($_)}
+            [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
         $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select -expand Default
         $cb_rssqueues.Text = $AdapterQueues
         }
@@ -2514,7 +2515,7 @@ function a {
 
         #RSS Profiles
         $OSRSSProfiles = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetAdapterRss.Profile].GetEnumValues()
-        @($OSRSSProfiles) | ForEach-Object {[void] $cb_rssprofile.Items.Add($_)}
+        [void] $cb_rssprofile.Items.AddRange([object[]]@($OSRSSProfiles))
         $cb_rssprofile.Text = Get-NetAdapterRss | Select -ExpandProperty Profile
 
         #RSS BaseProc
@@ -2605,7 +2606,7 @@ function a {
             if ($EnablePME -eq '0' -or $EnablePME -eq '1' ){
                 $cb_EnablePME.SelectedIndex=$EnablePME
             }else{
-                $cb_EnablePME.Items.Add('Undeclared')
+                [void] $cb_EnablePME.Items.Add('Undeclared')
                 $cb_EnablePME.Text = 'Undeclared'
             }
         #EnableDynamicPowerGating
@@ -2613,7 +2614,7 @@ function a {
             if ($EnableDynamicPowerGating -eq 0 -or $EnableDynamicPowerGating -eq 1 ){
                 $cb_EnableDynamicPowerGating.SelectedIndex=$EnableDynamicPowerGating
             }else{
-                $cb_EnableDynamicPowerGating.Items.Add('Undeclared')
+                [void] $cb_EnableDynamicPowerGating.Items.Add('Undeclared')
                 $cb_EnableDynamicPowerGating.Text = 'Undeclared'
             }
         #EnableConnectedPowerGating
@@ -2621,7 +2622,7 @@ function a {
             if ($EnableConnectedPowerGating -eq 0 -or $EnableConnectedPowerGating -eq 1 ){
                 $cb_EnableConnectedPowerGating.SelectedIndex=$EnableConnectedPowerGating
             }else{
-                $cb_EnableConnectedPowerGating.Items.Add('Undeclared')
+                [void] $cb_EnableConnectedPowerGating.Items.Add('Undeclared')
                 $cb_EnableConnectedPowerGating.Text = 'Undeclared'
             }
 
@@ -2630,7 +2631,7 @@ function a {
             if ($AutoPowerSaveModeEnabled -eq 0 -or $AutoPowerSaveModeEnabled -eq 1 ){
                 $cb_AutoPowerSaveModeEnabled.SelectedIndex=$AutoPowerSaveModeEnabled
             }else{
-                $cb_AutoPowerSaveModeEnabled.Items.Add('Undeclared')
+                [void] $cb_AutoPowerSaveModeEnabled.Items.Add('Undeclared')
                 $cb_EnableConnectedPowerGating.Text = 'Enabled'
             }
 
@@ -2639,7 +2640,7 @@ function a {
             if ($NicAutoPowerSaver -eq 0 -or $NicAutoPowerSaver -eq 1 ){
                 $cb_NicAutoPowerSaver.SelectedIndex=$NicAutoPowerSaver
             }else{
-                $cb_NicAutoPowerSaver.Items.Add('Undeclared')
+                [void] $cb_NicAutoPowerSaver.Items.Add('Undeclared')
                 $cb_NicAutoPowerSaver.Text = 'Undeclared'
             }
 
@@ -2648,7 +2649,7 @@ function a {
             if ($DisableDelayedPowerUp -eq 0 -or $DisableDelayedPowerUp -eq 1 ){
                 $cb_DisableDelayedPowerUp.SelectedIndex=$DisableDelayedPowerUp
             }else{
-                $cb_DisableDelayedPowerUp.Items.Add('Undeclared')
+                [void] $cb_DisableDelayedPowerUp.Items.Add('Undeclared')
                 $cb_DisableDelayedPowerUp.Text = 'Undeclared'
             }
 
@@ -2657,7 +2658,7 @@ function a {
             if ($ReduceSpeedOnPowerDown -eq 0 -or $ReduceSpeedOnPowerDown -eq 1 ){
                 $cb_ReduceSpeedOnPowerDown.SelectedIndex=$ReduceSpeedOnPowerDown
             }else{
-                $cb_ReduceSpeedOnPowerDown.Items.Add('Undeclared')
+                [void] $cb_ReduceSpeedOnPowerDown.Items.Add('Undeclared')
                 $cb_ReduceSpeedOnPowerDown.Text = 'Undeclared'
             }
 
@@ -2666,7 +2667,7 @@ function a {
             if ($DisablePortScaling -eq 0 -or $DisablePortScaling -eq 1 ){
                 $cb_DisablePortScaling.SelectedIndex=$DisablePortScaling
             }else{
-                $cb_DisablePortScaling.Items.Add('Undeclared')
+                [void] $cb_DisablePortScaling.Items.Add('Undeclared')
                 $cb_DisablePortScaling.Text = 'Undeclared'
             }
 
@@ -2675,7 +2676,7 @@ function a {
             if ($ManyCoreScaling -eq 0 -or $ManyCoreScaling -eq 1 ){
                 $cb_ManyCoreScaling.SelectedIndex=$ManyCoreScaling
             }else{
-                $cb_ManyCoreScaling.Items.Add('Undeclared')
+                [void] $cb_ManyCoreScaling.Items.Add('Undeclared')
                 $cb_ManyCoreScaling.Text = 'Undeclared'
             }
 
@@ -2846,87 +2847,87 @@ function a {
         #NetIPInterface
         #AdvertiseDefaultRoute
         $AdvertiseDefaultRoute = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.AdvertiseDefaultRoute].GetEnumValues()
-        @($AdvertiseDefaultRoute) | ForEach-Object {[void] $cb_AdvertiseDefaultRoute.Items.Add($_)}
+        [void] $cb_AdvertiseDefaultRoute.Items.AddRange([object[]]@($AdvertiseDefaultRoute))
         $cb_AdvertiseDefaultRoute.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand AdvertiseDefaultRoute
 
         #Advertising
         $Advertising = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.Advertising].GetEnumValues()
-        @($Advertising) | ForEach-Object {[void] $cb_Advertising.Items.Add($_)}
+        [void] $cb_Advertising.Items.AddRange([object[]]@($Advertising))
         $cb_Advertising.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand Advertising
 
         #AutomaticMetric
         $AutomaticMetric = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.AutomaticMetric].GetEnumValues()
-        @($AutomaticMetric) | ForEach-Object {[void] $cb_AutomaticMetric.Items.Add($_)}
+        [void] $cb_AutomaticMetric.Items.AddRange([object[]]@($AutomaticMetric))
         $cb_AutomaticMetric.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand AutomaticMetric
 
         #ClampMss
         $ClampMss = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.ClampMss].GetEnumValues()
-        @($ClampMss) | ForEach-Object {[void] $cb_ClampMss.Items.Add($_)}
+        [void] $cb_ClampMss.Items.AddRange([object[]]@($ClampMss))
         $cb_ClampMss.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand ClampMss
 
         #DirectedMacWolPattern
         $DirectedMacWolPattern = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.DirectedMacWolPattern].GetEnumValues()
-        @($DirectedMacWolPattern) | ForEach-Object {[void] $cb_DirectedMacWolPattern.Items.Add($_)}
+        [void] $cb_DirectedMacWolPattern.Items.AddRange([object[]]@($DirectedMacWolPattern))
         $cb_DirectedMacWolPattern.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand DirectedMacWolPattern
 
         #EcnMarking
         $EcnMarking = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.EcnMarking].GetEnumValues()
-        @($EcnMarking) | ForEach-Object {[void] $cb_EcnMarking.Items.Add($_)}
+        [void] $cb_EcnMarking.Items.AddRange([object[]]@($EcnMarking))
         $cb_EcnMarking.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand EcnMarking
 
         #ForceArpNdWolPattern
         $ForceArpNdWolPattern = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.ForceArpNdWolPattern].GetEnumValues()
-        @($ForceArpNdWolPattern) | ForEach-Object {[void] $cb_ForceArpNdWolPattern.Items.Add($_)}
+        [void] $cb_ForceArpNdWolPattern.Items.AddRange([object[]]@($ForceArpNdWolPattern))
         $cb_ForceArpNdWolPattern.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand ForceArpNdWolPattern
 
         #Forwarding
         $Forwarding = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.Forwarding].GetEnumValues()
-        @($Forwarding) | ForEach-Object {[void] $cb_Forwarding.Items.Add($_)}
+        [void] $cb_Forwarding.Items.AddRange([object[]]@($Forwarding))
         $cb_Forwarding.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand Forwarding
 
         #IgnoreDefaultRoutes
         $IgnoreDefaultRoutes = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.IgnoreDefaultRoutes].GetEnumValues()
-        @($IgnoreDefaultRoutes) | ForEach-Object {[void] $cb_IgnoreDefaultRoutes.Items.Add($_)}
+        [void] $cb_IgnoreDefaultRoutes.Items.AddRange([object[]]@($IgnoreDefaultRoutes))
         $cb_IgnoreDefaultRoutes.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand IgnoreDefaultRoutes
 
         #ManagedAddressConfiguration
         $ManagedAddressConfiguration = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.ManagedAddressConfiguration].GetEnumValues()
-        @($ManagedAddressConfiguration) | ForEach-Object {[void] $cb_ManagedAddressConfiguration.Items.Add($_)}
+        [void] $cb_ManagedAddressConfiguration.Items.AddRange([object[]]@($ManagedAddressConfiguration))
         $cb_ManagedAddressConfiguration.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand ManagedAddressConfiguration
 
         #NeighborDiscoverySupported
         $NeighborDiscoverySupported = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.NeighborDiscoverySupported].GetEnumValues()
-        @($NeighborDiscoverySupported) | ForEach-Object {[void] $cb_NeighborDiscoverySupported.Items.Add($_)}
+        [void] $cb_NeighborDiscoverySupported.Items.AddRange([object[]]@($NeighborDiscoverySupported))
         $cb_NeighborDiscoverySupported.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand NeighborDiscoverySupported
 
         #NeighborUnreachabilityDetection
         $NeighborUnreachabilityDetection = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.NeighborUnreachabilityDetection].GetEnumValues()
-        @($NeighborUnreachabilityDetection) | ForEach-Object {[void] $cb_NeighborUnreachabilityDetection.Items.Add($_)}
+        [void] $cb_NeighborUnreachabilityDetection.Items.AddRange([object[]]@($NeighborUnreachabilityDetection))
         $cb_NeighborUnreachabilityDetection.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand NeighborUnreachabilityDetection
 
         #OtherStatefulConfiguration
         $OtherStatefulConfiguration = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.OtherStatefulConfiguration].GetEnumValues()
-        @($OtherStatefulConfiguration) | ForEach-Object {[void] $cb_OtherStatefulConfiguration.Items.Add($_)}
+        [void] $cb_OtherStatefulConfiguration.Items.AddRange([object[]]@($OtherStatefulConfiguration))
         $cb_OtherStatefulConfiguration.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand OtherStatefulConfiguration
 
         #RouterDiscovery
         $RouterDiscovery = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.RouterDiscovery].GetEnumValues()
-        @($RouterDiscovery) | ForEach-Object {[void] $cb_RouterDiscovery.Items.Add($_)}
+        [void] $cb_RouterDiscovery.Items.AddRange([object[]]@($RouterDiscovery))
         $cb_RouterDiscovery.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand RouterDiscovery
 
         #Store
         $Store = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.Store].GetEnumValues()
-        @($Store) | ForEach-Object {[void] $cb_Store.Items.Add($_)}
+        [void] $cb_Store.Items.AddRange([object[]]@($Store))
         $cb_Store.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand Store
 
         #WeakHostReceive
         $WeakHostReceive = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.WeakHostReceive].GetEnumValues()
-        @($WeakHostReceive) | ForEach-Object {[void] $cb_WeakHostReceive.Items.Add($_)}
+        [void] $cb_WeakHostReceive.Items.AddRange([object[]]@($WeakHostReceive))
         $cb_WeakHostReceive.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand WeakHostReceive
 
         #WeakHostSend
         $WeakHostSend = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.WeakHostSend].GetEnumValues()
-        @($WeakHostSend) | ForEach-Object {[void] $cb_WeakHostSend.Items.Add($_)}
+        [void] $cb_WeakHostSend.Items.AddRange([object[]]@($WeakHostSend))
         $cb_WeakHostSend.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | Select-Object -Expand WeakHostSend
 
         #CurrentHopLimit
@@ -3481,7 +3482,7 @@ function RSSEnable{
             $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
             #Query Avaible RSSQueues
             $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
-            @($AdapterQueues) | ForEach-Object {[void] $cb_rssqueues.Items.Add($_)}
+            [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
             $cb_rssqueues.Text = $AdapterQueuesDefault
             #$btn_unqueues.Enabled = $False
         }
