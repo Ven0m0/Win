@@ -1356,7 +1356,7 @@ $lb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DevicePolicy                 = New-Object system.Windows.Forms.ComboBox
 $cb_DevicePolicy.width           = 214
 $cb_DevicePolicy.height          = 20
-[void] $cb_DevicePolicy.Items.AddRange([object[]]@('MachineDefault','AllCloseProcessors','OneCloseProcessor','AllProcessorsInMachine','SpecifiedProcessors','SreadMessagesAcrossAllProcessors'))
+[void] $cb_DevicePolicy.Items.AddRange([object[]]@('MachineDefault','AllCloseProcessors','OneCloseProcessor','ProcessorsInMachine','SpecifiedProcessors','SreadMessagesAcrossAllProcessors'))
 $cb_DevicePolicy.location        = New-Object System.Drawing.Point(7,81)
 $cb_DevicePolicy.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
