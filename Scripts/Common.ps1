@@ -959,4 +959,4 @@ function Remove-AppxPackageSafe {
 #endregion
 
 # Export functions
-Export-ModuleMember -Function *
+        try { Export-ModuleMember -Function * } catch { }
