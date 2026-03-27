@@ -16,10 +16,132 @@ if (Test-Path "$PSScriptRoot\Scripts\Common.ps1") {
   Clear-Host
 }
 
-$null = reg add "HKCU\CONSOLE" /v "VirtualTerminalLevel" /t REG_DWORD /d "1" /f 2>&1
-Set-Location -Path $env:USERPROFILE -ErrorAction SilentlyContinue
-$ErrorActionPreference = 'SilentlyContinue'
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+$script:CurrentSetupStep = 'initialization'
+
+function Set-SetupStep {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Name
+  )
+
+  $script:CurrentSetupStep = $Name
+}
+
+function Invoke-NativeCommand {
+  param(
+    [Parameter(Mandatory)]
+    [string]$FilePath,
+
+    [string[]]$ArgumentList = @(),
+
+    [Parameter(Mandatory)]
+    [string]$Action,
+
+    [int[]]$AllowedExitCodes = @(0)
+  )
+
+  & $FilePath @ArgumentList 2>&1 | Out-Null
+  if ($LASTEXITCODE -notin $AllowedExitCodes) {
+    throw "$Action failed with exit code $LASTEXITCODE."
+  }
+}
+
+function Set-RegistryValueChecked {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Path,
+
+    [Parameter(Mandatory)]
+    [string]$Name,
+
+    [Parameter(Mandatory)]
+    [string]$Type,
+
+    [Parameter(Mandatory)]
+    [string]$Data
+  )
+
+  Set-RegistryValue -Path $Path -Name $Name -Type $Type -Data $Data
+  if ($LASTEXITCODE -ne 0) {
+    throw "Failed to set registry value '$Name' at '$Path'."
+  }
+}
+
+function Remove-RegistryValueChecked {
+  param(
+    [Parameter(Mandatory)]
+    [string]$Path,
+
+    [string]$Name,
+
+    [switch]$IgnoreMissing
+  )
+
+  Remove-RegistryValue -Path $Path -Name $Name
+  if ($LASTEXITCODE -ne 0) {
+    if ($IgnoreMissing -and $LASTEXITCODE -eq 1) {
+      return
+    }
+
+    if ($Name) {
+      throw "Failed to remove registry value '$Name' at '$Path'."
+    }
+
+    throw "Failed to remove registry key '$Path'."
+  }
+}
+
+function Invoke-Winget {
+  param(
+    [Parameter(Mandatory)]
+    [string[]]$ArgumentList,
+
+    [Parameter(Mandatory)]
+    [string]$Action
+  )
+
+  Invoke-NativeCommand -FilePath 'winget' -ArgumentList $ArgumentList -Action $Action
+}
+
+function Get-ActivePhysicalAdapterAlias {
+  try {
+    return @(Get-NetAdapter -Physical -ErrorAction Stop |
+      Where-Object { $_.Status -eq 'Up' } |
+      Select-Object -ExpandProperty Name -Unique)
+  } catch {
+    Write-Host "  Unable to enumerate physical adapters: $($_.Exception.Message)" -ForegroundColor Yellow
+    return @()
+  }
+}
+
+function Set-DnsServersForActiveAdapters {
+  param(
+    [Parameter(Mandatory)]
+    [string[]]$ServerAddresses
+  )
+
+  $adapterAliases = Get-ActivePhysicalAdapterAlias
+  if (-not $adapterAliases.Count) {
+    Write-Host "  No active physical adapters found; skipping DNS configuration." -ForegroundColor Yellow
+    return
+  }
+
+  foreach ($adapterAlias in $adapterAliases) {
+    try {
+      Set-DnsClientServerAddress -InterfaceAlias $adapterAlias -ServerAddresses $ServerAddresses -ErrorAction Stop
+      Write-Host "  Applied DNS servers to $adapterAlias" -ForegroundColor Green
+    } catch {
+      Write-Host "  Skipping DNS configuration for ${adapterAlias}: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+  }
+}
+
+try {
+  Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', 'HKCU\CONSOLE', '/v', 'VirtualTerminalLevel', '/t', 'REG_DWORD', '/d', '1', '/f') -Action 'Enable virtual terminal support'
+  Set-Location -Path $env:USERPROFILE -ErrorAction Stop
 
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  Windows Setup & Configuration Script" -ForegroundColor Cyan
@@ -29,6 +151,7 @@ Write-Host ""
 # ============================================
 # SYSTEM CONFIGURATION - Registry Tweaks
 # ============================================
+Set-SetupStep -Name 'system configuration'
 Write-Host "[1/12] Applying system configurations..." -ForegroundColor Cyan
 
 # Explorer Settings
@@ -47,19 +170,19 @@ $explorerSettings = @{
   'TaskbarMn' = 0
 }
 foreach ($setting in $explorerSettings.GetEnumerator()) {
-  $null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v $setting.Name /t REG_DWORD /d $setting.Value /f 2>&1
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name $setting.Name -Type 'REG_DWORD' -Data ([string]$setting.Value)
 }
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" /v "FullPath" /t REG_DWORD /d 1 /f 2>&1
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" /v "StartupDelayInMSec" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d 2 /f 2>&1
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState' -Name 'FullPath' -Type 'REG_DWORD' -Data '1'
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize' -Name 'StartupDelayInMSec' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name 'VisualFXSetting' -Type 'REG_DWORD' -Data '2'
 
 # Dark Mode
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "AppsUseLightTheme" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "SystemUsesLightTheme" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" /v "EnableTransparency" /t REG_DWORD /d 0 /f 2>&1
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'AppsUseLightTheme' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'SystemUsesLightTheme' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'EnableTransparency' -Type 'REG_DWORD' -Data '0'
 
 # Classic Right-Click Menu (Win11)
-$null = reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /f 2>&1
+Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', '/ve', '/f') -Action 'Enable classic context menu'
 
 # Privacy & Telemetry
 $privacySettings = @{
@@ -79,46 +202,47 @@ $privacySettings = @{
 }
 foreach ($key in $privacySettings.GetEnumerator()) {
   foreach ($value in $key.Value.GetEnumerator()) {
-    $null = reg add $key.Name /v $value.Name /t REG_DWORD /d $value.Value /f 2>&1
+    Set-RegistryValueChecked -Path $key.Name -Name $value.Name -Type 'REG_DWORD' -Data ([string]$value.Value)
   }
 }
 
 # OneDrive Removal
-$null = reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d 1 /f 2>&1
-$null = reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "OneDrive" /f 2>&1
+Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive' -Name 'DisableFileSyncNGSC' -Type 'REG_DWORD' -Data '1'
+Remove-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'OneDrive' -IgnoreMissing
 
 # Gaming Optimizations
-$null = reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR" /v "AppCaptureEnabled" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v "HwSchMode" /t REG_DWORD /d 2 /f 2>&1
+Set-RegistryValueChecked -Path 'HKCU\System\GameConfigStore' -Name 'GameDVR_Enabled' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR' -Name 'AppCaptureEnabled' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -Name 'HwSchMode' -Type 'REG_DWORD' -Data '2'
 
 # Mouse Settings - Disable Acceleration
-$null = reg add "HKCU\Control Panel\Mouse" /v "MouseSpeed" /t REG_SZ /d "0" /f 2>&1
-$null = reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold1" /t REG_SZ /d "0" /f 2>&1
-$null = reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold2" /t REG_SZ /d "0" /f 2>&1
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Mouse' -Name 'MouseSpeed' -Type 'REG_SZ' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Mouse' -Name 'MouseThreshold1' -Type 'REG_SZ' -Data '0'
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Mouse' -Name 'MouseThreshold2' -Type 'REG_SZ' -Data '0'
 
 # Disable Sticky/Filter/Toggle Keys
-$null = reg add "HKCU\Control Panel\Accessibility\StickyKeys" /v "Flags" /t REG_SZ /d "506" /f 2>&1
-$null = reg add "HKCU\Control Panel\Accessibility\Keyboard Response" /v "Flags" /t REG_SZ /d "122" /f 2>&1
-$null = reg add "HKCU\Control Panel\Accessibility\ToggleKeys" /v "Flags" /t REG_SZ /d "58" /f 2>&1
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\StickyKeys' -Name 'Flags' -Type 'REG_SZ' -Data '506'
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\Keyboard Response' -Name 'Flags' -Type 'REG_SZ' -Data '122'
+Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\ToggleKeys' -Name 'Flags' -Type 'REG_SZ' -Data '58'
 
 # Network Optimizations - Reduce Latency
-$null = reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "NetworkThrottlingIndex" /t REG_DWORD /d 4294967295 /f 2>&1
-$null = reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" /v "SystemResponsiveness" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TcpAckFrequency" /t REG_DWORD /d 1 /f 2>&1
-$null = reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" /v "TCPNoDelay" /t REG_DWORD /d 1 /f 2>&1
+Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -Name 'NetworkThrottlingIndex' -Type 'REG_DWORD' -Data '4294967295'
+Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -Name 'SystemResponsiveness' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -Name 'TcpAckFrequency' -Type 'REG_DWORD' -Data '1'
+Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -Name 'TCPNoDelay' -Type 'REG_DWORD' -Data '1'
 
 # Windows Update Settings
-$null = reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "NoAutoRebootWithLoggedOnUsers" /t REG_DWORD /d 1 /f 2>&1
+Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name 'NoAutoRebootWithLoggedOnUsers' -Type 'REG_DWORD' -Data '1'
 
 # Compression Settings
-$null = reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration" /v "DisableResetbase" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKLM\SYSTEM\CurrentControlSet\Control\FileSystem" /v "NtfsDisableCompression" /t REG_DWORD /d 0 /f 2>&1
-$null = reg add "HKLM\SYSTEM\CurrentControlSet\Policies" /v "NtfsDisableCompression" /t REG_DWORD /d 0 /f 2>&1
+Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration' -Name 'DisableResetbase' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'NtfsDisableCompression' -Type 'REG_DWORD' -Data '0'
+Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Policies' -Name 'NtfsDisableCompression' -Type 'REG_DWORD' -Data '0'
 
 # ============================================
 # POWER MANAGEMENT
 # ============================================
+Set-SetupStep -Name 'power management'
 Write-Host "[2/12] Configuring power settings..." -ForegroundColor Cyan
 powercfg -h off
 powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 2>&1 | Out-Null
@@ -130,29 +254,34 @@ fsutil behavior set disablecompression 0 2>&1 | Out-Null
 # ============================================
 # SERVICE MANAGEMENT
 # ============================================
+Set-SetupStep -Name 'service management'
 Write-Host "[3/12] Disabling unnecessary services..." -ForegroundColor Cyan
 $servicesToDisable = @('SysMain', 'NvTelemetryContainer', 'icssvc', 'Fax')
 foreach ($service in $servicesToDisable) {
-  sc.exe config $service start= disabled 2>&1 | Out-Null
-  sc.exe stop $service 2>&1 | Out-Null
+  $serviceObject = Get-Service -Name $service -ErrorAction Stop
+  Set-Service -Name $serviceObject.Name -StartupType Disabled -ErrorAction Stop
+  if ($serviceObject.Status -ne 'Stopped') {
+    Stop-Service -Name $serviceObject.Name -Force -ErrorAction Stop
+  }
 }
 
 # ============================================
 # DNS CONFIGURATION
 # ============================================
+Set-SetupStep -Name 'dns configuration'
 Write-Host "[4/12] Configuring DNS..." -ForegroundColor Cyan
-netsh interface ip set dns "Ethernet" static 1.1.1.1 primary 2>&1 | Out-Null
-netsh interface ip add dns "Ethernet" 1.0.0.1 index=2 2>&1 | Out-Null
-netsh interface ip set dns "Wi-Fi" static 1.1.1.1 primary 2>&1 | Out-Null
-netsh interface ip add dns "Wi-Fi" 1.0.0.1 index=2 2>&1 | Out-Null
+Set-DnsServersForActiveAdapters -ServerAddresses @('1.1.1.1', '1.0.0.1')
 
 # ============================================
 # BLOATWARE REMOVAL
 # ============================================
+Set-SetupStep -Name 'bloatware removal'
 Write-Host "[5/12] Removing bloatware..." -ForegroundColor Cyan
-taskkill /f /im OneDrive.exe 2>&1 | Out-Null
-& "$env:SystemRoot\System32\OneDriveSetup.exe" /uninstall 2>&1 | Out-Null
-& "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" /uninstall 2>&1 | Out-Null
+Invoke-NativeCommand -FilePath 'taskkill' -ArgumentList @('/f', '/im', 'OneDrive.exe') -Action 'Stop OneDrive' -AllowedExitCodes @(0, 128, 255)
+Invoke-NativeCommand -FilePath "$env:SystemRoot\System32\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (System32)'
+if (Test-Path "$env:SystemRoot\SysWOW64\OneDriveSetup.exe") {
+  Invoke-NativeCommand -FilePath "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (SysWOW64)'
+}
 
 $bloatwareApps = @(
   'Microsoft.XboxGamingOverlay', 'Microsoft.XboxGameCallableUI', 'Microsoft.XboxIdentityProvider',
@@ -167,15 +296,17 @@ $bloatwareApps = @(
   'Microsoft.WindowsSoundRecorder'
 )
 foreach ($app in $bloatwareApps) {
-  Get-AppxPackage $app | Remove-AppxPackage 2>&1 | Out-Null
+  Remove-AppxPackageSafe -AppName $app
 }
 
 # ============================================
 # SOFTWARE INSTALLATION
 # ============================================
+Set-SetupStep -Name 'package upgrades'
 Write-Host "[6/12] Updating existing packages..." -ForegroundColor Cyan
-winget upgrade -r -u -h --accept-package-agreements --accept-source-agreements --force --purge --disable-interactivity --nowarn --no-proxy --include-unknown 2>&1 | Out-Null
+Invoke-Winget -ArgumentList @('upgrade', '-r', '-u', '-h', '--accept-package-agreements', '--accept-source-agreements', '--force', '--purge', '--disable-interactivity', '--nowarn', '--no-proxy', '--include-unknown') -Action 'Upgrade installed winget packages'
 
+Set-SetupStep -Name 'runtime installation'
 Write-Host "[7/12] Installing runtimes..." -ForegroundColor Cyan
 $runtimes = @(
   'Microsoft.VCRedist.2015+.x64', 'Microsoft.VCRedist.2013.x64',
@@ -185,31 +316,43 @@ $runtimes = @(
   'Oracle.JavaRuntimeEnvironment', 'EclipseAdoptium.Temurin.21.JRE', 'EclipseAdoptium.Temurin.25.JRE',
   'OpenAL.OpenAL'
 )
-foreach ($pkg in $runtimes) { winget install --id=$pkg -e -h 2>&1 | Out-Null }
+foreach ($pkg in $runtimes) {
+  Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install runtime package '$pkg'"
+}
 
+Set-SetupStep -Name 'toolchain installation'
 Write-Host "[8/12] Installing toolchains..." -ForegroundColor Cyan
 $toolchains = @(
   'MartinStorsjo.LLVM-MinGW.UCRT', 'Rustlang.Rust.MSVC', 'astral-sh.uv', 'Oven-sh.Bun',
   'oxc-project.oxlint', 'BiomeJS.Biome', 'koalaman.shellcheck', 'ast-grep.ast-grep', 'SQLite.SQLite'
 )
-foreach ($pkg in $toolchains) { winget install --id=$pkg -e -h 2>&1 | Out-Null }
+foreach ($pkg in $toolchains) {
+  Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install toolchain package '$pkg'"
+}
 if (Get-Command uv -ErrorAction SilentlyContinue) { uv python install 2>&1 | Out-Null }
 
+Set-SetupStep -Name 'development tool installation'
 Write-Host "[9/12] Installing development tools..." -ForegroundColor Cyan
 $devTools = @(
   'Git.Git', 'GitHub.cli', 'evilmartians.lefthook', 'Notepad++.Notepad++', 'VSCodium.VSCodium',
   'Microsoft.PowerShell', 'Microsoft.WindowsTerminal', 'CodeSector.TeraCopy', 'Microsoft.VisualStudioCode',
   'MathiasCodes.Winstow', 'OpenJS.NodeJS', 'PuTTY.PuTTY', 'Eugeny.Terminus'
 )
-foreach ($pkg in $devTools) { winget install --id=$pkg -e -h 2>&1 | Out-Null }
+foreach ($pkg in $devTools) {
+  Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install development tool '$pkg'"
+}
 
+Set-SetupStep -Name 'cli tool installation'
 Write-Host "[10/12] Installing CLI tools..." -ForegroundColor Cyan
 $cliTools = @(
   'eza-community.eza', 'BurntSushi.ripgrep.MSVC', 'Genivia.ugrep', 'sharkdp.fd',
   'sharkdp.bat', 'dandavison.delta', 'Starship.Starship', 'JanDeDobbeleer.OhMyPosh'
 )
-foreach ($pkg in $cliTools) { winget install --id=$pkg -e -h 2>&1 | Out-Null }
+foreach ($pkg in $cliTools) {
+  Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install CLI tool '$pkg'"
+}
 
+Set-SetupStep -Name 'application installation'
 Write-Host "[11/12] Installing applications..." -ForegroundColor Cyan
 $applications = @(
   'CodecGuide.K-LiteCodecPack.Basic', 'Microsoft.Sysinternals.Autoruns', 'Sysinternals.Autologon',
@@ -236,13 +379,15 @@ $applications = @(
   'KDE.Kdenlive', 'voidtools.Everything', 'CPUID.CPU-Z', 'Microsoft.PowerToys', 'TechPowerUp.GPU-Z',
   'Rainmeter.Rainmeter', 'ShareX.ShareX', 'ClamWin.ClamWin', 'mpv.net'
 )
-foreach ($pkg in $applications) { winget install --id=$pkg -e -h 2>&1 | Out-Null }
+foreach ($pkg in $applications) {
+  Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install application '$pkg'"
+}
 
-winget install "FFmpeg (Essentials Build)" -h 2>&1 | Out-Null
-winget install CodeF0x.ffzap -h 2>&1 | Out-Null
-winget install PaulPacifico.ShutterEncoder -h 2>&1 | Out-Null
-winget install Microsoft.Edit -h 2>&1 | Out-Null
-winget install yadm -h 2>&1 | Out-Null
+Invoke-Winget -ArgumentList @('install', 'FFmpeg (Essentials Build)', '-h') -Action 'Install FFmpeg (Essentials Build)'
+Invoke-Winget -ArgumentList @('install', 'CodeF0x.ffzap', '-h') -Action 'Install ffzap'
+Invoke-Winget -ArgumentList @('install', 'PaulPacifico.ShutterEncoder', '-h') -Action 'Install Shutter Encoder'
+Invoke-Winget -ArgumentList @('install', 'Microsoft.Edit', '-h') -Action 'Install Microsoft Edit'
+Invoke-Winget -ArgumentList @('install', 'yadm', '-h') -Action 'Install yadm'
 
 # GMK Driver
 Invoke-RestMethod https://offset-power.net/GMKDriver/setup.exe -OutFile "$env:TEMP\gmk.exe"
@@ -265,6 +410,7 @@ if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop bucket add extras 2
 # ============================================
 # CLEANUP & MAINTENANCE
 # ============================================
+Set-SetupStep -Name 'cleanup and maintenance'
 Write-Host "[12/12] Performing cleanup..." -ForegroundColor Cyan
 
 # Firefox Cleanup
@@ -354,7 +500,8 @@ netsh int ip reset 2>&1 | Out-Null
 chkdsk /scan 2>&1 | Out-Null
 
 # Final Updates
-winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements --include-unknown --force --purge --disable-interactivity 2>&1 | Out-Null
+Set-SetupStep -Name 'final package upgrades'
+Invoke-Winget -ArgumentList @('upgrade', '-h', '-r', '-u', '--accept-package-agreements', '--accept-source-agreements', '--include-unknown', '--force', '--purge', '--disable-interactivity') -Action 'Run final winget upgrades'
 if (Get-Command scoop -ErrorAction SilentlyContinue) { scoop update --all 2>&1 | Out-Null }
 if (Get-Command choco -ErrorAction SilentlyContinue) { choco upgrade all -y 2>&1 | Out-Null }
 if (Get-Command pip -ErrorAction SilentlyContinue) {
@@ -364,3 +511,8 @@ if (Get-Command pip -ErrorAction SilentlyContinue) {
 Write-Host "Setup completed successfully!" -ForegroundColor Green
 Write-Host "Restart required for all changes to take effect." -ForegroundColor Yellow
 exit 0
+} catch {
+  Write-Host "Setup failed during $script:CurrentSetupStep." -ForegroundColor Red
+  Write-Host $_.Exception.Message -ForegroundColor Red
+  exit 1
+}
