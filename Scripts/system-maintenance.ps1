@@ -116,23 +116,26 @@ function Invoke-MsiCleanup {
   Write-Verbose "MSI cleanup done."
 }
 
-try {
-  Request-AdminElevation
+if ($MyInvocation.InvocationName -ne '.') {
+  try {
+    Request-AdminElevation
 
-  if (-not $NoDefrag) {
-    Invoke-Defrag -TargetVolume $Volume -All:$AllVolumes
-  } else {
-    Write-Verbose "Skip defrag (--NoDefrag)."
+    if (-not $NoDefrag) {
+      Invoke-Defrag -TargetVolume $Volume -All:$AllVolumes
+    } else {
+      Write-Verbose "Skip defrag (--NoDefrag)."
+    }
+
+    if (-not $NoMsi) {
+      Invoke-MsiCleanup -Root $MsiDir
+    } else {
+      Write-Verbose "Skip MSI cleanup (--NoMsi)."
+    }
+
+    Write-Host "Complete."
+  } catch {
+    Write-Error $_.Exception.Message
+    exit 1
   }
-
-  if (-not $NoMsi) {
-    Invoke-MsiCleanup -Root $MsiDir
-  } else {
-    Write-Verbose "Skip MSI cleanup (--NoMsi)."
-  }
-
-  Write-Host "Complete."
-} catch {
-  Write-Error $_.Exception.Message
-  exit 1
 }
+
