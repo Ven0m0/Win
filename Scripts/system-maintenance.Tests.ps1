@@ -2,7 +2,6 @@
 
 Describe "Invoke-MsiCleanup" {
     BeforeAll {
-        . "$PSScriptRoot\Common.ps1"
         . "$PSScriptRoot\system-maintenance.ps1"
     }
 
