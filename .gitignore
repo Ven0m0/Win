@@ -297,3 +297,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .nfs*
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key

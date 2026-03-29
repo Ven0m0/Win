@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # AGENTS.md — AI Assistant Guide
 
 > **Note for agents**: This file is authoritative. `CLAUDE.md` is a symlink to this file. When updating documentation, edit `AGENTS.md` only.
@@ -39,6 +43,7 @@ Win/
 │   ├── shader-cache.ps1           # Shader cache management
 │   ├── DLSS-force-latest.ps1      # DLSS version forcing
 │   ├── Network-Tweaker.ps1        # Network optimizations
+│   ├── debloat-windows.ps1
 │   ├── system-settings-manager.ps1
 │   ├── system-maintenance.ps1
 │   ├── UltimateDiskCleanup.ps1
@@ -51,6 +56,7 @@ Win/
 │   ├── powershell/profile.ps1     # Main PowerShell profile
 │   ├── windows-terminal/          # Terminal settings
 │   ├── games/                     # Per-game configs (bf2, bo6, bo7)
+│   ├── nvidia/                    # NVIDIA inspector/performance scripts
 │   ├── bleachbit/cleaners/        # BleachBit custom cleaners
 │   └── ...
 ├── .claude/skills/                # Claude Code skill definitions
@@ -59,7 +65,7 @@ Win/
 ├── README.md                      # User-facing documentation
 ├── setup.ps1                      # Main system setup script
 ├── renovate.json                  # Renovate bot config
-└── todo.md                        # Pending tasks
+└── TODO.md                        # Pending tasks
 ```
 
 **Deprecated:** `.config/` — use `user/.dotfiles/config/` instead.
@@ -177,6 +183,39 @@ while ($true) {
 
 ---
 
+## CMD/Batch Conventions
+
+```batch
+@echo off
+setlocal enabledelayedexpansion
+setlocal enableextensions
+```
+
+- Variables: `set "name=value"` — use `!var!` (not `%var%`) inside code blocks
+- Subroutines: `call :label` / `exit /b 0`
+- Error checks: `if errorlevel 1` or `command && echo OK || echo FAIL`
+- Always `setlocal` to avoid polluting the environment
+
+---
+
+## AutoHotkey v2 Conventions
+
+Target AHK **v2.x only** (no v1 syntax). Every script must begin:
+
+```ahk
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+SendMode "Input"
+SetWorkingDir A_ScriptDir
+```
+
+- Naming: functions `PascalCase()`, locals `camelCase`, constants `UPPER_SNAKE_CASE`, globals `g_` prefix
+- Use `WinWait*` over `Sleep`; `SetTimer()` over tight loops
+- No hardcoded drive letters; use `A_ScriptDir` for relative paths
+- Admin elevation via `RequireAdmin()` from `AHK_Common.ahk`
+
+---
+
 ## yadm Workflow
 
 yadm is a **git wrapper** operating on `$HOME`. Commands are identical to git:
@@ -267,6 +306,9 @@ Remove-RegistryValue -Path "HKLM\SOFTWARE\..." -Name "Feature"
 # Syntax/lint
 Invoke-ScriptAnalyzer -Path Scripts/your-script.ps1
 
+# Unit tests (Pester — files named *.Tests.ps1)
+Invoke-Pester -Path Scripts/
+
 # Run as admin
 PowerShell.exe -ExecutionPolicy Bypass -File Scripts/your-script.ps1
 
@@ -332,6 +374,7 @@ $PROFILE                              # PowerShell profile
 $HOME\Scripts                         # Scripts directory
 user\.dotfiles\config\powershell\     # PowerShell config
 user\.dotfiles\config\windows-terminal\  # Terminal config
+user\.dotfiles\config\nvidia\         # NVIDIA inspector/performance config
 Scripts\Common.ps1                    # Shared utilities module
 ```
 
@@ -340,3 +383,50 @@ Scripts\Common.ps1                    # Shared utilities module
 **Repository:** https://github.com/Ven0m0/Win
 **Maintainer:** Ven0m0
 **Last Updated:** 2026-03-25
+
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
+## Beads Issue Tracker
+
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+
+### Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
+
+### Rules
+
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
+## Session Completion
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd dolt push
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+<!-- END BEADS INTEGRATION -->
