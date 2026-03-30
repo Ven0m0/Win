@@ -5,3 +5,8 @@ dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /nores
 wsl --install
 code ext install ms-vscode-remote.remote-wsl
 ```
+
+```ps1
+Install-Module -Name PSWindowsUpdate
+Install-Module -Name PackageManagement
+```
