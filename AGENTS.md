@@ -337,10 +337,11 @@ Types: `feat` · `fix` · `docs` · `refactor` · `style` · `chore`
 ```powershell
 winget install yadm
 yadm clone https://github.com/Ven0m0/Win.git
-pwsh $HOME\.yadm\bootstrap
+yadm bootstrap             # full setup — no manual steps
+yadm bootstrap -- -WhatIf  # preview all planned actions without applying
 ```
 
-Bootstrap: sets up PowerShell profile, Windows Terminal, git config, dev tools via winget, adds Scripts to PATH.
+Bootstrap runs `Scripts/Setup-Dotfiles.ps1` which: sets execution policy, installs dev tools via winget, deploys config files (PS profile, Windows Terminal, BleachBit cleaners), adds Scripts to PATH, and creates standard directories. Re-running is safe — configs are skipped if already up to date (SHA256 comparison).
 
 ---
 
