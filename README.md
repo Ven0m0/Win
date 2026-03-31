@@ -1,5 +1,7 @@
 # Windows Dotfiles
 
+[![Maintainability](https://qlty.sh/gh/Ven0m0/projects/.github/maintainability.svg)](https://qlty.sh/gh/Ven0m0/projects/.github)
+
 - [Winget](https://winstall.app)
 - [Scoop](https://scoop.sh) `iex "& {$(irm get.scoop.sh)} -RunAsAdmin"`
 - [Chocolatey](https://chocolatey.org)
