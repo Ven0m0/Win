@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Write",
+      "Bash(git status)",
+      "Bash(git add)",
+      "Bash(git diff)",
+      "Bash(git log)"
+    ],
+    "deny": [
+      "Edit(.ssh/*)",
+      "Write(.ssh/*)",
+      "Edit(powershell/local.ps1)",
+      "Write(powershell/local.ps1)",
+      "Edit(.yadm/*)",
+      "Write(.yadm/*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; try { $issues = Invoke-ScriptAnalyzer -Path $fp -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
+            "if": "Edit(**/*.ps1)",
+            "shell": "powershell",
+            "statusMessage": "Running PSScriptAnalyzer..."
+          }
+        ]
+      }
+    ]
+  }
+}

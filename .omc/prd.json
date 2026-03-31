@@ -1,0 +1,48 @@
+{
+  "title": "yadm Bootstrap Improvement",
+  "description": "Implement improved yadm bootstrap: create Setup-Dotfiles.ps1, rewrite .yadm/bootstrap, expand tool list, update docs",
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Create Scripts/Setup-Dotfiles.ps1",
+      "description": "Canonical setup implementation with all 5 phases",
+      "passes": true,
+      "acceptanceCriteria": [
+        "File exists at Scripts/Setup-Dotfiles.ps1 — PASS (10375 bytes)",
+        "Script has [CmdletBinding(SupportsShouldProcess)] so -WhatIf works — PASS",
+        "Phase 1 sets execution policy RemoteSigned -Scope CurrentUser non-interactively — PASS",
+        "Phase 2 installs tools via winget silently; treats exit codes 0 and -1978335189 as success — PASS",
+        "Phase 3 Deploy-Config helper uses SHA256 hash comparison; skips if identical — PASS",
+        "Phase 3 deploys PowerShell profile and Windows Terminal settings — PASS",
+        "Phase 3 deploys BleachBit cleaners/*.xml files — PASS",
+        "Phase 3 emits [SKIP] warnings for TBD configs without failing — PASS",
+        "Phase 4 adds Scripts dir to PATH without any Read-Host prompt — PASS",
+        "Phase 5 prints verification summary — PASS",
+        "No Read-Host calls anywhere in the script — PASS",
+        "Script handles missing winget gracefully — PASS (prints install URL)"
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Rewrite .yadm/bootstrap as thin wrapper",
+      "description": "Replace 165-line implementation with a wrapper that delegates to Setup-Dotfiles.ps1",
+      "passes": true,
+      "acceptanceCriteria": [
+        "File .yadm/bootstrap is a thin wrapper (under 20 lines) — PASS (418 bytes, 15 lines)",
+        "Bootstrap calls Setup-Dotfiles.ps1 using @args pass-through — PASS",
+        "Bootstrap exits non-zero with descriptive error if Setup-Dotfiles.ps1 not found — PASS",
+        "yadm bootstrap -- -WhatIf correctly passes -WhatIf to Setup-Dotfiles.ps1 — PASS (@args pass-through)"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Update AGENTS.md Bootstrap Process section",
+      "description": "Update documentation to reflect new one-command setup with -WhatIf preview",
+      "passes": true,
+      "acceptanceCriteria": [
+        "AGENTS.md Bootstrap Process section shows yadm bootstrap and yadm bootstrap -- -WhatIf — PASS",
+        "AGENTS.md no longer references allow-scripts.cmd as manual post-bootstrap step — PASS"
+      ]
+    }
+  ]
+}

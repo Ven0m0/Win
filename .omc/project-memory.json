@@ -1,0 +1,148 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1774822423360,
+  "projectRoot": "C:\\Users\\Ven0m0\\project\\Win",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "Scripts": {
+      "path": "Scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 20,
+      "lastAccessed": 1774822423324,
+      "keyFiles": [
+        "allow-scripts.cmd",
+        "Common.ps1",
+        "debloat-windows.ps1",
+        "Defrag.txt",
+        "DLSS-force-latest.ps1"
+      ]
+    },
+    "user": {
+      "path": "user",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1774822423324,
+      "keyFiles": []
+    },
+    "user\\bin": {
+      "path": "user\\bin",
+      "purpose": "Executable scripts",
+      "fileCount": 4,
+      "lastAccessed": 1774822423325,
+      "keyFiles": [
+        "ect.cmd",
+        "ffmpeg-av1.cmd",
+        "ffzap-av1.cmd"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "AGENTS.md",
+      "accessCount": 13,
+      "lastAccessed": 1774840079587,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\Setup-Dotfiles.ps1",
+      "accessCount": 8,
+      "lastAccessed": 1774840203269,
+      "type": "file"
+    },
+    {
+      "path": ".yadm\\bootstrap",
+      "accessCount": 4,
+      "lastAccessed": 1774840079166,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\settings.json",
+      "accessCount": 3,
+      "lastAccessed": 1774839718059,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\skills\\ps-script-validator\\SKILL.md",
+      "accessCount": 2,
+      "lastAccessed": 1774823025567,
+      "type": "file"
+    },
+    {
+      "path": "TODO.md",
+      "accessCount": 1,
+      "lastAccessed": 1774822445403,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\skills\\new-ps-script\\SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1774823040218,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\agents\\ps-reviewer.md",
+      "accessCount": 1,
+      "lastAccessed": 1774823074817,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\AUTOMATION-SETUP.md",
+      "accessCount": 1,
+      "lastAccessed": 1774823102819,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1774825451705,
+      "type": "file"
+    },
+    {
+      "path": ".opencode\\skills\\yadm-dotfiles\\SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1774825467092,
+      "type": "file"
+    },
+    {
+      "path": "setup.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1774826158672,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\Common.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1774829384908,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

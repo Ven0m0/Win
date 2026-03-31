@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/opencode-toolbox@latest/toolbox.schema.json",
+  "mcp": {
+    // Add your MCP servers here
+    // Example:
+    // "time": {
+    //   "type": "local",
+    //   "command": ["npx", "-y", "@anthropic/mcp-time"]
+    // }
+  },
+  "settings": {
+    "defaultLimit": 5,
+    "initMode": "eager"
+  }
+}

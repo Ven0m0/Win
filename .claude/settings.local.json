@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Skill(update-config)",
+      "Bash(python:*)",
+      "Bash(npm view:*)",
+      "Bash(find /c/Users/Ven0m0/project/Win -type f -name .yadm* -o -name yadm*)",
+      "mcp__cachebro__read_file",
+      "Bash(git config:*)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "Bash(Test-Path \"C:\\\\Users\\\\Ven0m0\\\\project\\\\Win\\\\Scripts\\\\Setup-Dotfiles.ps1\")",
+      "Bash(Get-Item \"C:\\\\Users\\\\Ven0m0\\\\project\\\\Win\\\\Scripts\\\\Setup-Dotfiles.ps1\")",
+      "Bash(Select-Object Name, Length)",
+      "Bash(pwsh -Command \"Get-Item 'C:/Users/Ven0m0/project/Win/Scripts/Setup-Dotfiles.ps1' | Select-Object Name, Length\")",
+      "Bash(pwsh -NoProfile -Command \"\n\\\\$null = [System.Management.Automation.Language.Parser]::ParseFile\\('C:/Users/Ven0m0/project/Win/Scripts/Setup-Dotfiles.ps1', [ref]\\\\$null, [ref]\\\\$errors\\)\nif \\(\\\\$errors.Count -eq 0\\) { Write-Host 'PASS: 0 parse errors' } else { \\\\$errors | ForEach-Object { Write-Host \\\\\"ERROR: \\\\$_\\\\\" }; exit 1 }\n\")",
+      "mcp__plugin_oh-my-claudecode_t__state_list_active",
+      "mcp__plugin_oh-my-claudecode_t__state_clear"
+    ]
+  }
+}
