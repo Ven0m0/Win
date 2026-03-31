@@ -55,7 +55,7 @@ Win/
 ├── user/.dotfiles/config/         # Active configuration files (NOT .config/)
 │   ├── powershell/profile.ps1     # Main PowerShell profile
 │   ├── windows-terminal/          # Terminal settings
-│   ├── games/                     # Per-game configs (bf2, bo6, bo7)
+│   ├── games/                     # Per-game configs (bf2, bo6, bo7, arc-raiders)
 │   ├── nvidia/                    # NVIDIA inspector/performance scripts
 │   ├── bleachbit/cleaners/        # BleachBit custom cleaners
 │   └── ...
@@ -317,6 +317,7 @@ Get-ItemProperty -Path "HKLM\..."   # before and after
 ```
 
 CI runs PSScriptAnalyzer on every push/PR via `.github/workflows/powershell.yml`.
+PSMinifier also runs on push and auto-commits minified output — do not manually minify scripts.
 
 ---
 
@@ -342,6 +343,8 @@ yadm bootstrap -- -WhatIf  # preview all planned actions without applying
 ```
 
 Bootstrap runs `Scripts/Setup-Dotfiles.ps1` which: sets execution policy, installs dev tools via winget, deploys config files (PS profile, Windows Terminal, BleachBit cleaners), adds Scripts to PATH, and creates standard directories. Re-running is safe — configs are skipped if already up to date (SHA256 comparison).
+
+`setup.ps1` (repo root) is a separate comprehensive Windows setup script — software installation, system optimization, bloatware removal, and privacy tweaks. Run directly as admin, not via bootstrap.
 
 ---
 
