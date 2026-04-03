@@ -47,6 +47,7 @@ Win/
 │   ├── system-settings-manager.ps1
 │   ├── system-maintenance.ps1
 │   ├── UltimateDiskCleanup.ps1
+│   ├── Clean-SpotifyCache.ps1        # Spotify cache cleaner
 │   ├── shell-setup.ps1
 │   ├── Hostbuilder/               # Hosts file management
 │   ├── minify-ps1/                # PSMinifier module
