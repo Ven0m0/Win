@@ -207,7 +207,7 @@ regedit /s nvidia-performance-tweaks.reg
 REM Disable MPO if you have flickering
 regedit /s toggles/disable-mpo.reg
 
-:: Enable hardware scheduling
+REM Enable hardware scheduling
 regedit /s toggles/enable-hardware-scheduling.reg
 ```
 
