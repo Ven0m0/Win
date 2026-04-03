@@ -958,5 +958,152 @@ function Remove-AppxPackageSafe {
 }
 #endregion
 
+#region EDID Override Management
+function Set-EDIDOverride {
+  <#
+  .SYNOPSIS
+      Applies EDID override to all monitors to fix display driver stuttering
+  #>
+  $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
+  $edidHex = '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
+  $monitors = Get-MonitorInstances
+
+  if ($monitors.Count -eq 0) {
+    Write-Host "No monitors detected!" -ForegroundColor Yellow
+    return
+  }
+
+  Write-Host "Applying EDID Override..." -ForegroundColor Cyan
+  Write-Host ""
+
+  foreach ($monitor in $monitors) {
+    $name = $monitor -split '\\'
+    Write-Host "  Applying override for: $($name[1])" -ForegroundColor Green
+    $regPath = "$regLocation$monitor\Device Parameters\EDID_OVERRIDE"
+    Set-RegistryValue -Path $regPath -Name '1' -Type REG_BINARY -Data $edidHex
+  }
+
+  Write-Host ""
+  Write-Host "EDID override applied successfully to $($monitors.Count) monitor(s)." -ForegroundColor Green
+}
+
+function Remove-EDIDOverride {
+  <#
+  .SYNOPSIS
+      Removes EDID override from all monitors
+  #>
+  $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
+  $monitors = Get-MonitorInstances
+
+  if ($monitors.Count -eq 0) {
+    Write-Host "No monitors detected!" -ForegroundColor Yellow
+    return
+  }
+
+  Write-Host "Removing EDID Override..." -ForegroundColor Cyan
+  Write-Host ""
+
+  foreach ($monitor in $monitors) {
+    $name = $monitor -split '\\'
+    Write-Host "  Removing override for: $($name[1])" -ForegroundColor Green
+    $regPath = "$regLocation$monitor\Device Parameters\EDID_OVERRIDE"
+    Remove-RegistryValue -Path $regPath
+  }
+
+  Write-Host ""
+  Write-Host "EDID override removed successfully from $($monitors.Count) monitor(s)." -ForegroundColor Green
+}
+
+function Show-EDIDStatus {
+  <#
+  .SYNOPSIS
+      Displays current EDID override status for all monitors
+  #>
+  $monitors = Get-MonitorInstances
+
+  if ($monitors.Count -eq 0) {
+    Write-Host "No monitors detected!" -ForegroundColor Yellow
+    return
+  }
+
+  Write-Host "Current EDID Override Status:" -ForegroundColor Cyan
+  Write-Host ""
+
+  foreach ($monitor in $monitors) {
+    $name = $monitor -split '\\'
+    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Enum\$monitor\Device Parameters\EDID_OVERRIDE"
+
+    Write-Host "Monitor: $($name[1])" -ForegroundColor Yellow
+
+    if (Test-Path $regPath) {
+      try {
+        $null = Get-ItemProperty -Path $regPath -Name '1' -ErrorAction Stop
+        Write-Host "  Status: Override applied" -ForegroundColor Green
+        Write-Host "  Value: Present" -ForegroundColor Green
+      } catch {
+        Write-Host "  Status: No override" -ForegroundColor Gray
+      }
+    } else {
+      Write-Host "  Status: No override" -ForegroundColor Gray
+    }
+    Write-Host ""
+  }
+}
+#endregion
+
+#region MSI Mode
+function Set-MSIMode {
+  <#
+  .SYNOPSIS
+      Enables or disables MSI mode for all display adapters
+  .PARAMETER Enable
+      $true to enable MSI mode, $false to disable
+  #>
+  param([bool]$Enable)
+
+  Clear-Host
+
+  $gpuDevices = Get-PnpDevice -Class Display -ErrorAction SilentlyContinue
+
+  if ($gpuDevices.Count -eq 0) {
+    Write-Host "No display adapters found!" -ForegroundColor Yellow
+    return
+  }
+
+  $msiValue = if ($Enable) { "1" } else { "0" }
+  $status = if ($Enable) { "Enabling" } else { "Disabling" }
+
+  Write-Host "$status MSI Mode for all GPUs..." -ForegroundColor Cyan
+  Write-Host ""
+
+  foreach ($gpu in $gpuDevices) {
+    $instanceID = $gpu.InstanceId
+    $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+    Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
+  }
+
+  Write-Host "MSI Mode Status:" -ForegroundColor Cyan
+  Write-Host ""
+
+  foreach ($gpu in $gpuDevices) {
+    $instanceID = $gpu.InstanceId
+    $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+
+    Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
+    Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
+
+    try {
+      $msiSupported = (Get-ItemProperty -Path $regPath -Name "MSISupported" -ErrorAction Stop).MSISupported
+      $statusColor = if ($msiSupported -eq 1) { "Green" } else { "Yellow" }
+      $statusText = if ($msiSupported -eq 1) { "Enabled (1)" } else { "Disabled (0)" }
+      Write-Host "  MSI Mode: $statusText" -ForegroundColor $statusColor
+    } catch {
+      Write-Host "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
+    }
+    Write-Host ""
+  }
+}
+#endregion
+
 # Export functions
         try { Export-ModuleMember -Function * } catch { }

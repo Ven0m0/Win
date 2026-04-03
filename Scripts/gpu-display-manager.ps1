@@ -21,7 +21,7 @@ function Set-P0State {
 
   Clear-Host
   Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
-  Show-NvidiaSettings -Setting "P0State" -GpuPaths $gpuPaths
+  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "P0State" -GpuPaths $gpuPaths
 }
 
 function Set-HDCP {
@@ -31,153 +31,12 @@ function Set-HDCP {
 
   Clear-Host
   Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
-  Show-NvidiaSettings -Setting "HDCP" -GpuPaths $gpuPaths
-}
-
-function Show-NvidiaSettings {
-  param(
-    [string]$Setting = "All",
-    [string[]]$GpuPaths
-  )
-
-  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting $Setting -GpuPaths $GpuPaths
-}
-#endregion
-
-#region MSI Mode
-function Set-MSIMode {
-  param([bool]$Enable)
-
-  Clear-Host
-
-  # Get all GPU display devices
-  $gpuDevices = Get-PnpDevice -Class Display -ErrorAction SilentlyContinue
-
-  if ($gpuDevices.Count -eq 0) {
-    Write-Host "No display adapters found!" -ForegroundColor Yellow
-    return
-  }
-
-  $msiValue = if ($Enable) { "1" } else { "0" }
-  $status = if ($Enable) { "Enabling" } else { "Disabling" }
-
-  Write-Host "$status MSI Mode for all GPUs..." -ForegroundColor Cyan
-  Write-Host ""
-
-  # Set MSI mode for all GPUs
-  foreach ($gpu in $gpuDevices) {
-    $instanceID = $gpu.InstanceId
-    $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
-    Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
-  }
-
-  # Display MSI mode status
-  Write-Host "MSI Mode Status:" -ForegroundColor Cyan
-  Write-Host ""
-
-  foreach ($gpu in $gpuDevices) {
-    $instanceID = $gpu.InstanceId
-    $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
-
-    Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
-    Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
-
-    try {
-      $msiSupported = (Get-ItemProperty -Path $regPath -Name "MSISupported" -ErrorAction Stop).MSISupported
-      $statusColor = if ($msiSupported -eq 1) { "Green" } else { "Yellow" }
-      $statusText = if ($msiSupported -eq 1) { "Enabled (1)" } else { "Disabled (0)" }
-      Write-Host "  MSI Mode: $statusText" -ForegroundColor $statusColor
-    } catch {
-      Write-Host "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
-    }
-    Write-Host ""
-  }
-}
-#endregion
-
-#region EDID Override
-$REG_LOCATION = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
-$EDID_HEX = '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
-
-function Set-EDIDOverride {
-  $monitors = Get-MonitorInstances
-
-  if ($monitors.Count -eq 0) {
-    Write-Host "No monitors detected!" -ForegroundColor Yellow
-    return
-  }
-
-  Write-Host "Applying EDID Override..." -ForegroundColor Cyan
-  Write-Host ""
-
-  foreach ($monitor in $monitors) {
-    $name = $monitor -split '\\'
-    Write-Host "  Applying override for: $($name[1])" -ForegroundColor Green
-    $regPath = "$REG_LOCATION$monitor\Device Parameters\EDID_OVERRIDE"
-    Set-RegistryValue -Path $regPath -Name '1' -Type REG_BINARY -Data $EDID_HEX
-  }
-
-  Write-Host ""
-  Write-Host "EDID override applied successfully to $($monitors.Count) monitor(s)." -ForegroundColor Green
-}
-
-function Remove-EDIDOverride {
-  $monitors = Get-MonitorInstances
-
-  if ($monitors.Count -eq 0) {
-    Write-Host "No monitors detected!" -ForegroundColor Yellow
-    return
-  }
-
-  Write-Host "Removing EDID Override..." -ForegroundColor Cyan
-  Write-Host ""
-
-  foreach ($monitor in $monitors) {
-    $name = $monitor -split '\\'
-    Write-Host "  Removing override for: $($name[1])" -ForegroundColor Green
-    $regPath = "$REG_LOCATION$monitor\Device Parameters\EDID_OVERRIDE"
-    Remove-RegistryValue -Path $regPath
-  }
-
-  Write-Host ""
-  Write-Host "EDID override removed successfully from $($monitors.Count) monitor(s)." -ForegroundColor Green
-}
-
-function Show-EDIDStatus {
-  $monitors = Get-MonitorInstances
-
-  if ($monitors.Count -eq 0) {
-    Write-Host "No monitors detected!" -ForegroundColor Yellow
-    return
-  }
-
-  Write-Host "Current EDID Override Status:" -ForegroundColor Cyan
-  Write-Host ""
-
-  foreach ($monitor in $monitors) {
-    $name = $monitor -split '\\'
-    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Enum\$monitor\Device Parameters\EDID_OVERRIDE"
-
-    Write-Host "Monitor: $($name[1])" -ForegroundColor Yellow
-
-    if (Test-Path $regPath) {
-      try {
-        $override = Get-ItemProperty -Path $regPath -Name '1' -ErrorAction Stop
-        Write-Host "  Status: Override applied" -ForegroundColor Green
-        Write-Host "  Value: Present" -ForegroundColor Green
-      } catch {
-        Write-Host "  Status: No override" -ForegroundColor Gray
-      }
-    } else {
-      Write-Host "  Status: No override" -ForegroundColor Gray
-    }
-    Write-Host ""
-  }
+  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "HDCP" -GpuPaths $gpuPaths
 }
 #endregion
 
 #region Gaming Display Settings
-# Gaming display functions now available from Common.ps1:
+# Gaming display functions available from Common.ps1:
 # - Set-FullscreenMode
 # - Set-MultiPlaneOverlay
 # - Show-GamingDisplayStatus
@@ -244,7 +103,7 @@ function Show-NvidiaMenu {
       }
       7 {
         Clear-Host
-        Show-NvidiaSettings
+        Show-NvidiaGpuSettings
         Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
         Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' })
         Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' })
