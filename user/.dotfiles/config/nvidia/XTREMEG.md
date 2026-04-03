@@ -201,7 +201,7 @@ Check [r/XtremeG](https://www.reddit.com/r/XtremeG) for the latest version.
 After installing XtremeG drivers:
 
 ```cmd
-:: Apply consolidated performance tweaks
+REM Apply consolidated performance tweaks
 regedit /s nvidia-performance-tweaks.reg
 
 :: Disable MPO if you have flickering
