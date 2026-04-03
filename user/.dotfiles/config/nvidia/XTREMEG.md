@@ -204,7 +204,7 @@ After installing XtremeG drivers:
 REM Apply consolidated performance tweaks
 regedit /s nvidia-performance-tweaks.reg
 
-:: Disable MPO if you have flickering
+REM Disable MPO if you have flickering
 regedit /s toggles/disable-mpo.reg
 
 :: Enable hardware scheduling
