@@ -6,24 +6,23 @@ This directory contains static registry files and batch scripts extracted from t
 
 ### `Scripts/gpu-display-manager.ps1`
 
-**Unified GPU and Display Settings Manager** - Interactive PowerShell script with menu interface.
+Unified GPU and Display Settings Manager — interactive PowerShell script with menu interface.
 
 **Features:**
-- ✅ NVIDIA P-State 0 Lock (force max clocks)
-- ✅ HDCP Enable/Disable (content protection)
-- ✅ MSI Mode Configuration (for all GPUs)
-- ✅ EDID Override Manager (fix monitor stuttering)
-- ✅ Fullscreen Optimization settings (FSO/FSE)
-- ✅ Multiplane Overlay settings (MPO)
-- ✅ Real-time status viewing
-- ✅ Automatic GPU detection
+- NVIDIA P-State 0 Lock (force max clocks)
+- HDCP Enable/Disable (content protection)
+- MSI Mode Configuration (for all GPUs)
+- EDID Override Manager (fix monitor stuttering)
+- Fullscreen Optimization settings (FSO/FSE)
+- Multiplane Overlay settings (MPO)
+- Real-time status viewing
+- Automatic GPU detection
 
 **Why use the PowerShell script:**
 - Interactive menu system
 - Automatic GPU detection (handles multiple GPUs)
 - Real-time status viewing
 - Error handling and validation
-- More user-friendly
 
 **Why use registry files from this directory:**
 - Faster (no script execution)
@@ -54,21 +53,21 @@ cd ~/Scripts
 
 ### `Scripts/DLSS-force-latest.ps1`
 
-**DLSS Force Latest Configuration** - Forces games to use the latest DLSS DLL.
+DLSS Force Latest Configuration — forces games to use the latest DLSS DLL.
 
 **Features:**
-- ✅ Force latest DLSS version override
-- ✅ DLSS overlay indicator toggle
-- ✅ NVIDIA Profile Inspector integration
-- ✅ Read-only protection for DRS database
-- ✅ Automatic Inspector download
-- ✅ Custom profile generation
+- Force latest DLSS version override
+- DLSS overlay indicator toggle
+- NVIDIA Profile Inspector integration
+- Read-only protection for DRS database
+- Automatic Inspector download
+- Custom profile generation
 
 **Why use the PowerShell script:**
 - Manages NVIDIA Profile Inspector automatically
 - Creates and imports .nip profiles
 - Handles DRS database protection
-- More comprehensive DLSS settings
+- More DLSS settings than registry files alone
 
 **Why use registry files from this directory:**
 - Quick DLSS indicator toggle only
@@ -90,21 +89,21 @@ cd ~/Scripts
 .\DLSS-force-latest.ps1
 ```
 
-**Note:** The script downloads Inspector.exe to `%TEMP%` automatically.
+The script downloads Inspector.exe to `%TEMP%` automatically.
 
 ---
 
 ### `Scripts/shader-cache.ps1`
 
-**Shader Cache Cleanup** - Clears all shader caches for Steam games and GPU drivers.
+Shader Cache Cleanup — clears all shader caches for Steam games and GPU drivers.
 
 **Features:**
-- ✅ Clears Steam shader caches
-- ✅ Clears NVIDIA shader caches (GLCache, DXCache, OptixCache)
-- ✅ Clears AMD and Intel shader caches
-- ✅ Clears game-specific caches (CS2, etc.)
-- ✅ Gracefully shuts down Steam
-- ✅ Clears crash dumps and logs
+- Clears Steam shader caches
+- Clears NVIDIA shader caches (GLCache, DXCache, OptixCache)
+- Clears AMD and Intel shader caches
+- Clears game-specific caches (CS2, etc.)
+- Gracefully shuts down Steam
+- Clears crash dumps and logs
 
 **Why use the PowerShell script:**
 - Handles Steam gracefully (proper shutdown)
@@ -119,17 +118,17 @@ cd ~/Scripts
 - Simpler
 
 **Equivalent Batch File:**
-- `nvidia-shader-cache-cleanup.bat` - NVIDIA caches only
+- `nvidia-shader-cache-cleanup.bat` — NVIDIA caches only
 
 **Differences:**
 
 | Feature | PowerShell Script | Batch File |
 |---------|------------------|------------|
-| Steam integration | ✅ Yes | ❌ No |
-| Game-specific caches | ✅ Yes | ❌ No |
-| Steam shutdown | ✅ Yes | ❌ No |
-| NVIDIA caches | ✅ Yes | ✅ Yes |
-| AMD/Intel caches | ✅ Yes | ❌ No |
+| Steam integration | Yes | No |
+| Game-specific caches | Yes | No |
+| Steam shutdown | Yes | No |
+| NVIDIA caches | Yes | Yes |
+| AMD/Intel caches | Yes | No |
 
 **Usage:**
 ```powershell
@@ -144,20 +143,18 @@ nvidia-shader-cache-cleanup.bat
 
 ---
 
-## Consolidated Files vs Scripts
+## Registry Files vs Scripts
 
-### When to Use Registry Files
+### Use Registry Files When
 
-✅ **Use registry files when:**
 - You want quick, simple toggles
 - You're automating via scripts/batch files
 - You don't need interactive menus
 - You know exactly which setting you want
 - You're applying settings to multiple machines
 
-### When to Use PowerShell Scripts
+### Use PowerShell Scripts When
 
-✅ **Use PowerShell scripts when:**
 - You want interactive menus
 - You need automatic GPU detection
 - You want to see current status
@@ -165,25 +162,9 @@ nvidia-shader-cache-cleanup.bat
 - You want error handling and validation
 - You're using Steam game integrations
 
-## Registry Files Advantages
-
-1. **Fast** - No script execution overhead
-2. **Simple** - Double-click to apply
-3. **Portable** - Can be shared easily
-4. **Automatable** - Easy to include in setup scripts
-5. **No dependencies** - No PowerShell required
-
-## PowerShell Scripts Advantages
-
-1. **Interactive** - Menus and status displays
-2. **Smart** - Automatic GPU detection
-3. **Safe** - Validation and error handling
-4. **Comprehensive** - More features and options
-5. **User-friendly** - Easier for non-technical users
-
 ## Performance Tweaks Consolidation
 
-The `nvidia-performance-tweaks.reg` file consolidates many settings from the PowerShell scripts:
+The `nvidia-performance-tweaks.reg` file consolidates settings from the PowerShell scripts:
 
 **From gpu-display-manager.ps1:**
 - P-State 0 lock
@@ -261,13 +242,12 @@ cd ~/Scripts
 
 ## Notes
 
-- **GPU Index**: Registry files use `0000` for the first GPU. If you have multiple GPUs, you may need to adjust the index in the registry path.
+- **GPU Index**: Registry files use `0000` for the first GPU. Adjust the index in the registry path if you have multiple GPUs.
 - **Reboot Required**: Most GPU registry changes require a reboot to take effect.
 - **Backup**: Always backup your registry before making changes.
 - **Testing**: Test one change at a time to identify any issues.
 
 ## See Also
 
-- [Main README](README.md) - Complete NVIDIA configuration guide
-- [Scripts/Common.ps1](../../../../Scripts/Common.ps1) - Shared functions used by all scripts
-- [Scripts/OPTIMIZATION_NOTES.md](../../../../Scripts/OPTIMIZATION_NOTES.md) - Script optimization history
+- [Main README](README.md) — NVIDIA configuration guide
+- [Scripts/Common.ps1](../../../../Scripts/Common.ps1) — Shared functions used by all scripts

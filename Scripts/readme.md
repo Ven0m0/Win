@@ -1,3 +1,0 @@
-- https://github.com/zoicware/OverrideEDID
-- https://github.com/zoicware/zScripts
-- https://github.com/zoicware/RemoveWindowsAI
