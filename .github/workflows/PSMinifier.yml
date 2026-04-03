@@ -8,10 +8,12 @@ on:
     paths:
       - "**.ps1"
       - "**.psm1"
+      - ".github/workflows/PSMinifier.yml"
   pull_request:
     paths:
       - "**.ps1"
       - "**.psm1"
+      - ".github/workflows/PSMinifier.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,19 +23,20 @@ jobs:
   minify:
     name: Minify PowerShell Scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
       - name: Minify PowerShell files
         id: minify
-        uses: StartAutomating/PSMinifier@v1.1.4
+        uses: StartAutomating/PSMinifier@6d9f510d8171d4985fbc6f4998960404e0a1741e # v1.1.4
         with:
           Include: "*.ps1,*.psm1"
 
@@ -55,7 +58,7 @@ jobs:
 
       - name: Create Pull Request
         if: github.event_name == 'pull_request'
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: minify PowerShell scripts"
