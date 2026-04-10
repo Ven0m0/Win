@@ -8,10 +8,12 @@ on:
     paths:
       - "**.ps1"
       - "**.psm1"
+      - ".github/workflows/PSMinifier.yml"
   pull_request:
     paths:
       - "**.ps1"
       - "**.psm1"
+      - ".github/workflows/PSMinifier.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +23,7 @@ jobs:
   minify:
     name: Minify PowerShell Scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
       pull-requests: write
