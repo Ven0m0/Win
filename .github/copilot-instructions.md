@@ -1,79 +1,27 @@
 # GitHub Copilot Instructions
 
-This is a **Windows dotfiles and optimization suite** managed with [yadm](https://yadm.io/). Scripts target PowerShell 5.1+/7+ on Windows with administrator privileges.
+Ven0m0/Win is a **Windows dotfiles and optimization repository** managed with [yadm](https://yadm.io/). It contains PowerShell automation, Windows configuration, registry tweaks, and gaming/performance tuning assets for Windows machines.
 
-See `AGENTS.md` at the repo root for the full AI assistant guide.
+Use these repository-wide rules for every task:
 
----
+- Reuse `Scripts/Common.ps1` for shared PowerShell behavior; do not duplicate helpers.
+- Keep tracked configuration in `user/.dotfiles/config/`; do not introduce new content under deprecated `.config/` paths.
+- Preserve Windows and PowerShell 5.1+/7+ compatibility.
+- Use `$PSScriptRoot`, `$HOME`, `$env:*`, and other environment-based paths instead of hardcoded machine-specific paths.
+- Prefer reversible registry and system changes when modifying user-visible behavior.
+- Follow the file-type guidance in `.github/instructions/` for PowerShell, CMD/Batch, AutoHotkey, and general context rules.
+- For setup/bootstrap changes, review `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, and related docs together.
 
-## Project Context
+When editing common areas:
 
-- **Language focus:** PowerShell, CMD/Batch, AutoHotkey v2, registry (.reg)
-- **Per-language rules:** See `.github/instructions/` (applied automatically by Copilot)
-- **Shared utilities:** Always use `Scripts/Common.ps1` — never duplicate its functions
-- **Config location:** `user/.dotfiles/config/` (not `.config/`, which is deprecated)
+- `Scripts/*.ps1`: keep the existing admin/elevation pattern, use `Scripts/Common.ps1`, and match the established PowerShell style.
+- `user/.dotfiles/config/**`: preserve the target application's native format and existing directory layout.
+- `.github/**`: keep instructions concise, repository-specific, and complementary rather than duplicating path-specific guidance.
 
----
+Validation:
 
-## PowerShell Patterns
+- Run `Invoke-ScriptAnalyzer -Path <changed-script>` for changed PowerShell files.
+- Use existing Pester tests when the affected area already has tests or when adding new testable PowerShell logic.
+- Documentation-only changes usually only need a careful diff review.
 
-Every script follows this structure:
-
-```powershell
-#Requires -RunAsAdministrator
-. "$PSScriptRoot\Common.ps1"
-
-Request-AdminElevation
-Initialize-ConsoleUI -Title "Script Name (Administrator)"
-```
-
-**Key Common.ps1 functions** (use these, don't reimplement):
-
-```powershell
-Request-AdminElevation              # Elevate if not admin
-Initialize-ConsoleUI -Title "..."   # Console setup
-Show-Menu -Title "..." -Options @() # Interactive menu
-Get-MenuChoice -Min 1 -Max N        # Menu input
-Set-RegistryValue -Path "HKLM\..." -Name "..." -Type "REG_DWORD" -Data "1"
-Remove-RegistryValue -Path "HKLM\..." -Name "..."
-Get-NvidiaGpuRegistryPaths          # NVIDIA GPU registry discovery
-Get-FileFromWeb -URL "..." -File "C:\..."
-Clear-DirectorySafe -Path "C:\..."  # Safe delete via robocopy
-ConvertFrom-VDF / ConvertTo-VDF     # Steam VDF parsing
-```
-
-**Style rules:**
-- OTBS braces, 2-space indent, spaces around operators and pipes
-- `Set-StrictMode -Version Latest` + `$ErrorActionPreference = "Stop"` at top
-- Comment-based help (`<# .SYNOPSIS .DESCRIPTION .PARAMETER .EXAMPLE #>`) on all functions
-- File names: `lowercase-with-dashes.ps1`
-- No hardcoded paths — use `$PSScriptRoot`, `$HOME`, `$env:*`
-- No `$ErrorActionPreference = "SilentlyContinue"` globally
-- No `Invoke-Expression` with untrusted input
-
----
-
-## Registry Conventions
-
-- Use NVIDIA registry path discovery: `Get-NvidiaGpuRegistryPaths`
-- Always support both enable and disable (restore defaults) operations
-- Key paths:
-  - NVIDIA GPU class: `HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\`
-  - User preferences: `HKCU\Software\`
-
----
-
-## Git & yadm
-
-- **yadm** manages dotfiles from `$HOME` (git-compatible commands)
-- **git** manages this repo directly
-- Commit format: `<type>: <subject>` — types: `feat`, `fix`, `docs`, `refactor`, `style`, `chore`
-- Never commit: credentials, `.gitconfig` with real email, `.ssh/` keys, `local.ps1`
-
----
-
-## CI
-
-- PSScriptAnalyzer runs on all `.ps1`/`.psm1`/`.psd1` files on push/PR
-- PSMinifier workflow available for script compression
-- Run locally: `Invoke-ScriptAnalyzer -Path Scripts/your-script.ps1`
+See `AGENTS.md` at the repository root for the full AI workflow and repository guide.
