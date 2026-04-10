@@ -10,7 +10,7 @@ nvidia/
 ├── XTREMEG.md                         # XtremeG custom drivers guide
 ├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
 ├── nvidia-performance-tweaks.reg      # Main performance optimizations (consolidated)
-├── nvidia-telemetry-cleanup.bat       # Complete telemetry removal script
+├── nvidia-telemetry-cleanup.cmd       # Complete telemetry removal script
 ├── nvidia-shader-cache-cleanup.cmd    # Clear NVIDIA shader caches
 ├── xtremeg-installer.ps1              # XtremeG custom driver installer
 ├── toggles/                           # Quick enable/disable settings
