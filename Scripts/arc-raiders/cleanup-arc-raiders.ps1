@@ -109,12 +109,12 @@ foreach ($exe in @(
     }
 }
 
-# ── Second-pass temp (post-DX rebuild) ───────────────────────────────────────────
+# ── Second-pass temp (post-DX rebuild) ────────────────────────────────────────
 Write-Host "`n[Temp 2nd pass]"
 Remove-Glob "$env:windir\Temp\*"
 Remove-Glob "$env:TEMP\*"
 
-# ── Memory: trim working sets + standby list ────────────────────────────────────────────────
+# ── Memory: trim working sets + standby list ──────────────────────────────────
 Write-Host "`n[Memory] Trimming..."
 
 Add-Type @"
@@ -158,7 +158,7 @@ Write-Host "  Idle tasks queued."
 [System.GC]::WaitForPendingFinalizers()
 [System.GC]::Collect()
 
-# ── Disk Optimization ─────────────────────���─��─────────────────────────────────
+# ── Disk Optimization ─────────────────────────────────────────────────────────
 Write-Host "`n[Disk] Optimizing fixed volumes..."
 Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
     $dl = $_.DriveLetter
@@ -179,7 +179,7 @@ Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | For
     }
 }
 
-# ── Large Page Support (SeLockMemoryPrivilege) ────────────────────────────────
+# ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
 Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."
 
 Add-Type @"
