@@ -1,5 +1,6 @@
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
+. "$PSScriptRoot\..\Common.ps1"
 <#
 .SYNOPSIS
     Arc Raiders pre-launch: clear logs/crashes/temp, trim memory, optimize SSD, restart Steam minimal.
@@ -29,39 +30,6 @@ function Remove-Glob {
         $script:totalCount++
         Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host "  DEL  $($item.FullName)"
-    }
-}
-
-function ConvertFrom-VDF {
-    param([string[]]$Content, [ref]$line = ([ref]0))
-    $re = '\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\Z'
-    $obj = [ordered]@{}
-    while ($line.Value -lt $Content.Count) {
-        if ($Content[$line.Value] -match $re) {
-            if ($matches.k) { $key = $matches.k }
-            if ($matches.v) { $obj[$key] = $matches.v }
-            elseif ($matches.b -eq '{') { $line.Value++; $obj[$key] = ConvertFrom-VDF -Content $Content -line $line }
-            elseif ($matches.b -eq '}') { break }
-        }
-        $line.Value++
-    }
-    return $obj
-}
-
-function ConvertTo-VDF {
-    param($Data, [ref]$Indent = ([ref]0))
-    if ($Data -isnot [System.Collections.Specialized.OrderedDictionary] -and $Data -isnot [hashtable]) { return }
-    foreach ($key in $Data.Keys) {
-        $tabs = "`t" * $Indent.Value
-        if ($Data[$key] -is [System.Collections.Specialized.OrderedDictionary] -or $Data[$key] -is [hashtable]) {
-            Write-Output "$tabs`"$key`"`n$tabs{`n"
-            $Indent.Value++
-            ConvertTo-VDF -Data $Data[$key] -Indent $Indent
-            $Indent.Value--
-            Write-Output "$tabs}`n"
-        } else {
-            Write-Output "$tabs`"$key`"`t`t$($Data[$key])`n"
-        }
     }
 }
 

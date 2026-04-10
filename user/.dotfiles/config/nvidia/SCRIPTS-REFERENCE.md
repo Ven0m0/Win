@@ -118,7 +118,7 @@ Shader Cache Cleanup — clears all shader caches for Steam games and GPU driver
 - Simpler
 
 **Equivalent Batch File:**
-- `nvidia-shader-cache-cleanup.bat` — NVIDIA caches only
+- `nvidia-shader-cache-cleanup.cmd` — NVIDIA caches only
 
 **Differences:**
 
@@ -138,7 +138,7 @@ cd ~/Scripts
 
 Or for NVIDIA-only cleanup:
 ```cmd
-nvidia-shader-cache-cleanup.bat
+nvidia-shader-cache-cleanup.cmd
 ```
 
 ---
@@ -220,7 +220,7 @@ regedit /s toggles/disable-mpo.reg
 regedit /s toggles/enable-hardware-scheduling.reg
 
 :: Clean shader cache
-call nvidia-shader-cache-cleanup.bat
+call nvidia-shader-cache-cleanup.cmd
 
 :: For MSI Mode and EDID, use PowerShell script:
 :: powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\Scripts\gpu-display-manager.ps1"
