@@ -10,7 +10,19 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Skill(update-config)",
+      "Bash(python:*)",
+      "Bash(npm view:*)",
+      "Bash(find . -type f \\( -name .yadm* -o -name yadm* \\))",
+      "mcp__cachebro__read_file",
+      "Bash(git config:*)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "mcp__plugin_oh-my-claudecode_t__state_list_active",
+      "mcp__plugin_oh-my-claudecode_t__state_clear",
+      "Bash(cat .github/workflows/*.yml)",
+      "Bash(ls Scripts/ARC* Scripts/cleanup*)"
     ],
     "deny": [
       "Edit(.ssh/*)",

@@ -10,8 +10,8 @@ nvidia/
 ├── XTREMEG.md                         # XtremeG custom drivers guide
 ├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
 ├── nvidia-performance-tweaks.reg      # Main performance optimizations (consolidated)
-├── nvidia-telemetry-cleanup.bat       # Complete telemetry removal script
-├── nvidia-shader-cache-cleanup.bat    # Clear NVIDIA shader caches
+├── nvidia-telemetry-cleanup.cmd       # Complete telemetry removal script
+├── nvidia-shader-cache-cleanup.cmd    # Clear NVIDIA shader caches
 ├── xtremeg-installer.ps1              # XtremeG custom driver installer
 ├── toggles/                           # Quick enable/disable settings
 │   ├── disable-dlss-indicator.reg
@@ -38,10 +38,10 @@ nvidia/
 │   ├── display-scaling-vrr.reg
 │   └── opengl-vulkan-optimizations.reg
 ├── profiles/                          # NVIDIA Profile Inspector profiles
-│   ├── Best.nip                       # General performance profile
-│   ├── Settings.nip                   # Custom settings profile
-│   ├── Bo6.nip                        # Black Ops 6 optimized
-│   └── Bo6-light.nip                  # Black Ops 6 light version
+│   ├── Base.nip                       # Base profile (general settings)
+│   ├── BlackOps6.nip                  # Black Ops 6 optimized
+│   ├── Fortnite.nip                   # Fortnite optimized
+│   └── Java.nip                       # Java/Minecraft optimized
 ├── nvcpl/                             # NVIDIA Control Panel utilities
 └── archive/                           # Old/deprecated files (for reference)
 ```
@@ -286,9 +286,10 @@ Notes:
 1. Launch NVIDIA Profile Inspector
 2. Click the import icon
 3. Select a profile from `profiles/` directory:
-   - `Best.nip` — General gaming optimizations
-   - `Settings.nip` — Custom settings
-   - `Bo6.nip` — Black Ops 6 specific
+   - `Base.nip` — Base profile with general settings
+   - `BlackOps6.nip` — Black Ops 6 specific
+   - `Fortnite.nip` — Fortnite specific
+   - `Java.nip` — Java/Minecraft specific
 4. Click "Apply changes"
 
 ### Key Settings to Check
@@ -393,7 +394,7 @@ Clear NVIDIA shader caches to fix stuttering, crashes, or visual artifacts:
 
 ```cmd
 :: Quick NVIDIA-only cleanup
-nvidia-shader-cache-cleanup.bat
+nvidia-shader-cache-cleanup.cmd
 ```
 
 When to use:

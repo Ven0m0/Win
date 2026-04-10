@@ -37,6 +37,7 @@ jobs:
       - name: Minify PowerShell files
         id: minify
         uses: StartAutomating/PSMinifier@v1.1.4
+        continue-on-error: true
         with:
           Include: "*.ps1,*.psm1"
 
