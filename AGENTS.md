@@ -49,6 +49,7 @@ Win/
 │   ├── UltimateDiskCleanup.ps1
 │   ├── Clean-SpotifyCache.ps1        # Spotify cache cleaner
 │   ├── shell-setup.ps1
+│   ├── arc-raiders/               # Arc Raiders utilities
 │   ├── Hostbuilder/               # Hosts file management
 │   ├── minify-ps1/                # PSMinifier module
 │   ├── win-iso/                   # Windows ISO creation
@@ -65,8 +66,7 @@ Win/
 ├── CLAUDE.md                      # Symlink → AGENTS.md
 ├── README.md                      # User-facing documentation
 ├── setup.ps1                      # Main system setup script
-├── renovate.json                  # Renovate bot config
-└── TODO.md                        # Pending tasks
+└── renovate.json                  # Renovate bot config
 ```
 
 **Deprecated:** `.config/` — use `user/.dotfiles/config/` instead.

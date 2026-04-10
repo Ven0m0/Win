@@ -59,7 +59,7 @@ function Deploy-Config {
   )
 
   if (-not (Test-Path $Source)) {
-    Write-Warning "  [SKIP] $Label — source not found: $Source"
+    Write-Warning "  [SKIP] $Label - source not found: $Source"
     return
   }
 
@@ -105,13 +105,13 @@ function Deploy-ConfigDirectory {
   )
 
   if (-not (Test-Path $SourceDir)) {
-    Write-Warning "  [SKIP] $Label — source directory not found: $SourceDir"
+    Write-Warning "  [SKIP] $Label - source directory not found: $SourceDir"
     return
   }
 
   $files = Get-ChildItem -Path $SourceDir -Filter $Filter -File
   if ($files.Count -eq 0) {
-    Write-Host "  [SKIP] $Label — no files matching '$Filter' in $SourceDir" -ForegroundColor Gray
+    Write-Host "  [SKIP] $Label - no files matching '$Filter' in $SourceDir" -ForegroundColor Gray
     return
   }
 
@@ -145,11 +145,11 @@ function Install-WingetTool {
         Write-Host " [OK]" -ForegroundColor Green
       } else {
         Write-Host ""
-        Write-Warning "  [WARN] $Name — winget exit code: $ec"
+        Write-Warning "  [WARN] $Name - winget exit code: $ec"
       }
     } catch {
       Write-Host ""
-      Write-Warning "  [WARN] $Name — $_"
+      Write-Warning "  [WARN] $Name - $_"
     }
   }
 }
@@ -203,7 +203,7 @@ Deploy-Config `
   -Destination $PROFILE `
   -Label 'PowerShell profile'
 
-# Windows Terminal — glob for package dir to handle version string changes
+# Windows Terminal - glob for package dir to handle version string changes
 $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue |
   Select-Object -First 1
 if ($wtPackageDir) {
@@ -212,7 +212,7 @@ if ($wtPackageDir) {
     -Destination (Join-Path $wtPackageDir.FullName 'LocalState\settings.json') `
     -Label 'Windows Terminal settings'
 } else {
-  Write-Host '  [SKIP] Windows Terminal — package directory not found' -ForegroundColor Gray
+  Write-Host '  [SKIP] Windows Terminal - package directory not found' -ForegroundColor Gray
 }
 
 # BleachBit custom cleaners
@@ -222,21 +222,21 @@ Deploy-ConfigDirectory `
   -Filter '*.xml' `
   -Label 'BleachBit cleaners'
 
-# Configs with unknown destinations — skip with informational warnings
+# Configs with unknown destinations - skip with informational warnings
 $tbdConfigs = @(
-  @{ path = 'nvidia';    note = 'NVIDIA Inspector — destination path varies by install location' },
-  @{ path = 'games\bf2'; note = 'BF2 — game config path not yet mapped' },
-  @{ path = 'games\bo6'; note = 'BO6 — COD config path varies by install' },
-  @{ path = 'games\bo7'; note = 'BO7 — COD config path varies by install' },
-  @{ path = 'cmd';       note = 'CMD aliases — destination path not yet mapped' },
-  @{ path = 'firefox';   note = 'Firefox — profile path varies per installation' },
-  @{ path = 'brave';     note = 'Brave — user data path not yet mapped' }
+  @{ path = 'nvidia';    note = 'NVIDIA Inspector - destination path varies by install location' },
+  @{ path = 'games\bf2'; note = 'BF2 - game config path not yet mapped' },
+  @{ path = 'games\bo6'; note = 'BO6 - COD config path varies by install' },
+  @{ path = 'games\bo7'; note = 'BO7 - COD config path varies by install' },
+  @{ path = 'cmd';       note = 'CMD aliases - destination path not yet mapped' },
+  @{ path = 'firefox';   note = 'Firefox - profile path varies per installation' },
+  @{ path = 'brave';     note = 'Brave - user data path not yet mapped' }
 )
 
 foreach ($cfg in $tbdConfigs) {
   $srcPath = Join-Path $configRoot $cfg.path
   if (Test-Path $srcPath) {
-    Write-Warning "  [SKIP] $($cfg.path) — $($cfg.note)"
+    Write-Warning "  [SKIP] $($cfg.path) - $($cfg.note)"
   }
 }
 

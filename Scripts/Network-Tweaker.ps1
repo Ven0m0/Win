@@ -1,4 +1,4 @@
-﻿<#
+<#
 .NAME
     Tweaking Adapter
 #>
@@ -2004,7 +2004,7 @@ $Groupbox8.controls.AddRange(@($Label43,$Label77,$cb_Afd_defaultrecWin,$cb_Afd_d
 
 #region Logic
 #Cleaning Code
-cls
+Clear-Host
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
@@ -2240,13 +2240,13 @@ $cb_WeakHostSend.DropDownStyle = 'DropDownList'
 # ========================================================
 
 # Loading at Startup Global Settings (OS Settings not Adapter specific)
-$cb_osrss.text = (Get-NetOffloadGlobalSetting | select -expand ReceiveSideScaling)
-$cb_osrsc.text = (Get-NetOffloadGlobalSetting | select -expand ReceiveSegmentCoalescing)
-$cb_oschimney.text = (Get-NetOffloadGlobalSetting | select -expand Chimney)
-$cb_ostaskoff.text = (Get-NetOffloadGlobalSetting | select -expand TaskOffload)
-$cb_osntd.text = (Get-NetOffloadGlobalSetting | select -expand NetworkDirect)
-$cb_osntdais.text = (Get-NetOffloadGlobalSetting | select -expand NetworkDirectAcrossIPSubnets)
-$cb_ospcf.text = (Get-NetOffloadGlobalSetting | select -expand PacketCoalescingFilter)
+$cb_osrss.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling)
+$cb_osrsc.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing)
+$cb_oschimney.text = (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney)
+$cb_ostaskoff.text = (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload)
+$cb_osntd.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect)
+$cb_osntdais.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets)
+$cb_ospcf.text = (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter)
 
 # ========================================================
 # RSS Global
@@ -2255,7 +2255,7 @@ $Global:TCPIP_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameter
 $Global:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
 
 $TCPIP_RssBaseCpu = (Get-ItemPropertyValue -Path "$TCPIP_RegPath" -Name "RssBaseCpu" -ErrorAction SilentlyContinue)
-if ($TCPIP_RssBaseCpu -eq $null)
+if ($null -eq $TCPIP_RssBaseCpu)
     {
         $cb_tcpiprssbasecpu.text = '0'
     }
@@ -2264,7 +2264,7 @@ if ($TCPIP_RssBaseCpu -eq $null)
         $cb_tcpiprssbasecpu.text = $TCPIP_RssBaseCpu
     }
 $NDIS_RssBaseCpu = (Get-ItemPropertyValue -Path "$NDIS_RegPath" -Name "RssBaseCpu"-ErrorAction SilentlyContinue)
-if ($NDIS_RssBaseCpu -eq $null)
+if ($null -eq $NDIS_RssBaseCpu)
     {
         $cb_ndisrssbasecpu.text = '0'
     }
@@ -2289,7 +2289,7 @@ $cb_ndisrssbasecpu.add_TextChanged({
 # Apply Button Global Settings
 function applyglobal {
     #cls
-    if ($cb_osrss.text -eq (Get-NetOffloadGlobalSetting | select -expand ReceiveSideScaling))
+    if ($cb_osrss.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling))
     {
         #Write-Host " ReceiveSideScaling same as Current, skipping." -ForegroundColor green
     }
@@ -2297,10 +2297,10 @@ function applyglobal {
     {
         Write-Host "Applying ReceiveSideScaling to"$cb_osrss.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -ReceiveSideScaling $cb_osrss.text
-        $cb_osrss.text = (Get-NetOffloadGlobalSetting | select -expand ReceiveSideScaling)
+        $cb_osrss.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling)
     }
 
-    if ($cb_osrsc.text -eq (Get-NetOffloadGlobalSetting | select -expand ReceiveSegmentCoalescing))
+    if ($cb_osrsc.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing))
     {
         #Write-Host " ReceiveSegmentCoalescing same as Current, skipping." -ForegroundColor green
     }
@@ -2308,10 +2308,10 @@ function applyglobal {
     {
         Write-Host "Applying ReceiveSegmentCoalescing to"$cb_osrsc.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -ReceiveSegmentCoalescing $cb_osrsc.text
-        $cb_osrsc.text = (Get-NetOffloadGlobalSetting | select -expand ReceiveSegmentCoalescing)
+        $cb_osrsc.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing)
     }
 
-    if ($cb_oschimney.text -eq (Get-NetOffloadGlobalSetting | select -expand Chimney))
+    if ($cb_oschimney.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney))
     {
         #Write-Host " Chimney same as Current, skipping." -ForegroundColor green
     }
@@ -2319,10 +2319,10 @@ function applyglobal {
     {
         Write-Host "Applying Chimney to"$cb_oschimney.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -Chimney $cb_oschimney.text
-        $cb_oschimney.text = (Get-NetOffloadGlobalSetting | select -expand Chimney)
+        $cb_oschimney.text = (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney)
     }
 
-    if ($cb_ostaskoff.text -eq (Get-NetOffloadGlobalSetting | select -expand TaskOffload))
+    if ($cb_ostaskoff.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload))
     {
         #Write-Host " TaskOffload same as Current, skipping." -ForegroundColor green
     }
@@ -2330,10 +2330,10 @@ function applyglobal {
     {
         Write-Host "Applying TaskOffload to"$cb_ostaskoff.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -TaskOffload $cb_ostaskoff.text
-        $cb_ostaskoff.text = (Get-NetOffloadGlobalSetting | select -expand TaskOffload)
+        $cb_ostaskoff.text = (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload)
     }
 
-    if ($cb_osntd.text -eq (Get-NetOffloadGlobalSetting | select -expand NetworkDirect))
+    if ($cb_osntd.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect))
     {
         #Write-Host " NetworkDirect same as Current, skipping." -ForegroundColor green
     }
@@ -2342,10 +2342,10 @@ function applyglobal {
         Write-Host "Applying NetworkDirect to"$cb_osntd.text -ForegroundColor Green
         #Set-NetOffloadGlobalSetting -NetworkDirect $cb_osntd.text
         Apply_NetworkDirect
-        $cb_osntd.text = (Get-NetOffloadGlobalSetting | select -expand NetworkDirect)
+        $cb_osntd.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect)
     }
 
-    if ($cb_osntdais.text -eq (Get-NetOffloadGlobalSetting | select -expand NetworkDirectAcrossIPSubnets))
+    if ($cb_osntdais.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets))
     {
         #Write-Host " NetworkDirectAcrossIPSubnets same as Current, skipping." -ForegroundColor green
     }
@@ -2355,10 +2355,10 @@ function applyglobal {
         ##Bypass
         ##Set-NetOffloadGlobalSetting -NetworkDirectAcrossIPSubnets $cb_osntdais.text
         Apply_NetworkDirectGlobalFlags
-        $cb_osntdais.text = (Get-NetOffloadGlobalSetting | select -expand NetworkDirectAcrossIPSubnets)
+        $cb_osntdais.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets)
     }
 
-    if ($cb_ospcf.text -eq (Get-NetOffloadGlobalSetting | select -expand PacketCoalescingFilter))
+    if ($cb_ospcf.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter))
     {
         #Write-Host " PacketCoalescingFilter same as Current, skipping." -ForegroundColor green
     }
@@ -2366,7 +2366,7 @@ function applyglobal {
     {
         Write-Host "Applying PacketCoalescingFilter to"$cb_ospcf.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -PacketCoalescingFilter $cb_ospcf.text
-        $cb_ospcf.text = (Get-NetOffloadGlobalSetting | select -expand PacketCoalescingFilter)
+        $cb_ospcf.text = (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter)
     }
 }
 
@@ -2393,16 +2393,16 @@ $NetworkDirectGlobalFlags = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHI
 
 
 #Adapter Selection
-$AdapterName = Get-NetAdapter -physical | where status -eq 'up' | Select -expand InterfaceDescription
-#$AdapterName = Get-NetAdapter -IncludeHidden | Select -expand InterfaceDescription
+$AdapterName = Get-NetAdapter -physical | Where-Object status -eq 'up' | Select-Object -expand InterfaceDescription
+#$AdapterName = Get-NetAdapter -IncludeHidden | Select-Object -expand InterfaceDescription
 #if($AdapterName )
 [void] $cb_AdapterNamesCombo.Items.AddRange([object[]]@($AdapterName))
 
-function a {
-    cls
+function Initialize-AdapterUI {
+    Clear-Host
     Write-Host $cb_AdapterNamesCombo.Text
     $Global:NIC_Desc = $cb_AdapterNamesCombo.Text
-    $lbl_ndisver.Text = Get-NetAdapter -InterfaceDescription $AdapterName | Select -expand NdisVersion
+    $lbl_ndisver.Text = Get-NetAdapter -InterfaceDescription $AdapterName | Select-Object -expand NdisVersion
     $PhysicalAdapter = Get-WmiObject -Class Win32_NetworkAdapter|Where-Object{$_.Name -like "$NIC_Desc"}
             $PhysicalAdapterName = $PhysicalAdapter.Name
             $DeviceID = $PhysicalAdapter.DeviceID
@@ -2443,7 +2443,7 @@ function a {
             {
             $cb_rss_onoff.Text = "Disable"
             }
-    if($rssstatus -eq $Null )
+    if($null -eq $rssstatus)
             {
                 Write-Warning "RSS is handled by OS, because of Network Driver!"
                 $btn_rssaddsupport.Enabled = $true
@@ -2492,7 +2492,7 @@ function a {
     #RSS Queues
     #Query Available RSSQueues
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
-    if($rssstatus -eq $null -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
+    if($null -eq $rssstatus -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
         #Write-Host "Powershell"
         $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfReceiveQueues
         $Global:AdapterQueues = $AdapterQueues
@@ -2500,14 +2500,14 @@ function a {
         $cb_rssqueues.Text = $AdapterQueues
         }else{
         #Write-Host "Registry"
-        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
+        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Property
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
-        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select -expand Default
+        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
         $cb_rssqueues.Text = $AdapterQueues
         }
 
-        #$RegistryQueues = Get-ItemPropertyValue -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select -expand Default
-        #$PowershellQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | select -expand NumberOfReceiveQueues
+        #$RegistryQueues = Get-ItemPropertyValue -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
+        #$PowershellQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -expand NumberOfReceiveQueues
         #if($RegistryQueues -eq $PowershellQueues){
         #    Write-Host "NumberOfReceiveQueues is equal."
         #}else{
@@ -2516,12 +2516,12 @@ function a {
         #RSS Profiles
         $OSRSSProfiles = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetAdapterRss.Profile].GetEnumValues()
         [void] $cb_rssprofile.Items.AddRange([object[]]@($OSRSSProfiles))
-        $cb_rssprofile.Text = Get-NetAdapterRss | Select -ExpandProperty Profile
+        $cb_rssprofile.Text = Get-NetAdapterRss | Select-Object -ExpandProperty Profile
 
         #RSS BaseProc
-        $cb_rssbaseproc.Text = Get-NetAdapterRss | Select -ExpandProperty "BaseProcessorNumber"
-        $cb_rssmaxproc.Text = Get-NetAdapterRss | Select -ExpandProperty "MaxProcessorNumber"
-        $cb_rssmaxprocs.Text = Get-NetAdapterRss | Select -ExpandProperty "MaxProcessors"
+        $cb_rssbaseproc.Text = Get-NetAdapterRss | Select-Object -ExpandProperty "BaseProcessorNumber"
+        $cb_rssmaxproc.Text = Get-NetAdapterRss | Select-Object -ExpandProperty "MaxProcessorNumber"
+        $cb_rssmaxprocs.Text = Get-NetAdapterRss | Select-Object -ExpandProperty "MaxProcessors"
 
         # Network Adapter Advanced Settings
         #
@@ -2578,25 +2578,25 @@ function a {
         $tb_TxIntDelay.Text=$TxIntDelay
         #PacketDirect
         $PacketDirect = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PacketDirect")
-        if($PacketDirect -eq $null){
+        if($null -eq $PacketDirect){
             $cb_PacketDirect.Text="Undefined"
         }else{
             $cb_PacketDirect.SelectedIndex=$PacketDirect}
         #EnableCoalesce ( Default Enabled )
         $EnableCoalesce = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnableCoalesce")
-        if($EnableCoalesce -eq $null){
+        if($null -eq $EnableCoalesce){
             $cb_EnableCoalesce.Text="Enabled"
         }else{
             $cb_EnableCoalesce.SelectedIndex=$EnableCoalesce}
         #CoalesceBufferSize ( Default 2048 )
         $CoalesceBufferSize = (Get-ItemPropertyValue -Path "$KeyPath" -Name "CoalesceBufferSize")
-        if($CoalesceBufferSize -eq $null){
+        if($null -eq $CoalesceBufferSize){
             $cb_CoalesceBufferSize.Text="2048"
         }else{
             $cb_CoalesceBufferSize.Text=$CoalesceBufferSize}
         #EnableUdpTxScaling
         $EnableUdpTxScaling = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnableUdpTxScaling")
-        if($EnableUdpTxScaling -eq $null){
+        if($null -eq $EnableUdpTxScaling){
             $cb_EnableUdpTxScaling.Text="Enabled"
         }else{
             $cb_EnableUdpTxScaling.SelectedIndex=$EnableUdpTxScaling}
@@ -2702,7 +2702,7 @@ function a {
     #BufferAlignment
         $AFDBufferAlignment = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment")
         $cb_BufferAlignment.Text=$AFDBufferAlignment
-        if ($cb_BufferAlignment.Text -eq $null -or $cb_BufferAlignment.Text -eq '' ){
+        if ($null -eq $cb_BufferAlignment.Text -or $cb_BufferAlignment.Text -eq '' ){
             $cb_BufferAlignment.Text='64'
         }
 
@@ -2710,7 +2710,7 @@ function a {
       #DoNotHoldNICBuffers
         $AFDDoNotHoldNICBuffers = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers")
         $cb_DoNotHoldNICBuffers.Text=$AFDDoNotHoldNICBuffers
-        if ($cb_DoNotHoldNICBuffers.Text -eq $null -or $cb_DoNotHoldNICBuffers.Text -eq '' ){
+        if ($null -eq $cb_DoNotHoldNICBuffers.Text -or $cb_DoNotHoldNICBuffers.Text -eq '' ){
             $cb_DoNotHoldNICBuffers.Text='1'
         }
 
@@ -2718,7 +2718,7 @@ function a {
     #SmallBufferSize
         $AFDSmallBufferSize = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize")
         $cb_SmallBufferSize.Text=$AFDSmallBufferSize
-        if ($cb_SmallBufferSize.Text -eq $null -or $cb_SmallBufferSize.Text -eq '' ){
+        if ($null -eq $cb_SmallBufferSize.Text -or $cb_SmallBufferSize.Text -eq '' ){
             $cb_SmallBufferSize.Text='128'
         }
 
@@ -2726,7 +2726,7 @@ function a {
     #MediumBufferSize
         $AFDMediumBufferSize = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize")
         $cb_MediumBufferSize.Text=$AFDMediumBufferSize
-        if ($cb_MediumBufferSize.Text -eq $null -or $cb_MediumBufferSize.Text -eq '' ){
+        if ($null -eq $cb_MediumBufferSize.Text -or $cb_MediumBufferSize.Text -eq '' ){
             $cb_MediumBufferSize.Text='1504'
         }
 
@@ -2734,7 +2734,7 @@ function a {
     #LargeBufferSize
         $AFDLargeBufferSize = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize")
         $cb_LargeBufferSize.Text=$AFDLargeBufferSize
-        if ($cb_LargeBufferSize.Text -eq $null -or $cb_LargeBufferSize.Text -eq '' ){
+        if ($null -eq $cb_LargeBufferSize.Text -or $cb_LargeBufferSize.Text -eq '' ){
             $cb_LargeBufferSize.Text='3472'
         }
 
@@ -2742,7 +2742,7 @@ function a {
     #HugeBufferSize
         $AFDHugeBufferSize = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize")
         $cb_HugeBufferSize.Text=$AFDHugeBufferSize
-        if ($cb_HugeBufferSize.Text -eq $null -or $cb_HugeBufferSize.Text -eq '' ){
+        if ($null -eq $cb_HugeBufferSize.Text -or $cb_HugeBufferSize.Text -eq '' ){
             $cb_HugeBufferSize.Text='32768'
         }
 
@@ -2762,7 +2762,7 @@ function a {
         #DisableChainedReceive
         $AFDDisableChainedReceive = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive")
         $cb_DisableChainedReceive.Text=$AFDDisableChainedReceive
-    if ($cb_DisableChainedReceive.Text -eq $null -or $cb_DisableChainedReceive.Text -eq '' ){
+    if ($null -eq $cb_DisableChainedReceive.Text -or $cb_DisableChainedReceive.Text -eq '' ){
             $cb_DisableChainedReceive.Text='0'
         }
 
@@ -2775,7 +2775,7 @@ function a {
     #DisableRawSecurity
         $AFDDisableRawSecurity = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity")
         $cb_DisableRawSecurity.Text=$AFDDisableRawSecurity
-        if ($cb_DisableRawSecurity.Text -eq $null -or $cb_DisableRawSecurity.Text -eq '' ){
+        if ($null -eq $cb_DisableRawSecurity.Text -or $cb_DisableRawSecurity.Text -eq '' ){
             $cb_DisableRawSecurity.Text='0'
         }
 
@@ -2783,7 +2783,7 @@ function a {
     #DynamicSendBufferDisable
         $AFDDynamicSendBufferDisable = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable")
         $cb_DynamicSendBufferDisable.Text=$AFDDynamicSendBufferDisable
-                if ($cb_DynamicSendBufferDisable.Text -eq $null -or $cb_DynamicSendBufferDisable.Text -eq '' ){
+                if ($null -eq $cb_DynamicSendBufferDisable.Text -or $cb_DynamicSendBufferDisable.Text -eq '' ){
             $cb_DynamicSendBufferDisable.Text='1'
         }
 
@@ -2791,21 +2791,21 @@ function a {
         #FastSendDatagramThreshold(1803 = 0 21H2 = 65536)
         $AFDFastSendDatagramThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold")
         $cb_FastSendDatagramThreshold.Text=$AFDFastSendDatagramThreshold
-    #if ($cb_FastSendDatagramThreshold.Text -eq $null -or $cb_FastSendDatagramThreshold.Text -eq '' ){
+    #if ($null -eq $cb_FastSendDatagramThreshold.Text -or $cb_FastSendDatagramThreshold.Text -eq '' ){
         #    $cb_FastSendDatagramThreshold.Text='65536'
 
 
     #FastCopyReceiveThreshold /Check Value
         $AFDFastCopyReceiveThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold")
         $cb_FastCopyReceiveThreshold.Text=$AFDFastCopyReceiveThreshold
-        #if ($cb_FastCopyReceiveThreshold.Text -eq $null -or $cb_FastCopyReceiveThreshold.Text -eq '' ){
+        #if ($null -eq $cb_FastCopyReceiveThreshold.Text -or $cb_FastCopyReceiveThreshold.Text -eq '' ){
         #    $cb_FastCopyReceiveThreshold.Text='0'
 
 
         #IgnorePushBitOnReceives /Check Value
         $AFDIgnorePushBitOnReceives = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives")
         $cb_IgnorePushBitOnReceives.Text=$AFDIgnorePushBitOnReceives
-        if ($cb_IgnorePushBitOnReceives.Text -eq $null -or $cb_IgnorePushBitOnReceives.Text -eq '' ){
+        if ($null -eq $cb_IgnorePushBitOnReceives.Text -or $cb_IgnorePushBitOnReceives.Text -eq '' ){
             $cb_IgnorePushBitOnReceives.Text='0'
         }
 
@@ -2813,7 +2813,7 @@ function a {
         #IgnoreOrderlyRelease /Check Value
         $AFDIgnoreOrderlyRelease = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease")
         $cb_IgnoreOrderlyRelease.Text=$AFDIgnoreOrderlyRelease
-        if ($cb_IgnoreOrderlyRelease.Text -eq $null -or $cb_IgnoreOrderlyRelease.Text -eq '' ){
+        if ($null -eq $cb_IgnoreOrderlyRelease.Text -or $cb_IgnoreOrderlyRelease.Text -eq '' ){
             $cb_IgnoreOrderlyRelease.Text='0'
         }
 
@@ -2821,7 +2821,7 @@ function a {
         #TransmitWorker
         $AFDTransmitWorker = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker")
         $cb_TransmitWorker.Text=$AFDTransmitWorker
-        if ($cb_TransmitWorker.Text -eq $null -or $cb_TransmitWorker.Text -eq '' ){
+        if ($null -eq $cb_TransmitWorker.Text -or $cb_TransmitWorker.Text -eq '' ){
             $cb_TransmitWorker.Text='16'
         }
 
@@ -2829,7 +2829,7 @@ function a {
         #PriorityBoost
         $AFDPriorityBoost = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost")
         $cb_PriorityBoost.Text=$AFDPriorityBoost
-        if ($cb_PriorityBoost.Text -eq $null -or $cb_PriorityBoost.Text -eq '' ){
+        if ($null -eq $cb_PriorityBoost.Text -or $cb_PriorityBoost.Text -eq '' ){
             $cb_PriorityBoost.Text='2'
         }
 
@@ -2837,7 +2837,7 @@ function a {
         #IrpStackSize
         $AFDIrpStackSize = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize")
         $cb_IrpStackSize.Text=$AFDIrpStackSize
-        if ($cb_IrpStackSize.Text -eq $null -or $cb_IrpStackSize.Text -eq '' ){
+        if ($null -eq $cb_IrpStackSize.Text -or $cb_IrpStackSize.Text -eq '' ){
             $cb_IrpStackSize.Text='4'
         }
 
@@ -2997,7 +2997,7 @@ function a {
 
             $DevicePolicy = Get-ItemPropertyValue -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy" -Name "DevicePolicy"
             #Default Affinity policy, system dependent.
-            if($DevicePolicy -eq "0" -or $DevicePolicy -eq $null){
+            if($DevicePolicy -eq "0" -or $null -eq $DevicePolicy){
                 $cb_DevicePolicy.Text = "MachineDefault"}
             #Target all processors located in same NUMA Node Device.
             if($DevicePolicy -eq "1"){
@@ -3342,10 +3342,10 @@ function RSSEnable{
 
         #CoalesceBufferSize
         $A=((Get-ItemProperty -Path "$KeyPath").PSObject.Properties.Name -contains "CoalesceBufferSize")
-        if ($A -eq $false -and $cb_CoalesceBufferSize.Text -ne $null -and $cb_CoalesceBufferSize.Text -ne '2048' ){
+        if ($A -eq $false -and $null -ne $cb_CoalesceBufferSize.Text -and $cb_CoalesceBufferSize.Text -ne '2048' ){
           Write-Host "Set CoalesceBufferSize to"$cb_CoalesceBufferSize.Text -ForegroundColor Green
               New-ItemProperty -Path "$KeyPath" -Name "CoalesceBufferSize" -Typ "Dword" -Value $cb_CoalesceBufferSize.Text -Force
-        }elseif($A -eq $true -and $cb_CoalesceBufferSize.Text -eq $null -or $cb_CoalesceBufferSize.Text -eq ''){
+        }elseif($A -eq $true -and $null -eq $cb_CoalesceBufferSize.Text -or $cb_CoalesceBufferSize.Text -eq ''){
           Write-Warning "Removing CoalesceBufferSize"
           Remove-ItemProperty -Path "$KeyPath" -Name "CoalesceBufferSize"
         }else{
@@ -3479,16 +3479,16 @@ function RSSEnable{
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "11" -PropertyType STRING -Value "11 Queues" -Force
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "12" -PropertyType STRING -Value "12 Queues" -Force
             $cb_rssqueues.Items.Clear()
-            $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | select -expand default
+            $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | Select-Object -expand default
             #Query Avaible RSSQueues
-            $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select -ExpandProperty Property
+            $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Property
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
             $cb_rssqueues.Text = $AdapterQueuesDefault
             #$btn_unqueues.Enabled = $False
         }
 
 
-$cb_AdapterNamesCombo.Add_SelectedValueChanged({ a; NetIPInterface })
+$cb_AdapterNamesCombo.Add_SelectedValueChanged({ Initialize-AdapterUI; Get-NetIPInterface })
 
 function adapter_restart {
     Try {
@@ -3910,10 +3910,10 @@ function RegistryTweaks{
         #$ErrorActionPreference = 'Continue'
     #DefaultReceiveWindow
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DefaultReceiveWindow")
-    if ($A -eq $false -and $cb_Afd_defaultrecWin.Text -ne $null -and $cb_Afd_defaultrecWin.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_Afd_defaultrecWin.Text -and $cb_Afd_defaultrecWin.Text -ne '' ){
       Write-Host "Set AFDDefaultReceiveWindow to"$cb_Afd_defaultrecWin.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Typ "Dword" -Value $cb_Afd_defaultrecWin.Text -Force
-    }elseif($A -eq $true -and $cb_Afd_defaultrecWin.Text -eq $null -or $cb_Afd_defaultrecWin.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_Afd_defaultrecWin.Text -or $cb_Afd_defaultrecWin.Text -eq ''){
       Write-Warning "Removing AFDDefaultReceiveWindow"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow"
     }else{
@@ -3923,10 +3923,10 @@ function RegistryTweaks{
 
         #DefaultSendWindow
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DefaultSendWindow")
-    if ($A -eq $false -and $cb_Afd_defaultSendWin.Text -ne $null -and $cb_Afd_defaultSendWin.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_Afd_defaultSendWin.Text -and $cb_Afd_defaultSendWin.Text -ne '' ){
       Write-Host "Set AFDDefaultSendWindow to"$cb_Afd_defaultSendWin.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Typ "Dword" -Value $cb_Afd_defaultSendWin.Text -Force
-    }elseif($A -eq $true -and $cb_Afd_defaultSendWin.Text -eq $null -or $cb_Afd_defaultSendWin.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_Afd_defaultSendWin.Text -or $cb_Afd_defaultSendWin.Text -eq ''){
       Write-Warning "Removing AFDDefaultSendWindow"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow"
     }else{
@@ -3936,10 +3936,10 @@ function RegistryTweaks{
 
         #DisableAddressSharing
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DisableAddressSharing")
-    if ($A -eq $false -and $cb_DisableAddressSharing.Text -ne $null -and $cb_DisableAddressSharing.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_DisableAddressSharing.Text -and $cb_DisableAddressSharing.Text -ne '' ){
       Write-Host "Set AFDDisableAddressSharing to"$cb_DisableAddressSharing.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing" -Typ "Dword" -Value $cb_DisableAddressSharing.Text -Force
-    }elseif($A -eq $true -and $cb_DisableAddressSharing.Text -eq $null -or $cb_DisableAddressSharing.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_DisableAddressSharing.Text -or $cb_DisableAddressSharing.Text -eq ''){
       Write-Warning "Removing AFDDisableAddressSharing"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing"
     }else{
@@ -3949,10 +3949,10 @@ function RegistryTweaks{
 
     #BufferMultiplier
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "BufferMultiplier")
-    if ($A -eq $false -and $cb_BufferMultiplier.Text -ne $null -and $cb_BufferMultiplier.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_BufferMultiplier.Text -and $cb_BufferMultiplier.Text -ne '' ){
       Write-Host "Set AFDBufferMultiplier to"$cb_BufferMultiplier.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier" -Typ "Dword" -Value $cb_BufferMultiplier.Text -Force
-    }elseif($A -eq $true -and $cb_BufferMultiplier.Text -eq $null -or $cb_BufferMultiplier.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_BufferMultiplier.Text -or $cb_BufferMultiplier.Text -eq ''){
       Write-Warning "Removing AFDBufferMultiplier"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier"
     }else{
@@ -3962,10 +3962,10 @@ function RegistryTweaks{
 
         #BufferAlignment
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "BufferAlignment")
-    if ($A -eq $false -and $cb_BufferAlignment.Text -ne $null -and $cb_BufferAlignment.Text -ne '' -and $cb_BufferAlignment.Text -ne '64'){
+    if ($A -eq $false -and $null -ne $cb_BufferAlignment.Text -and $cb_BufferAlignment.Text -ne '' -and $cb_BufferAlignment.Text -ne '64'){
       Write-Host "Set AFDBufferAlignment to"$cb_BufferAlignment.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment" -Typ "Dword" -Value $cb_BufferAlignment.Text -Force
-    }elseif($A -eq $true -and $cb_BufferAlignment.Text -eq $null -or $cb_BufferAlignment.Text -eq '' -or $cb_BufferAlignment.Text -eq '64'){
+    }elseif($A -eq $true -and $null -eq $cb_BufferAlignment.Text -or $cb_BufferAlignment.Text -eq '' -or $cb_BufferAlignment.Text -eq '64'){
       Write-Warning "Removing AFDBufferAlignment"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment"
     }else{
@@ -3975,10 +3975,10 @@ function RegistryTweaks{
 
         #DoNotHoldNICBuffers
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DoNotHoldNICBuffers")
-    if ($A -eq $false -and $cb_DoNotHoldNICBuffers.Text -ne $null -and $cb_DoNotHoldNICBuffers.Text -ne '' -and $cb_DoNotHoldNICBuffers.Text -ne '1' ){
+    if ($A -eq $false -and $null -ne $cb_DoNotHoldNICBuffers.Text -and $cb_DoNotHoldNICBuffers.Text -ne '' -and $cb_DoNotHoldNICBuffers.Text -ne '1' ){
       Write-Host "Set AFDDoNotHoldNICBuffers to"$cb_DoNotHoldNICBuffers.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers" -Typ "Dword" -Value $cb_DoNotHoldNICBuffers.Text -Force
-    }elseif($A -eq $true -and $cb_DoNotHoldNICBuffers.Text -eq $null -or $cb_DoNotHoldNICBuffers.Text -eq '' -or $cb_DoNotHoldNICBuffers.Text -eq '1'){
+    }elseif($A -eq $true -and $null -eq $cb_DoNotHoldNICBuffers.Text -or $cb_DoNotHoldNICBuffers.Text -eq '' -or $cb_DoNotHoldNICBuffers.Text -eq '1'){
       Write-Warning "Removing AFDDoNotHoldNICBuffers"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers"
     }else{
@@ -3988,10 +3988,10 @@ function RegistryTweaks{
 
     #SmallBufferSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "SmallBufferSize")
-    if ($A -eq $false -and $cb_SmallBufferSize.Text -ne $null -and $cb_SmallBufferSize.Text -ne '' -and $cb_SmallBufferSize.Text -ne '128' ){
+    if ($A -eq $false -and $null -ne $cb_SmallBufferSize.Text -and $cb_SmallBufferSize.Text -ne '' -and $cb_SmallBufferSize.Text -ne '128' ){
       Write-Host "Set AFDSmallBufferSize to"$cb_SmallBufferSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize" -Typ "Dword" -Value $cb_SmallBufferSize.Text -Force
-    }elseif($A -eq $true -and $cb_SmallBufferSize.Text -eq $null -or $cb_SmallBufferSize.Text -eq '' -or $cb_SmallBufferSize.Text -eq '128'){
+    }elseif($A -eq $true -and $null -eq $cb_SmallBufferSize.Text -or $cb_SmallBufferSize.Text -eq '' -or $cb_SmallBufferSize.Text -eq '128'){
       Write-Warning "Removing AFDSmallBufferSize"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize"
     }else{
@@ -4001,10 +4001,10 @@ function RegistryTweaks{
 
     #MediumBufferSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "MediumBufferSize")
-    if ($A -eq $false -and $cb_MediumBufferSize.Text -ne $null -and $cb_MediumBufferSize.Text -ne '' -and $cb_MediumBufferSize.Text -ne '1504'){
+    if ($A -eq $false -and $null -ne $cb_MediumBufferSize.Text -and $cb_MediumBufferSize.Text -ne '' -and $cb_MediumBufferSize.Text -ne '1504'){
       Write-Host "Set AFDMediumBufferSize to"$cb_MediumBufferSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize" -Typ "Dword" -Value $cb_MediumBufferSize.Text -Force
-    }elseif($A -eq $true -and $cb_MediumBufferSize.Text -eq $null -or $cb_MediumBufferSize.Text -eq '' -or $cb_MediumBufferSize.Text -eq '1504'){
+    }elseif($A -eq $true -and $null -eq $cb_MediumBufferSize.Text -or $cb_MediumBufferSize.Text -eq '' -or $cb_MediumBufferSize.Text -eq '1504'){
       Write-Warning "Removing AFDMediumBufferSize"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize"
     }else{
@@ -4014,10 +4014,10 @@ function RegistryTweaks{
 
     #LargeBufferSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "LargeBufferSize")
-    if ($A -eq $false -and $cb_LargeBufferSize.Text -ne $null -and $cb_LargeBufferSize.Text -ne '' -and $cb_LargeBufferSize.Text -ne '3472'){
+    if ($A -eq $false -and $null -ne $cb_LargeBufferSize.Text -and $cb_LargeBufferSize.Text -ne '' -and $cb_LargeBufferSize.Text -ne '3472'){
       Write-Host "Set AFDLargeBufferSize to"$cb_LargeBufferSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize" -Typ "Dword" -Value $cb_LargeBufferSize.Text -Force
-    }elseif($A -eq $true -and $cb_LargeBufferSize.Text -eq $null -or $cb_LargeBufferSize.Text -eq '' -or $cb_LargeBufferSize.Text -eq '3472'){
+    }elseif($A -eq $true -and $null -eq $cb_LargeBufferSize.Text -or $cb_LargeBufferSize.Text -eq '' -or $cb_LargeBufferSize.Text -eq '3472'){
       Write-Warning "Removing AFDLargeBufferSize"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize"
     }else{
@@ -4027,10 +4027,10 @@ function RegistryTweaks{
 
     #HugeBufferSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "HugeBufferSize")
-    if ($A -eq $false -and $cb_HugeBufferSize.Text -ne $null -and $cb_HugeBufferSize.Text -ne '' -and $cb_HugeBufferSize.Text -ne '32768' ){
+    if ($A -eq $false -and $null -ne $cb_HugeBufferSize.Text -and $cb_HugeBufferSize.Text -ne '' -and $cb_HugeBufferSize.Text -ne '32768' ){
       Write-Host "Set AFDHugeBufferSize to"$cb_HugeBufferSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize" -Typ "Dword" -Value $cb_HugeBufferSize.Text -Force
-    }elseif($A -eq $true -and $cb_HugeBufferSize.Text -eq $null -or $cb_HugeBufferSize.Text -eq '' -or $cb_HugeBufferSize.Text -eq '32768'){
+    }elseif($A -eq $true -and $null -eq $cb_HugeBufferSize.Text -or $cb_HugeBufferSize.Text -eq '' -or $cb_HugeBufferSize.Text -eq '32768'){
       Write-Warning "Removing AFDHugeBufferSize"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize"
     }else{
@@ -4040,10 +4040,10 @@ function RegistryTweaks{
 
     #SmallBufferListDepth
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "SmallBufferListDepth")
-    if ($A -eq $false -and $cb_SmallBufferListDepth.Text -ne $null -and $cb_SmallBufferListDepth.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_SmallBufferListDepth.Text -and $cb_SmallBufferListDepth.Text -ne '' ){
       Write-Host "Set AFDSmallBufferListDepth to"$cb_SmallBufferListDepth.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth" -Typ "Dword" -Value $cb_SmallBufferListDepth.Text -Force
-    }elseif($A -eq $true -and $cb_SmallBufferListDepth.Text -eq $null -or $cb_SmallBufferListDepth.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_SmallBufferListDepth.Text -or $cb_SmallBufferListDepth.Text -eq ''){
       Write-Warning "Removing AFDSmallBufferListDepth"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth"
     }else{
@@ -4053,10 +4053,10 @@ function RegistryTweaks{
 
     #MediumBufferListDepth
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "MediumBufferListDepth")
-    if ($A -eq $false -and $cb_MediumBufferListDepth.Text -ne $null -and $cb_MediumBufferListDepth.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_MediumBufferListDepth.Text -and $cb_MediumBufferListDepth.Text -ne '' ){
       Write-Host "Set AFDMediumBufferListDepth to"$cb_MediumBufferListDepth.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth" -Typ "Dword" -Value $cb_MediumBufferListDepth.Text -Force
-    }elseif($A -eq $true -and $cb_MediumBufferListDepth.Text -eq $null -or $cb_MediumBufferListDepth.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_MediumBufferListDepth.Text -or $cb_MediumBufferListDepth.Text -eq ''){
       Write-Warning "Removing AFDMediumBufferListDepth"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth"
     }else{
@@ -4066,10 +4066,10 @@ function RegistryTweaks{
 
     #LargBufferListDepth
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "LargBufferListDepth")
-    if ($A -eq $false -and $cb_LargBufferListDepth.Text -ne $null -and $cb_LargBufferListDepth.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_LargBufferListDepth.Text -and $cb_LargBufferListDepth.Text -ne '' ){
       Write-Host "Set AFDLargBufferListDepth to"$cb_LargBufferListDepth.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth" -Typ "Dword" -Value $cb_LargBufferListDepth.Text -Force
-    }elseif($A -eq $true -and $cb_LargBufferListDepth.Text -eq $null -or $cb_LargBufferListDepth.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_LargBufferListDepth.Text -or $cb_LargBufferListDepth.Text -eq ''){
       Write-Warning "Removing AFDLargBufferListDepth"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth"
     }else{
@@ -4079,10 +4079,10 @@ function RegistryTweaks{
 
     #DisableDirectAcceptEx
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DisableDirectAcceptEx")
-    if ($A -eq $false -and $cb_DisableDirectAcceptEx.Text -ne $null -and $cb_DisableDirectAcceptEx.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_DisableDirectAcceptEx.Text -and $cb_DisableDirectAcceptEx.Text -ne '' ){
       Write-Host "Set AFDDisableDirectAcceptEx to"$cb_DisableDirectAcceptEx.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx" -Typ "Dword" -Value $cb_DisableDirectAcceptEx.Text -Force
-    }elseif($A -eq $true -and $cb_DisableDirectAcceptEx.Text -eq $null -or $cb_DisableDirectAcceptEx.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_DisableDirectAcceptEx.Text -or $cb_DisableDirectAcceptEx.Text -eq ''){
       Write-Warning "Removing AFDDisableDirectAcceptEx"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx"
     }else{
@@ -4092,10 +4092,10 @@ function RegistryTweaks{
 
     #DisableChainedReceive
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DisableChainedReceive")
-    if ($A -eq $false -and $cb_DisableChainedReceive.Text -ne $null -and $cb_DisableChainedReceive.Text -ne '' -and $cb_DisableChainedReceive.Text -ne '0' ){
+    if ($A -eq $false -and $null -ne $cb_DisableChainedReceive.Text -and $cb_DisableChainedReceive.Text -ne '' -and $cb_DisableChainedReceive.Text -ne '0' ){
       Write-Host "Set AFDDisableChainedReceive to"$cb_DisableChainedReceive.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive" -Typ "Dword" -Value $cb_DisableChainedReceive.Text -Force
-    }elseif($A -eq $true -and $cb_DisableChainedReceive.Text -eq $null -or $cb_DisableChainedReceive.Text -eq '' -or $cb_DisableChainedReceive.Text -eq '0'){
+    }elseif($A -eq $true -and $null -eq $cb_DisableChainedReceive.Text -or $cb_DisableChainedReceive.Text -eq '' -or $cb_DisableChainedReceive.Text -eq '0'){
       Write-Warning "Removing AFDDisableChainedReceive"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive"
     }else{
@@ -4105,10 +4105,10 @@ function RegistryTweaks{
 
     #DisableRawSecurity
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DisableRawSecurity")
-    if ($A -eq $false -and $cb_DisableRawSecurity.Text -ne $null -and $cb_DisableRawSecurity.Text -ne '' -and $cb_DisableRawSecurity.Text -ne '0'){
+    if ($A -eq $false -and $null -ne $cb_DisableRawSecurity.Text -and $cb_DisableRawSecurity.Text -ne '' -and $cb_DisableRawSecurity.Text -ne '0'){
       Write-Host "Set AFDDisableRawSecurity to"$cb_DisableRawSecurity.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity" -Typ "Dword" -Value $cb_DisableRawSecurity.Text -Force
-    }elseif($A -eq $true -and $cb_DisableRawSecurity.Text -eq $null -or $cb_DisableRawSecurity.Text -eq '' -or $cb_DisableRawSecurity.Text -eq '0'){
+    }elseif($A -eq $true -and $null -eq $cb_DisableRawSecurity.Text -or $cb_DisableRawSecurity.Text -eq '' -or $cb_DisableRawSecurity.Text -eq '0'){
       Write-Warning "Removing AFDDisableRawSecurity"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity"
     }else{
@@ -4118,10 +4118,10 @@ function RegistryTweaks{
 
     #DynamicSendBufferDisable
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "DynamicSendBufferDisable")
-    if ($A -eq $false -and $cb_DynamicSendBufferDisable.Text -ne $null -and $cb_DynamicSendBufferDisable.Text -ne '' -and $cb_DynamicSendBufferDisable.Text -ne '1'){
+    if ($A -eq $false -and $null -ne $cb_DynamicSendBufferDisable.Text -and $cb_DynamicSendBufferDisable.Text -ne '' -and $cb_DynamicSendBufferDisable.Text -ne '1'){
       Write-Host "Set AFDDynamicSendBufferDisable to"$cb_DynamicSendBufferDisable.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable" -Typ "Dword" -Value $cb_DynamicSendBufferDisable.Text -Force
-    }elseif($A -eq $true -and $cb_DynamicSendBufferDisable.Text -eq $null -or $cb_DynamicSendBufferDisable.Text -eq '' -or $cb_DynamicSendBufferDisable.Text -eq '1'){
+    }elseif($A -eq $true -and $null -eq $cb_DynamicSendBufferDisable.Text -or $cb_DynamicSendBufferDisable.Text -eq '' -or $cb_DynamicSendBufferDisable.Text -eq '1'){
       Write-Warning "Removing AFDDynamicSendBufferDisable"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable"
     }else{
@@ -4131,10 +4131,10 @@ function RegistryTweaks{
 
     #FastSendDatagramThreshold
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "FastSendDatagramThreshold")
-    if ($A -eq $false -and $cb_FastSendDatagramThreshold.Text -ne $null -and $cb_FastSendDatagramThreshold.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_FastSendDatagramThreshold.Text -and $cb_FastSendDatagramThreshold.Text -ne '' ){
       Write-Host "Set AFDFastSendDatagramThreshold to"$cb_FastSendDatagramThreshold.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -Typ "Dword" -Value $cb_FastSendDatagramThreshold.Text -Force
-    }elseif($A -eq $true -and $cb_FastSendDatagramThreshold.Text -eq $null -or $cb_FastSendDatagramThreshold.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_FastSendDatagramThreshold.Text -or $cb_FastSendDatagramThreshold.Text -eq ''){
       Write-Warning "Removing AFDFastSendDatagramThreshold"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold"
     }else{
@@ -4144,10 +4144,10 @@ function RegistryTweaks{
 
     #FastCopyReceiveThreshold
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "FastCopyReceiveThreshold")
-    if ($A -eq $false -and $cb_FastCopyReceiveThreshold.Text -ne $null -and $cb_FastCopyReceiveThreshold.Text -ne '' ){
+    if ($A -eq $false -and $null -ne $cb_FastCopyReceiveThreshold.Text -and $cb_FastCopyReceiveThreshold.Text -ne '' ){
       Write-Host "Set AFDFastCopyReceiveThreshold to"$cb_FastCopyReceiveThreshold.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -Typ "Dword" -Value $cb_FastCopyReceiveThreshold.Text -Force
-    }elseif($A -eq $true -and $cb_FastCopyReceiveThreshold.Text -eq $null -or $cb_FastCopyReceiveThreshold.Text -eq ''){
+    }elseif($A -eq $true -and $null -eq $cb_FastCopyReceiveThreshold.Text -or $cb_FastCopyReceiveThreshold.Text -eq ''){
       Write-Warning "Removing AFDFastCopyReceiveThreshold"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold"
     }else{
@@ -4157,10 +4157,10 @@ function RegistryTweaks{
 
     #IgnorePushBitOnReceives
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "IgnorePushBitOnReceives")
-    if ($A -eq $false -and $cb_IgnorePushBitOnReceives.Text -ne $null -and $cb_IgnorePushBitOnReceives.Text -ne '' -and $cb_IgnorePushBitOnReceives.Text -ne '0' ){
+    if ($A -eq $false -and $null -ne $cb_IgnorePushBitOnReceives.Text -and $cb_IgnorePushBitOnReceives.Text -ne '' -and $cb_IgnorePushBitOnReceives.Text -ne '0' ){
       Write-Host "Set AFDIgnorePushBitOnReceives to"$cb_IgnorePushBitOnReceives.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives" -Typ "Dword" -Value $cb_IgnorePushBitOnReceives.Text -Force
-    }elseif($A -eq $true -and $cb_IgnorePushBitOnReceives.Text -eq $null -or $cb_IgnorePushBitOnReceives.Text -eq '' -or $cb_IgnorePushBitOnReceives.Text -eq '0'){
+    }elseif($A -eq $true -and $null -eq $cb_IgnorePushBitOnReceives.Text -or $cb_IgnorePushBitOnReceives.Text -eq '' -or $cb_IgnorePushBitOnReceives.Text -eq '0'){
       Write-Warning "Removing AFDIgnorePushBitOnReceives"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives"
     }else{
@@ -4170,10 +4170,10 @@ function RegistryTweaks{
 
       #IgnoreOrderlyRelease
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "IgnoreOrderlyRelease")
-    if ($A -eq $false -and $cb_IgnoreOrderlyRelease.Text -ne $null -and $cb_IgnoreOrderlyRelease.Text -ne '' -and $cb_IgnoreOrderlyRelease.Text -ne '0'){
+    if ($A -eq $false -and $null -ne $cb_IgnoreOrderlyRelease.Text -and $cb_IgnoreOrderlyRelease.Text -ne '' -and $cb_IgnoreOrderlyRelease.Text -ne '0'){
       Write-Host "Set AFDIgnoreOrderlyRelease to"$cb_IgnoreOrderlyRelease.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease" -Typ "Dword" -Value $cb_IgnoreOrderlyRelease.Text -Force
-    }elseif($A -eq $true -and $cb_IgnoreOrderlyRelease.Text -eq $null -or $cb_IgnoreOrderlyRelease.Text -eq '' -or $cb_IgnoreOrderlyRelease.Text -eq '0'){
+    }elseif($A -eq $true -and $null -eq $cb_IgnoreOrderlyRelease.Text -or $cb_IgnoreOrderlyRelease.Text -eq '' -or $cb_IgnoreOrderlyRelease.Text -eq '0'){
       Write-Warning "Removing AFDIgnoreOrderlyRelease"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease"
     }else{
@@ -4183,10 +4183,10 @@ function RegistryTweaks{
 
     #TransmitWorker
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "TransmitWorker")
-    if ($A -eq $false -and $cb_TransmitWorker.Text -ne $null -and $cb_TransmitWorker.Text -ne '' -and $cb_TransmitWorker.Text -ne '16'){
+    if ($A -eq $false -and $null -ne $cb_TransmitWorker.Text -and $cb_TransmitWorker.Text -ne '' -and $cb_TransmitWorker.Text -ne '16'){
       Write-Host "Set AFDTransmitWorker to"$cb_TransmitWorker.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker" -Typ "Dword" -Value $cb_TransmitWorker.Text -Force
-    }elseif($A -eq $true -and $cb_TransmitWorker.Text -eq $null -or $cb_TransmitWorker.Text -eq '' -or $cb_TransmitWorker.Text -eq '16'){
+    }elseif($A -eq $true -and $null -eq $cb_TransmitWorker.Text -or $cb_TransmitWorker.Text -eq '' -or $cb_TransmitWorker.Text -eq '16'){
       Write-Warning "Removing AFDTransmitWorker"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker"
     }else{
@@ -4196,10 +4196,10 @@ function RegistryTweaks{
 
     #PriorityBoost
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "PriorityBoost")
-    if ($A -eq $false -and $cb_PriorityBoost.Text -ne $null -and $cb_PriorityBoost.Text -ne '' -and $cb_PriorityBoost.Text -ne '2'){
+    if ($A -eq $false -and $null -ne $cb_PriorityBoost.Text -and $cb_PriorityBoost.Text -ne '' -and $cb_PriorityBoost.Text -ne '2'){
       Write-Host "Set AFDPriorityBoost to"$cb_PriorityBoost.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost" -Typ "Dword" -Value $cb_PriorityBoost.Text -Force
-    }elseif($A -eq $true -and $cb_PriorityBoost.Text -eq $null -or $cb_PriorityBoost.Text -eq '' -or $cb_PriorityBoost.Text -eq '2'){
+    }elseif($A -eq $true -and $null -eq $cb_PriorityBoost.Text -or $cb_PriorityBoost.Text -eq '' -or $cb_PriorityBoost.Text -eq '2'){
       Write-Warning "Removing AFDPriorityBoost"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost"
     }else{
@@ -4209,10 +4209,10 @@ function RegistryTweaks{
 
     #IrpStackSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name -contains "IrpStackSize")
-    if ($A -eq $false -and $cb_IrpStackSize.Text -ne $null -and $cb_IrpStackSize.Text -ne '' -and $cb_IrpStackSize.Text -ne '4'){
+    if ($A -eq $false -and $null -ne $cb_IrpStackSize.Text -and $cb_IrpStackSize.Text -ne '' -and $cb_IrpStackSize.Text -ne '4'){
       Write-Host "Set AFDIrpStackSize to"$cb_IrpStackSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize" -Typ "Dword" -Value $cb_IrpStackSize.Text -Force
-    }elseif($A -eq $true -and $cb_IrpStackSize.Text -eq $null -or $cb_IrpStackSize.Text -eq '' -or $cb_IrpStackSize.Text -eq '4'){
+    }elseif($A -eq $true -and $null -eq $cb_IrpStackSize.Text -or $cb_IrpStackSize.Text -eq '' -or $cb_IrpStackSize.Text -eq '4'){
       Write-Warning "Removing AFDIrpStackSize"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize"
     }else{
@@ -4266,22 +4266,22 @@ function HWSettings {
 }
 
 
-$btn_InterruptApply.Add_Click({cls; HWSettings})
-$btn_registrytweaksapply.Add_Click({cls; RegistryTweaks})
+$btn_InterruptApply.Add_Click({Clear-Host; HWSettings})
+$btn_registrytweaksapply.Add_Click({Clear-Host; RegistryTweaks})
 $cb_IPv4.Add_CheckedChanged({ IPv4_CheckedChanged })
 $cb_IPv6.Add_CheckedChanged({ IPv6_CheckedChanged })
-$btn_applyInterfaceSettings.Add_Click({cls; ApplyInterfaceSettings})
+$btn_applyInterfaceSettings.Add_Click({Clear-Host; ApplyInterfaceSettings})
 $btn_openreg.Add_Click({btn_regopadap})
-$btn_adaptrest.Add_Click({cls; adapter_restart})
-$btn_applyadv.Add_Click({cls; applyadvsettings})
-$btn_applyglobal.Add_Click({cls; applyglobal })
+$btn_adaptrest.Add_Click({Clear-Host; adapter_restart})
+$btn_applyadv.Add_Click({Clear-Host; applyadvsettings})
+$btn_applyglobal.Add_Click({Clear-Host; applyglobal })
 #$btn_applotadapters.Add_Click({applyotAdapters})
-$btn_apply.Add_Click({ cls; applyrsssettings })
+$btn_apply.Add_Click({ Clear-Host; applyrsssettings })
 # Source: https://community.spiceworks.com/topic/2239276-script-help-to-disable-power-management-on-network-cards
-$btn_applypowersettings.Add_Click({cls; applypowersavingsettings})
-$btn_applyall.Add_Click({cls; applyall})
-$btn_rssaddsupport.Add_Click({cls; RSSEnable})
-$btn_unqueues.Add_Click({cls; RSSQueuesUnlock})
+$btn_applypowersettings.Add_Click({Clear-Host; applypowersavingsettings})
+$btn_applyall.Add_Click({Clear-Host; applyall})
+$btn_rssaddsupport.Add_Click({Clear-Host; RSSEnable})
+$btn_unqueues.Add_Click({Clear-Host; RSSQueuesUnlock})
 $btn_Opacity.Add_Click({Opacity})
 $btn_afd.Add_Click({btn_regopenafd})
 #Notes:

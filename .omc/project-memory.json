@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1774822423360,
+  "lastScanned": 1774989985719,
   "projectRoot": "C:\\Users\\Ven0m0\\project\\Win",
   "techStack": {
     "languages": [],
@@ -35,8 +35,8 @@
     "Scripts": {
       "path": "Scripts",
       "purpose": "Build/utility scripts",
-      "fileCount": 20,
-      "lastAccessed": 1774822423324,
+      "fileCount": 21,
+      "lastAccessed": 1774989985611,
       "keyFiles": [
         "allow-scripts.cmd",
         "Common.ps1",
@@ -49,14 +49,14 @@
       "path": "user",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1774822423324,
+      "lastAccessed": 1774989985614,
       "keyFiles": []
     },
     "user\\bin": {
       "path": "user\\bin",
       "purpose": "Executable scripts",
       "fileCount": 4,
-      "lastAccessed": 1774822423325,
+      "lastAccessed": 1774989985615,
       "keyFiles": [
         "ect.cmd",
         "ffmpeg-av1.cmd",
@@ -66,81 +66,189 @@
   },
   "hotPaths": [
     {
-      "path": "AGENTS.md",
+      "path": "Scripts\\Network-Tweaker.ps1",
       "accessCount": 13,
-      "lastAccessed": 1774840079587,
+      "lastAccessed": 1775022361792,
+      "type": "directory"
+    },
+    {
+      "path": "Scripts\\shader-cache.ps1",
+      "accessCount": 10,
+      "lastAccessed": 1775022635990,
       "type": "file"
     },
     {
-      "path": "Scripts\\Setup-Dotfiles.ps1",
-      "accessCount": 8,
-      "lastAccessed": 1774840203269,
+      "path": "Scripts\\shell-setup.ps1",
+      "accessCount": 9,
+      "lastAccessed": 1775022207969,
       "type": "file"
     },
     {
-      "path": ".yadm\\bootstrap",
-      "accessCount": 4,
-      "lastAccessed": 1774840079166,
+      "path": "Scripts\\Common.ps1",
+      "accessCount": 9,
+      "lastAccessed": 1775022623975,
+      "type": "directory"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 6,
+      "lastAccessed": 1774994326866,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\skills\\win-patterns\\SKILL.md",
+      "accessCount": 5,
+      "lastAccessed": 1775009296480,
       "type": "file"
     },
     {
       "path": ".claude\\settings.json",
       "accessCount": 3,
-      "lastAccessed": 1774839718059,
+      "lastAccessed": 1775001546980,
       "type": "file"
     },
     {
-      "path": ".claude\\skills\\ps-script-validator\\SKILL.md",
+      "path": "Scripts\\arc-raiders\\ARCRaidersUtility.ps1",
+      "accessCount": 3,
+      "lastAccessed": 1775022636484,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\UltimateDiskCleanup.ps1",
       "accessCount": 2,
-      "lastAccessed": 1774823025567,
+      "lastAccessed": 1775004208370,
       "type": "file"
     },
     {
-      "path": "TODO.md",
-      "accessCount": 1,
-      "lastAccessed": 1774822445403,
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1775022593016,
+      "type": "directory"
+    },
+    {
+      "path": "Scripts\\Setup-Dotfiles.ps1",
+      "accessCount": 2,
+      "lastAccessed": 1775022597012,
       "type": "file"
     },
     {
-      "path": ".claude\\skills\\new-ps-script\\SKILL.md",
+      "path": "Scripts\\README.md",
       "accessCount": 1,
-      "lastAccessed": 1774823040218,
+      "lastAccessed": 1774995232024,
       "type": "file"
     },
     {
-      "path": ".claude\\agents\\ps-reviewer.md",
+      "path": "Scripts\\Defrag.txt",
       "accessCount": 1,
-      "lastAccessed": 1774823074817,
+      "lastAccessed": 1774995232564,
       "type": "file"
     },
     {
-      "path": ".claude\\AUTOMATION-SETUP.md",
+      "path": "Scripts\\system-maintenance.Tests.ps1",
       "accessCount": 1,
-      "lastAccessed": 1774823102819,
+      "lastAccessed": 1774995242212,
       "type": "file"
     },
     {
-      "path": "README.md",
+      "path": "Scripts\\Msi debloat.cmd",
       "accessCount": 1,
-      "lastAccessed": 1774825451705,
+      "lastAccessed": 1774995242541,
       "type": "file"
     },
     {
-      "path": ".opencode\\skills\\yadm-dotfiles\\SKILL.md",
+      "path": "Scripts\\New-QueryString.Tests.ps1",
       "accessCount": 1,
-      "lastAccessed": 1774825467092,
+      "lastAccessed": 1774995243981,
       "type": "file"
     },
     {
-      "path": "setup.ps1",
+      "path": "Scripts\\allow-scripts.cmd",
       "accessCount": 1,
-      "lastAccessed": 1774826158672,
+      "lastAccessed": 1774995272752,
       "type": "file"
     },
     {
-      "path": "Scripts\\Common.ps1",
+      "path": ".claude\\skills\\session-complete\\SKILL.md",
       "accessCount": 1,
-      "lastAccessed": 1774829384908,
+      "lastAccessed": 1775001459101,
+      "type": "file"
+    },
+    {
+      "path": ".claude\\agents\\security-reviewer.md",
+      "accessCount": 1,
+      "lastAccessed": 1775001462100,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\cleanup-arc-raiders.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003237241,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\DLSS-force-latest.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003238575,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\ARCRaidersUtility.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003238725,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\debloat-windows.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003239344,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\gaming-display.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003248914,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\gpu-display-manager.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003249886,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\edid-manager.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003250578,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\steam.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003258698,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\system-maintenance.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003260210,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\system-settings-manager.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003270953,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\win-iso\\uup-dump-get-windows-iso.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775003272398,
+      "type": "file"
+    },
+    {
+      "path": "Scripts\\arc-raiders\\cleanup-arc-raiders.ps1",
+      "accessCount": 1,
+      "lastAccessed": 1775022597035,
       "type": "file"
     }
   ],

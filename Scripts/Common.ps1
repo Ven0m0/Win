@@ -440,9 +440,9 @@ function Set-NvidiaSignatureOverride {
   $bcdTestSigningExitCode = $LASTEXITCODE
 
   if (($bcdNoIntegrityExitCode -eq 0) -and ($bcdTestSigningExitCode -eq 0)) {
-    Write-Host "  ✓ BCDEDIT settings updated ($value)" -ForegroundColor Green
+    Write-Host "  [OK] BCDEDIT settings updated ($value)" -ForegroundColor Green
   } else {
-    Write-Host "  ⚠️  Failed to update BCDEDIT settings (may require Secure Boot disabled or elevated PowerShell)" -ForegroundColor Yellow
+    Write-Host "  [WARN] Failed to update BCDEDIT settings (may require Secure Boot disabled or elevated PowerShell)" -ForegroundColor Yellow
     if ($bcdNoIntegrityExitCode -ne 0 -and $bcdNoIntegrityOutput) {
       Write-Host "    nointegritychecks error (exit code $bcdNoIntegrityExitCode):" -ForegroundColor Yellow
       Write-Host "      $bcdNoIntegrityOutput"
@@ -465,9 +465,9 @@ function Set-NvidiaSignatureOverride {
   }
 
   if (-not $regError) {
-    Write-Host "  ✓ NVIDIA signature registry keys updated" -ForegroundColor Green
+    Write-Host "  [OK] NVIDIA signature registry keys updated" -ForegroundColor Green
   } else {
-    Write-Host "  ⚠️  Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
+    Write-Host "  [WARN] Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
   }
 }
 
@@ -1106,4 +1106,4 @@ function Set-MSIMode {
 #endregion
 
 # Export functions
-        try { Export-ModuleMember -Function * } catch { }
+        try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }

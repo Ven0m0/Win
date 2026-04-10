@@ -155,7 +155,7 @@ if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
 # Scoop
 if (-not (Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue)) {
   Write-Verbose "Installing Scoop..."
-  iex ((New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh'))
+  Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh'))
 }
 
 # Chocolatey
@@ -363,7 +363,7 @@ if (-not (Test-Path -LiteralPath "$Env:UserProfile\go\" -PathType Container)) {
 
 # DOS/PowerShell environment
 Write-Verbose "Customize DOS/PowerShell Environment..."
-if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Command Processor").AutoRun -eq $Null) {
+if ($null -eq (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Command Processor").AutoRun) {
   Start-Process -FilePath "cmd" -ArgumentList "/c","clink","autorun","install" -Wait -WindowStyle Hidden
 }
 Start-Process -FilePath "cmd" -ArgumentList "/c","concfg","import","solarized-dark" -Verb RunAs -Wait
@@ -403,4 +403,5 @@ if (-not $PS7) {
 iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
 '@ > $Env:Temp\ps7.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
-  Re
+  Remove-Item -LiteralPath $Env:Temp\ps7.ps1 -Force
+}

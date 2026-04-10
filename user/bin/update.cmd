@@ -10,7 +10,7 @@ REM Update Winget
 echo [1/4] Updating Winget packages...
 where winget >nul 2>&1
 if %errorlevel% equ 0 (
-    winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements --include-unknown --force --purge --disable-interactivity --nowarn --no-proxy
+    winget upgrade -h -r -u --accept-package-agreements --accept-source-agreements --include-unknown --force --disable-interactivity --nowarn
     echo Winget update complete
 ) else (
     echo Winget not found, skipping...

@@ -12,9 +12,9 @@ My Windows configuration files and scripts, managed with [yadm](https://yadm.io/
 ## Features
 
 - **PowerShell Profile**: Custom aliases, functions, and prompt
-- **Windows Terminal Settings**: Terminal configuration
-- **Optimization Scripts**: Windows optimization and gaming tweaks
-- **Git Configuration**: Git defaults and aliases
+- **Windows Terminal Settings**: Modern terminal configuration
+- **Optimization Scripts**: Collection of Windows optimization and gaming tweaks
+- **Git Configuration**: Sensible git defaults and aliases
 - **yadm Bootstrap**: Automated setup on new machines
 
 ## Quick Start
@@ -75,7 +75,16 @@ The bootstrap script will:
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
-3. **Enable Script Execution**:
+3. **Git Config**:
+
+   ```powershell
+   # Copy template and customize
+   Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
+   # Edit with your name and email
+   notepad $HOME\.gitconfig
+   ```
+
+4. **Enable Script Execution**:
    ```cmd
    cd %USERPROFILE%\Scripts
    allow-scripts.cmd
@@ -85,30 +94,31 @@ The bootstrap script will:
 
 ```
 .
-├── .yadm/
-│   └── bootstrap                      # Post-clone setup script
-├── Scripts/
-│   ├── Common.ps1                     # Shared utility functions
-│   ├── gpu-display-manager.ps1        # GPU/display settings (P-State, HDCP, MSI Mode, EDID)
-│   ├── gaming-display.ps1             # FSO/MPO display tweaks
-│   ├── edid-manager.ps1               # EDID override management
-│   ├── debloat-windows.ps1            # System debloater
-│   ├── steam.ps1                      # Steam optimization
-│   ├── shader-cache.ps1               # Shader cache cleanup
-│   ├── DLSS-force-latest.ps1          # DLSS configuration
-│   ├── Network-Tweaker.ps1            # Network adapter optimization
-│   ├── UltimateDiskCleanup.ps1        # Disk cleanup GUI
-│   ├── system-maintenance.ps1         # System maintenance tasks
-│   ├── allow-scripts.cmd              # PowerShell execution policy
-│   └── Hostbuilder/
-│       └── BuildHosts.ps1             # Hosts file builder
 ├── user/.dotfiles/config/
-│   ├── powershell/profile.ps1         # PowerShell profile
-│   ├── windows-terminal/              # Windows Terminal config
-│   └── nvidia/                        # NVIDIA registry tweaks and profiles
-├── setup.ps1                          # Main system setup script
-├── .gitignore
-└── README.md
+│   ├── powershell/
+│   │   └── profile.ps1          # PowerShell profile
+│   └── windows-terminal/
+│       └── settings.json         # Windows Terminal config
+├── .yadm/
+│   └── bootstrap                 # Setup script
+├── Scripts/
+│   ├── Common.ps1               # Shared utility functions
+│   ├── edid-manager.ps1         # Display EDID management
+│   ├── gaming-display.ps1       # Gaming display optimizations
+│   ├── gpu-display-manager.ps1  # GPU/display settings
+│   ├── debloat-windows.ps1      # System debloating suite
+│   ├── system-settings-manager.ps1 # System performance settings
+│   ├── allow-scripts.cmd        # PowerShell execution policy
+│   ├── steam.ps1                # Steam optimization
+│   ├── shader-cache.ps1         # Shader cache cleanup
+│   ├── Network-Tweaker.ps1      # Network adapter optimization
+│   ├── UltimateDiskCleanup.ps1  # Disk cleanup GUI
+│   ├── DLSS-force-latest.ps1    # DLSS configuration
+│   ├── arc-raiders/             # Arc Raiders utilities
+│   └── Hostbuilder/
+│       └── BuildHosts.ps1       # Hosts file builder
+├── .gitignore                   # Git ignore patterns
+└── README.md                    # This file
 ```
 
 ## Available Scripts
@@ -117,9 +127,10 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### System Optimization
 
-- **`gpu-display-manager.ps1`** - Manage NVIDIA GPU settings (P-State, HDCP, MSI Mode, EDID)
 - **`edid-manager.ps1`** - Apply/remove EDID overrides to fix display issues
 - **`gaming-display.ps1`** - Configure fullscreen mode and multiplane overlay
+- **`gpu-display-manager.ps1`** - GPU and display settings
+- **`system-settings-manager.ps1`** - Apply system performance optimizations
 - **`debloat-windows.ps1`** - System debloater (Apps, Services, Tasks, Features)
 
 ### Gaming Utilities
@@ -130,8 +141,8 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Maintenance
 
-- **`UltimateDiskCleanup.ps1`** - Disk cleanup tool (GUI)
-- **`debloat-windows.ps1`** - Debloating and optimization suite
+- **`UltimateDiskCleanup.ps1`** - Comprehensive disk cleanup tool (GUI)
+- **`debloat-windows.ps1`** - Automated debloating and optimization suite
 - **`setup.ps1`** - Install common software and perform system maintenance
 
 ### Networking
@@ -142,6 +153,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 ### Configuration
 
 - **`allow-scripts.cmd`** - Enable/disable PowerShell script execution
+
 
 ## yadm Usage
 
@@ -200,7 +212,7 @@ Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
 
 ## PowerShell Profile Features
 
-The PowerShell profile (`user/.dotfiles/config/powershell/profile.ps1`) includes:
+The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
 
 ### Aliases
 
@@ -232,10 +244,10 @@ The PowerShell profile (`user/.dotfiles/config/powershell/profile.ps1`) includes
 
 ### Local Customizations
 
-Create `user/.dotfiles/config/powershell/local.ps1` for machine-specific configuration that won't be tracked by yadm:
+Create `~/.config/powershell/local.ps1` for machine-specific configuration that won't be tracked by yadm:
 
 ```powershell
-# user/.dotfiles/config/powershell/local.ps1
+# ~/.config/powershell/local.ps1
 # This file is ignored by yadm
 
 # Machine-specific aliases
@@ -284,7 +296,7 @@ pwsh $HOME\.yadm\bootstrap
 Manually copy:
 
 ```powershell
-Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
+Copy-Item "$HOME\.config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
 ```
 
 ### yadm Commands Not Working
@@ -296,6 +308,10 @@ where.exe yadm
 ```
 
 If not found, reinstall yadm or add it to PATH manually.
+
+## Contributing
+
+Feel free to fork and customize for your own use!
 
 ## Credits
 

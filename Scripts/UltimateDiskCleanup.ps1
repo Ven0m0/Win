@@ -202,7 +202,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     if ($checkBox3.Checked) {
         Write-Host 'Clearing TEMP Files...'
         #cleanup temp files
-        $temp1 = 'C:\Windows\Temp'
+        $temp1 = "$env:SystemRoot\Temp"
         $temp2 = $env:TEMP
         $tempFiles = (Get-ChildItem -Path $temp1 , $temp2 -Recurse -Force).FullName
         foreach ($file in $tempFiles) {

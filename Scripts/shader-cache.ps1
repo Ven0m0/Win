@@ -1,4 +1,4 @@
-﻿# clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
+# clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 
 #Requires -RunAsAdministrator
 
@@ -18,7 +18,7 @@ try {
 
 #--- Targeted Apps
 $apps = @(
-  @{id=730; name='cs2';   mod='csgo';  installdir='Counter-Strike Global Offensive'},
+  @{id=730; name='cs2';   mod='csgo';  installdir='Counter-Strike Global Offensive'}
 )
 
 #--- Find per-app install locations (using Common.ps1 VDF parser)
@@ -55,12 +55,12 @@ while (Get-Process steamwebhelper,steam -EA 0) {
   Start-Sleep -Milliseconds 250
 }
 
-Write-Host "`n• Clearing STEAM logs..." -ForegroundColor Cyan
+Write-Host "`n* Clearing STEAM logs..." -ForegroundColor Cyan
 Clear-DirectorySafe "$STEAM\logs"
-Write-Host "`n• Clearing STEAM dumps..." -ForegroundColor Cyan
+Write-Host "`n* Clearing STEAM dumps..." -ForegroundColor Cyan
 Clear-DirectorySafe "$STEAM\dumps"
 
-Write-Host "`n• Clearing APP crash dumps..." -ForegroundColor Cyan
+Write-Host "`n* Clearing APP crash dumps..." -ForegroundColor Cyan
 foreach ($app in $apps) {
   if ($app.exe) {
     $dir=Split-Path $app.exe
@@ -68,7 +68,7 @@ foreach ($app in $apps) {
   }
 }
 
-Write-Host "`n• Clearing APP shadercache..." -ForegroundColor Cyan
+Write-Host "`n* Clearing APP shadercache..." -ForegroundColor Cyan
 foreach ($app in $apps) {
   $targets=@()
   if ($app.game) { $targets+= "$($app.game)\shadercache" }
@@ -77,13 +77,13 @@ foreach ($app in $apps) {
   foreach ($t in $targets) { Clear-DirectorySafe $t }
 }
 
-Write-Host "`n• Clearing NVIDIA Compute cache..." -ForegroundColor Cyan
+Write-Host "`n* Clearing NVIDIA Compute cache..." -ForegroundColor Cyan
 Clear-DirectorySafe "$env:APPDATA\NVIDIA\ComputeCache"
 
-Write-Host "`n• Clearing NV_Cache..." -ForegroundColor Cyan
+Write-Host "`n* Clearing NV_Cache..." -ForegroundColor Cyan
 Clear-DirectorySafe "$env:ProgramData\NVIDIA Corporation\NV_Cache"
 
-Write-Host "`n• Clearing Local shader caches..." -ForegroundColor Cyan
+Write-Host "`n* Clearing Local shader caches..." -ForegroundColor Cyan
 @(
   'D3DSCache','NVIDIA\GLCache','NVIDIA\DXCache','NVIDIA\OptixCache','NVIDIA Corporation\NV_Cache',
   'AMD\DX9Cache','AMD\DxCache','AMD\DxcCache','AMD\GLCache','AMD\OglCache','AMD\VkCache','Intel\ShaderCache'
@@ -91,14 +91,14 @@ Write-Host "`n• Clearing Local shader caches..." -ForegroundColor Cyan
   Clear-DirectorySafe "$env:LOCALAPPDATA\$_"
 }
 
-Write-Host "`n• Clearing LocalLow shader caches..." -ForegroundColor Cyan
+Write-Host "`n* Clearing LocalLow shader caches..." -ForegroundColor Cyan
 @(
   'NVIDIA\PerDriverVersion\DXCache','NVIDIA\PerDriverVersion\GLCache','Intel\ShaderCache'
 ) | ForEach-Object {
   Clear-DirectorySafe "$($env:LOCALAPPDATA)\..\LocalLow\$_"
 }
 
-Write-Host "`n• Clearing driver temp dirs..." -ForegroundColor Cyan
+Write-Host "`n* Clearing driver temp dirs..." -ForegroundColor Cyan
 @("$env:SystemDrive\AMD","$env:SystemDrive\NVIDIA","$env:SystemDrive\Intel") | ForEach-Object {
   Clear-DirectorySafe $_
 }
