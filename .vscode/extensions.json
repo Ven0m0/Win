@@ -14,6 +14,7 @@
     "oven.bun-vscode",
     "ast-grep.ast-grep-vscode",
     "thqby.vscode-autohotkey2-lsp",
-    "mark-wiemer.vscode-autohotkey-plus-plus"
+    "mark-wiemer.vscode-autohotkey-plus-plus",
+    "ms-vscode.powershell"
   ]
 }
