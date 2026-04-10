@@ -27,6 +27,7 @@ function Remove-Glob {
 # ── Arc Raiders ───────────────────────────────────────────────────────────────
 Write-Host "`n[Arc Raiders]"
 Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\*.upipelinecache"
+Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\CollectedShaderCode\*"
 Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes\*"
 Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Logs\*"
 Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Config\CrashReportClient\*"
@@ -41,18 +42,49 @@ Remove-Glob "$env:windir\Prefetch\*"
 Remove-Glob "$env:TEMP\*"
 Remove-Glob "$env:LOCALAPPDATA\cache\*"
 
+# ── Steam cache ───────────────────────────────────────────────────────────────
+Write-Host "`n[Steam]"
+$steamRunning = Get-Process -Name 'steam' -ErrorAction SilentlyContinue
+if ($steamRunning) {
+    Write-Host "  Steam is running — stopping it now..."
+    $steamRunning | Stop-Process -Force
+    Start-Sleep -Seconds 3
+    Write-Host "  Steam stopped."
+}
+
+$steamPath = $null
+foreach ($reg in @('HKCU:\Software\Valve\Steam', 'HKLM:\Software\Wow6432Node\Valve\Steam')) {
+    try {
+        $p = (Get-ItemProperty $reg -ErrorAction Stop).SteamPath
+        if ($p) { $steamPath = $p -replace '/', '\'; break }
+    } catch {}
+}
+
+if ($steamPath) {
+    Remove-Glob "$steamPath\appcache\httpcache\*"
+    Remove-Glob "$steamPath\appcache\stats\*"
+    Remove-Glob "$steamPath\logs\*"
+    Remove-Glob "$steamPath\steamapps\shadercache\*"
+    Remove-Glob "$env:LOCALAPPDATA\Steam\htmlcache\*"
+    Write-Host "  Steam path: $steamPath"
+} else {
+    Write-Host "  Steam path not found — skipped."
+}
+
 # ── NVIDIA Shader / Compute Caches ────────────────────────────────────────────
 Write-Host "`n[NVIDIA caches]"
 Remove-Glob "$env:APPDATA\NVIDIA\ComputeCache\*"
 Remove-Glob "$env:LOCALAPPDATA\NVIDIA\DXCache\*"
 Remove-Glob "$env:LOCALAPPDATA\NVIDIA\GLCache\*"
 Remove-Glob "$env:LOCALAPPDATA\D3DSCache\*"
+Remove-Glob "$env:LOCALAPPDATA\NVIDIA Corporation\NV_Cache\*"
 
 $nvidiaLocalLow = [System.IO.Path]::Combine(
     [Environment]::GetFolderPath('UserProfile'),
     'AppData', 'LocalLow', 'NVIDIA'
 )
 Remove-Glob "$nvidiaLocalLow\PerDriverVersion\DXCache\*"
+Remove-Glob "$nvidiaLocalLow\PerDriverVersion\VkCache\*"
 Remove-Glob "$nvidiaLocalLow\*"
 
 # ── DNS ───────────────────────────────────────────────────────────────────────
@@ -77,12 +109,12 @@ foreach ($exe in @(
     }
 }
 
-# ── Second-pass temp (post-DX rebuild) ────────────────────────────────────────
+# ── Second-pass temp (post-DX rebuild) ───────────────────────────────────────────
 Write-Host "`n[Temp 2nd pass]"
 Remove-Glob "$env:windir\Temp\*"
 Remove-Glob "$env:TEMP\*"
 
-# ── Memory: trim working sets + standby list ──────────────────────────────────
+# ── Memory: trim working sets + standby list ────────────────────────────────────────────────
 Write-Host "`n[Memory] Trimming..."
 
 Add-Type @"
@@ -126,7 +158,7 @@ Write-Host "  Idle tasks queued."
 [System.GC]::WaitForPendingFinalizers()
 [System.GC]::Collect()
 
-# ── Disk Optimization ─────────────────────────────────────────────────────────
+# ── Disk Optimization ─────────────────────���─��─────────────────────────────────
 Write-Host "`n[Disk] Optimizing fixed volumes..."
 Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
     $dl = $_.DriveLetter
@@ -147,7 +179,7 @@ Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | For
     }
 }
 
-# ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
+# ── Large Page Support (SeLockMemoryPrivilege) ────────────────────────────────
 Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."
 
 Add-Type @"
