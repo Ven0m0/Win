@@ -5,6 +5,7 @@
 ## Repository Identity
 
 This repository is a **Windows dotfiles and optimization suite** managed with [yadm](https://yadm.io/). It contains PowerShell automation, Windows configuration, registry tweaks, and game/performance tuning assets intended to be synchronized across Windows machines.
+> bf2=Star wars battlefront 2 2017
 
 **Primary stack:** yadm, PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget.
 
