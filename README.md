@@ -75,6 +75,8 @@ The bootstrap script will:
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
+   Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
+
 3. **Git Config**:
 
    ```powershell
@@ -296,7 +298,7 @@ pwsh $HOME\.yadm\bootstrap
 Manually copy:
 
 ```powershell
-Copy-Item "$HOME\.config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
+Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
 ```
 
 ### yadm Commands Not Working

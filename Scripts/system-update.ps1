@@ -355,12 +355,45 @@ function Read-CapturedOutput {
     catch { return '' }
 }
 
+function ConvertTo-CommandArgumentString {
+    param([string[]]$Arguments)
+
+    return (($Arguments | ForEach-Object {
+        if ($_ -match '[\s"]') {
+            '"' + ($_ -replace '"', '\"') + '"'
+        } else {
+            $_
+        }
+    }) -join ' ')
+}
+
 function Invoke-WingetWithTimeout {
-    param([string[]]$Arguments, [int]$TimeoutSec = $script:Config.WingetTimeoutSec)
+    param(
+        [string[]]$Arguments,
+        [int]$TimeoutSec = $script:Config.WingetTimeoutSec,
+        [hashtable]$EnvironmentOverrides
+    )
     $stdoutFile = [System.IO.Path]::GetTempFileName()
     $stderrFile = [System.IO.Path]::GetTempFileName()
     try {
-        $proc = Start-Process -FilePath 'winget' -ArgumentList $Arguments -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile -NoNewWindow -PassThru
+        $startInfo = @{
+            RedirectStandardOutput = $stdoutFile
+            RedirectStandardError  = $stderrFile
+            NoNewWindow            = $true
+            PassThru               = $true
+        }
+
+        if ($EnvironmentOverrides.Count -gt 0) {
+            $setCommands = foreach ($pair in $EnvironmentOverrides.GetEnumerator()) {
+                "set `"$($pair.Key)=$($pair.Value)`""
+            }
+            $wingetCommand = "winget $(ConvertTo-CommandArgumentString -Arguments $Arguments)"
+            $command = @($setCommands + $wingetCommand) -join ' && '
+            $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/d', '/c', $command) @startInfo
+        } else {
+            $proc = Start-Process -FilePath 'winget' -ArgumentList $Arguments @startInfo
+        }
+
         $exited = $proc.WaitForExit($TimeoutSec * 1000)
         if (-not $exited) {
             try { & taskkill.exe /PID $proc.Id /T /F | Out-Null } catch { }
@@ -705,17 +738,28 @@ $managers = @(
             # 2. Main Upgrade
             Write-Host "  Upgrading all (winget source, timeout: $($script:Config.WingetTimeoutSec)s)..." -ForegroundColor Gray
 
-            # WORKAROUND for 1632: Force TEMP to C:\Windows\Temp if admin
+            # Scope TEMP/TMP overrides to winget child processes to avoid MSI 1632 failures.
             if (-not $isAdmin) {
                 Write-Status "Running as NON-ADMIN. MSI installers (GitHub CLI, CMake, etc.) will likely fail with 1632." -Type Warning
                 Write-Status "Please run with -AutoElevate or as Administrator." -Type Info
             }
 
-            $oldTemp = $env:TEMP; $oldTmp = $env:TMP
-            if ($isAdmin -and (Test-Path 'C:\Windows\Temp')) { $env:TEMP = 'C:\Windows\Temp'; $env:TMP = 'C:\Windows\Temp' }
+            $wingetEnvironment = @{}
+            $wingetTempPath = Join-Path $env:SystemRoot 'Temp'
+            if ($isAdmin) {
+                if (Test-Path $wingetTempPath) {
+                    $wingetEnvironment = @{
+                        TEMP = $wingetTempPath
+                        TMP  = $wingetTempPath
+                    }
+                    Write-Detail "Using scoped TEMP override for winget MSI installs: $wingetTempPath" -Type Info
+                } else {
+                    Write-Detail "System temp directory not found for scoped winget override: $wingetTempPath" -Type Warning
+                }
+            }
 
             try {
-                $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity')
+                $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
                 if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray) }
                 $upgradeList = $upgradeScan.Output
                 $upgradeEntries = @(Get-WingetUpgradeEntries -WingetOutput $upgradeList)
@@ -756,7 +800,7 @@ $managers = @(
                     $pkgFailed = $false
                     for ($attempt = 1; $attempt -le 3; $attempt++) {
                         try {
-                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--id', $pkgId, '--include-unknown', '--source', 'winget', '--silent', '--accept-source-agreements', '--accept-package-agreements', '--disable-interactivity')
+                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--id', $pkgId, '--include-unknown', '--source', 'winget', '--silent', '--accept-source-agreements', '--accept-package-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
                             $exitCode = $pkgResult.ExitCode
                             $pkgOutput = $pkgResult.Output
                             if ($pkgOutput) { Write-FilteredOutput -Text $pkgOutput -Color ([ConsoleColor]::Gray) }
@@ -792,7 +836,7 @@ $managers = @(
                 }
 
                 # Recapture status for post-hooks
-                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity')
+                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
                 try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch {}
@@ -812,7 +856,6 @@ $managers = @(
                     $script:stepMessage = if ($anyInstalled) { 'completed with some failures' } else { 'failed; see warnings above' }
                 }
             }
-            finally { $env:TEMP = $oldTemp; $env:TMP = $oldTmp }
         }
         RequiresCommand = 'winget'
         SlowOperation   = $false
