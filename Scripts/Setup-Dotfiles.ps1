@@ -120,6 +120,259 @@ function Deploy-ConfigDirectory {
   }
 }
 
+function Import-RegistryConfig {
+  <#
+  .SYNOPSIS
+      Imports a registry file into the local registry.
+  .PARAMETER Source
+      Full path to the .reg file.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+  [CmdletBinding(SupportsShouldProcess)]
+  param(
+    [string]$Source,
+    [string]$Label
+  )
+
+  if (-not (Test-Path $Source)) {
+    Write-Warning "  [SKIP] $Label - source not found: $Source"
+    return
+  }
+
+  if ($PSCmdlet.ShouldProcess('Registry', "Import $Label")) {
+    & reg.exe import $Source | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "  [OK] $Label imported" -ForegroundColor Green
+    } else {
+      Write-Warning "  [WARN] $Label - reg import exit code: $LASTEXITCODE"
+    }
+  }
+}
+
+function Get-FirefoxDefaultProfilePath {
+  $profilesIni = Join-Path $env:APPDATA 'Mozilla\Firefox\profiles.ini'
+  if (-not (Test-Path $profilesIni)) {
+    return $null
+  }
+
+  $profiles = [System.Collections.Generic.List[hashtable]]::new()
+  $currentProfile = $null
+
+  foreach ($line in Get-Content $profilesIni) {
+    if ($line -match '^\[(?<section>[^\]]+)\]$') {
+      if ($currentProfile -and $currentProfile.Section -like 'Profile*') {
+        $profiles.Add($currentProfile)
+      }
+      $currentProfile = @{ Section = $matches.section }
+      continue
+    }
+
+    if ($currentProfile -and $line -match '^(?<key>[^=]+)=(?<value>.*)$') {
+      $currentProfile[$matches.key] = $matches.value
+    }
+  }
+
+  if ($currentProfile -and $currentProfile.Section -like 'Profile*') {
+    $profiles.Add($currentProfile)
+  }
+
+  if ($profiles.Count -eq 0) {
+    return $null
+  }
+
+  $defaultProfile = $profiles | Where-Object { $_.Default -eq '1' } | Select-Object -First 1
+  if (-not $defaultProfile) {
+    $defaultProfile = $profiles | Select-Object -First 1
+  }
+
+  if (-not $defaultProfile.Path) {
+    return $null
+  }
+
+  if ($defaultProfile.IsRelative -eq '1') {
+    return Join-Path (Split-Path $profilesIni -Parent) $defaultProfile.Path
+  }
+
+  return $defaultProfile.Path
+}
+
+function Get-CallOfDutyPlayersPath {
+  $playersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty\players'
+  if (Test-Path $playersPath) {
+    return $playersPath
+  }
+
+  return $null
+}
+
+function Get-Battlefield2RootPath {
+  return (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Battlefield 2')
+}
+
+function Get-Battlefield2ActiveProfilePath {
+  $bf2Root = Get-Battlefield2RootPath
+  $profilesDir = Join-Path $bf2Root 'Profiles'
+  if (-not (Test-Path $profilesDir)) {
+    return $null
+  }
+
+  $globalConfigPath = Join-Path $profilesDir 'Global.con'
+  if (Test-Path $globalConfigPath) {
+    foreach ($line in Get-Content $globalConfigPath) {
+      if ($line -match 'GlobalSettings\.setDefaultUser\s+"?(?<profileId>[^"\r\n]+)"?') {
+        $profilePath = Join-Path $profilesDir $matches.profileId
+        if (Test-Path $profilePath) {
+          return $profilePath
+        }
+      }
+    }
+  }
+
+  return (
+    Get-ChildItem -Path $profilesDir -Directory -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -ne 'Default' } |
+      Sort-Object Name |
+      Select-Object -First 1 -ExpandProperty FullName
+  )
+}
+
+function Set-CmdAliasAutoRun {
+  <#
+  .SYNOPSIS
+      Configures cmd.exe AutoRun to load the tracked DOSKEY aliases.
+  .PARAMETER AliasScript
+      Full path to alias.cmd.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+  [CmdletBinding(SupportsShouldProcess)]
+  param(
+    [string]$AliasScript,
+    [string]$Label
+  )
+
+  if (-not (Test-Path $AliasScript)) {
+    Write-Warning "  [SKIP] $Label - alias script not found: $AliasScript"
+    return
+  }
+
+  $commandProcessorKey = 'HKCU:\Software\Microsoft\Command Processor'
+  $autoRunSnippet = "if exist `"$AliasScript`" call `"$AliasScript`""
+  $currentAutoRun = (Get-ItemProperty -Path $commandProcessorKey -Name AutoRun -ErrorAction SilentlyContinue).AutoRun
+
+  if ($currentAutoRun -and $currentAutoRun -match [regex]::Escape($AliasScript)) {
+    Write-Host "  [UP-TO-DATE] $Label" -ForegroundColor Gray
+    return
+  }
+
+  $newAutoRun = if ([string]::IsNullOrWhiteSpace($currentAutoRun)) {
+    $autoRunSnippet
+  } else {
+    "$currentAutoRun & $autoRunSnippet"
+  }
+
+  if ($PSCmdlet.ShouldProcess($commandProcessorKey, "Configure $Label")) {
+    if (-not (Test-Path $commandProcessorKey)) {
+      New-Item -Path $commandProcessorKey -Force | Out-Null
+    }
+    New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force | Out-Null
+    Write-Host "  [OK] $Label configured" -ForegroundColor Green
+  }
+}
+
+function Deploy-Battlefield2Configs {
+  <#
+  .SYNOPSIS
+      Deploys Battlefield 2 configs into the root config folder and active profile.
+  .PARAMETER SourceDir
+      Full path to the tracked Battlefield 2 config directory.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+  [CmdletBinding()]
+  param(
+    [string]$SourceDir,
+    [string]$Label
+  )
+
+  if (-not (Test-Path $SourceDir)) {
+    return
+  }
+
+  $bf2Root = Get-Battlefield2RootPath
+  if (-not (Test-Path $bf2Root)) {
+    Write-Warning "  [SKIP] $Label - Battlefield 2 config directory not found: $bf2Root"
+    return
+  }
+
+  $activeProfilePath = Get-Battlefield2ActiveProfilePath
+  if (-not $activeProfilePath) {
+    $profilesDir = Join-Path $bf2Root 'Profiles'
+    Write-Warning "  [SKIP] $Label - active Battlefield 2 profile not found under: $profilesDir"
+    return
+  }
+
+  $rootFiles = @('BootOptions', 'user.cfg')
+  foreach ($fileName in $rootFiles) {
+    $sourcePath = Join-Path $SourceDir $fileName
+    if (Test-Path $sourcePath) {
+      Deploy-Config -Source $sourcePath -Destination (Join-Path $bf2Root $fileName) -Label "$Label/$fileName"
+    }
+  }
+
+  $profileOptionsPath = Join-Path $SourceDir 'ProfileOptions_profile'
+  if (Test-Path $profileOptionsPath) {
+    Deploy-Config -Source $profileOptionsPath -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') -Label "$Label/ProfileOptions_profile"
+  }
+}
+
+function Invoke-ConfigManifestEntry {
+  <#
+  .SYNOPSIS
+      Resolves and applies a manifest-driven config deployment entry.
+  .PARAMETER Entry
+      Manifest entry describing the deployment action.
+  #>
+  [CmdletBinding()]
+  param(
+    [hashtable]$Entry
+  )
+
+  $sourcePath = Join-Path $configRoot $Entry.Path
+  if (-not (Test-Path $sourcePath)) {
+    return
+  }
+
+  switch ($Entry.Mode) {
+    'file' {
+      $destination = & $Entry.ResolveDestination
+      if ($destination) {
+        Deploy-Config -Source $sourcePath -Destination $destination -Label $Entry.Label
+      } else {
+        Write-Warning "  [SKIP] $($Entry.Label) - $(& $Entry.GetSkipReason)"
+      }
+    }
+    'directory' {
+      $destination = & $Entry.ResolveDestination
+      if ($destination) {
+        Deploy-ConfigDirectory -SourceDir $sourcePath -DestDir $destination -Filter $Entry.Filter -Label $Entry.Label
+      } else {
+        Write-Warning "  [SKIP] $($Entry.Label) - $(& $Entry.GetSkipReason)"
+      }
+    }
+    'registry' {
+      Import-RegistryConfig -Source $sourcePath -Label $Entry.Label
+    }
+    'manual' {
+      Write-Warning "  [MANUAL] $($Entry.Label) - $($Entry.Note)"
+    }
+    'script' {
+      & $Entry.Invoke $sourcePath $Entry.Label
+    }
+  }
+}
+
 function Install-WingetTool {
   <#
   .SYNOPSIS
@@ -222,22 +475,66 @@ Deploy-ConfigDirectory `
   -Filter '*.xml' `
   -Label 'BleachBit cleaners'
 
-# Configs with unknown destinations - skip with informational warnings
-$tbdConfigs = @(
-  @{ path = 'nvidia';    note = 'NVIDIA Inspector - destination path varies by install location' },
-  @{ path = 'games\bf2'; note = 'BF2 - game config path not yet mapped' },
-  @{ path = 'games\bo6'; note = 'BO6 - COD config path varies by install' },
-  @{ path = 'games\bo7'; note = 'BO7 - COD config path varies by install' },
-  @{ path = 'cmd';       note = 'CMD aliases - destination path not yet mapped' },
-  @{ path = 'firefox';   note = 'Firefox - profile path varies per installation' },
-  @{ path = 'brave';     note = 'Brave - user data path not yet mapped' }
+# Configs with manifest-driven handlers
+$callOfDutyPlayersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty\players'
+$firefoxProfilesRoot = Join-Path $env:APPDATA 'Mozilla\Firefox'
+$configManifest = @(
+  @{
+    Path               = 'firefox\user.js'
+    Mode               = 'file'
+    Label              = 'Firefox user.js'
+    ResolveDestination = { $profilePath = Get-FirefoxDefaultProfilePath; if ($profilePath) { Join-Path $profilePath 'user.js' } }
+    GetSkipReason      = { "Firefox profile not found under: $firefoxProfilesRoot" }
+  },
+  @{
+    Path  = 'brave\brave_debloater.reg'
+    Mode  = 'registry'
+    Label = 'Brave policies'
+  },
+  @{
+    Path  = 'nvidia'
+    Mode  = 'manual'
+    Label = 'NVIDIA assets'
+    Note  = 'manual deployment required; the folder contains mixed scripts, profiles, docs, and registry assets for install-specific locations'
+  },
+  @{
+    Path   = 'cmd'
+    Mode   = 'script'
+    Label  = 'CMD aliases'
+    Invoke = {
+      param($sourceDir, $label)
+      Set-CmdAliasAutoRun -AliasScript (Join-Path $sourceDir 'alias.cmd') -Label $label
+    }
+  },
+  @{
+    Path   = 'games\bf2'
+    Mode   = 'script'
+    Label  = 'Battlefield 2 configs'
+    Invoke = {
+      param($sourceDir, $label)
+      Deploy-Battlefield2Configs -SourceDir $sourceDir -Label $label
+    }
+  },
+  @{
+    Path               = 'games\bo6'
+    Mode               = 'directory'
+    Label              = 'Call of Duty Black Ops 6 configs'
+    Filter             = '*'
+    ResolveDestination = { Get-CallOfDutyPlayersPath }
+    GetSkipReason      = { "Call of Duty players directory not found: $callOfDutyPlayersPath" }
+  },
+  @{
+    Path               = 'games\bo7'
+    Mode               = 'directory'
+    Label              = 'Call of Duty Black Ops 7 configs'
+    Filter             = '*'
+    ResolveDestination = { Get-CallOfDutyPlayersPath }
+    GetSkipReason      = { "Call of Duty players directory not found: $callOfDutyPlayersPath" }
+  }
 )
 
-foreach ($cfg in $tbdConfigs) {
-  $srcPath = Join-Path $configRoot $cfg.path
-  if (Test-Path $srcPath) {
-    Write-Warning "  [SKIP] $($cfg.path) - $($cfg.note)"
-  }
+foreach ($entry in $configManifest) {
+  Invoke-ConfigManifestEntry -Entry $entry
 }
 
 # ---------------------------------------------------------------------------
