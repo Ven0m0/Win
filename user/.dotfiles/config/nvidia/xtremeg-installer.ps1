@@ -276,9 +276,11 @@ function Remove-DriverBloat {
 
   $removed = 0
 
-  foreach ($item in $bloatItems) {
-    $found = Get-ChildItem -Path $ExtractPath -Filter $item -Recurse -ErrorAction SilentlyContinue
-    foreach ($file in $found) {
+  $bloatSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$bloatItems, [System.StringComparer]::OrdinalIgnoreCase)
+  $allItems = Get-ChildItem -Path $ExtractPath -Recurse -ErrorAction SilentlyContinue
+
+  foreach ($file in $allItems) {
+    if ($bloatSet.Contains($file.Name)) {
       try {
         if ($file.PSIsContainer) {
           Remove-Item -Path $file.FullName -Recurse -Force -ErrorAction SilentlyContinue
