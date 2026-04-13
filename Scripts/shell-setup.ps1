@@ -290,10 +290,9 @@ foreach ($item in $Choco) { Install-ChocoApp -Package $item }
 # Steam apps (if home)
 if ($HomeWorkstation) {
   $SteamDB = @("1026460","431960","388080","367670","227260","274920")
-  $InstalledIDs = [System.Collections.ArrayList]::new()
-  foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
-    [void]$InstalledIDs.Add((Get-Content -Path $item))
-  }
+  $InstalledIDs = [System.Collections.Generic.List[string]]::new()
+  $appIds = Get-Content -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\*\steam_appid.txt" -ErrorAction Ignore
+  if ($appIds) { [void]$InstalledIDs.AddRange([string[]]$appIds) }
   foreach ($item in $SteamDB) {
     if ($item -ne $InstalledIDs) {
       Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
