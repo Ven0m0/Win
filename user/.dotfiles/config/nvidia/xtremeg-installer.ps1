@@ -69,7 +69,7 @@ function Get-LatestXtremeGDriver {
     # Fetch Reddit JSON feed
     $reddit = Invoke-RestMethod -Uri $redditUrl -UserAgent "PowerShell:XtremeGInstaller:v2.0"
 
-    $drivers = @()
+    $driversList = [System.Collections.Generic.List[psobject]]::new()
     foreach ($post in $reddit.data.children) {
       $title = $post.data.title
       $body = $post.data.selftext
@@ -84,16 +84,17 @@ function Get-LatestXtremeGDriver {
         $versionMatch = [regex]::Match($title, $versionPattern)
 
         if ($versionMatch.Success) {
-          $drivers += [PSCustomObject]@{
+          $driversList.Add([PSCustomObject]@{
             Version     = $versionMatch.Groups[1].Value
             Title       = $title
             MegaUrl     = $megaMatches[0].Value
             PostUrl     = "https://www.reddit.com$($post.data.permalink)"
             VersionNum  = [version]($versionMatch.Groups[1].Value)
-          }
+          })
         }
       }
     }
+    $drivers = $driversList.ToArray()
 
     if ($drivers.Count -eq 0) {
       Write-Host "  ⚠️  No drivers found in recent posts" -ForegroundColor Yellow

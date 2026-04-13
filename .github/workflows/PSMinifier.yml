@@ -66,3 +66,4 @@ jobs:
           title: "chore: minify PowerShell scripts"
           body: "Automated PowerShell minification"
           branch: minify-ps-${{ github.event.pull_request.number }}
+          base: ${{ github.head_ref }}
