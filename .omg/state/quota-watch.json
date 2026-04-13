@@ -1,0 +1,12 @@
+{
+  "turn_count": 4,
+  "last_session_id": "df6ed03d-f722-4fb8-8fcd-46aa30623f2e",
+  "last_event_key": "df6ed03d-f722-4fb8-8fcd-46aa30623f2e:transcript:06c8767abab6a8f2b80aa36cb0368db90516467888826c48c2a3f72a0ac9e7c1",
+  "last_transcript_hash": "06c8767abab6a8f2b80aa36cb0368db90516467888826c48c2a3f72a0ac9e7c1",
+  "last_model": "gemini-3-flash-preview",
+  "last_turn_total_tokens": 56414,
+  "last_session_total_tokens": 2133736,
+  "cwd_mode": "parent-leaf",
+  "last_cwd_label": "Downloads/arc-raiders",
+  "updated_at": "2026-04-12T04:16:36.245Z"
+}
