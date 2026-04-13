@@ -45,8 +45,11 @@ jobs:
         if: always()
         run: |
           echo "Original Size: ${{ steps.minify.outputs.OriginalSize }}"
+          echo "OriginalSize=${{ steps.minify.outputs.OriginalSize }}" >> $GITHUB_ENV
           echo "Minified Size: ${{ steps.minify.outputs.MinifiedSize }}"
+          echo "MinifiedSize=${{ steps.minify.outputs.MinifiedSize }}" >> $GITHUB_ENV
           echo "Minified Percent: ${{ steps.minify.outputs.MinifiedPercent }}"
+          echo "MinifiedPercent=${{ steps.minify.outputs.MinifiedPercent }}" >> $GITHUB_ENV
 
       - name: Commit changes
         if: github.event_name == 'push'
@@ -62,6 +65,7 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          base: ${{ github.base_ref }}
           commit-message: "chore: minify PowerShell scripts"
           title: "chore: minify PowerShell scripts"
           body: "Automated PowerShell minification"
