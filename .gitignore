@@ -303,4 +303,6 @@ $RECYCLE.BIN/
 .beads-credential-key
 .logs/
 .omc/
+.omg/
+.cachebro/
 .opencode
