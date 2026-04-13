@@ -45,10 +45,11 @@ foreach ($app in $apps) {
 
 #--- Graceful/forced Steam & app shutdown
 $kill = [System.Collections.Generic.List[string]]@('steamwebhelper','steam')
-$stopParts = @(foreach ($a in $apps) {
+$stopParts = [System.Collections.Generic.List[string]]@()
+foreach ($a in $apps) {
   $kill.Add($a.name)
-  " +app_stop $($a.id)"
-})
+  $stopParts.Add(" +app_stop $($a.id)")
+}
 $stop = $stopParts -join ''
 $kill = $kill.ToArray()
 if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -EA 0).pid -gt 0 -and (Get-Process steamwebhelper -EA 0)) {
