@@ -1,0 +1,11 @@
+🎯 **What:** Removed commented-out dead code `#Set-NetOffloadGlobalSetting -NetworkDirect $cb_osntd.text` from `Scripts/Network-Tweaker.ps1`.
+
+💡 **Why:** This code was likely replaced by `Apply_NetworkDirect` on the next line. Removing this unused, commented-out line reduces confusion for future maintainers and improves overall code readability and maintainability.
+
+✅ **Verification:**
+- Due to the testing environment lacking `pwsh`, tests were not run directly via CI/CLI, but a manual visual inspection was done.
+- The Python-based line removal specifically targeted exactly the line in question without altering whitespace context.
+- BOM and CRLF line endings were preserved.
+- The change removes exclusively commented out code so there is strictly zero impact on the application's runtime behavior.
+
+✨ **Result:** A cleaner and more readable script section without obsolete dead code.

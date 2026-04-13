@@ -2340,7 +2340,6 @@ function applyglobal {
     else
     {
         Write-Host "Applying NetworkDirect to"$cb_osntd.text -ForegroundColor Green
-        #Set-NetOffloadGlobalSetting -NetworkDirect $cb_osntd.text
         Apply_NetworkDirect
         $cb_osntd.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect)
     }
