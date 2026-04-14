@@ -291,7 +291,12 @@ foreach ($item in $Choco) { Install-ChocoApp -Package $item }
 if ($HomeWorkstation) {
   $SteamDB = @("1026460","431960","388080","367670","227260","274920")
   $InstalledIDs = [System.Collections.Generic.List[string]]::new()
-  $appIds = Get-Content -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\*\steam_appid.txt" -ErrorAction Ignore
+  $steamCommonPath = Join-Path "${Env:Programfiles(x86)}\Steam\steamapps" 'common'
+  $directAppIdFiles = Get-ChildItem -Path $steamCommonPath -Filter 'steam_appid.txt' -File -ErrorAction Ignore
+  $nestedAppIdFiles = Get-ChildItem -Path $steamCommonPath -Filter 'steam_appid.txt' -File -Recurse -ErrorAction Ignore |
+    Where-Object { $_.FullName -notin $directAppIdFiles.FullName }
+  $appIdFiles = @($directAppIdFiles) + @($nestedAppIdFiles)
+  $appIds = if ($appIdFiles) { Get-Content -Path $appIdFiles.FullName -ErrorAction Ignore } else { @() }
   if ($appIds) { [void]$InstalledIDs.AddRange([string[]]$appIds) }
   foreach ($item in $SteamDB) {
     if ($InstalledIDs -notcontains $item) {
