@@ -294,7 +294,7 @@ if ($HomeWorkstation) {
   $appIds = Get-Content -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\*\steam_appid.txt" -ErrorAction Ignore
   if ($appIds) { [void]$InstalledIDs.AddRange([string[]]$appIds) }
   foreach ($item in $SteamDB) {
-    if ($item -ne $InstalledIDs) {
+    if ($InstalledIDs -notcontains $item) {
       Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
     }
   }
