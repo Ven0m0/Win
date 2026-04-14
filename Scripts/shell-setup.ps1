@@ -290,12 +290,16 @@ foreach ($item in $Choco) { Install-ChocoApp -Package $item }
 # Steam apps (if home)
 if ($HomeWorkstation) {
   $SteamDB = @("1026460","431960","388080","367670","227260","274920")
-  $InstalledIDs = [System.Collections.ArrayList]::new()
-  foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
-    [void]$InstalledIDs.Add((Get-Content -Path $item))
-  }
+  $InstalledIDs = [System.Collections.Generic.List[string]]::new()
+  $steamCommonPath = Join-Path "${Env:Programfiles(x86)}\Steam\steamapps" 'common'
+  $directAppIdFiles = Get-ChildItem -Path $steamCommonPath -Filter 'steam_appid.txt' -File -ErrorAction Ignore
+  $nestedAppIdFiles = Get-ChildItem -Path $steamCommonPath -Filter 'steam_appid.txt' -File -Recurse -ErrorAction Ignore |
+    Where-Object { $_.FullName -notin $directAppIdFiles.FullName }
+  $appIdFiles = @($directAppIdFiles) + @($nestedAppIdFiles)
+  $appIds = if ($appIdFiles) { Get-Content -Path $appIdFiles.FullName -ErrorAction Ignore } else { @() }
+  if ($appIds) { [void]$InstalledIDs.AddRange([string[]]$appIds) }
   foreach ($item in $SteamDB) {
-    if ($item -ne $InstalledIDs) {
+    if ($InstalledIDs -notcontains $item) {
       Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
     }
   }
