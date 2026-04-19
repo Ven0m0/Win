@@ -264,7 +264,7 @@ function Remove-CacheFiles {
 
 - **Consistent Formatting:**
   - Follow consistent PowerShell style
-  - Use proper indentation (2 spaces)
+  - Use proper indentation (2 spaces in this repository; examples may use 4 spaces for readability)
   - Opening braces on same line as statement
   - Closing braces on new line
   - Use line breaks after pipeline operators

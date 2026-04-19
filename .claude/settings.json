@@ -108,22 +108,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'; try { $issues = Invoke-ScriptAnalyzer -Path $fp -Settings $settings -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
-            "if": "Edit(**/*.ps1)",
-            "shell": "powershell",
-            "statusMessage": "Running PSScriptAnalyzer..."
-          },
-          {
-            "type": "command",
-            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'; try { $issues = Invoke-ScriptAnalyzer -Path $fp -Settings $settings -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
-            "if": "Edit(**/*.psm1)",
-            "shell": "powershell",
-            "statusMessage": "Running PSScriptAnalyzer..."
-          },
-          {
-            "type": "command",
-            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'; try { $issues = Invoke-ScriptAnalyzer -Path $fp -Settings $settings -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
-            "if": "Edit(**/*.psd1)",
+            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; if ($fp -notmatch '[.](ps1|psm1|psd1)$') { exit 0 }; $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'; try { $issues = Invoke-ScriptAnalyzer -Path $fp -Settings $settings -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
             "shell": "powershell",
             "statusMessage": "Running PSScriptAnalyzer..."
           }
