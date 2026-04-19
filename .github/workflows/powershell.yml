@@ -10,12 +10,14 @@
 name: PSScriptAnalyzer
 
 on:
+  workflow_dispatch:
   push:
     branches: ["main"]
     paths:
       - "**.ps1"
       - "**.psm1"
       - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/powershell.yml"
   pull_request:
     branches: ["main"]
@@ -23,6 +25,7 @@ on:
       - "**.ps1"
       - "**.psm1"
       - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/powershell.yml"
   schedule:
     - cron: "27 2 * * 1"
@@ -53,11 +56,10 @@ jobs:
         uses: microsoft/psscriptanalyzer-action@v1.1
         with:
           # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.
-          # Runs PSScriptAnalyzer across the entire repository with targeted security rules.
+          # Runs PSScriptAnalyzer across the entire repository with the shared repo settings.
           path: .\
           recurse: true
-          # Security rules: add more names here if additional rules are needed.
-          includeRule: '"PSAvoidGlobalAliases", "PSAvoidUsingConvertToSecureStringWithPlainText"'
+          settings: .\PSScriptAnalyzerSettings.psd1
           output: results.sarif
 
       # Upload the SARIF file generated in the previous step

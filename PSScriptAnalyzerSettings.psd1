@@ -1,0 +1,6 @@
+@{
+  IncludeRules = @(
+    'PSAvoidGlobalAliases'
+    'PSAvoidUsingConvertToSecureStringWithPlainText'
+  )
+}

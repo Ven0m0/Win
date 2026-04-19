@@ -4,7 +4,6 @@
 # Shell Scripts
 # =============================================================================
 *.{sh,bash,bashrc,bash_profile,bash_logout} text eol=lf diff=bash
-*.{cmd,bat,ps1} text
 
 # =============================================================================
 # Programming Languages
@@ -60,7 +59,7 @@
 # Windows
 # =============================================================================
 *.ahk text eol=crlf
-*.{ps1,psm1,psd1} text eol=crlf
+*.{ps1,psm1,psd1} text eol=crlf linguist-language=PowerShell
 *.{cmd,[cC][mM][dD]} text eol=crlf
 *.{bat,[bB][aA][tT]} text eol=crlf
 
