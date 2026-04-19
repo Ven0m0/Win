@@ -35,7 +35,8 @@ shell_variant = posix
 [**.{fish,fish_*},fishd.*,fish_*]
 indent_size = 4
 
-[**.{bat,cmd,ps1,psm1}]
+# Windows Scripts
+[**.{bat,cmd,ps1,psm1,psd1}]
 indent_style = space
 indent_size = 2
 end_of_line = crlf

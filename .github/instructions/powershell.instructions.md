@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ps1,**/*.psm1'
+applyTo: '**/*.ps1,**/*.psm1,**/*.psd1'
 description: 'PowerShell cmdlet and scripting best practices based on Microsoft guidelines'
 ---
 
@@ -264,7 +264,7 @@ function Remove-CacheFiles {
 
 - **Consistent Formatting:**
   - Follow consistent PowerShell style
-  - Use proper indentation (4 spaces recommended)
+  - Use proper indentation (2 spaces)
   - Opening braces on same line as statement
   - Closing braces on new line
   - Use line breaks after pipeline operators

@@ -74,8 +74,10 @@ When a `.ps1` script is created or modified, this skill validates:
 ✓ Inline comments for complex logic
 ```
 
-### 7. Style (enforced by PSScriptAnalyzer CI)
+### 7. Style (shared lint settings + repo conventions)
 ```
+✓ Shared lint rules come from `/PSScriptAnalyzerSettings.psd1`
+✓ `.editorconfig` + `.gitattributes` cover `.ps1`, `.psm1`, and `.psd1`
 ✓ OTBS braces (opening brace on same line)
 ✓ 2-space indent (not tabs)
 ✓ Spaces around operators: $a + $b
