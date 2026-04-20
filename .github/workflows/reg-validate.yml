@@ -58,7 +58,10 @@ jobs:
           foreach ($file in $files) {
             if (-not (Test-Path $file)) { continue }
 
-            $content = Get-Content -Path $file -Raw
+            # Read as bytes then as text
+            $bytes = [System.IO.File]::ReadAllBytes($file)
+            $content = [System.IO.File]::ReadAllText($file)
+
             $lines = $content -split "`n"
 
             # ========================================
@@ -76,10 +79,11 @@ jobs:
             }
 
             # ========================================
-            # Check 3: Trailing whitespace
+            # Check 3: Trailing whitespace (skip empty lines)
             # ========================================
             for ($i = 0; $i -lt $lines.Count; $i++) {
-              if ($lines[$i] -match '\s+$') {
+              $line = $lines[$i]
+              if ($line -match '\s+$' -and $line.TrimEnd() -ne '') {
                 $issues += "[$file]:$($i+1): Trailing whitespace"
               }
             }

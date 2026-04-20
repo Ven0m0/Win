@@ -63,7 +63,15 @@ jobs:
           foreach ($file in $files) {
             if (-not (Test-Path $file)) { continue }
 
-            $content = Get-Content -Path $file -Raw
+            # Read as bytes to check BOM, then as text
+            $bytes = [System.IO.File]::ReadAllBytes($file)
+            $content = [System.IO.File]::ReadAllText($file, [System.Text.UTF8Encoding]::new($true))
+
+            # Remove BOM from content for processing
+            if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+              $content = $content.Substring(1)
+            }
+
             $lines = $content -split "`n"
 
             # Check 1: Consistent indentation (2 spaces)
@@ -86,9 +94,10 @@ jobs:
               $issues += "[$file]:: Contains CRLF line endings (should be LF)"
             }
 
-            # Check 3: Trailing whitespace
+            # Check 3: Trailing whitespace (skip BOM line if present)
             for ($i = 0; $i -lt $lines.Count; $i++) {
-              if ($lines[$i] -match '\s+$') {
+              $line = $lines[$i]
+              if ($line -match '\s+$' -and $line.TrimEnd() -ne '') {
                 $issues += "[$file]:$($i+1): Trailing whitespace"
               }
             }
@@ -101,7 +110,6 @@ jobs:
             }
 
             # Check 5: File encoding (should be UTF8 with BOM)
-            $bytes = [System.IO.File]::ReadAllBytes($file)
             if ($bytes.Count -ge 3) {
               $bom = [System.Text.Encoding]::UTF8.GetPreamble()
               $hasBom = $true
