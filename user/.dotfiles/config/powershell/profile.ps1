@@ -355,8 +355,7 @@ function gcom {
     git commit -m "$args"
 }
 function lazyg {
-    git add -A
-    git commit -m "$args"
+    gcom @args
     git push
 }
 # Quick Access to System Information
