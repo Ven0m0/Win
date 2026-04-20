@@ -1,3 +1,7 @@
+---
+applyTo: "**/*.ps1,**/*.psm1,**/*.psd1"
+---
+
 # PowerShell Guidelines for Win
 
 These instructions apply to repository PowerShell files such as `Scripts/*.ps1`, `setup.ps1`, and tracked PowerShell config under `user/.dotfiles/config/`.

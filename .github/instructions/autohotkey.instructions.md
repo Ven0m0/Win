@@ -1,3 +1,7 @@
+---
+applyTo: "**/*.ahk"
+---
+
 # AutoHotkey v2 Guidelines
 
 <Goals>

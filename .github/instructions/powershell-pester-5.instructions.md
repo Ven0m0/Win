@@ -1,3 +1,7 @@
+---
+applyTo: "**/*.Tests.ps1"
+---
+
 # PowerShell Pester v5 Guidelines for Win
 
 Use these rules when adding or updating PowerShell tests in this repository.
