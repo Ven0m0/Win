@@ -35,13 +35,12 @@ jobs:
         id: changed
         shell: pwsh
         run: |
-          $files = @(git diff --name-only --diff-filter=ACM HEAD origin/main 2>/dev/null | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
-          if ($files.Count -eq 0) {
-            # For PRs, compare against merge base
-            $files = @(git diff --name-only --diff-filter=ACM ${{ github.base_ref }} HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
+          # For PRs, compare against the base branch
+          if ('${{ github.base_ref }}' -and '${{ github.base_ref }}' -ne '') {
+            $files = @(git diff --name-only --diff-filter=ACM '${{ github.base_ref }}' HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
           }
           if ($files.Count -eq 0) {
-            # Fallback to all ps1 files if no base ref
+            # Fallback to all ps1 files if no changes detected
             $files = @(Get-ChildItem -Path . -Recurse -Include *.ps1,*.psm1,*.psd1 -File | Select-Object -ExpandProperty FullName)
           }
           "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
