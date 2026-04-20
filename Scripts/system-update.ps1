@@ -689,7 +689,6 @@ function Invoke-Update {
 $script:stepChanged = $false
 $script:stepMessage = ""
 
-function Reset-StepState { $script:stepChanged = $false; $script:stepMessage = "" }
 
 function Complete-StepState {
     if ([string]::IsNullOrWhiteSpace($script:stepMessage)) {
