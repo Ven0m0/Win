@@ -758,6 +758,35 @@ if (!(Check-Internet)) {
     $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
     $videoControllers = Get-CimInstance -ClassName Win32_VideoController
 
+    # Pre-filter NVIDIA Video Controllers
+    $nvidiaVideoControllers = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($vc in $videoControllers) {
+        if ($vc.Name -like "*NVIDIA*" -or $vc.PNPDeviceID -match "PCI\\VEN_10DE") {
+            $nvidiaVideoControllers.Add($vc)
+        }
+    }
+
+    # Pre-filter Sound Devices and map them to their corresponding PnP device
+    $soundDeviceToPnpMap = @{}
+    foreach ($soundDevice in $soundDevices) {
+        $soundPnp = $null
+        foreach ($pnp in $pnpDevices) {
+            if ($pnp.PNPDeviceID -like "*$($soundDevice.DeviceID)*") {
+                $soundPnp = $pnp
+                break
+            }
+        }
+        $soundDeviceToPnpMap[$soundDevice.DeviceID] = $soundPnp
+    }
+
+    # Pre-filter Display PnP Devices
+    $displayPnpDevices = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($pnp in $pnpDevices) {
+        if ($pnp.PNPDeviceID -match "DISPLAY\\") {
+            $displayPnpDevices.Add($pnp)
+        }
+    }
+
     $allmonitors = [System.Collections.Generic.List[PSCustomObject]]::new()
     #find related sound device
     foreach ($monitor in $monitors) {
@@ -767,42 +796,43 @@ if (!(Check-Internet)) {
         $monitorInstance = $monitor.InstanceName
 
         # Try to find a matching PnP device for the monitor
-                $monitorPnp = $null
+        $monitorPnp = $null
         foreach ($pnp in $pnpDevices) {
             if ($pnp.PNPDeviceID -like "*$monitorInstance*" -or
-                $pnp.Name -like "*$manufacturerName*" -or
-                $pnp.PNPDeviceID -match 'DISPLAY\\') {
+                $pnp.Name -like "*$manufacturerName*") {
+                $monitorPnp = $pnp
+                break
+            }
+        }
+        if (-not $monitorPnp) {
+            foreach ($pnp in $displayPnpDevices) {
                 $monitorPnp = $pnp
                 break
             }
         }
 
         # Find the video controller associated with the monitor
-                $relatedVideoController = $null
+        $relatedVideoController = $null
         foreach ($vc in $videoControllers) {
-            if ($vc.PNPDeviceID -like "*$monitorInstance*" -or
-                $vc.Name -like '*NVIDIA*' -or
-                $vc.PNPDeviceID -match 'PCI\\VEN_10DE') {
+            if ($vc.PNPDeviceID -like "*$monitorInstance*") {
                 $relatedVideoController = $vc
                 break
             }
         }
+        if (-not $relatedVideoController -and $nvidiaVideoControllers.Count -gt 0) {
+            $relatedVideoController = $nvidiaVideoControllers[0]
+        }
 
         if ($monitorPnp -or $relatedVideoController) {
             # Look for sound devices tied to the monitor
-                        $relatedSound = $null
+            $relatedSound = $null
             foreach ($soundDevice in $soundDevices) {
-                $soundPnp = $null
-                foreach ($pnp in $pnpDevices) {
-                    if ($pnp.PNPDeviceID -like "*$($soundDevice.DeviceID)*") {
-                        $soundPnp = $pnp
-                        break
-                    }
-                }
+                $soundPnp = $soundDeviceToPnpMap[$soundDevice.DeviceID]
+
                 if ($soundPnp -and (
-                    ($relatedVideoController -and $soundDevice.DeviceID -like '*VEN_10DE*') -or
+                    ($relatedVideoController -and $soundDevice.DeviceID -like "*VEN_10DE*") -or
                     ($monitorPnp -and $soundPnp.PNPDeviceID -like "*$($monitorPnp.PNPDeviceID)*") -or
-                    ($soundPnp.Service -eq 'HDAUDIO' -and $soundDevice.DeviceID -like '*VEN_10DE*')
+                    ($soundPnp.Service -eq "HDAUDIO" -and $soundDevice.DeviceID -like "*VEN_10DE*")
                 )) {
                     $relatedSound = $soundDevice
                     break
@@ -816,7 +846,6 @@ if (!(Check-Internet)) {
                 }
                 $allmonitors.Add($monitorObj)
             }
-    
         }
     }
    
