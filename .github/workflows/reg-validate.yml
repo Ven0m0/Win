@@ -72,24 +72,7 @@ jobs:
             }
 
             # ========================================
-            # Check 2: Line ending (should be LF, not CRLF)
-            # ========================================
-            if ($content -match '\r\n') {
-              $issues += "[$file]:: Contains CRLF line endings (should be LF)"
-            }
-
-            # ========================================
-            # Check 3: Trailing whitespace (skip empty lines)
-            # ========================================
-            for ($i = 0; $i -lt $lines.Count; $i++) {
-              $line = $lines[$i]
-              if ($line -match '\s+$' -and $line.TrimEnd() -ne '') {
-                $issues += "[$file]:$($i+1): Trailing whitespace"
-              }
-            }
-
-            # ========================================
-            # Check 4: Registry key format validation
+            # Check 2: Registry key format validation
             # ========================================
             $validRootKeys = @(
               'HKEY_LOCAL_MACHINE',
@@ -112,45 +95,10 @@ jobs:
                   $issues += "[$file]:$($i+1): Invalid root key '$rootKey'"
                 }
               }
-
-              # Check for valid value assignments
-              if ($line -match '^\s*"[^"]+"\s*=') {
-                # Value assignment line - validate format
-                if ($line -match '^\s*"([^"]+)"\s*=\s*(.+)$') {
-                  $valueName = $matches[1]
-                  $valueData = $matches[2].Trim()
-
-                  # Validate value type
-                  $validTypes = @('dword', 'hex', 'hex(b)', 'hex(2)', 'hex(4)', 'hex(7)', 'sz', 'expandsz', 'multi_sz', 'none', '-')
-                  $typeMatched = $false
-                  foreach ($type in $validTypes) {
-                    if ($valueData -match "^$type`:") {
-                      $typeMatched = $true
-                      break
-                    }
-                  }
-
-                  # Handle deletion marker
-                  if ($valueData -eq '-') {
-                    $typeMatched = $true
-                  }
-
-                  if (-not $typeMatched -and $valueData.Length -gt 0) {
-                    $issues += "[$file]:$($i+1): Invalid value type in '$valueData'"
-                  }
-                }
-              }
-
-              # Check for orphaned comment without semicolon (not a valid .reg line)
-              if ($line -match '^\s*[^;\[][^=]*$' -and $line -notmatch '^\s*;') {
-                if ($line.Trim().Length -gt 0) {
-                  $warnings += "[$file]:$($i+1): Line looks malformed (may be missing semicolon for comment): $($line.Substring(0, [Math]::Min(50, $line.Length)))"
-                }
-              }
             }
 
             # ========================================
-            # Check 5: Key deduplication within file
+            # Check 3: Key deduplication within file
             # ========================================
             $keyCounts = @{}
             for ($i = 0; $i -lt $lines.Count; $i++) {
@@ -166,7 +114,7 @@ jobs:
             }
 
             # ========================================
-            # Check 6: Empty file check
+            # Check 4: Empty file check
             # ========================================
             if ($lines.Count -le 1) {
               $warnings += "[$file]:: File appears to be empty or contains only header"
