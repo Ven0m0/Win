@@ -1,4 +1,4 @@
-﻿@{
+@{
   # Core analysis rules
   IncludeRules = @(
     # Avoid problematic patterns
@@ -29,8 +29,5 @@
     'PSUseOutputTypeCorrectly'
   )
   # Severity levels: Error, Warning, Information
-  SeverityLevel = 'Warning'
-  # Custom settings
-  MaximumCulture = ''
-  OutputEncoding = 'UTF-8'
+  Severity = 'Warning'
 }
