@@ -468,18 +468,6 @@ function Get-WingetPinnedPackageIds {
     return @($pkgIds)
 }
 
-function Get-WingetUpgradeablePackageIds {
-    param([string]$WingetOutput)
-
-    $pkgIds = [System.Collections.Generic.List[string]]::new()
-    foreach ($entry in (Get-WingetUpgradeEntries -WingetOutput $WingetOutput)) {
-        if (-not $pkgIds.Contains($entry.Id)) {
-            $pkgIds.Add($entry.Id)
-        }
-    }
-    return @($pkgIds)
-}
-
 function Get-VSCodeCliPath {
     $candidates = @(
         (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\bin\code.cmd'),
