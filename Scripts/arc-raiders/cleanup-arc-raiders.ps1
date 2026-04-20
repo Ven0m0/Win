@@ -13,10 +13,19 @@ function Remove-Glob {
     param([string]$Pattern)
     $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
     foreach ($item in $items) {
-        $sz = if ($item.PSIsContainer) {
-            (Get-ChildItem $item -Recurse -File -Force -ErrorAction SilentlyContinue |
-                Measure-Object Length -Sum).Sum
-        } else { $item.Length }
+        $sz = 0
+        if ($item.PSIsContainer) {
+            try {
+                foreach ($f in $item.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
+                    $sz += $f.Length
+                }
+            } catch {
+                $sz = (Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
+                    Measure-Object Length -Sum).Sum
+            }
+        } else {
+            $sz = $item.Length
+        }
         $script:totalSize  += [long]$sz
         $script:totalCount++
         Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
