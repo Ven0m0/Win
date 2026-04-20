@@ -1,41 +1,40 @@
 @{
-    # Core analysis rules
-    IncludeRules = @(
-        # Avoid problematic patterns
-        'PSAvoidGlobalAliases'
-        'PSAvoidUsingConvertToSecureStringWithPlainText'
-        'PSAvoidUsingEmptyCatchBlock'
-        'PSAvoidUsingInvokeExpression'
-        'PSAvoidUsingPositionalParameters'
-        'PSAvoidUsingUsernameAndPasswordParams'
-        'PSAvoidUsingWriteHost'
-        'PSUseBOMForUnicodeEncodedFile'
-        'PSUseCorrectCasing'
+  # Core analysis rules
+  IncludeRules = @(
+    # Avoid problematic patterns
+    'PSAvoidGlobalAliases'
+    'PSAvoidUsingConvertToSecureStringWithPlainText'
+    'PSAvoidUsingEmptyCatchBlock'
+    'PSAvoidUsingInvokeExpression'
+    'PSAvoidUsingPositionalParameters'
+    'PSAvoidUsingUsernameAndPasswordParams'
+    'PSAvoidUsingWriteHost'
+    'PSUseBOMForUnicodeEncodedFile'
+    'PSUseCorrectCasing'
 
-        # Best practices
-        'PSProvideCommentHelp'
-        'PSReservedCmdletChar'
-        'PSReservedParams'
-        'PSUseApprovedVerbs'
-        'PSUseCmdletCorrectly'
-        'PSUseConsistentIndentation'
-        'PSUseConsistentWhitespace'
-        'PSUseOutputTypeCorrectly'
-        'PSUseSingularNouns'
-        'PSUseSupportsShouldProcess'
-        'PSUseVerbosityForRequestedLevel'
-    )
+    # Best practices
+    'PSProvideCommentHelp'
+    'PSReservedCmdletChar'
+    'PSReservedParams'
+    'PSUseApprovedVerbs'
+    'PSUseCmdletCorrectly'
+    'PSUseConsistentIndentation'
+    'PSUseConsistentWhitespace'
+    'PSUseSingularNouns'
+    'PSUseSupportsShouldProcess'
+    'PSUseVerbosityForRequestedLevel'
+  )
 
-    # Rules to exclude (not applicable for this repo)
-    ExcludeRules = @(
-        # Exclude rule requiring output type for internal scripts
-        'PSProvideDefaultParameterValue'
-    )
+  # Rules to exclude (not applicable for this repo)
+  ExcludeRules = @(
+    # Exclude rule that requires OutputType for internal scripts
+    'PSUseOutputTypeCorrectly'
+  )
 
-    # Severity levels: Error, Warning, Information
-    SeverityLevel = 'Warning'
+  # Severity levels: Error, Warning, Information
+  SeverityLevel = 'Warning'
 
-    # Custom settings
-    MaximumCulture = ''
-    OutputEncoding = [System.Text.Encoding]::UTF8
+  # Custom settings
+  MaximumCulture = ''
+  OutputEncoding = 'UTF-8'
 }
