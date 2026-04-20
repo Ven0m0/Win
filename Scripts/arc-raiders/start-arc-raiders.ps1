@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 . "$PSScriptRoot\..\Common.ps1"
 <#
@@ -23,8 +23,17 @@ function Remove-Glob {
     $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
     foreach ($item in $items) {
         $sz = if ($item.PSIsContainer) {
-            (Get-ChildItem $item -Recurse -File -Force -ErrorAction SilentlyContinue |
-                Measure-Object Length -Sum).Sum
+            $dirSize = 0
+            try {
+                $dirInfo = [System.IO.DirectoryInfo]::new($item.FullName)
+                foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
+                    $dirSize += $f.Length
+                }
+                $dirSize
+            } catch {
+                (Get-ChildItem $item -Recurse -File -Force -ErrorAction SilentlyContinue |
+                    Measure-Object Length -Sum).Sum
+            }
         } else { $item.Length }
         $script:totalSize  += [long]$sz
         $script:totalCount++
