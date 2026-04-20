@@ -30,14 +30,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Get changed PowerShell files
         id: changed
         shell: pwsh
         run: |
-          # Compare against the base branch (origin/main or origin/master)
+          # Compare against the base branch
           $baseRef = '${{ github.base_ref }}'
           if ($baseRef -and $baseRef -ne '') {
+            # Ensure the base ref is available
+            git fetch origin "refs/heads/$baseRef" --depth=1 2>$null
             $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
           }
           if ($files.Count -eq 0) {
