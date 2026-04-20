@@ -159,7 +159,7 @@ function Get-FirefoxDefaultProfilePath {
   $profiles = [System.Collections.Generic.List[hashtable]]::new()
   $currentProfile = $null
 
-  foreach ($line in Get-Content $profilesIni) {
+  foreach ($line in [System.IO.File]::ReadLines($profilesIni)) {
     if ($line -match '^\[(?<section>[^\]]+)\]$') {
       if ($currentProfile -and $currentProfile.Section -like 'Profile*') {
         $profiles.Add($currentProfile)
@@ -219,7 +219,7 @@ function Get-StarWarsBattlefrontIIActiveProfilePath {
 
   $globalConfigPath = Join-Path $profilesDir 'Global.con'
   if (Test-Path $globalConfigPath) {
-    foreach ($line in Get-Content $globalConfigPath) {
+    foreach ($line in [System.IO.File]::ReadLines($globalConfigPath)) {
       if ($line -match 'GlobalSettings\.setDefaultUser\s+"?(?<profileId>[^"\r\n]+)"?') {
         $profilePath = Join-Path $profilesDir $matches.profileId
         if (Test-Path $profilePath) {
