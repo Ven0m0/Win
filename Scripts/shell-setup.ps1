@@ -33,7 +33,8 @@ function Run-Elevated {
   }
   if ($Hidden) { $psi.WindowStyle = 'Hidden' }
   $proc = Start-Process @psi -PassThru
-  if (-not $NoWait) { $proc.WaitForExit(); if ($proc.ExitCode -ne 0) { throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode))" } }
+  if (-not $NoWait) { $proc.WaitForExit();
+    if ($proc.ExitCode -ne 0) { throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode))" } }
 }
 
 function Install-ScoopApp {
@@ -74,7 +75,10 @@ function Extract-Download {
   if (Test-Path -LiteralPath $File -PathType Leaf) {
     $ext = ($File.Split(".") | Select-Object -Last 1).ToLowerInvariant()
     switch ($ext) {
-      "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x","-op'$Folder'","-y","$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
+      "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x",
+    "-op'$Folder'",
+    "-y",
+    "$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
       "zip" { 7z x -o"$Folder" -y "$File" | Out-Null }
       "7z"  { 7z x -o"$Folder" -y "$File" | Out-Null }
       "exe" { 7z x -o"$Folder" -y "$File" | Out-Null }
@@ -89,7 +93,8 @@ function Download-CustomApp {
     [Parameter(Mandatory)][string]$Folder
   )
   if ((curl -sIL "$Link" | Select-String -Pattern "Content-Disposition")) {
-    $Package = (curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" | Select-Object -Last 1).Trim('"')
+    $Package = (curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" |
+    Select-Object -Last 1).Trim('"')
   } else {
     $Package = $Link.Split("/") | Select-Object -Last 1
   }
@@ -146,7 +151,12 @@ function Enable-Bucket {
 # ExecutionPolicy: CurrentUser -> Unrestricted
 if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
   Write-Verbose "Setting Execution Policy for Current User..."
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy","-Scope","CurrentUser","-ExecutionPolicy","Unrestricted","-Force"
+  Run-Elevated -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy",
+    "-Scope",
+    "CurrentUser",
+    "-ExecutionPolicy",
+    "Unrestricted",
+    "-Force"
   Write-Output "Restart/Re-Run script required."
   Start-Sleep -Seconds 10
   return
@@ -155,7 +165,10 @@ if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
 # Scoop
 if (-not (Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue)) {
   Write-Verbose "Installing Scoop..."
-  Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh'))
+  $scoopInstaller = Join-Path $Env:Temp "install-scoop.ps1"
+  Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
+  & $scoopInstaller
+  Remove-Item -LiteralPath $scoopInstaller -Force
 }
 
 # Chocolatey
@@ -163,7 +176,10 @@ if (-not (Get-Command -Name "choco" -CommandType Application -ErrorAction Silent
   Write-Verbose "Installing Chocolatey..."
   @'
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+  $chocoInstaller = Join-Path $Env:Temp "install-choco.ps1"
+  Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' -OutFile $chocoInstaller
+  & $chocoInstaller
+  Remove-Item -LiteralPath $chocoInstaller -Force
 '@ > $Env:Temp\choco.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\choco.ps1"
   Remove-Item -LiteralPath $Env:Temp\choco.ps1 -Force
@@ -219,7 +235,9 @@ if (-not (scoop config aria2-enabled) -eq $True) { scoop config aria2-enabled tr
 if (-not (scoop config aria2-warning-enabled) -eq $False) { scoop config aria2-warning-enabled false }
 if (-not (Get-ScheduledTaskInfo -TaskName "Aria2RPC" -ErrorAction Ignore)) {
 @'
-$Action = New-ScheduledTaskAction -Execute $Env:UserProfile\scoop\apps\aria2\current\aria2c.exe -Argument "--enable-rpc --rpc-listen-all" -WorkingDirectory $Env:UserProfile\Downloads
+$Action = New-ScheduledTaskAction -Execute $Env:UserProfile\scoop\apps\aria2\current\aria2c.exe `
+    -Argument "--enable-rpc --rpc-listen-all" `
+    -WorkingDirectory $Env:UserProfile\Downloads
 $Trigger = New-ScheduledTaskTrigger -AtStartup
 $Principal = New-ScheduledTaskPrincipal -UserID "$Env:ComputerName\$Env:Username" -LogonType S4U
 $Settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
@@ -261,27 +279,79 @@ if ($HomeWorkstation) {
 
 # WinGet packages
 $WinGet = @(
-  "gerardog.gsudo","Microsoft.DotNet.DesktopRuntime.3_1","Microsoft.DotNet.DesktopRuntime.5","Microsoft.DotNet.DesktopRuntime.6","Microsoft.DotNet.DesktopRuntime.7",
-  "Microsoft.WindowsTerminal","Microsoft.PowerToys","frippery.busybox-w32","junegunn.fzf","Neovim.Neovim","Obsidian.Obsidian","Microsoft.OpenJDK.17",
-  "GoLang.Go.1.19","Python.Python.3.11","chrisant996.Clink","PuTTY.PuTTY","WinSCP.WinSCP","Balena.Etcher","CPUID.HWMonitor","CrystalDewWorld.CrystalDiskMark",
-  "BleachBit.BleachBit","GnuPG.GnuPG","LIGHTNINGUK.ImgBurn","dotPDNLLC.paintdotnet","UderzoSoftware.SpaceSniffer","Rufus.Rufus",
-  "scottlerch.hosts-file-editor","thomasnordquist.MQTT-Explorer","jziolkowski.tdm","HDDGURU.HDDRawCopyTool","dnSpyEx.dnSpy","JLC.EasyEDA","Google.Chrome",
-  "Lexikos.AutoHotkey","SumatraPDF.SumatraPDF","ScooterSoftware.BeyondCompare4","Eassos.DiskGenius","RevoUninstaller.RevoUninstaller","ElaborateBytes.VirtualCloneDrive",
+  "gerardog.gsudo",
+    "Microsoft.DotNet.DesktopRuntime.3_1",
+    "Microsoft.DotNet.DesktopRuntime.5",
+    "Microsoft.DotNet.DesktopRuntime.6",
+    "Microsoft.DotNet.DesktopRuntime.7",
+  "Microsoft.WindowsTerminal",
+    "Microsoft.PowerToys",
+    "frippery.busybox-w32",
+    "junegunn.fzf",
+    "Neovim.Neovim",
+    "Obsidian.Obsidian",
+    "Microsoft.OpenJDK.17",
+  "GoLang.Go.1.19",
+    "Python.Python.3.11",
+    "chrisant996.Clink",
+    "PuTTY.PuTTY",
+    "WinSCP.WinSCP",
+    "Balena.Etcher",
+    "CPUID.HWMonitor",
+    "CrystalDewWorld.CrystalDiskMark",
+  "BleachBit.BleachBit",
+    "GnuPG.GnuPG",
+    "LIGHTNINGUK.ImgBurn",
+    "dotPDNLLC.paintdotnet",
+    "UderzoSoftware.SpaceSniffer",
+    "Rufus.Rufus",
+  "scottlerch.hosts-file-editor",
+    "thomasnordquist.MQTT-Explorer",
+    "jziolkowski.tdm",
+    "HDDGURU.HDDRawCopyTool",
+    "dnSpyEx.dnSpy",
+    "JLC.EasyEDA",
+    "Google.Chrome",
+  "Lexikos.AutoHotkey",
+    "SumatraPDF.SumatraPDF",
+    "ScooterSoftware.BeyondCompare4",
+    "Eassos.DiskGenius",
+    "RevoUninstaller.RevoUninstaller",
+    "ElaborateBytes.VirtualCloneDrive",
   "RARLab.WinRAR","Piriform.Speccy","Piriform.Defraggler","Starship.Starship","OliverBetz.ExifTool"
 )
 foreach ($item in $WinGet) { Install-WinGetApp -PackageID $item }
 
 if ($HomeWorkstation) {
   $WinGet = @(
-    "Discord.Discord","HandBrake.HandBrake","AndreWiethoff.ExactAudioCopy","clsid2.mpc-hc","Plex.Plex","Plex.Plexamp","PointPlanck.FileBot",
-    "CPUID.CPU-Z","TechPowerUp.GPU-Z","VideoLAN.VLC","Mp3tag.Mp3tag","MusicBee.MusicBee","OBSProject.OBSStudio","yt-dlp.yt-dlp",
-    "MediaArea.MediaInfo","MediaArea.MediaInfo.GUI","MoritzBunkus.MKVToolNix","Ocenaudio.Ocenaudio","OpenMPT.OpenMPT","Romcenter.Romcenter","Valve.Steam"
+    "Discord.Discord",
+    "HandBrake.HandBrake",
+    "AndreWiethoff.ExactAudioCopy",
+    "clsid2.mpc-hc",
+    "Plex.Plex",
+    "Plex.Plexamp",
+    "PointPlanck.FileBot",
+    "CPUID.CPU-Z",
+    "TechPowerUp.GPU-Z",
+    "VideoLAN.VLC",
+    "Mp3tag.Mp3tag",
+    "MusicBee.MusicBee",
+    "OBSProject.OBSStudio",
+    "yt-dlp.yt-dlp",
+    "MediaArea.MediaInfo",
+    "MediaArea.MediaInfo.GUI",
+    "MoritzBunkus.MKVToolNix",
+    "Ocenaudio.Ocenaudio",
+    "OpenMPT.OpenMPT",
+    "Romcenter.Romcenter",
+    "Valve.Steam"
   )
   foreach ($item in $WinGet) { Install-WinGetApp -PackageID $item }
 }
 
 # VSCode custom install
-winget install Microsoft.VisualStudioCode --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
+winget install Microsoft.VisualStudioCode `
+    --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
 
 # Choco packages
 $Choco = @("syspin","sd-card-formatter","winimage","winsetupfromusb","fluidsynth")
@@ -291,54 +361,86 @@ foreach ($item in $Choco) { Install-ChocoApp -Package $item }
 if ($HomeWorkstation) {
   $SteamDB = @("1026460","431960","388080","367670","227260","274920")
   $InstalledIDs = [System.Collections.ArrayList]::new()
-  foreach ($item in (Get-ChildItem -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" -Filter "steam_appid.txt" -Recurse).VersionInfo.FileName) {
+  foreach ($item in
+    (Get-ChildItem `
+    -Path "${Env:Programfiles(x86)}\Steam\steamapps\common\" `
+    -Filter "steam_appid.txt" `
+    -Recurse).VersionInfo.FileName) {
     [void]$InstalledIDs.Add((Get-Content -Path $item))
   }
   foreach ($item in $SteamDB) {
     if ($item -ne $InstalledIDs) {
-      Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
+      Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch",
+    "$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
     }
   }
 }
 
 # Symlinks
-sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command busybox*.exe).Source)\busybox.exe" -Target (Get-Command busybox*.exe).Source
-sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command tdmgr*.exe).Source)\tdmgr.exe" -Target (Get-Command tdmgr*.exe).Source
+sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command busybox*.exe).Source)\busybox.exe" `
+    -Target (Get-Command busybox*.exe).Source
+sudo New-Item -ItemType SymbolicLink -Path "$(Split-Path -Path (Get-Command tdmgr*.exe).Source)\tdmgr.exe" `
+    -Target (Get-Command tdmgr*.exe).Source
 
 # Custom packages
-Install-CustomApp -URL "https://www.chrysocome.net/downloads/0d23e6a31f1d37850fc2040eec98e9f9/rawwritewin-0.7.zip" -Folder "RawWrite"
+Install-CustomApp -URL "https://www.chrysocome.net/downloads/0d23e6a31f1d37850fc2040eec98e9f9/rawwritewin-0.7.zip" `
+    -Folder "RawWrite"
 Install-CustomApp -URL "https://www.handshake.de/user/chmaas/delphi/download/xvi32.zip" -Folder "XVI32"
-Install-CustomApp -URL "https://code.kliu.org/misc/winisoutils/eicfg_removal_utility.zip"  -Folder "ei.cfg-removal-utility"
-Install-CustomPackage -URL "https://downloads.sourceforge.net/project/catacombae/HFSExplorer/2021.10.9/hfsexplorer-2021.10.9-setup.exe"
+Install-CustomApp -URL "https://code.kliu.org/misc/winisoutils/eicfg_removal_utility.zip"  `
+    -Folder "ei.cfg-removal-utility"
+Install-CustomPackage `
+    -URL "https://downloads.sourceforge.net/project/catacombae/HFSExplorer/2021.10.9/hfsexplorer-2021.10.9-setup.exe"
 New-Item -Path "$Env:UserProfile\bin\RipMe" -ItemType Directory -ErrorAction Ignore | Out-Null
-Download-CustomApp -Link "https://github.com/RipMeApp/ripme/releases/download/1.7.95/ripme.jar" -Folder "$Env:UserProfile\bin\RipMe" | Out-Null
+Download-CustomApp `
+    -Link "https://github.com/RipMeApp/ripme/releases/download/1.7.95/ripme.jar" `
+    -Folder "$Env:UserProfile\bin\RipMe" |
+  Out-Null
 Install-CustomApp -URL "https://image.easyeda.com/files/easyeda-router-windows-x64-v0.8.11.zip"
 
 if ($HomeWorkstation) {
-  Install-CustomApp -URL "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/CDmage1-01-5.exe" -Folder "CDMage"
-  Install-CustomApp -URL "https://downloads.sourceforge.net/project/acidview6-win32/acidview6-win32/6.10/avw-610.zip" -Folder "ACiDView"
+  Install-CustomApp `
+    -URL "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/CDmage1-01-5.exe" `
+    -Folder "CDMage"
+  Install-CustomApp -URL "https://downloads.sourceforge.net/project/acidview6-win32/acidview6-win32/6.10/avw-610.zip" `
+    -Folder "ACiDView"
   Install-CustomApp -URL "https://downloads.sourceforge.net/project/nohboard/NohBoard-v0.17b.zip"
   Install-CustomApp -URL "https://www.psx-place.com/resources/psx2psp.586/download?version=898"
   Install-CustomPackage -URL "https://mamedev.emulab.it/clrmamepro/binaries/cmp4044c_64.exe"
   Install-CustomApp -URL "https://falcosoft.hu/midiplayer_60_x64.zip"
   Install-CustomApp -URL "https://www.skraper.net/download/beta/Skraper-1.1.1.7z" -Folder "SkraperUI"
-  Install-CustomApp -URL "https://www.psx-place.com/resources/obsolete-winhiip-by-gadgetfreak.666/download?version=1066" -Folder "WinHIIP"
+  Install-CustomApp `
+    -URL "https://www.psx-place.com/resources/obsolete-winhiip-by-gadgetfreak.666/download?version=1066" `
+    -Folder "WinHIIP"
   Install-CustomApp -URL "https://www.softwareok.com/Download/WinBin2Iso.zip" -Folder "WinBin2Iso"
-  Install-CustomApp -URL "https://github.com/JustArchiNET/ArchiSteamFarm/releases/download/5.2.4.2/ASF-win-x64.zip" -Folder "ArchiSteamFarm2"
-  Install-CustomApp -URL "https://github.com/KirovAir/TwilightBoxart/releases/download/0.7/TwilightBoxart-Windows-UX.zip" -Folder "TwilightMenuBoxArt"
+  Install-CustomApp -URL "https://github.com/JustArchiNET/ArchiSteamFarm/releases/download/5.2.4.2/ASF-win-x64.zip" `
+    -Folder "ArchiSteamFarm2"
+  Install-CustomApp `
+    -URL "https://github.com/KirovAir/TwilightBoxart/releases/download/0.7/TwilightBoxart-Windows-UX.zip" `
+    -Folder "TwilightMenuBoxArt"
   New-Item -Path "$Env:UserProfile\bin\ISOToolkit" -ItemType Directory -ErrorAction Ignore | Out-Null
-  Download-CustomApp -Link "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/ISOToolKit.exe" -Folder "$Env:UserProfile\bin\ISOToolkit" | Out-Null
+  Download-CustomApp `
+    -Link "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/ISOToolKit.exe" `
+    -Folder "$Env:UserProfile\bin\ISOToolkit" |
+  Out-Null
   Install-CustomApp -URL "https://github.com/putnam/binmerge/releases/download/1.0.1/binmerge-1.0.1-win64.zip"
-  Install-CustomApp -URL "https://www.psx-place.com/resources/ppf-o-matic.507/download?version=717" -Folder "ppf-o-matic"
-  Install-CustomApp -URL "https://github.com/oonqt/MBCord/releases/download/2.3.13/MBCord-win32-x64.zip" -Folder "MBCord"
-  Install-CustomApp -URL "https://github.com/extramaster/bchunk/releases/download/v1.2.1_repub.1/bchunk.v1.2.1_repub.1.zip"
-  $Package = Download-CustomApp -Link "https://github.com/mamedev/mame/releases/download/mame0242/mame0242b_64bit.exe" -Folder "$Env:UserProfile\Downloads\"
+  Install-CustomApp -URL "https://www.psx-place.com/resources/ppf-o-matic.507/download?version=717" `
+    -Folder "ppf-o-matic"
+  Install-CustomApp -URL "https://github.com/oonqt/MBCord/releases/download/2.3.13/MBCord-win32-x64.zip" `
+    -Folder "MBCord"
+  Install-CustomApp `
+    -URL "https://github.com/extramaster/bchunk/releases/download/v1.2.1_repub.1/bchunk.v1.2.1_repub.1.zip"
+  $Package = Download-CustomApp `
+    -Link "https://github.com/mamedev/mame/releases/download/mame0242/mame0242b_64bit.exe" `
+    -Folder "$Env:UserProfile\Downloads\"
   7z e -o"$Env:UserProfile\bin\" -y "$Env:UserProfile\Downloads\$Package" chdman.exe | Out-Null
   Remove-Item -LiteralPath "$Env:UserProfile\Downloads\$Package" -Force
-  Install-CustomApp -URL "https://lib.openmpt.org/files/libopenmpt/bin/libopenmpt-0.6.3+release.bin.windows.zip" -Folder "OpenMPT123"
-  Install-CustomApp -URL "https://github.com/Mindwerks/wildmidi/releases/download/wildmidi-0.4.4/wildmidi-0.4.4-win64.zip"
+  Install-CustomApp -URL "https://lib.openmpt.org/files/libopenmpt/bin/libopenmpt-0.6.3+release.bin.windows.zip" `
+    -Folder "OpenMPT123"
+  Install-CustomApp `
+    -URL "https://github.com/Mindwerks/wildmidi/releases/download/wildmidi-0.4.4/wildmidi-0.4.4-win64.zip"
   Move-Item -Path "$Env:UserProfile\bin\wildmidi*\" -Destination "$Env:UserProfile\bin\WildMIDI\" -Force
-  Install-CustomApp -URL "https://github.com/aaru-dps/Aaru/releases/download/v5.3.1/aaru-5.3.1_windows_x64.zip" -Folder "Aaru"
+  Install-CustomApp -URL "https://github.com/aaru-dps/Aaru/releases/download/v5.3.1/aaru-5.3.1_windows_x64.zip" `
+    -Folder "Aaru"
 }
 
 # Startup shortcut for scoop-tray
@@ -370,16 +472,24 @@ Start-Process -FilePath "cmd" -ArgumentList "/c","concfg","import","solarized-da
 
 # Pin Chrome to taskbar
 Write-Verbose "Pin Google Chrome to Taskbar..."
-Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin","'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk'","c:5386"
+Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
+    "'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk'",
+    "c:5386"
 
 # Dotfiles
 if (-not (Test-Path -LiteralPath "$Env:UserProfile\dotposh")) {
   Write-Verbose "Install PowerShell dot files..."
-  Start-Process -FilePath "PowerShell" -ArgumentList "git","clone","https://github.com/mikepruett3/dotposh.git","$Env:UserProfile\dotposh" -Wait
+  Start-Process -FilePath "PowerShell" -ArgumentList "git",
+    "clone",
+    "https://github.com/mikepruett3/dotposh.git",
+    "$Env:UserProfile\dotposh" -Wait
 @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
-Remove-Item -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -Force -ErrorAction Ignore
-New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -ItemType SymbolicLink -Target $Env:UserProfile\dotposh\profile.ps1
+Remove-Item `
+    -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -Force -ErrorAction Ignore
+New-Item `
+    -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -ItemType SymbolicLink `
+      -Target $Env:UserProfile\dotposh\profile.ps1
 '@ > $Env:Temp\dotposh.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\dotposh.ps1"
   Remove-Item -LiteralPath $Env:Temp\dotposh.ps1 -Force
@@ -393,14 +503,19 @@ git submodule update
 }
 
 # Pin PowerShell to Taskbar
-Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin","'$Env:AppData\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk'","c:5386"
+Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
+    "'$Env:AppData\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk'",
+    "c:5386"
 
 # PowerShell 7 + pin
 $PS7 = winget list --exact -q Microsoft.PowerShell
 if (-not $PS7) {
   Write-Verbose "Installing PowerShell 7..."
 @'
-iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+  $ps7Installer = Join-Path $Env:Temp "install-powershell.ps1"
+  Invoke-RestMethod -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $ps7Installer
+  & $ps7Installer -UseMSI -Quiet
+  Remove-Item -LiteralPath $ps7Installer -Force
 '@ > $Env:Temp\ps7.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
   Remove-Item -LiteralPath $Env:Temp\ps7.ps1 -Force
