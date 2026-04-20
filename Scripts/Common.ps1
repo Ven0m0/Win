@@ -331,59 +331,6 @@ function Show-NvidiaGpuSettings {
   }
 }
 
-function Show-RegistryStatus {
-    <#
-    .SYNOPSIS
-        Displays registry value status with color-coded output
-    .PARAMETER Path
-        Registry path (in PowerShell format like 'HKLM:\SOFTWARE\...')
-    .PARAMETER Name
-        Registry value name
-    .PARAMETER Label
-        Display label for the setting
-    .PARAMETER EnabledValue
-        Value that indicates "enabled" state
-    .PARAMETER EnabledText
-        Text to show when enabled (default: "Enabled")
-    .PARAMETER DisabledText
-        Text to show when disabled (default: "Disabled")
-    .PARAMETER NotFoundText
-        Text to show when not found (default: "Not configured")
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path,
-
-        [Parameter(Mandatory)]
-        [string]$Name,
-
-        [string]$Label,
-        [object]$EnabledValue = 1,
-        [string]$EnabledText = "Enabled",
-        [string]$DisabledText = "Disabled",
-        [string]$NotFoundText = "Not configured"
-    )
-
-    if (!$Label) {
-        $Label = $Name
-    }
-
-    try {
-        $value = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
-
-        if ($value -eq $EnabledValue) {
-            Write-Host "${Label}: " -NoNewline
-            Write-Host $EnabledText -ForegroundColor Green
-        } else {
-            Write-Host "${Label}: " -NoNewline
-            Write-Host $DisabledText -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Host "${Label}: " -NoNewline
-        Write-Host $NotFoundText -ForegroundColor Gray
-    }
-}
-
 function Get-RegistryValueSafe {
     <#
     .SYNOPSIS
