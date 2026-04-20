@@ -478,7 +478,6 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 
     # History configuration
     Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-    Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
     # Tab completion
