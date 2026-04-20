@@ -1,4 +1,4 @@
-﻿# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
+# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
 
 # Options
 $FriendsSignIn = 0
@@ -26,16 +26,10 @@ try {
 
 # If running, shut down gracefully
 $focus = $false
-if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -ErrorAction 0).pid -gt 0 -and (Get-Process -Name steamwebhelper -ErrorAction SilentlyContinue)) {
-  Start-Process "$STEAM\Steam.exe" -ArgumentList '-ifrunning -silent -shutdown +quit now' -Wait
-  $focus = $true
-}
-# Force kill if needed
-while (Get-Process -Name steamwebhelper,steam -ErrorAction SilentlyContinue) {
-  Stop-Process -Name steamwebhelper,steam -Force -ErrorAction SilentlyContinue
-  Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
-  $focus = $true
-  Start-Sleep -Milliseconds 250
+if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
+    Stop-SteamGracefully
+    Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
+    $focus = $true
 }
 if ($focus) { $QUICK += " -foreground" }
 

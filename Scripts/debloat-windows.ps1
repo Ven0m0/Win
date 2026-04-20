@@ -1,4 +1,4 @@
-﻿﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
   Comprehensive Windows debloating and optimization script
@@ -240,22 +240,6 @@ function Apply-RegistryTweaks {
 #endregion
 
 #region Phase 6: System Cleanup
-function Get-FolderSize {
-  param ([string]$Path)
-  if (Test-Path $Path) {
-    return (Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
-  }
-  return 0
-}
-
-function Format-Size {
-  param ([long]$Size)
-  if ($Size -gt 1GB) { return "{0:N2} GB" -f ($Size / 1GB) }
-  if ($Size -gt 1MB) { return "{0:N2} MB" -f ($Size / 1MB) }
-  if ($Size -gt 1KB) { return "{0:N2} KB" -f ($Size / 1KB) }
-  return "$Size bytes"
-}
-
 function Run-SystemCleanup {
   Write-Host "=== Phase 6: System Cleanup ===" -ForegroundColor Cyan
   $freedSpace = 0
@@ -282,7 +266,7 @@ function Run-SystemCleanup {
       if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
         Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
       }
-      Remove-Item -Path "$($cp.Path)\*" -Recurse -Force -ErrorAction SilentlyContinue
+      Clear-PathSafe -Path "$($cp.Path)\*" -Recurse
       if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
         Start-Service -Name wuauserv -ErrorAction SilentlyContinue
       }

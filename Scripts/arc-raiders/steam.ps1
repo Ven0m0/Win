@@ -3,45 +3,15 @@
     Steam optimization: close steam, configure VDFs for max FPS, restart minimal.
 #>
 
+# Import common functions
+. "$PSScriptRoot\..\Common.ps1"
+
 $FriendsSignIn = 0
 $FriendsAnimed = 0
 $ShowGameIcons = 0
 $NoJoystick    = 1
 $NoShaders     = 1
 $NoGPU         = 0
-
-function ConvertFrom-VDF {
-    param([string[]]$Content, [ref]$line = ([ref]0))
-    $re = '^\s*("(?<k>[^\"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^\\"])*")?$' 
-    $obj = [ordered]@{}
-    while ($line.Value -lt $Content.Count) {
-        if ($Content[$line.Value] -match $re) {
-            if ($Matches.k) { $key = $Matches.k }
-            if ($Matches.v) { $obj[$key] = $Matches.v }
-            elseif ($Matches.b -eq '{') { $line.Value++; $obj[$key] = ConvertFrom-VDF -Content $Content -line $line }
-            elseif ($Matches.b -eq '}') { break }
-        }
-        $line.Value++
-    }
-    return $obj
-}
-
-function ConvertTo-VDF {
-    param($Data, [ref]$Indent = ([ref]0))
-    if ($Data -isnot [System.Collections.Specialized.OrderedDictionary] -and $Data -isnot [hashtable]) { return }
-    foreach ($key in $Data.Keys) {
-        $tabs = "`t" * $Indent.Value
-        if ($Data[$key] -is [System.Collections.Specialized.OrderedDictionary] -or $Data[$key] -is [hashtable]) {
-            Write-Output "$tabs`"$key`"`n$tabs{`n"
-            $Indent.Value++
-            ConvertTo-VDF -Data $Data[$key] -Indent $Indent
-            $Indent.Value--
-            Write-Output "$tabs}`n"
-        } else {
-            Write-Output "$tabs`"$key`"`t`t$($Data[$key])`n"
-        }
-    }
-}
 
 function sc-nonew($fn, $txt) {
     [IO.File]::WriteAllText($fn, $txt -join "`n")
@@ -76,17 +46,10 @@ if ($NoGPU)      { $QUICK += "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sa
 $QUICK += "-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console"
 
 $focus = $false
-if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -ErrorAction SilentlyContinue).pid -gt 0 -and
-    (Get-Process -Name steamwebhelper -ErrorAction SilentlyContinue)) {
-    Start-Process "$STEAM\Steam.exe" -ArgumentList '-ifrunning -silent -shutdown +quit now' -Wait
-    $focus = $true
-}
-
-while (Get-Process -Name steamwebhelper, steam -ErrorAction SilentlyContinue) {
-    Stop-Process -Name steamwebhelper, steam -Force -ErrorAction SilentlyContinue
+if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
+    Stop-SteamGracefully
     Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
     $focus = $true
-    Start-Sleep -Milliseconds 250
 }
 
 if ($focus) { $QUICK += " -foreground" }

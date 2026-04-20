@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
 # Import common functions
@@ -212,7 +212,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     if ($checkedListBox.CheckedItems) {
         $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
         foreach ($item in $checkedListBox.CheckedItems) {
-            reg.exe add "$key\$item" /v StateFlags0069 /t REG_DWORD /d 00000002 /f >$nul 2>&1
+            Set-RegistryValue -Path "$key\$item" -Name "StateFlags0069" -Type REG_DWORD -Data "2"
         }
         Write-Host 'Running Disk Cleanup...'
         #nice

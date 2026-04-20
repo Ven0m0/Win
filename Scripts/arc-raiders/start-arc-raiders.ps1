@@ -147,17 +147,12 @@ $QUICK += "-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -
 
 # ── Steam: graceful shutdown then force kill ──────────────────────────────────
 $focus = $false
-if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -ErrorAction SilentlyContinue).pid -gt 0 -and
-    (Get-Process -Name steamwebhelper -ErrorAction SilentlyContinue)) {
-    Start-Process "$STEAM\Steam.exe" -ArgumentList '-ifrunning -silent -shutdown +quit now' -Wait
-    $focus = $true
-}
-while (Get-Process -Name steamwebhelper, steam -ErrorAction SilentlyContinue) {
-    Stop-Process -Name steamwebhelper, steam -Force -ErrorAction SilentlyContinue
+if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
+    Stop-SteamGracefully
     Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
     $focus = $true
-    Start-Sleep -Milliseconds 250
 }
+
 if ($focus) { $QUICK += " -foreground" }
 
 # ── Steam: update sharedconfig.vdf ────────────────────────────────────────────
