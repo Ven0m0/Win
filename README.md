@@ -3,9 +3,9 @@
 [![Maintainability](https://qlty.sh/gh/Ven0m0/projects/.github/maintainability.svg)](https://qlty.sh/gh/Ven0m0/projects/.github)
 
 - [Winget](https://winstall.app)
-- [Scoop](https://scoop.sh) `iex "& {$(irm get.scoop.sh)} -RunAsAdmin"`
+- [Scoop](https://scoop.sh) (Install via official site or use the secure pattern in `Scripts/shell-setup.ps1`)
 - [Chocolatey](https://chocolatey.org)
-- CCT: `iwr -useb https://christitus.com/win | iex`
+- CCT (Chris Titus Tech): Use the `winutil` function defined in the PowerShell profile
 
 My Windows configuration files and scripts, managed with [yadm](https://yadm.io/).
 
