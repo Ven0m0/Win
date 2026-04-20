@@ -1,359 +1,60 @@
 ---
-applyTo: '**/*.ps1,**/*.psm1,**/*.psd1'
-description: 'PowerShell cmdlet and scripting best practices based on Microsoft guidelines'
+applyTo: "**/*.ps1,**/*.psm1,**/*.psd1"
 ---
 
-# PowerShell Cmdlet Development Guidelines
+# PowerShell Guidelines for Win
 
-This guide provides PowerShell-specific instructions to help GitHub Copilot generate idiomatic,
-safe, and maintainable scripts. It aligns with Microsoft’s PowerShell cmdlet development guidelines.
+These instructions apply to repository PowerShell files such as `Scripts/*.ps1`, `setup.ps1`, and tracked PowerShell config under `user/.dotfiles/config/`.
 
-## Naming Conventions
+## Repository patterns
 
-- **Verb-Noun Format:**
-  - Use approved PowerShell verbs (Get-Verb)
-  - Use singular nouns
-  - PascalCase for both verb and noun
-  - Avoid special characters and spaces
+- Reuse helpers from `Scripts/Common.ps1` instead of duplicating shared logic.
+- Match the repository style: OTBS braces, 2-space indentation, and full cmdlet names.
+- Preserve Windows PowerShell 5.1 and PowerShell 7+ compatibility.
+- Prefer environment-based paths such as `$PSScriptRoot`, `$HOME`, and `$env:*`.
+- Keep new tracked config in `user/.dotfiles/config/`.
 
-- **Parameter Names:**
-  - Use PascalCase
-  - Choose clear, descriptive names
-  - Use singular form unless always multiple
-  - Follow PowerShell standard names
+## Script structure
 
-- **Variable Names:**
-  - Use PascalCase for public variables
-  - Use camelCase for private variables
-  - Avoid abbreviations
-  - Use meaningful names
+- Use `Set-StrictMode -Version Latest` and set `$ErrorActionPreference = 'Stop'` in standalone scripts when appropriate.
+- Follow the existing admin elevation pattern used by scripts in `Scripts/` when the task changes machine state.
+- Use comment-based help for public functions and entry-point scripts.
+- Prefer one focused function per operation instead of long linear blocks.
 
-- **Alias Avoidance:**
-  - Use full cmdlet names
-  - Avoid using aliases in scripts (e.g., use `Get-ChildItem` instead of `gci`)
-  - Document any custom aliases
-  - Use full parameter names
+## Parameters and output
 
-### Example - Naming Conventions
+- Use approved Verb-Noun function names and PascalCase parameter names.
+- Use `[switch]` for boolean flags.
+- Validate limited options with `ValidateSet` and required strings with `ValidateNotNullOrEmpty` when it helps.
+- Return rich objects for automation scenarios; use formatted host output only for interactive status.
+- Use `Write-Verbose`, `Write-Warning`, and structured errors instead of hiding failures.
 
-```powershell
-function Get-UserProfile {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Username,
+## Safety and error handling
 
-        [Parameter()]
-        [ValidateSet('Basic', 'Detailed')]
-        [string]$ProfileType = 'Basic'
-    )
+- Use `SupportsShouldProcess` for operations that change the system, registry, or files.
+- In advanced functions, prefer `$PSCmdlet.WriteError()` or `$PSCmdlet.ThrowTerminatingError()` over loose string errors.
+- Avoid global `$ErrorActionPreference = 'SilentlyContinue'`.
+- Avoid `Invoke-Expression` with untrusted input.
+- Check external command exit codes when calling tools such as `reg.exe`, `winget`, or other Windows utilities.
 
-    process {
-        $outputString = "Searching for: '$($Username)'"
-        Write-Verbose -Message $outputString
-        Write-Verbose -Message "Profile type: $ProfileType"
-        # Logic here
-    }
-}
-```
+## Shared helpers to prefer
 
-## Parameter Design
+Reach for existing helpers in `Scripts/Common.ps1` before adding new ones, especially for:
 
-- **Standard Parameters:**
-  - Use common parameter names (`Path`, `Name`, `Force`)
-  - Follow built-in cmdlet conventions
-  - Use aliases for specialized terms
-  - Document parameter purpose
+- registry reads and writes
+- restore point creation
+- downloads and temp files
+- safe directory cleanup
+- NVIDIA registry discovery
+- VDF parsing and writing
 
-- **Parameter Names:**
-  - Use singular form unless always multiple
-  - Choose clear, descriptive names
-  - Follow PowerShell conventions
-  - Use PascalCase formatting
+## Performance and maintainability
 
-- **Type Selection:**
-  - Use common .NET types
-  - Implement proper validation
-  - Consider ValidateSet for limited options
-  - Enable tab completion where possible
+- Prefer `[System.Collections.Generic.List[T]]::new()` when building large collections.
+- Keep related config deployment logic close to the script that owns it.
+- When touching bootstrap behavior, review `.yadm/bootstrap` and `Scripts/Setup-Dotfiles.ps1` together.
 
-- **Switch Parameters:**
-  - **ALWAYS** use `[switch]` for boolean flags, never `[bool]`
-  - **NEVER** use `[bool]$Parameter` or assign default values
-  - Switch parameters default to `$false` when omitted
-  - Use clear, action-oriented names
-  - Test presence with `.IsPresent`
-  - Using `$true`/`$false` in parameter attributes (e.g., `Mandatory = $true`) is acceptable
+## Validation
 
-### Example - Parameter Design
-
-```powershell
-function Set-ResourceConfiguration {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Name,
-
-        [Parameter()]
-        [ValidateSet('Dev', 'Test', 'Prod')]
-        [string]$Environment = 'Dev',
-
-        # ✔️ CORRECT: Use `[switch]` with no default value
-        [Parameter()]
-        [switch]$Force,
-
-         # ❌ WRONG: Shows incorrect default assignment, however this is correct syntax (requires `[switch]` cast).
-        [Parameter()]
-        [switch]$Quiet = [switch]$true,
-
-        [Parameter()]
-        [ValidateNotNullOrEmpty()]
-        [string[]]$Tags
-    )
-
-    process {
-        # Use .IsPresent to check switch state
-        if ($Quiet.IsPresent) {
-            Write-Verbose "Quiet mode enabled"
-        }
-    }
-}
-```
-
-## Pipeline and Output
-
-- **Pipeline Input:**
-  - Use `ValueFromPipeline` for direct object input
-  - Use `ValueFromPipelineByPropertyName` for property mapping
-  - Implement Begin/Process/End blocks for pipeline handling
-  - Document pipeline input requirements
-
-- **Output Objects:**
-  - Return rich objects, not formatted text
-  - Use PSCustomObject for structured data
-  - Avoid Write-Host for data output
-  - Enable downstream cmdlet processing
-
-- **Pipeline Streaming:**
-  - Output one object at a time
-  - Use process block for streaming
-  - Avoid collecting large arrays
-  - Enable immediate processing
-
-- **PassThru Pattern:**
-  - Default to no output for action cmdlets
-  - Implement `-PassThru` switch for object return
-  - Return modified/created object with `-PassThru`
-  - Use verbose/warning for status updates
-
-### Example - Pipeline and Output
-
-```powershell
-function Update-ResourceStatus {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
-        [string]$Name,
-
-        [Parameter(Mandatory)]
-        [ValidateSet('Active', 'Inactive', 'Maintenance')]
-        [string]$Status,
-
-        [Parameter()]
-        [switch]$PassThru
-    )
-
-    begin {
-        Write-Verbose 'Starting resource status update process'
-        $timestamp = Get-Date
-    }
-
-    process {
-        # Process each resource individually
-        Write-Verbose "Processing resource: $Name"
-
-        $resource = [PSCustomObject]@{
-            Name        = $Name
-            Status      = $Status
-            LastUpdated = $timestamp
-            UpdatedBy   = "$($env:USERNAME)"
-        }
-
-        # Only output if PassThru is specified
-        if ($PassThru.IsPresent) {
-            Write-Output $resource
-        }
-    }
-
-    end {
-        Write-Verbose 'Resource status update process completed'
-    }
-}
-```
-
-## Error Handling and Safety
-
-- **ShouldProcess Implementation:**
-  - Use `[CmdletBinding(SupportsShouldProcess = $true)]`
-  - Set appropriate `ConfirmImpact` level
-  - Call `$PSCmdlet.ShouldProcess()` as close the the changes action
-  - Use `$PSCmdlet.ShouldContinue()` for additional confirmations
-
-- **Message Streams:**
-  - `Write-Verbose` for operational details with `-Verbose`
-  - `Write-Warning` for warning conditions
-  - `Write-Error` for non-terminating errors
-  - `throw` for terminating errors
-  - Avoid `Write-Host` except for user interface text
-
-- **Error Handling Pattern:**
-  - Use try/catch blocks for error management
-  - Set appropriate ErrorAction preferences
-  - Return meaningful error messages
-  - Use ErrorVariable when needed
-  - Include proper terminating vs non-terminating error handling
-  - In advanced functions with `[CmdletBinding()]`, prefer `$PSCmdlet.WriteError()` over `Write-Error`
-  - In advanced functions with `[CmdletBinding()]`, prefer `$PSCmdlet.ThrowTerminatingError()` over `throw`
-  - Construct proper ErrorRecord objects with category, target, and exception details
-
-- **Non-Interactive Design:**
-  - Accept input via parameters
-  - Avoid `Read-Host` in scripts
-  - Support automation scenarios
-  - Document all required inputs
-
-### Example - Error Handling and Safety
-
-```powershell
-function Remove-CacheFiles {
-    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path
-    )
-
-    try {
-        $files = Get-ChildItem -Path $Path -Filter "*.cache" -ErrorAction Stop
-        
-        # Demonstrates WhatIf support
-        if ($PSCmdlet.ShouldProcess($Path, 'Remove cache files')) {
-            $files | Remove-Item -Force -ErrorAction Stop
-            Write-Verbose "Removed $($files.Count) cache files from $Path"
-        }
-    } catch {
-        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-            $_.Exception,
-            'RemovalFailed',
-            [System.Management.Automation.ErrorCategory]::NotSpecified,
-            $Path
-        )
-        $PSCmdlet.WriteError($errorRecord)
-    }
-}
-```
-
-## Documentation and Style
-
-- **Comment-Based Help:** Include comment-based help for any public-facing function or cmdlet. Inside the function, add a `<# ... #>` help comment with at least:
-  - `.SYNOPSIS` Brief description
-  - `.DESCRIPTION` Detailed explanation
-  - `.EXAMPLE` sections with practical usage
-  - `.PARAMETER` descriptions
-  - `.OUTPUTS` Type of output returned
-  - `.NOTES` Additional information
-
-- **Consistent Formatting:**
-  - Follow consistent PowerShell style
-  - Use proper indentation (2 spaces in this repository; examples may use 4 spaces for readability)
-  - Opening braces on same line as statement
-  - Closing braces on new line
-  - Use line breaks after pipeline operators
-  - PascalCase for function and parameter names
-  - Avoid unnecessary whitespace
-
-- **Pipeline Support:**
-  - Implement Begin/Process/End blocks for pipeline functions
-  - Use ValueFromPipeline where appropriate
-  - Support pipeline input by property name
-  - Return proper objects, not formatted text
-
-- **Avoid Aliases:** Use full cmdlet names and parameters
-  - Avoid using aliases in scripts (e.g., use Get-ChildItem instead of gci); aliases are acceptable for interactive shell use.
-  - Use `Where-Object` instead of `?` or `where`
-  - Use `ForEach-Object` instead of `%`
-  - Use `Get-ChildItem` instead of `ls` or `dir`
-
----
-
-## Full Example: End-to-End Cmdlet Pattern
-
-```powershell
-function Remove-UserAccount {
-    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
-    param(
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Username,
-
-        [Parameter()]
-        [switch]$Force
-    )
-
-    begin {
-        Write-Verbose 'Starting user account removal process'
-        $currentErrorActionValue = $ErrorActionPreference
-        $ErrorActionPreference = 'Stop'
-    }
-
-    process {
-        try {
-            # Validation
-            if (-not (Test-UserExists -Username $Username)) {
-                $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                    [System.Exception]::new("User account '$Username' not found"),
-                    'UserNotFound',
-                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
-                    $Username
-                )
-                $PSCmdlet.WriteError($errorRecord)
-                return
-            }
-
-            # ShouldProcess enables -WhatIf and -Confirm support
-            if ($PSCmdlet.ShouldProcess($Username, "Remove user account")) {
-                # ShouldContinue provides an additional confirmation prompt for high-impact operations
-                # This prompt is bypassed when -Force is specified
-                if ($Force -or $PSCmdlet.ShouldContinue("Are you sure you want to remove '$Username'?", "Confirm Removal")) {
-                    Write-Verbose "Removing user account: $Username"
-                    
-                    # Main operation
-                    Remove-ADUser -Identity $Username -ErrorAction Stop
-                    Write-Warning "User account '$Username' has been removed"
-                }
-            }
-        } catch [Microsoft.ActiveDirectory.Management.ADException] {
-            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                $_.Exception,
-                'ActiveDirectoryError',
-                [System.Management.Automation.ErrorCategory]::NotSpecified,
-                $Username
-            )
-            $PSCmdlet.ThrowTerminatingError($errorRecord)
-        } catch {
-            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
-                $_.Exception,
-                'UnexpectedError',
-                [System.Management.Automation.ErrorCategory]::NotSpecified,
-                $Username
-            )
-            $PSCmdlet.ThrowTerminatingError($errorRecord)
-        }
-    }
-
-    end {
-        Write-Verbose 'User account removal process completed'
-        # Set ErrorActionPreference back to the value it had
-        $ErrorActionPreference = $currentErrorActionValue
-    }
-}
-```
+- Run `Invoke-ScriptAnalyzer -Path <changed-script>` for every changed PowerShell file.
+- Use Pester only when tests already exist for the affected area or when you add new testable logic.
