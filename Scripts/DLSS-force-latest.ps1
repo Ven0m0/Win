@@ -1,4 +1,4 @@
-﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 
 # Import common functions
 . "$PSScriptRoot\Common.ps1"

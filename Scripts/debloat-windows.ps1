@@ -1,4 +1,4 @@
-﻿﻿#Requires -RunAsAdministrator
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
   Comprehensive Windows debloating and optimization script
