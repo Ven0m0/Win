@@ -1,4 +1,4 @@
-# clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
+﻿# clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 
 #Requires -RunAsAdministrator
 
@@ -76,10 +76,10 @@ foreach ($app in $apps) {
 
 Write-Host "`n* Clearing APP shadercache..." -ForegroundColor Cyan
 foreach ($app in $apps) {
-  $targets=@()
-  if ($app.game) { $targets+= "$($app.game)\shadercache" }
-  if ($app.steamapps) { $targets+= "$($app.steamapps)\shadercache\$($app.id)" }
-  if ($app.steamapps -ne "$STEAM\steamapps") { $targets+= "$STEAM\steamapps\shadercache\$($app.id)" }
+  $targets = [System.Collections.Generic.List[string]]::new()
+  if ($app.game) { $targets.Add("$($app.game)\shadercache") }
+  if ($app.steamapps) { $targets.Add("$($app.steamapps)\shadercache\$($app.id)") }
+  if ($app.steamapps -ne "$STEAM\steamapps") { $targets.Add("$STEAM\steamapps\shadercache\$($app.id)") }
   foreach ($t in $targets) { Clear-DirectorySafe $t }
 }
 
