@@ -238,12 +238,10 @@ if ($result -eq 'OK') {
 Write-Host "`n[Registry] Applying PioneerGame IFEO settings..."
 $ifeo = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe'
 $perf = "$ifeo\PerfOptions"
- 
+
 New-Item -Path $perf -Force | Out-Null
-Set-ItemProperty -Path $perf -Name 'CpuPriorityClass' -Value 6   -Type DWord
-Set-ItemProperty -Path $perf -Name 'IoPriority'       -Value 3   -Type DWord
 Set-ItemProperty -Path $ifeo -Name 'UseLargePages'    -Value 1   -Type DWord
-Write-Host "  CpuPriorityClass=6 (High), IoPriority=3 (Normal), UseLargePages=1"
+Write-Host "  UseLargePages=1"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 $mb = [math]::Round($totalSize / 1MB, 2)
