@@ -1,0 +1,230 @@
+name: Registry File Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.reg"
+      - ".github/workflows/reg-validate.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.reg"
+      - ".github/workflows/reg-validate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-reg-files:
+    name: Validate .reg Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup PowerShell
+        uses: microsoft/setup-powershell@v2
+        with:
+          version: latest
+
+      - name: Get changed .reg files
+        id: changed
+        shell: pwsh
+        run: |
+          $files = @(git diff --name-only --diff-filter=ACM HEAD origin/main 2>/dev/null | Where-Object { $_ -match '\.reg$' })
+          if ($files.Count -eq 0) {
+            $files = @(git diff --name-only --diff-filter=ACM ${{ github.base_ref }} HEAD | Where-Object { $_ -match '\.reg$' })
+          }
+          if ($files.Count -eq 0) {
+            $files = @(Get-ChildItem -Path . -Recurse -Include *.reg -File | Select-Object -ExpandProperty FullName)
+          }
+          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          Write-Host "Changed files: $($files -join ', ')"
+
+      - name: Validate registry files
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+          $issues = @()
+          $warnings = @()
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) { continue }
+
+            $content = Get-Content -Path $file -Raw
+            $lines = $content -split "`n"
+
+            # ========================================
+            # Check 1: Required header
+            # ========================================
+            if ($lines.Count -gt 0 -and $lines[0] -notmatch '^Windows Registry Editor Version 5\.00$') {
+              $issues += "[$file]:1: Missing or invalid header. Expected 'Windows Registry Editor Version 5.00'"
+            }
+
+            # ========================================
+            # Check 2: Line ending (should be LF, not CRLF)
+            # ========================================
+            if ($content -match '\r\n') {
+              $issues += "[$file]:: Contains CRLF line endings (should be LF)"
+            }
+
+            # ========================================
+            # Check 3: Trailing whitespace
+            # ========================================
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i] -match '\s+$') {
+                $issues += "[$file]:$($i+1): Trailing whitespace"
+              }
+            }
+
+            # ========================================
+            # Check 4: Registry key format validation
+            # ========================================
+            $validRootKeys = @(
+              'HKEY_LOCAL_MACHINE',
+              'HKEY_CURRENT_USER',
+              'HKEY_CLASSES_ROOT',
+              'HKEY_USERS',
+              'HKEY_CURRENT_CONFIG'
+            )
+
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i].Trim()
+
+              # Skip empty lines and comments
+              if ([string]::IsNullOrEmpty($line) -or $line -match '^;') { continue }
+
+              # Check for valid key header format [...]
+              if ($line -match '^\[(-?HKEY_[A-Z_]+)(\\[^\]]+)?\]$') {
+                $rootKey = $matches[1]
+                if ($rootKey -and $validRootKeys -notcontains $rootKey) {
+                  $issues += "[$file]:$($i+1): Invalid root key '$rootKey'"
+                }
+              }
+
+              # Check for valid value assignments
+              if ($line -match '^\s*"[^"]+"\s*=') {
+                # Value assignment line - validate format
+                if ($line -match '^\s*"([^"]+)"\s*=\s*(.+)$') {
+                  $valueName = $matches[1]
+                  $valueData = $matches[2].Trim()
+
+                  # Validate value type
+                  $validTypes = @('dword', 'hex', 'hex(b)', 'hex(2)', 'hex(4)', 'hex(7)', 'sz', 'expandsz', 'multi_sz', 'none', '-')
+                  $typeMatched = $false
+                  foreach ($type in $validTypes) {
+                    if ($valueData -match "^$type`:") {
+                      $typeMatched = $true
+                      break
+                    }
+                  }
+
+                  # Handle deletion marker
+                  if ($valueData -eq '-') {
+                    $typeMatched = $true
+                  }
+
+                  if (-not $typeMatched -and $valueData.Length -gt 0) {
+                    $issues += "[$file]:$($i+1): Invalid value type in '$valueData'"
+                  }
+                }
+              }
+
+              # Check for orphaned comment without semicolon (not a valid .reg line)
+              if ($line -match '^\s*[^;\[][^=]*$' -and $line -notmatch '^\s*;') {
+                if ($line.Trim().Length -gt 0) {
+                  $warnings += "[$file]:$($i+1): Line looks malformed (may be missing semicolon for comment): $($line.Substring(0, [Math]::Min(50, $line.Length)))"
+                }
+              }
+            }
+
+            # ========================================
+            # Check 5: Key deduplication within file
+            # ========================================
+            $keyCounts = @{}
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i].Trim()
+              if ($line -match '^\[(-?HKEY_[A-Z_]+)(\\[^\]]+)?\]$') {
+                $key = $line
+                if ($keyCounts.ContainsKey($key)) {
+                  $issues += "[$file]:$($i+1): Duplicate registry key (first seen at line $($keyCounts[$key])): $key"
+                } else {
+                  $keyCounts[$key] = $i + 1
+                }
+              }
+            }
+
+            # ========================================
+            # Check 6: Empty file check
+            # ========================================
+            if ($lines.Count -le 1) {
+              $warnings += "[$file]:: File appears to be empty or contains only header"
+            }
+          }
+
+          # ========================================
+          # Output results
+          # ========================================
+          if ($warnings.Count -gt 0) {
+            Write-Host "## Warnings" -ForegroundColor Yellow
+            $warnings | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            Write-Host ""
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host "## Validation Issues Found" -ForegroundColor Red
+            $issues | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+            Write-Host ""
+            Write-Host "Total issues: $($issues.Count)"
+            exit 1
+          } else {
+            Write-Host "## All .reg files are valid" -ForegroundColor Green
+            exit 0
+          }
+
+      - name: Check registry value safety
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+
+          # Patterns that should be reviewed (not necessarily errors)
+          $suspiciousPatterns = @(
+            @{ Pattern = 'DisableSecurity'; Message = 'Disabling security settings' },
+            @{ Pattern = 'PromptOnSecureDesktop'; Message = 'UAC security modification' },
+            @{ Pattern = 'EnableLUA.*=dword:00000000'; Message = 'Disabling UAC' },
+            @{ Pattern = 'ConsentPromptBehaviorAdmin.*=dword:00000000'; Message = 'Disabling admin prompts' },
+            @{ Pattern = 'fAllowToGetHelp.*=dword:00000000'; Message = 'Disabling remote assistance' },
+            @{ Pattern = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\.*Start.*=dword:00000004'; Message = 'Disabling a service' },
+            @{ Pattern = 'Windows\\System\\Rpc'; Message = 'RPC configuration change' },
+            @{ Pattern = 'TcpTimedWaitDelay'; Message = 'Network timing configuration' }
+          )
+
+          $safetyNotes = @()
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) { continue }
+            $content = Get-Content -Path $file -Raw
+
+            foreach ($check in $suspiciousPatterns) {
+              if ($content -match $check.Pattern) {
+                $safetyNotes += "[$file]: $($check.Message) - verify this is intentional"
+              }
+            }
+          }
+
+          if ($safetyNotes.Count -gt 0) {
+            Write-Host ""
+            Write-Host "## Safety Review Notes (informational)" -ForegroundColor Cyan
+            Write-Host "The following changes may affect system security or functionality:"
+            $safetyNotes | Select-Object -Unique | ForEach-Object { Write-Host $_ -ForegroundColor Cyan }
+            Write-Host ""
+            Write-Host "These are informational only. Review each change before applying."
+          }
