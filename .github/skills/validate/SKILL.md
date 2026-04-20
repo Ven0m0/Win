@@ -22,7 +22,8 @@ Run only the checks that match the files you changed.
 Run ScriptAnalyzer on each changed PowerShell file:
 
 ```bash
-pwsh -NoLogo -NoProfile -Command "Invoke-ScriptAnalyzer -Path '<changed-script>' -Settings '/home/runner/work/Win/Win/PSScriptAnalyzerSettings.psd1'"
+cd /path/to/repo
+pwsh -NoLogo -NoProfile -Command "Invoke-ScriptAnalyzer -Path '<changed-script>' -Settings './PSScriptAnalyzerSettings.psd1'"
 ```
 
 ### Bootstrap or tracked config changes
