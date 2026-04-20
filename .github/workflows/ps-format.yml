@@ -1,0 +1,155 @@
+name: PowerShell Format Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - ".github/workflows/ps-format.yml"
+      - ".editorconfig"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - ".github/workflows/ps-format.yml"
+      - ".editorconfig"
+
+permissions:
+  contents: read
+
+jobs:
+  format-check:
+    name: Check PowerShell Formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup PowerShell
+        uses: microsoft/setup-powershell@v2
+        with:
+          version: latest
+
+      - name: Get changed PowerShell files
+        id: changed
+        shell: pwsh
+        run: |
+          $files = @(git diff --name-only --diff-filter=ACM HEAD origin/main 2>/dev/null | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
+          if ($files.Count -eq 0) {
+            # For PRs, compare against merge base
+            $files = @(git diff --name-only --diff-filter=ACM ${{ github.base_ref }} HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
+          }
+          if ($files.Count -eq 0) {
+            # Fallback to all ps1 files if no base ref
+            $files = @(Get-ChildItem -Path . -Recurse -Include *.ps1,*.psm1,*.psd1 -File | Select-Object -ExpandProperty FullName)
+          }
+          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          Write-Host "Changed files: $($files -join ', ')"
+
+      - name: Run formatting check
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+          $issues = @()
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) { continue }
+
+            $content = Get-Content -Path $file -Raw
+            $lines = $content -split "`n"
+
+            # Check 1: Consistent indentation (2 spaces)
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i]
+              if ($line -match '^\t') {
+                $issues += "[$file]:$($i+1): Line uses tabs instead of spaces"
+              }
+              # Check for inconsistent indentation (not multiple of 2)
+              if ($line -match '^(\s+)') {
+                $spaces = $matches[1].Length
+                if ($spaces % 2 -ne 0 -and $line -notmatch '^\s*#') {
+                  $issues += "[$file]:$($i+1): Indentation not multiple of 2 spaces"
+                }
+              }
+            }
+
+            # Check 2: Line ending (should be LF in repo, CRLF locally is OK)
+            if ($content -match '\r\n') {
+              $issues += "[$file]:: Contains CRLF line endings (should be LF)"
+            }
+
+            # Check 3: Trailing whitespace
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i] -match '\s+$') {
+                $issues += "[$file]:$($i+1): Trailing whitespace"
+              }
+            }
+
+            # Check 4: Max line length (120 chars)
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i].Length -gt 120 -and $lines[$i] -notmatch '^\s*#') {
+                $issues += "[$file]:$($i+1): Line exceeds 120 characters ($($lines[$i].Length))"
+              }
+            }
+
+            # Check 5: File encoding (should be UTF8 with BOM)
+            $bytes = [System.IO.File]::ReadAllBytes($file)
+            if ($bytes.Count -ge 3) {
+              $bom = [System.Text.Encoding]::UTF8.GetPreamble()
+              $hasBom = $true
+              for ($i = 0; $i -lt $bom.Length; $i++) {
+                if ($bytes[$i] -ne $bom[$i]) { $hasBom = $false; break }
+              }
+              if (-not $hasBom) {
+                $issues += "[$file]:: Missing UTF-8 BOM"
+              }
+            }
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host "## Formatting Issues Found" -ForegroundColor Red
+            $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            Write-Host ""
+            Write-Host "Total issues: $($issues.Count)"
+            exit 1
+          } else {
+            Write-Host "## No formatting issues found" -ForegroundColor Green
+            exit 0
+          }
+
+      - name: Check for editorconfig compliance
+        shell: pwsh
+        run: |
+          if (Test-Path .editorconfig) {
+            Write-Host "EditorConfig found - validating max line length"
+            $maxLength = 120
+            $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+
+            $longLines = @()
+            foreach ($file in $files) {
+              if (-not (Test-Path $file)) { continue }
+              $lines = Get-Content -Path $file
+              for ($i = 0; $i -lt $lines.Count; $i++) {
+                if ($lines[$i].Length -gt $maxLength -and $lines[$i] -notmatch '^\s*#') {
+                  $longLines += "[$file]:$($i+1): $($lines[$i].Length) chars"
+                }
+              }
+            }
+
+            if ($longLines.Count -gt 0) {
+              Write-Host "Lines exceeding EditorConfig max line length ($maxLength):" -ForegroundColor Yellow
+              $longLines | Select-Object -First 20 | ForEach-Object { Write-Host $_ }
+              if ($longLines.Count -gt 20) {
+                Write-Host "... and $($longLines.Count - 20) more"
+              }
+            }
+          }
