@@ -1,7 +1,0 @@
-🎯 **What:** Removed the `Show-RegistryStatus` function from `Scripts/Common.ps1`.
-
-💡 **Why:** A codebase search (`grep`) revealed that `Show-RegistryStatus` is an unused function (dead code). Removing it reduces file size, decreases clutter in the shared utility script, and improves overall codebase maintainability without affecting any running scripts.
-
-✅ **Verification:** Verified the removal of lines 334 to 385 containing the function declaration and body manually using a Python script reading the file in binary mode to ensure CRLF was preserved. Confirmed using `git diff` that no other parts of `Scripts/Common.ps1` were inadvertently altered. Testing with `pwsh` was omitted because `pwsh` is unavailable in the current development environment.
-
-✨ **Result:** A cleaner `Scripts/Common.ps1` without unused logic, leading to improved code readability.
