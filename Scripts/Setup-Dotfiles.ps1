@@ -206,12 +206,12 @@ function Get-CallOfDutyPlayersPath {
   return $null
 }
 
-function Get-Battlefield2RootPath {
-  return (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Battlefield 2')
+function Get-StarWarsBattlefrontIIRootPath {
+  return (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Star Wars Battlefront II')
 }
 
-function Get-Battlefield2ActiveProfilePath {
-  $bf2Root = Get-Battlefield2RootPath
+function Get-StarWarsBattlefrontIIActiveProfilePath {
+  $bf2Root = Get-StarWarsBattlefrontIIRootPath
   $profilesDir = Join-Path $bf2Root 'Profiles'
   if (-not (Test-Path $profilesDir)) {
     return $null
@@ -281,12 +281,12 @@ function Set-CmdAliasAutoRun {
   }
 }
 
-function Deploy-Battlefield2Configs {
+function Deploy-StarWarsBattlefrontIIConfigs {
   <#
   .SYNOPSIS
-      Deploys Battlefield 2 configs into the root config folder and active profile.
+      Deploys Star Wars Battlefront II (2017) configs into the root config folder and active profile.
   .PARAMETER SourceDir
-      Full path to the tracked Battlefield 2 config directory.
+      Full path to the tracked Star Wars Battlefront II (2017) config directory.
   .PARAMETER Label
       Human-readable label for output messages.
   #>
@@ -300,16 +300,16 @@ function Deploy-Battlefield2Configs {
     return
   }
 
-  $bf2Root = Get-Battlefield2RootPath
+  $bf2Root = Get-StarWarsBattlefrontIIRootPath
   if (-not (Test-Path $bf2Root)) {
-    Write-Warning "  [SKIP] $Label - Battlefield 2 config directory not found: $bf2Root"
+    Write-Warning "  [SKIP] $Label - Star Wars Battlefront II (2017) config directory not found: $bf2Root"
     return
   }
 
-  $activeProfilePath = Get-Battlefield2ActiveProfilePath
+  $activeProfilePath = Get-StarWarsBattlefrontIIActiveProfilePath
   if (-not $activeProfilePath) {
     $profilesDir = Join-Path $bf2Root 'Profiles'
-    Write-Warning "  [SKIP] $Label - active Battlefield 2 profile not found under: $profilesDir"
+    Write-Warning "  [SKIP] $Label - active Star Wars Battlefront II (2017) profile not found under: $profilesDir"
     return
   }
 
@@ -509,10 +509,10 @@ $configManifest = @(
   @{
     Path   = 'games\bf2'
     Mode   = 'script'
-    Label  = 'Battlefield 2 configs'
+    Label  = 'Star Wars Battlefront II (2017) configs'
     Invoke = {
       param($sourceDir, $label)
-      Deploy-Battlefield2Configs -SourceDir $sourceDir -Label $label
+      Deploy-StarWarsBattlefrontIIConfigs -SourceDir $sourceDir -Label $label
     }
   },
   @{
