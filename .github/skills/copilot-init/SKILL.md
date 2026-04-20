@@ -1,99 +1,42 @@
 ---
 name: copilot-init
-description: Bootstrap Copilot guidance for any repository by creating or updating `.github/workflows/copilot-setup-steps.yml`, focused lint/check/test workflows, `.github/instructions/*.instructions.md`, and `.github/skills/*/SKILL.md`. Use when asked to initialize Copilot guidance, scaffold repo instructions or skills, create or update `copilot-setup-steps`, or add Copilot-facing validation workflows.
+description: Refresh Copilot bootstrap assets for the Win repository so guidance matches its Windows dotfiles, PowerShell, yadm, and registry-focused workflows.
 allowed-tools: 'Read, Write, Edit, Glob, Grep, Bash'
 ---
 
-# Copilot init
+# Copilot init for Win
 
-Create or refresh Copilot bootstrap assets for the current repository. Derive all guidance from the repository itself and from files already present in the repo. Do not paste generic templates without adapting them.
+Create or refresh the smallest set of Copilot assets that improve understanding of this repository.
 
-## Goal
+## Audit first
 
-Produce a minimal, high-signal set of bootstrap and validation assets:
+- Confirm the real stack from `AGENTS.md`, `README.md`, `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, and `.github/workflows/`.
+- Treat the repository as a Windows dotfiles repo built around PowerShell, yadm, CMD or Batch files, AutoHotkey v2, registry assets, and tracked config under `user/.dotfiles/config/`.
+- Do not add guidance or workflows for Bun, uv, Node app builds, or other stacks that the repo does not use.
 
-- `.github/workflows/copilot-setup-steps.yml`
-- focused lint/check/test workflows when the repository does not already have the right coverage
-- `.github/instructions/*.instructions.md`
-- `.github/skills/*/SKILL.md`
+## Expected split
 
-Keep startup guidance short, keep detailed repo-wide guidance in a single canonical place when the repository has one, and avoid duplicating large rule blocks across files.
+- `.github/copilot-instructions.md`: short startup bootstrap only
+- `AGENTS.md`: canonical repo-wide guide
+- `.github/instructions/`: narrow language or topic rules
+- `.github/skills/`: reusable repo workflows such as validation or recurring Windows dotfiles tasks
 
-## Workflow
+## Deliverables for this repo
 
-1. Audit the repository.
-   - Identify languages, toolchains, package managers, entry points, and major workflows.
-   - Collect setup, lint, test, type-check, build, and release commands.
-   - Inspect existing workflows, instructions, skills, and agent guidance before adding files.
-   - Note required system packages, services, or runtime prerequisites.
-   - Only plan linting, checking, and testing that is relevant to the current repository. Do not add workflows for languages or tools the project does not use.
-2. Design the guidance split.
-   - `.github/copilot-instructions.md`: short startup bootstrap only.
-   - Repo-wide guide, if present: canonical long-form guidance.
-   - `.github/instructions/`: path- or topic-specific rules.
-   - `.github/skills/`: reusable task workflows.
-3. Create or update `.github/workflows/copilot-setup-steps.yml`.
-   - Keep triggers minimal: `workflow_dispatch` plus `push` and
-     `pull_request` scoped to the workflow file.
-   - Set minimal `permissions:`.
-   - Use pinned action versions.
-   - Install only the repository's real system dependencies, toolchain, and project dependencies.
-   - Match the repository's actual package manager, lockfiles, version pins, and setup flow.
-   - For Python repos, prefer `astral-sh/setup-uv` with `python-version` so uv owns Python setup and dependency bootstrap in one path; then use `uv sync --frozen` plus `uv tool install` for repo-relevant developer tools such as `basedpyright`, `ruff`, and `ty`.
-   - For Bun repos, prefer real Bun dependencies and global tools that the repo actually uses. In this repo, `@biomejs/biome`, `oxfmt`, and `oxlint` are valid; do not add an invalid `oxc` package dependency.
-4. Create or update `.github/instructions/*.instructions.md`.
-   - Add files only when the repository has a real language, workflow, review,
-     or platform need.
-   - Keep each file focused, reusable, and narrow in scope.
-   - Avoid duplicating repo-wide guidance that belongs in the canonical guide.
-5. Create or update `.github/skills/*/SKILL.md`.
-   - Add only reusable skills tied to real repository workflows.
-   - Give each skill a clear trigger, narrow scope, and concrete steps.
-   - Call out generated files, unsafe areas, validation requirements, and any repo-specific invariants.
-6. Create or update lint/check/test workflows when needed.
-   - Reuse existing workflows when they already cover the repo.
-   - Add the smallest workflow set that gives useful validation for the actual stack.
-   - Prefer one tool per concern unless the repository already combines them.
-   - Use project-relevant tools only:
-     - JS/TS: `@biomejs/biome`, `oxlint`, `oxfmt`
-     - Python: `basedpyright`, `ruff`, `ty`, `pytest`
-     - Shell: `shellcheck`, `shfmt`, `shellharden`
-     - PowerShell: PowerShell Editor Services or equivalent LSP plus repo-relevant lint and format tooling
-     - Rust: `cargo check` and editor/LSP tooling such as `rust-analyzer`
-   - If the repository does not contain a language, do not add its workflow, setup steps, or instructions.
-7. Validate the result.
-   - Verify every referenced path, file, and command exists.
-   - Run the repository's existing validation for changed workflows and tracked files.
-   - Do not claim runtime or end-to-end validation you did not perform.
+- `.github/workflows/copilot-setup-steps.yml` tailored to the repo's actual setup needs
+- concise, repo-specific instruction files
+- reusable skills that point agents toward the right files and validations
+- no duplicated large rule blocks across always-loaded files
 
-## Portability requirements
+## Repo-specific rules
 
-- Tailor versions, dependencies, and commands to the current repository.
-- Preserve good existing guidance files instead of replacing them wholesale.
-- Respect the repository's chosen canonical guidance file names and structure.
-- Prefer the smallest file set that still gives high-signal guidance.
-- Keep the output useful even when a repository does not use `AGENTS.md` or `CLAUDE.md`.
+- Keep `Scripts/Common.ps1` as the shared PowerShell helper surface.
+- Keep tracked config under `user/.dotfiles/config/`.
+- Review `.yadm/bootstrap` and `Scripts/Setup-Dotfiles.ps1` together for bootstrap changes.
+- Prefer moving detailed conventions into `.github/skills/win-patterns/SKILL.md` instead of bloating always-loaded context.
 
-## Guardrails
+## Validation
 
-- Never invent commands, paths, dependencies, or workflows.
-- Do not hand-edit generated artifacts when the repository provides a script or generator.
-- Keep guidance concise, actionable, and repository-specific.
-- Update good existing files instead of creating duplicates.
-- When uv is the Python toolchain, prefer a single `astral-sh/setup-uv` step with `python-version` over combining uv with a separate `actions/setup-python` step unless the repository already requires both.
-- Do not broaden validation scope just because a tool is popular. Implement only the linting, type-checking, formatting, and tests that the project actually needs.
-- Use this split when deciding where guidance belongs:
-  - Startup bootstrap: `.github/copilot-instructions.md`
-  - Canonical repo-wide guide: whichever existing file the repository uses
-  - Path- or topic-specific rules: `.github/instructions/*.instructions.md`
-  - Reusable task workflow: `.github/skills/*/SKILL.md`
-  - CI validation workflows: focused `.github/workflows/*.yml` files that match the repository's real stack
-
-## Deliverables checklist
-
-- `copilot-setup-steps` matches the repository's real setup path.
-- Added or updated lint/check/test workflows match the repository's actual languages and commands.
-- Instructions reflect the real stack, commands, and hotspots.
-- Skills reflect recurring repository workflows.
-- Large rule blocks are not duplicated across files.
-- All changed files are internally consistent.
+- Verify every referenced path and command exists.
+- Re-run the repo commands referenced by changed guidance when practical.
+- For `.github/` guidance changes, run `npx -y @yawlabs/ctxlint --depth 3 --mcp --strict --yes`.

@@ -1,61 +1,29 @@
----
-description: "AutoHotkey v2 scripting standards for Windows automation"
-applyTo: "**/*.ahk"
----
-
 # AutoHotkey v2 Guidelines
 
 <Goals>
-
-- Target AHK v2.x exclusively (no v1 syntax)
-- Pure AHK preferred; avoid external binaries
-- Windows-only, portable: relative paths from `A_ScriptDir`
-- Centralize reuse in `Lib/`; no copy-paste of shared logic
-
+- Target AutoHotkey v2 only
+- Keep new scripts minimal and clearly scoped
+- Prefer repo-relative paths built from `A_ScriptDir`
+- Avoid introducing shared helpers until there is a second real use
 </Goals>
 
 <Standards>
+**Repository status**: The repo currently has no tracked `.ahk` files, so any new AutoHotkey addition should stay small and self-contained.
 
 **Directives**: `#Requires AutoHotkey v2.0`, `#SingleInstance Force`, `SendMode "Input"`, `SetWorkingDir A_ScriptDir`
 
-**Naming**: Functions `PascalCase()`, locals `camelCase`, constants `UPPER_SNAKE_CASE`, globals `g_` prefix
+**Paths**: Use `A_ScriptDir` and repo-relative paths. Do not hardcode drive letters or machine-specific locations.
 
-**Style**: CRLF, UTF-8 with BOM, 2-space indent, OTBS braces
+**Naming**: Functions in `PascalCase()`, locals in `camelCase`, constants in `UPPER_SNAKE_CASE`.
 
-**Structure**: Short hotkey handlers, delegate to functions. Guard clauses + early returns. No magic numbers.
+**Errors**: Wrap risky operations in `try` and `catch as e`, then surface actionable errors with `MsgBox()` or `TrayTip()`.
 
-**Performance**: `WinWait*` over `Sleep`. `SetTimer()` over tight loops. Cooldowns on `PixelSearch`/`ImageSearch`.
-
-**Errors**: `try`/`catch as e` around risky ops, report `e.Message` with context. `MsgBox()`/`TrayTip()` for user-facing errors.
-
+**Dependencies**: Prefer native AutoHotkey solutions over external binaries when possible.
 </Standards>
 
-```ahk
-#Requires AutoHotkey v2.0
-#SingleInstance Force
-SendMode "Input"
-SetWorkingDir A_ScriptDir
-
-#Include A_ScriptDir "\..\Lib\WindowManager.ahk"
-
-ToggleFullscreen(){
-  target := "Game Title"
-  if !WaitForWindow(target, 4000) {
-    MsgBox("Failed to find window: " target, "Error", "Iconx")
-    return
-  }
-  ToggleFakeFullscreenMultiMonitor(target)
-}
-F11::ToggleFullscreen()
-```
-
 <Limitations>
-
-- No v1 command syntax (`MsgBox, text` -> `MsgBox("text")`)
+- No AutoHotkey v1 syntax
 - No legacy `%var%` expansions
-- No `Sleep` as primary wait mechanism
-- No tight loops without delay
-- No hardcoded drive letters
-- No admin unless `RequireAdmin()` from `AHK_Common.ahk`
-
+- No hardcoded local machine paths
+- No admin elevation unless the task truly requires it
 </Limitations>

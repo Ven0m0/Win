@@ -1,74 +1,55 @@
 ---
 name: validate
-description: Run the correct validation checks for changed files in this repository (Bun frontend checks, uv Python checks, and workflow or guidance verification).
+description: Run the narrowest checks for Win repository changes across PowerShell, tracked config, bootstrap files, and Copilot guidance.
 allowed-tools: 'Read, Bash, Grep, Glob'
 ---
 
 # Validate
 
-Run the narrowest checks that cover the files you have changed.
+Run only the checks that match the files you changed.
 
-## Triggers
+## Identify the changed area
 
-Use this skill when asked to validate, lint, type-check, or test changes before committing.
+- `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, or `setup.ps1`
+- `user/.dotfiles/config/**`
+- `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, or `README.md`
+- `.github/` workflows, instructions, or skills
 
-## Steps
+## Relevant checks
 
-1. Identify which repo areas changed:
-   - `apps/web`
-   - `apps/api`
-   - `packages/config`
-   - `packages/llm-core`
-   - `packages/shared/python`
-   - `packages/code-index`
-   - `.github/` workflows, instructions, or skills
+### PowerShell changes
 
-2. Run only the checks relevant to changed files:
+Run ScriptAnalyzer on each changed PowerShell file:
 
-   **Frontend (`apps/web/**/*.{js,jsx,ts,tsx}`)**
+```bash
+pwsh -NoLogo -NoProfile -Command "Invoke-ScriptAnalyzer -Path '<changed-script>' -Settings '/home/runner/work/Win/Win/PSScriptAnalyzerSettings.psd1'"
+```
 
-   ```bash
-   cd apps/web
-   bun install
-   bun run lint
-   bun run typecheck
-   bun run build
-   ```
+### Bootstrap or tracked config changes
 
-   **API (`apps/api/**/*.py`)**
+- Verify the referenced source and destination paths exist.
+- If the change also touches PowerShell deployment logic, run ScriptAnalyzer on the changed script files.
+- Review `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, and the affected docs together.
 
-   ```bash
-   cd apps/api
-   export PYTHONPATH=src:../../packages/config/src
-   uv sync --all-extras
-   uv run ruff format --check
-   uv run ruff check
-   uv run pyrefly check
-   uv run pytest
-   ```
+### Guidance or workflow changes under `.github/`
 
-   **Shared Python packages (`packages/config`, `packages/shared/python`, `packages/code-index`, `packages/llm-core`)**
+- Verify every referenced path and command exists.
+- Run:
 
-   ```bash
-   cd <package>
-   uv sync
-   uv run ruff format --check src/
-   uv run ruff check src/
-   ```
+```bash
+npx -y @yawlabs/ctxlint --depth 3 --mcp --strict --yes
+```
 
-   **Workflow, instruction, or skill changes under `.github/`**
+- Use `--fix` only when the task explicitly asks for autofix.
 
-   ```bash
-   Verify every referenced path and command exists.
-   Re-run the repo commands referenced by the changed guidance when practical.
-   ```
+### Pester
 
-3. Fix reported issues in the changed files only. Do not touch unrelated files.
-
-4. Re-run the affected check to confirm it passes before reporting success.
+- Run `Invoke-Pester -Path Scripts/ -Output Minimal` only when tests exist for the changed area or when you add new tests.
+- Do not invent or widen test scope just to satisfy the skill.
 
 ## Invariants
 
-- Never remove or skip a check to make it pass.
-- Do not modify test files to suppress failures unless the test itself is wrong.
-- Report any pre-existing failures that are unrelated to your changes rather than silently fixing them.
+- Never skip a relevant check to make a change look green.
+- Fix issues in the changed files only.
+- Re-run the affected check before reporting success.
+- Call out pre-existing failures that are unrelated to your changes.
