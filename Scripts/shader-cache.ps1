@@ -24,13 +24,15 @@ $apps = @(
 #--- Find per-app install locations (using Common.ps1 VDF parser)
 $vdf=(Get-Content "$STEAM\steamapps\libraryfolders.vdf" -Force -ErrorAction SilentlyContinue)
 if (!$vdf) { $vdf = @('"libraryfolders"','{','}') }
-$roots = @()
-foreach ($nr in (ConvertFrom-VDF -Content $vdf).Item(0).Keys) {
-  $entry = (ConvertFrom-VDF -Content $vdf).Item(0)[$nr]
+$parsedVdf = (ConvertFrom-VDF -Content $vdf).Item(0)
+$rootsList = [System.Collections.Generic.List[string]]::new()
+foreach ($nr in $parsedVdf.Keys) {
+  $entry = $parsedVdf[$nr]
   if ($entry -and $entry["path"]) {
-    $roots += $entry["path"].Trim('"')
+    $rootsList.Add($entry["path"].Trim('"'))
   }
 }
+$roots = $rootsList.ToArray()
 foreach ($app in $apps) {
   foreach ($root in $roots) {
     $i = "$root\steamapps\common\$($app.installdir)"
