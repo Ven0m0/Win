@@ -850,14 +850,14 @@ function ConvertTo-VDF {
     foreach ($key in $Data.Keys) {
         if ($Data[$key] -is [System.Collections.Specialized.OrderedDictionary] -or $Data[$key] -is [hashtable]) {
             $tabs = "`t" * $Indent.Value
-            Write-Output "$tabs""$key`n$tabs{`n"
+            Write-Output "$tabs`"$key`"`n$tabs{`n"
             $Indent.Value++
             ConvertTo-VDF -Data $Data[$key] -Indent $Indent
             $Indent.Value--
             Write-Output "$tabs}`n"
         } else {
             $tabs = "`t" * $Indent.Value
-            Write-Output "$tabs""$key`t`t$($Data[$key])`n"
+            Write-Output "$tabs`"$key`"`t`t`"$($Data[$key])`"`n"
         }
     }
 }
