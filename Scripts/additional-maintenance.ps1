@@ -64,7 +64,7 @@ Invoke-Operation -Name 'BITSClear' -Results $Results -DryRun:$DryRun -Result 'CL
 
 # 5. Rebuild Font Cache
 Invoke-Operation -Name 'FontCache' -Results $Results -DryRun:$DryRun -Result 'REBUILT' -Action {
-    With-Service -Name 'FontCache' -Action {
+    Invoke-ServiceOperation -Name 'FontCache' -Action {
         $fontCachePath = "$env:SystemRoot\ServiceProfiles\LocalService\AppData\Local\FontCache"
         if (Test-Path $fontCachePath) {
             Clear-PathSafe -Path "$fontCachePath\*"
@@ -119,4 +119,4 @@ $logContent = Get-Log
 $logContent | Out-File -FilePath $logFile -Encoding UTF8
 Write-Info "Log written to: $logFile"
 
-Write-Host "NOTE: Some changes may require a restart to take full effect." -ForegroundColor Yellow
+Write-Warn "NOTE: Some changes may require a restart to take full effect."

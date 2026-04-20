@@ -282,8 +282,8 @@ if (-not $QuickScan) {
             Write-Warn "[DRY RUN] Would reset Windows Update services"
         }
         else {
-            With-Service -Name 'wuauserv' -Action {
-                With-Service -Name 'BITS' -Action {
+            Invoke-ServiceOperation -Name 'wuauserv' -Action {
+                Invoke-ServiceOperation -Name 'BITS' -Action {
                     $swDistribPath = "$env:SystemRoot\SoftwareDistribution"
                     $catRootPath = "$env:SystemRoot\System32\CatRoot2"
 
@@ -401,4 +401,4 @@ if (-not $NoReboot -and (-not $DryRun) -and ($Results.Network -eq 'COMPLETE' -or
     Write-Host "Run: shutdown /r /t 0" -ForegroundColor Yellow
 }
 
-Write-Host "`nDone!" -ForegroundColor Green
+Write-Success "Done!"

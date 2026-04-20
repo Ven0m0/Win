@@ -1,5 +1,7 @@
 # Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
+# Suppress Write-Host warnings for UI helper functions
+#pragma warning disable PSAvoidUsingWriteHost
 
 #region Admin Elevation
 function Request-AdminElevation {
@@ -1342,7 +1344,7 @@ function Clear-PathSafe {
     }
 }
 
-function With-Service {
+function Invoke-ServiceOperation {
     <#
     .SYNOPSIS
         Executes an action with a service stopped and optionally restarts it
@@ -1355,7 +1357,7 @@ function With-Service {
     .PARAMETER Force
         Pass -Force to Stop-Service
     .EXAMPLE
-        With-Service -Name 'FontCache' -Action { Remove-Item $cachePath -Recurse }
+        Invoke-ServiceOperation -Name 'FontCache' -Action { Remove-Item $cachePath -Recurse }
     #>
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -1520,6 +1522,8 @@ function Show-Summary {
     Write-Host ""
 }
 #endregion
+
+#pragma warning restore PSAvoidUsingWriteHost
 
 # Export functions
 try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }

@@ -301,13 +301,13 @@ while ($true) {
      3 {
        Clear-Host
        Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator" -Type REG_DWORD -Data "1024"
-       Write-Host "DLSS Overlay: On . . ."
+       Write-Info "DLSS Overlay: On . . ."
        Wait-ForKeyPress
      }
      4 {
        Clear-Host
        Remove-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator"
-       Write-Host "DLSS Overlay: Off (Default) . . ."
+       Write-Info "DLSS Overlay: Off (Default) . . ."
        Wait-ForKeyPress
      }
     5 {
