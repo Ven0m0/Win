@@ -72,7 +72,7 @@ jobs:
               $content = $content.Substring(1)
             }
 
-            $lines = $content -split "`n"
+             $lines = $content -split "\r?\n"
 
             # Check 1: Consistent indentation (2 spaces)
             for ($i = 0; $i -lt $lines.Count; $i++) {

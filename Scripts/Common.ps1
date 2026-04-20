@@ -1,4 +1,4 @@
-# Common.ps1 - Shared utility functions for Windows optimization scripts
+﻿# Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
 # Suppress Write-Host warnings for UI helper functions
 #pragma warning disable PSAvoidUsingWriteHost
