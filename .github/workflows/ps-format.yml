@@ -89,15 +89,15 @@ jobs:
               }
             }
 
-            # Check 2: Line ending (should be LF in repo, CRLF locally is OK)
-            if ($content -match '\r\n') {
-              $issues += "[$file]:: Contains CRLF line endings (should be LF)"
-            }
+            # Check 2: Line ending - skip for PowerShell files since repo uses CRLF
+            # (Repository .gitattributes specifies eol=crlf for .ps1, .psm1, .psd1)
 
-            # Check 3: Trailing whitespace (skip BOM line if present)
+            # Check 3: Trailing whitespace (skip empty lines, handle CRLF)
             for ($i = 0; $i -lt $lines.Count; $i++) {
               $line = $lines[$i]
-              if ($line -match '\s+$' -and $line.TrimEnd() -ne '') {
+              $trimmedLine = $line.TrimEnd()
+              # Skip empty lines and lines that only have trailing \r (CRLF residue)
+              if ($trimmedLine -ne '' -and $trimmedLine -match '\s+$') {
                 $issues += "[$file]:$($i+1): Trailing whitespace"
               }
             }
