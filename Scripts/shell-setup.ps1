@@ -127,12 +127,6 @@ function Install-CustomPackage {
   }
 }
 
-function Remove-InstalledApp {
-  param([Parameter(Mandatory)][string]$Package)
-  Write-Verbose "Uninstalling: $Package"
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "Get-AppxPackage","-AllUsers","-Name","'$Package'" -Hidden
-}
-
 function Enable-Bucket {
   param([Parameter(Mandatory)][string]$Bucket)
   if (-not ((scoop bucket list).Name -eq "$Bucket")) {
