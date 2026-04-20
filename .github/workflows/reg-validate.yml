@@ -29,9 +29,10 @@ jobs:
         id: changed
         shell: pwsh
         run: |
-          # For PRs, compare against the base branch
-          if ('${{ github.base_ref }}' -and '${{ github.base_ref }}' -ne '') {
-            $files = @(git diff --name-only --diff-filter=ACM '${{ github.base_ref }}' HEAD | Where-Object { $_ -match '\.reg$' })
+          # Compare against the base branch (origin/main or origin/master)
+          $baseRef = '${{ github.base_ref }}'
+          if ($baseRef -and $baseRef -ne '') {
+            $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.reg$' })
           }
           if ($files.Count -eq 0) {
             # Fallback to all reg files if no changes detected
