@@ -2373,10 +2373,8 @@ function applyglobal {
 function Apply_NetworkDirect{
 $NetworkDirectAvaible = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters").PSObject.Properties.Name -contains "NetworkDirectDisable")
   if ($NetworkDirectAvaible -eq $false -and $cb_osntd.Text -eq 'Disabled' ){
-        #Write-Host "Creating NetworkDirect DWORD with Value $($cb_osntd.Text)."  -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirectDisable" -Typ "Dword" -Value "1"
     }else{
-      #Write-Host "Removing NetworkDirect DWORD"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirectDisable"
     }
 }
