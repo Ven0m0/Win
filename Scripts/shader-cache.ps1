@@ -46,22 +46,16 @@ foreach ($app in $apps) {
 }
 
 #--- Graceful/forced Steam & app shutdown
-$kill = [System.Collections.Generic.List[string]]@('steamwebhelper','steam')
-$stopParts = [System.Collections.Generic.List[string]]@()
-foreach ($a in $apps) {
-  $kill.Add($a.name)
-  $stopParts.Add(" +app_stop $($a.id)")
-}
-$stop = $stopParts -join ''
-$kill = $kill.ToArray()
-if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -EA 0).pid -gt 0 -and (Get-Process steamwebhelper -EA 0)) {
-  Start-Process "$STEAM\Steam.exe" -ArgumentList "-ifrunning -silent $stop -shutdown +quit now" -Wait
-}
-while (Get-Process steamwebhelper,steam -EA 0) {
-  $kill | ForEach-Object { Stop-Process -Name $_ -Force -EA 0 }
-  Remove-Item "$STEAM\.crash" -Force -EA 0
-  Start-Sleep -Milliseconds 250
-}
+$gameProcesses = $apps.name
+$stopParts = foreach ($app in $apps) { "+app_stop $($app.id)" }
+$appStopArgs = $stopParts -join ' '
+
+# Stop Steam gracefully (including per-app stops)
+Stop-SteamGracefully -AppStopArgs $appStopArgs
+
+# Kill any remaining game processes (force)
+$gameProcesses | ForEach-Object { Stop-Process -Name $_ -Force -ErrorAction SilentlyContinue }
+Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
 
 Write-Host "`n* Clearing STEAM logs..." -ForegroundColor Cyan
 Clear-DirectorySafe "$STEAM\logs"

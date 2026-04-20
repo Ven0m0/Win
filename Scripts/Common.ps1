@@ -1052,5 +1052,474 @@ function Set-MSIMode {
 }
 #endregion
 
+#region UI Helpers
+function Write-Header {
+    <#
+    .SYNOPSIS
+        Displays a formatted section header
+    .PARAMETER Text
+        The header text to display
+    #>
+    param([string]$Text)
+    Write-Host "`n$('='*60)" -ForegroundColor Cyan
+    Write-Host " $Text" -ForegroundColor Cyan
+    Write-Host "$('='*60)`n" -ForegroundColor Cyan
+}
+
+function Write-Success {
+    <#
+    .SYNOPSIS
+        Displays a success message
+    .PARAMETER Text
+        The success message
+    #>
+    param([string]$Text)
+    Write-Host "[OK] $Text" -ForegroundColor Green
+}
+
+function Write-Fail {
+    <#
+    .SYNOPSIS
+        Displays a failure message
+    .PARAMETER Text
+        The failure message
+    #>
+    param([string]$Text)
+    Write-Host "[FAIL] $Text" -ForegroundColor Red
+}
+
+function Write-Warn {
+    <#
+    .SYNOPSIS
+        Displays a warning message
+    .PARAMETER Text
+        The warning message
+    #>
+    param([string]$Text)
+    Write-Host "[WARN] $Text" -ForegroundColor Yellow
+}
+
+function Write-Info {
+    <#
+    .SYNOPSIS
+        Displays an informational message
+    .PARAMETER Text
+        The info message
+    #>
+    param([string]$Text)
+    Write-Host "[INFO] $Text" -ForegroundColor White
+}
+#endregion
+
+#region Logging
+$script:LogOutput = @()
+
+function Add-Log {
+    <#
+    .SYNOPSIS
+        Adds a timestamped entry to the script log
+    .PARAMETER Text
+        Log message text
+    #>
+    param([string]$Text)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $script:LogOutput += "[$timestamp] $Text"
+}
+
+function Get-Log {
+    <#
+    .SYNOPSIS
+        Returns the accumulated log entries
+    #>
+    return $script:LogOutput
+}
+
+function Clear-Log {
+    <#
+    .SYNOPSIS
+        Clears all log entries
+    #>
+    $script:LogOutput = @()
+}
+#endregion
+
+#region File Size Utilities
+function Get-FolderSize {
+    <#
+    .SYNOPSIS
+        Calculates the total size of a folder
+    .PARAMETER Path
+        The folder path to measure
+    .PARAMETER Unit
+        Output unit: B, KB, MB, GB (default: MB)
+    #>
+    param(
+        [string]$Path,
+        [string]$Unit = 'MB'
+    )
+
+    if (!(Test-Path $Path)) { return 0 }
+
+    $total = 0
+    Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object {
+        $total += $_.Length
+    }
+
+    switch ($Unit) {
+        'B'  { return $total }
+        'KB' { return $total / 1KB }
+        'MB' { return $total / 1MB }
+        'GB' { return $total / 1GB }
+        default { return $total / 1MB }
+    }
+}
+
+function Format-Size {
+    <#
+    .SYNOPSIS
+        Formats a byte count into human-readable string
+    .PARAMETER Bytes
+        The size in bytes
+    .PARAMETER DecimalPlaces
+        Number of decimal places (default: 2)
+    #>
+    param(
+        [long]$Bytes,
+        [int]$DecimalPlaces = 2
+    )
+
+    $units = 'B','KB','MB','GB','TB'
+    $index = 0
+
+    while ($Bytes -ge 1024 -and $index -lt $units.Count - 1) {
+        $Bytes = $Bytes / 1024
+        $index++
+    }
+
+    return "{0:N$DecimalPlaces} {1}" -f $Bytes, $units[$index]
+}
+#endregion
+
+function Invoke-Operation {
+    <#
+    .SYNOPSIS
+        Executes an operation with consistent DryRun, error handling, and result tracking
+    .DESCRIPTION
+        Wraps script operations to provide uniform DryRun support, try/catch error handling,
+        and automatic result recording.
+    .PARAMETER Name
+        Operation name for logging and result tracking
+    .PARAMETER Action
+        ScriptBlock containing the operation logic
+    .PARAMETER Result
+        Pre-populated result value (used for DryRun or after completion)
+    .PARAMETER Results
+        Hashtable to update with operation result
+    .PARAMETER DryRun
+        If set, skips execution and records DRY RUN result
+    .PARAMETER CaptureOutput
+        If set, captures stdout/stderr from external commands
+    .PARAMETER Command
+        External command to execute (alternative to Action)
+    .PARAMETER ArgumentList
+        Arguments for external command
+    .EXAMPLE
+        Invoke-Operation -Name 'ClearTemp' -Action { Remove-Item -Path $temp -Recurse -Force }
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][scriptblock]$Action,
+        [string]$Result = 'COMPLETE',
+        [hashtable]$Results,
+        [switch]$DryRun,
+        [switch]$CaptureOutput,
+        [string]$Command,
+        [string]$ArgumentList
+    )
+
+    if ($DryRun) {
+        Write-Warn "[DRY RUN] Would execute: $Name"
+        if ($Results) { $Results[$Name] = 'DRY RUN' }
+        return
+    }
+
+    Write-Info "Running: $Name"
+    Add-Log "Executing: $Name"
+
+    if ($Command) {
+        try {
+            if ($CaptureOutput) {
+                $psi = New-Object System.Diagnostics.ProcessStartInfo
+                $psi.FileName = $Command
+                $psi.Arguments = $ArgumentList
+                $psi.RedirectStandardOutput = $true
+                $psi.RedirectStandardError = $true
+                $psi.UseShellExecute = $false
+                $psi.CreateNoWindow = $true
+
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $psi
+                $process.Start() | Out-Null
+
+                $stdout = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                $process.WaitForExit()
+
+                $exitCode = $process.ExitCode
+
+                if ($stdout) { Add-Log "STDOUT: $stdout" }
+                if ($stderr) { Add-Log "STDERR: $stderr" }
+
+                Write-Info "Exit code: $exitCode"
+                if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+            }
+            else {
+                $process = Start-Process -FilePath $Command -ArgumentList $ArgumentList -NoNewWindow -Wait -PassThru
+                $exitCode = $process.ExitCode
+                Write-Info "Exit code: $exitCode"
+                if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+            }
+        }
+        catch {
+            Write-Fail "Error during $Name : $_"
+            Add-Log "ERROR: $_"
+            if ($Results) { $Results[$Name] = "ERROR: $_" }
+        }
+    }
+    else {
+        try {
+            & $Action
+            Write-Success "$Name completed"
+            if ($Results) { $Results[$Name] = $Result }
+        }
+        catch {
+            Write-Fail "$Name failed: $_"
+            Add-Log "ERROR: $_"
+            if ($Results) { $Results[$Name] = "FAILED: $_" }
+        }
+    }
+}
+
+function Clear-PathSafe {
+    <#
+    .SYNOPSIS
+        Safely clears a directory, file, or file pattern with error suppression
+    .PARAMETER Path
+        Path to clear - can be a directory, file, or wildcard pattern (e.g., C:\Temp\*)
+    .PARAMETER Recurse
+        Use recursive deletion (implied for wildcards and directories)
+    .PARAMETER UseRobocopy
+        Use robocopy mirror method for large directories (default for directories)
+    .EXAMPLE
+        Clear-PathSafe -Path "$env:TEMP\*"
+        Clear-PathSafe -Path "C:\Logs\old.log"
+        Clear-PathSafe -Path "C:\Cache" -Recurse
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [switch]$Recurse,
+        [switch]$UseRobocopy
+    )
+
+    # Detect wildcard characters
+    $hasWildcard = ($Path -like '*[*?]*')
+
+    if ($hasWildcard) {
+        # Remove items matching wildcard (recursively if needed)
+        Remove-Item -Path $Path -Recurse -Force -ErrorAction SilentlyContinue
+        return
+    }
+
+    if (!(Test-Path $Path)) { return }
+
+    if (Test-Path $Path -PathType Container) {
+        # It's a directory - use Clear-DirectorySafe (robocopy method) by default
+        Clear-DirectorySafe -Path $Path
+    }
+    else {
+        # Single file
+        Remove-Item -Path $Path -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function With-Service {
+    <#
+    .SYNOPSIS
+        Executes an action with a service stopped and optionally restarts it
+    .PARAMETER Name
+        Service name
+    .PARAMETER Action
+        ScriptBlock to execute while service is stopped
+    .PARAMETER Restart
+        Whether to restart the service after action (default: true)
+    .PARAMETER Force
+        Pass -Force to Stop-Service
+    .EXAMPLE
+        With-Service -Name 'FontCache' -Action { Remove-Item $cachePath -Recurse }
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][scriptblock]$Action,
+        [bool]$Restart = $true,
+        [switch]$Force
+    )
+
+    $service = Get-Service -Name $Name -ErrorAction SilentlyContinue
+    if (-not $service) {
+        Write-Warn "Service '$Name' not found"
+        return
+    }
+
+    $wasRunning = ($service.Status -eq 'Running')
+
+    try {
+        if ($wasRunning) {
+            Stop-Service -Name $Name -Force:$Force -ErrorAction SilentlyContinue
+        }
+
+        & $Action
+    }
+    finally {
+        if ($Restart -and $wasRunning) {
+            Start-Service -Name $Name -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Stop-SteamGracefully {
+    <#
+    .SYNOPSIS
+        Stops Steam process gracefully (shutdown then force kill)
+    .PARAMETER TimeoutSeconds
+        Max seconds to wait for graceful shutdown before forcing
+    .PARAMETER AppStopArgs
+        Optional additional arguments to pass to Steam shutdown (e.g., "+app_stop 730")
+    .EXAMPLE
+        Stop-SteamGracefully
+        Stop-SteamGracefully -TimeoutSeconds 15
+        Stop-SteamGracefully -AppStopArgs "+app_stop 730 +app_stop 980"
+    #>
+    param(
+        [int]$TimeoutSeconds = 10,
+        [string]$AppStopArgs = ''
+    )
+
+    if (Get-Process -Name 'steam' -ErrorAction SilentlyContinue) {
+        Write-Info "Shutting down Steam..."
+
+        $steamPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -Name 'InstallPath' -ErrorAction SilentlyContinue).InstallPath
+        if (-not $steamPath) {
+            $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath
+        }
+
+        if ($steamPath) {
+            $shutdownArgs = "-ifrunning -silent -shutdown +quit now"
+            if ($AppStopArgs) {
+                $shutdownArgs = "-ifrunning -silent $AppStopArgs -shutdown +quit now"
+            }
+            Start-Process -FilePath "$steamPath\Steam.exe" -ArgumentList $shutdownArgs -Wait
+            Start-Sleep -Seconds $TimeoutSeconds
+        }
+
+        # Force kill if still running
+        Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        Write-Success "Steam stopped"
+    }
+}
+#endregion
+
+#region Execution Timing
+function Measure-Execution {
+    <#
+    .SYNOPSIS
+        Measures and formats script execution time
+    .DESCRIPTION
+        Call at start and end of script to get duration
+    .PARAMETER StartTime
+        Start time from Get-Date
+    .OUTPUTS
+        Returns formatted duration string and updates script scope variables
+    #>
+    param([datetime]$StartTime)
+
+    $endTime = Get-Date
+    $duration = $endTime - $StartTime
+    return [pscustomobject]@{
+        StartTime = $StartTime
+        EndTime   = $endTime
+        Duration  = $duration.ToString('hh\:mm\:ss')
+        TotalSeconds = $duration.TotalSeconds
+    }
+}
+#endregion
+
+#region Summary Display
+function Show-Summary {
+    <#
+    .SYNOPSIS
+        Displays a formatted summary of operation results
+    .PARAMETER Results
+        Hashtable of operation names and status values
+    .PARAMETER StartTime
+        Start time for duration calculation
+    .EXAMPLE
+        Show-Summary -Results $Results -StartTime $StartTime
+    #>
+    param(
+        [Parameter(Mandatory)][hashtable]$Results,
+        [datetime]$StartTime
+    )
+
+    Write-Header "SUMMARY"
+
+    $durationInfo = Measure-Execution -StartTime $StartTime
+
+    $successCount = 0
+    $failCount = 0
+    $skipCount = 0
+    $partialCount = 0
+
+    foreach ($key in $Results.Keys | Sort-Object) {
+        $status = $Results[$key]
+        $color = 'White'
+
+        if ($status -match 'CREATED|COMPLETE|CLEARED|RESET|REBUILT|HEALTHY|FIXED') {
+            $color = 'Green'
+            $successCount++
+        }
+        elseif ($status -match 'FAIL|ERROR') {
+            $color = 'Red'
+            $failCount++
+        }
+        elseif ($status -match 'SKIP|DRY RUN') {
+            $color = 'Yellow'
+            $skipCount++
+        }
+        elseif ($status -match 'PARTIAL|SCHEDULED') {
+            $color = 'Cyan'
+            $partialCount++
+        }
+
+        Write-Host "  $($key.PadRight(25)) : " -NoNewline
+        Write-Host $status -ForegroundColor $color
+    }
+
+    Write-Host "`n  Results: " -NoNewline
+    Write-Host "$successCount succeeded" -ForegroundColor Green -NoNewline
+    Write-Host ", " -NoNewline
+    Write-Host "$failCount failed" -ForegroundColor Red -NoNewline
+    Write-Host ", " -NoNewline
+    Write-Host "$skipCount skipped" -ForegroundColor Yellow
+    if ($partialCount -gt 0) {
+        Write-Host ", " -NoNewline
+        Write-Host "$partialCount partial" -ForegroundColor Cyan
+    }
+
+    Write-Host "`n  Duration: $($durationInfo.Duration)" -ForegroundColor Cyan
+    Write-Host "  End Time: $($durationInfo.EndTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Cyan
+    Write-Host ""
+}
+#endregion
+
 # Export functions
-        try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }
+try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }

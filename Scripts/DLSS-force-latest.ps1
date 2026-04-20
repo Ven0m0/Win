@@ -18,9 +18,9 @@ if (-Not (Test-Path -Path "$env:TEMP\Inspector.exe")) {
   # download inspector
   Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
   # enable nvidia legacy sharpen
-  reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-  reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-  reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" -Name "EnableGR535" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" -Name "EnableGR535" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" -Name "EnableGR535" -Type REG_DWORD -Data "0"
 } else {
   # skip
 }
@@ -298,18 +298,18 @@ while ($true) {
       # import config
       Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOff.nip"
     }
-    3 {
-      Clear-Host
-      reg add "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" /v "ShowDlssIndicator" /t REG_DWORD /d "1024" /f | Out-Null
-      Write-Host "DLSS Overlay: On . . ."
-      Wait-ForKeyPress
-    }
-    4 {
-      Clear-Host
-      cmd.exe /c "reg delete `"HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore`" /v `"ShowDlssIndicator`" /f >nul 2>&1"
-      Write-Host "DLSS Overlay: Off (Default) . . ."
-      Wait-ForKeyPress
-    }
+     3 {
+       Clear-Host
+       Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator" -Type REG_DWORD -Data "1024"
+       Write-Host "DLSS Overlay: On . . ."
+       Wait-ForKeyPress
+     }
+     4 {
+       Clear-Host
+       Remove-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator"
+       Write-Host "DLSS Overlay: Off (Default) . . ."
+       Wait-ForKeyPress
+     }
     5 {
       Clear-Host
       # read only nvdrsdb0.bin
