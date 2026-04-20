@@ -244,10 +244,18 @@ function Get-PubIP { (Invoke-WebRequest https://ifconfig.me/ip).Content }
 
 # Open WinUtil full-release
 function winutil {
-  $winutilInstaller = Join-Path $Env:Temp "winutil.ps1"
-  Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
-  & $winutilInstaller
-  Remove-Item -LiteralPath $winutilInstaller -Force
+  $temporaryFile = New-TemporaryFile
+  $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
+  Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
+
+  try {
+    Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
+    & $winutilInstaller
+  } finally {
+    if (Test-Path -LiteralPath $winutilInstaller) {
+      Remove-Item -LiteralPath $winutilInstaller -Force
+    }
+  }
 }
 
 # System Utilities
