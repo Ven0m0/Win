@@ -59,7 +59,7 @@ jobs:
             if (-not (Test-Path $file)) { continue }
 
             $content = Get-Content -Path $file -Raw
-            $lines = $content -split "`n"
+            $lines = $content -replace "`r" -split "`n"
 
             # ========================================
             # Check: Required header (critical for valid .reg file)
