@@ -243,7 +243,20 @@ function mkcd {
 function Get-PubIP { (Invoke-WebRequest https://ifconfig.me/ip).Content }
 
 # Open WinUtil full-release
-function winutil { irm https://christitus.com/win | iex }
+function winutil {
+  $temporaryFile = New-TemporaryFile
+  $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
+  Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
+
+  try {
+    Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
+    & $winutilInstaller
+  } finally {
+    if (Test-Path -LiteralPath $winutilInstaller) {
+      Remove-Item -LiteralPath $winutilInstaller -Force
+    }
+  }
+}
 
 # System Utilities
 function admin {
