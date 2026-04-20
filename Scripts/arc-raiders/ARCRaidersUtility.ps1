@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     ARC Raiders — PRO Utility (PowerShell port of ARCRaidersUtility.exe v5.3)
@@ -276,7 +276,8 @@ function Action-ApplyPreset([string]$iniPath, [string]$presetName) {
     }
     Set-Content -LiteralPath $iniPath -Value $ini -Encoding UTF8 -NoNewline
     Write-Ok "Preset '$presetName' applied to config"
-    Write-Info "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMode']) RTXGI=$($p['RTXGIQuality'])"
+    Write-Info ("Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) " +
+                "DLSS=$($p['DLSSMode']) RTXGI=$($p['RTXGIQuality'])")
     return $true
 }
 
@@ -436,8 +437,10 @@ while ($true) {
 
     # 1) File selection
     Write-Host "  1) Select files" -ForegroundColor White
-    Write-Host "     C. [📂 Select Config]  Config: $(ConfigLabel)" -ForegroundColor $(if ($iniPath) {'Green'} else {'Gray'})
-    Write-Host "     B. [💾 Select Backup]  Backup: $(BackupLabel)" -ForegroundColor $(if ($backupPath) {'Green'} else {'Gray'})
+    Write-Host "     C. [📂 Select Config]  Config: $(ConfigLabel)" -ForegroundColor `
+        $(if ($iniPath) {'Green'} else {'Gray'})
+    Write-Host "     B. [💾 Select Backup]  Backup: $(BackupLabel)" -ForegroundColor `
+        $(if ($backupPath) {'Green'} else {'Gray'})
     Write-Host ""
 
     # 2) Options
