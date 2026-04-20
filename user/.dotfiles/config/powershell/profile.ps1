@@ -320,8 +320,6 @@ function tail {
 # Quick File Creation
 function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
 
-# Directory Management
-function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 
 function trash($path) {
     $fullPath = (Resolve-Path -Path $path).Path
