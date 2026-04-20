@@ -2,7 +2,7 @@
 
 > `CLAUDE.md` must remain a symlink to this file. Update `AGENTS.md`, not `CLAUDE.md`.
 
-## Repository identity
+## Repository Identity
 
 Ven0m0/Win is a Windows dotfiles and optimization suite managed with [yadm](https://yadm.io/). It centers on PowerShell automation, tracked application config, registry tweaks, and game-specific tuning assets.
 
@@ -66,7 +66,7 @@ Review these files together whenever one changes:
 Use the smallest relevant checks:
 
 - Changed PowerShell files: `Invoke-ScriptAnalyzer -Path <changed-script>`
-- Guidance and workflow changes under `.github/`: verify every referenced path and command exists, then run the repo context lint command described in `.github/skills/validate/SKILL.md`
+- Guidance and workflow changes under `.github/`: verify every referenced path and command exists, then run the repository context lint check
 - Use Pester only when the affected area already has tests or when you add new testable PowerShell logic.
 
 Current CI:
