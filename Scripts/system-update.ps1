@@ -468,18 +468,6 @@ function Get-WingetPinnedPackageIds {
     return @($pkgIds)
 }
 
-function Get-WingetUpgradeablePackageIds {
-    param([string]$WingetOutput)
-
-    $pkgIds = [System.Collections.Generic.List[string]]::new()
-    foreach ($entry in (Get-WingetUpgradeEntries -WingetOutput $WingetOutput)) {
-        if (-not $pkgIds.Contains($entry.Id)) {
-            $pkgIds.Add($entry.Id)
-        }
-    }
-    return @($pkgIds)
-}
-
 function Get-VSCodeCliPath {
     $candidates = @(
         (Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\bin\code.cmd'),
@@ -612,15 +600,15 @@ function Update-ChocolateyState {
 function Compare-PackageMaps($prev, $curr) {
     $prev = ConvertTo-StringMap $prev
     $curr = ConvertTo-StringMap $curr
-    $changes = @()
+    $changes = [System.Collections.Generic.List[string]]::new()
     foreach ($id in $curr.Keys) {
-        if (-not $prev.ContainsKey($id)) { $changes += "+ $id $($curr[$id]) (new)" }
-        elseif ($prev[$id] -ne $curr[$id]) { $changes += "~ $id $($prev[$id]) -> $($curr[$id])" }
+        if (-not $prev.ContainsKey($id)) { $changes.Add("+ $id $($curr[$id]) (new)") }
+        elseif ($prev[$id] -ne $curr[$id]) { $changes.Add("~ $id $($prev[$id]) -> $($curr[$id])") }
     }
     foreach ($id in $prev.Keys) {
-        if (-not $curr.ContainsKey($id)) { $changes += "- $id $($prev[$id]) (removed)" }
+        if (-not $curr.ContainsKey($id)) { $changes.Add("- $id $($prev[$id]) (removed)") }
     }
-    return $changes
+    return $changes.ToArray()
 }
 
 # --- Core Update Wrapper -------------------------------------------------------
@@ -689,7 +677,6 @@ function Invoke-Update {
 $script:stepChanged = $false
 $script:stepMessage = ""
 
-function Reset-StepState { $script:stepChanged = $false; $script:stepMessage = "" }
 
 function Complete-StepState {
     if ([string]::IsNullOrWhiteSpace($script:stepMessage)) {

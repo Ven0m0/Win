@@ -86,23 +86,18 @@ if (Get-Module -ListAvailable -Name PSColor) {
     }
 }
 
-# Git aliases (if git is installed)
-if (Get-Command git -ErrorAction SilentlyContinue) {
-    function gs { git status $args }
-    function ga { git add $args }
-    function gc { git commit $args }
-    function gp { git push $args }
-    function gl { git log --oneline --graph --decorate $args }
-    function gd { git diff $args }
-}
-
-# yadm aliases
-if (Get-Command yadm -ErrorAction SilentlyContinue) {
-    function ys { yadm status $args }
-    function ya { yadm add $args }
-    function yc { yadm commit $args }
-    function yp { yadm push $args }
-    function yl { yadm log --oneline --graph --decorate $args }
+# VCS aliases (git, yadm)
+$vcsTools = @('git', 'yadm')
+foreach ($cmd in $vcsTools) {
+    if (Get-Command $cmd -ErrorAction SilentlyContinue) {
+        $prefix = $cmd.Substring(0, 1)
+        Set-Item -Path "Function:${prefix}s" -Value ([scriptblock]::Create("$cmd status `$args"))
+        Set-Item -Path "Function:${prefix}a" -Value ([scriptblock]::Create("$cmd add `$args"))
+        Set-Item -Path "Function:${prefix}c" -Value ([scriptblock]::Create("$cmd commit `$args"))
+        Set-Item -Path "Function:${prefix}p" -Value ([scriptblock]::Create("$cmd push `$args"))
+        Set-Item -Path "Function:${prefix}l" -Value ([scriptblock]::Create("$cmd log --oneline --graph --decorate `$args"))
+        Set-Item -Path "Function:${prefix}d" -Value ([scriptblock]::Create("$cmd diff `$args"))
+    }
 }
 
 # Docker aliases (if docker is installed)
@@ -243,7 +238,20 @@ function mkcd {
 function Get-PubIP { (Invoke-WebRequest https://ifconfig.me/ip).Content }
 
 # Open WinUtil full-release
-function winutil { irm https://christitus.com/win | iex }
+function winutil {
+  $temporaryFile = New-TemporaryFile
+  $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
+  Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
+
+  try {
+    Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
+    & $winutilInstaller
+  } finally {
+    if (Test-Path -LiteralPath $winutilInstaller) {
+      Remove-Item -LiteralPath $winutilInstaller -Force
+    }
+  }
+}
 
 # System Utilities
 function admin {
@@ -307,8 +315,6 @@ function tail {
 # Quick File Creation
 function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
 
-# Directory Management
-function mkcd { param($dir) mkdir $dir -Force; Set-Location $dir }
 
 function trash($path) {
     $fullPath = (Resolve-Path -Path $path).Path
@@ -355,8 +361,7 @@ function gcom {
     git commit -m "$args"
 }
 function lazyg {
-    git add -A
-    git commit -m "$args"
+    gcom @args
     git push
 }
 # Quick Access to System Information
@@ -478,7 +483,6 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 
     # History configuration
     Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-    Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
     # Tab completion

@@ -12,13 +12,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $VerbosePreference = 'Continue'
 
-function Assert-Admin {
-  $p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-  if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw "Administrator privileges required."
-  }
-}
-
 function Run-Elevated {
   param(
     [Parameter(Mandatory)] [string]$FilePath,
@@ -127,12 +120,6 @@ function Install-CustomPackage {
   }
 }
 
-function Remove-InstalledApp {
-  param([Parameter(Mandatory)][string]$Package)
-  Write-Verbose "Uninstalling: $Package"
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "Get-AppxPackage","-AllUsers","-Name","'$Package'" -Hidden
-}
-
 function Enable-Bucket {
   param([Parameter(Mandatory)][string]$Bucket)
   if (-not ((scoop bucket list).Name -eq "$Bucket")) {
@@ -155,15 +142,32 @@ if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
 # Scoop
 if (-not (Get-Command -Name "scoop" -CommandType Application -ErrorAction SilentlyContinue)) {
   Write-Verbose "Installing Scoop..."
-  Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh'))
+  $scoopInstaller = Join-Path $Env:Temp ("install-scoop-{0}.ps1" -f [System.Guid]::NewGuid().ToString('N'))
+  try {
+    Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
+    & $scoopInstaller
+  } finally {
+    if (Test-Path -LiteralPath $scoopInstaller) {
+      Remove-Item -LiteralPath $scoopInstaller -Force
+    }
+  }
 }
 
 # Chocolatey
 if (-not (Get-Command -Name "choco" -CommandType Application -ErrorAction SilentlyContinue)) {
-  Write-Verbose "Installing Chocolatey..."
-  @'
+Write-Verbose "Installing Chocolatey..."
+@'
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+$chocoInstaller = Join-Path $Env:Temp ("install-choco-{0}.ps1" -f [System.Guid]::NewGuid().ToString())
+try {
+  Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' -OutFile $chocoInstaller
+  & $chocoInstaller
+}
+finally {
+  if (Test-Path -LiteralPath $chocoInstaller) {
+    Remove-Item -LiteralPath $chocoInstaller -Force
+  }
+}
 '@ > $Env:Temp\choco.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\choco.ps1"
   Remove-Item -LiteralPath $Env:Temp\choco.ps1 -Force
@@ -404,7 +408,16 @@ $PS7 = winget list --exact -q Microsoft.PowerShell
 if (-not $PS7) {
   Write-Verbose "Installing PowerShell 7..."
 @'
-iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+$ps7Installer = Join-Path $Env:Temp ("install-powershell-{0}.ps1" -f [System.Guid]::NewGuid().ToString())
+try {
+  Invoke-RestMethod -Uri 'https://aka.ms/install-powershell.ps1' -OutFile $ps7Installer
+  & $ps7Installer -UseMSI -Quiet
+}
+finally {
+  if (Test-Path -LiteralPath $ps7Installer) {
+    Remove-Item -LiteralPath $ps7Installer -Force
+  }
+}
 '@ > $Env:Temp\ps7.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
   Remove-Item -LiteralPath $Env:Temp\ps7.ps1 -Force

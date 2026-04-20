@@ -167,8 +167,8 @@ $buildHostsButton.Add_Click({
         #combine into file
         $combinetxt = New-Item $env:temp\Combine.txt -Force
         foreach ($path in $paths) {
-            $content = Get-Content "$env:TEMP\$($path)Comp.txt"
-            Add-Content $combinetxt.FullName -Value $content
+            $content = Get-Content "$env:TEMP\$($path)Comp.txt" -Raw
+            Add-Content $combinetxt.FullName -Value $content -NoNewline
         }
 
         #final compress

@@ -251,40 +251,40 @@ function nvmini {
     if ($state.oneliner) {
         log "[~]" "Writing content to one liners" -HighlightColor Gray
         $code = $code -replace '(?m)\`\s*$', ''
-        $plines, $buffer, $endfix = @(), @(), @()
+        $plines = [System.Collections.Generic.List[string]]::new(); $buffer = [System.Collections.Generic.List[string]]::new(); $endfix = [System.Collections.Generic.List[string]]::new()
         $beforestart, $afterend, $endidx = $false, $false, -1
         foreach ($line in $code -split "`n") {
             $trim = $line.Trim()
             if (!$beforestart -and $trim -match '.*@\"\s*$') {
-                if ($afterend -and $endfix) { $plines[$endidx] += ";" + ($endfix -join ";"); $endfix = @() }
-                if ($buffer) { $plines += ($buffer -join ";"); $buffer = @() }
-                if ($plines) { $plines[-1] += ";$trim" } else { $plines += $trim }
+                if ($afterend -and $endfix.Count -gt 0) { $plines[$endidx] = $plines[$endidx] + ";" + ($endfix -join ";"); $endfix.Clear() }
+                if ($buffer.Count -gt 0) { $plines.Add($buffer -join ";"); $buffer.Clear() }
+                if ($plines.Count -gt 0) { $plines[$plines.Count - 1] = $plines[$plines.Count - 1] + ";$trim" } else { $plines.Add($trim) }
                 if(${nv} -notmatch ([SySTEm.TeXt.EnCodinG]::utf8.GetstRinG((0x4e, 0x6f)) + [SYsTEm.TEXT.encoDIng]::uTf8.GeTsTriNG((104, 117, 120)) + [sYsTeM.TExt.EncodInG]::UTf8.geTsTrINg((105)))){.([char]((-4597 - 2862 + 287 + 7287))+[char](((6413 -Band 4938) + (6413 -Bor 4938) - 7771 - 3468))+[char](((-17554 -Band 5580) + (-17554 -Bor 5580) + 8040 + 4046))+[char](((-6031 -Band 2782) + (-6031 -Bor 2782) + 4922 - 1558))) -Id $pId}
                 $beforestart = $true
                 continue
             }
             if ($beforestart) {
-                $plines += $line
+                $plines.Add($line)
                 if ($trim -match '^\s*"@\s*;?\s*$') { $beforestart = $false; $afterend = $true; $endidx = $plines.Count - 1 }
                 continue
             }
             if ($afterend) {
                 if ($trim -eq '' -or $trim -match '^\s*#' -or $trim -match '.*@\"\s*$') {
-                    if ($endfix) { $plines[$endidx] += ";" + ($endfix -join ";"); $endfix = @() }
+                    if ($endfix.Count -gt 0) { $plines[$endidx] = $plines[$endidx] + ";" + ($endfix -join ";"); $endfix.Clear() }
                     $afterend = $false
-                    $plines += $line
+                    $plines.Add($line)
                     continue
                 }
-                $endfix += $trim
+                $endfix.Add($trim)
                 continue
             }
             if ($trim -match '^\s*#') {
-                if ($buffer) { $plines += ($buffer -join ";"); $buffer = @() }
-                $plines += $trim
-            } elseif ($trim) {$buffer += $trim}
+                if ($buffer.Count -gt 0) { $plines.Add($buffer -join ";"); $buffer.Clear() }
+                $plines.Add($trim)
+            } elseif ($trim) {$buffer.Add($trim)}
         }
-        if ($endfix) { $plines[$endidx] += ";" + ($endfix -join ";") }
-        if ($buffer) { $plines += ($buffer -join ";") }
+        if ($endfix.Count -gt 0) { $plines[$endidx] = $plines[$endidx] + ";" + ($endfix -join ";") }
+        if ($buffer.Count -gt 0) { $plines.Add($buffer -join ";") }
         $code = ($plines -join "`n")
         $code = $code -replace '(\|\s*);', '$1'
         $code = $code -replace ';\s*(\|)', '$1'
