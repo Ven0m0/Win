@@ -46,16 +46,17 @@
     while ($true) {
     $choice = Read-Host " "
     if ($choice -match '^[1-2]$') {
+
+    Clear-Host
+    Write-Host "Installing: NvidiaProfileInspector . . ."
+    # unblock drs files
+    $path = "C:\ProgramData\NVIDIA Corporation\Drs"
+    Get-ChildItem -Path $path -Recurse | Unblock-File
+    # download inspector
+    Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
+
     switch ($choice) {
     1 {
-
-Clear-Host
-Write-Host "Installing: NvidiaProfileInspector . . ."
-# unblock drs files
-$path = "C:\ProgramData\NVIDIA Corporation\Drs"
-Get-ChildItem -Path $path -Recurse | Unblock-File
-# download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
@@ -267,14 +268,6 @@ exit
 
       }
     2 {
-
-Clear-Host
-Write-Host "Installing: NvidiaProfileInspector . . ."
-# unblock drs files
-$path = "C:\ProgramData\NVIDIA Corporation\Drs"
-Get-ChildItem -Path $path -Recurse | Unblock-File
-# download inspector
-Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
 # create config for inspector
 $MultilineComment = @"
 <?xml version="1.0" encoding="utf-16"?>
