@@ -12,13 +12,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $VerbosePreference = 'Continue'
 
-function Assert-Admin {
-  $p = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-  if (-not $p.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw "Administrator privileges required."
-  }
-}
-
 function Run-Elevated {
   param(
     [Parameter(Mandatory)] [string]$FilePath,
