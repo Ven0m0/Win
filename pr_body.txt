@@ -1,4 +1,0 @@
-🎯 **What:** Extracted the duplicate installation logic for `NvidiaProfileInspector` inside the `nvidia-settings.ps1` script from the `1 {` and `2 {` switch cases, moving it before the switch statement inside the valid choice condition block.
-💡 **Why:** This refactoring reduces code duplication, improving maintainability. By executing the shared block once instead of maintaining it in two places, we prevent future bugs where updates to the installation step are only applied to one profile condition.
-✅ **Verification:** Verified the logic remains intact—the valid profile inputs (1 and 2) correctly execute the inspector installation block before branching into profile-specific configurations. Verified syntax using `PSScriptAnalyzer`.
-✨ **Result:** A cleaner and smaller `nvidia-settings.ps1` script with reduced duplication while preserving all behavior.
