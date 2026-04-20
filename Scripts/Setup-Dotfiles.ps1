@@ -219,7 +219,7 @@ function Get-StarWarsBattlefrontIIActiveProfilePath {
 
   $globalConfigPath = Join-Path $profilesDir 'Global.con'
   if (Test-Path $globalConfigPath) {
-    foreach ($line in Get-Content $globalConfigPath) {
+    foreach ($line in [System.IO.File]::ReadLines($globalConfigPath)) {
       if ($line -match 'GlobalSettings\.setDefaultUser\s+"?(?<profileId>[^"\r\n]+)"?') {
         $profilePath = Join-Path $profilesDir $matches.profileId
         if (Test-Path $profilePath) {
