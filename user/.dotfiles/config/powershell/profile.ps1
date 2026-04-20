@@ -4,7 +4,8 @@
 
 #opt-out of telemetry before doing anything, only if PowerShell is run as admin
 if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) {
-    [System.Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', 'true', [System.EnvironmentVariableTarget]::Machine)
+    [System.Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', 'true' `
+        , [System.EnvironmentVariableTarget]::Machine)
 }
 
 #region UI Configuration
@@ -60,7 +61,7 @@ if (Get-Module -ListAvailable -Name PSColor) {
         File = @{
             Default    = @{ Color = 'White' }
             Directory  = @{ Color = 'Blue'}
-            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.' } 
+            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.' }
             Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html)$' }
             Executable = @{ Color = 'Red'; Pattern = '\.(exe|bat|cmd|py|pl|ps1|psm1|vbs|rb|reg)$' }
             Text       = @{ Color = 'Yellow'; Pattern = '\.(txt|cfg|conf|ini|csv|log|config|xml|yml|md|markdown)$' }
@@ -69,7 +70,7 @@ if (Get-Module -ListAvailable -Name PSColor) {
         Service = @{
             Default = @{ Color = 'White' }
             Running = @{ Color = 'DarkGreen' }
-            Stopped = @{ Color = 'DarkRed' }     
+            Stopped = @{ Color = 'DarkRed' }
         }
         Match = @{
             Default    = @{ Color = 'White' }
@@ -369,8 +370,8 @@ function sysinfo { Get-ComputerInfo }
 
 # Networking Utilities
 function flushdns {
-	Clear-DnsClientCache
-	Write-Host "DNS has been flushed"
+  Clear-DnsClientCache
+  Write-Host "DNS has been flushed"
 }
 # Clipboard Utilities
 function cpy { Set-Clipboard $args[0] }
@@ -403,9 +404,9 @@ function Set-PredictionSource {
     if (Get-Command -Name "Set-PredictionSource_Override" -ErrorAction SilentlyContinue) {
         Set-PredictionSource_Override;
     } else {
-	# Improved prediction settings
-	Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-	Set-PSReadLineOption -MaximumHistoryCount 10000
+  # Improved prediction settings
+  Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+  Set-PSReadLineOption -MaximumHistoryCount 10000
     }
 }
 Set-PredictionSource
@@ -460,7 +461,9 @@ function supdate {
 
     foreach ($package in $packages) {
         Write-Host "Upgrading $package..." -ForegroundColor Cyan
-        winget upgrade --id $package --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Out-Null
+        winget upgrade --id $package `
+            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 |
+  Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✓ $package upgraded" -ForegroundColor Green
         }
