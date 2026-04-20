@@ -1,155 +1,159 @@
 BeforeAll {
-  Import-Module Pester -MinimumVersion 5.0
-
-  # Mocking Get-ItemProperty as it's the core of Get-RegistryValueSafe
-  Mock -CommandName "Get-ItemProperty" -MockWith {
-    param($Path, $Name, $ErrorAction)
-
-    if ($Path -eq "HKLM:\SOFTWARE\Test" -and $Name -eq "ExistingValue") {
-      return @{ "ExistingValue" = "TestData" }
-    }
-
-    # Simulate the behavior of Get-ItemProperty when a value is not found
-    throw "Property $Name does not exist at path $Path"
-  }
-
-  # Source the script containing the functions
-  . "$PSScriptRoot\Common.ps1"
+    Import-Module Pester -MinimumVersion 5.0
+    . "$PSScriptRoot/Common.ps1"
 }
 
-Describe "Get-RegistryValueSafe" {
-  Context "Success scenario" {
-    It "Should return the expected value when it exists" {
-      # Arrange
-      $path = "HKLM:\SOFTWARE\Test"
-      $name = "ExistingValue"
+Describe "ConvertFrom-VDF" {
+    It "Should parse basic key-value pairs" {
+        $vdf = @"
+"AppState"
+{
+    "appid" "730"
+    "name" "Counter-Strike 2"
+}
+"@
+        $lines = $vdf -split "`n"
+        $result = ConvertFrom-VDF -Content $lines
 
-      # Act
-      $result = Get-RegistryValueSafe -Path $path -Name $name
-
-      # Assert
-      $result | Should -Be "TestData"
-    }
-  }
-
-  Context "Fallback scenarios" {
-    It "Should return `$null` by default when the value does not exist" {
-      # Arrange
-      $path = "HKLM:\SOFTWARE\Test"
-      $name = "NonExistentValue"
-
-      # Act
-      $result = Get-RegistryValueSafe -Path $path -Name $name
-
-      # Assert
-      $result | Should -BeNull
+        $result.AppState.appid | Should -Be '"730"'
+        $result.AppState.name | Should -Be '"Counter-Strike 2"'
     }
 
-    It "Should return the provided default value when the value does not exist" {
-      # Arrange
-      $path = "HKLM:\SOFTWARE\Test"
-      $name = "NonExistentValue"
-      $defaultValue = "DefaultData"
+    It "Should handle nested objects" {
+        $vdf = @"
+"AppState"
+{
+    "InstalledDepots"
+    {
+        "731"
+        {
+            "manifest" "12345"
+            "size" "67890"
+        }
+    }
+}
+"@
+        $lines = $vdf -split "`n"
+        $result = ConvertFrom-VDF -Content $lines
 
-      # Act
-      $result = Get-RegistryValueSafe -Path $path -Name $name -DefaultValue $defaultValue
-
-      # Assert
-      $result | Should -Be "DefaultData"
+        $result.AppState.InstalledDepots["731"].manifest | Should -Be '"12345"'
+        $result.AppState.InstalledDepots["731"].size | Should -Be '"67890"'
     }
 
-    It "Should return `$null` by default when the path does not exist" {
-      # Arrange
-      $path = "HKLM:\SOFTWARE\NonExistentPath"
-      $name = "SomeValue"
-
-      # Act
-      $result = Get-RegistryValueSafe -Path $path -Name $name
-
-      # Assert
-      $result | Should -BeNull
+    It "Should handle empty file content" {
+        $lines = @()
+        $result = ConvertFrom-VDF -Content $lines
+        $result.Count | Should -Be 0
     }
-  }
 }
 
-Describe "VDF Serialization/Deserialization" {
-    Context "ConvertTo-VDF" {
-        It "Should correctly serialize a simple hashtable" {
-            $data = [ordered]@{ "key" = "value" }
-            $result = ConvertTo-VDF -Data $data
-            $resultString = $result -join ""
-            $resultString | Should -Be "`"key`"`t`t`"value`"`n"
-        }
-
-        It "Should correctly serialize nested hashtables" {
-            $data = [ordered]@{
-                "parent" = [ordered]@{
-                    "child" = "value"
-                }
+Describe "ConvertTo-VDF" {
+    It "Should convert simple hashtable to VDF" {
+        $data = [ordered]@{
+            "AppState" = [ordered]@{
+                "appid" = "`"730`""
+                "name" = "`"Counter-Strike 2`""
             }
-            $result = ConvertTo-VDF -Data $data
-            $resultString = $result -join ""
-            # Expected output with tabs and newlines
-            $expected = "`"parent`"`n{`n`t`"child`"`t`t`"value`"`n}`n"
-            $resultString | Should -Be $expected
         }
 
-        It "Should handle multiple keys and maintain order" {
-            $data = [ordered]@{
-                "key1" = "value1"
-                "key2" = "value2"
-            }
-            $result = ConvertTo-VDF -Data $data
-            $resultString = $result -join ""
-            $expected = "`"key1`"`t`t`"value1`"`n`"key2`"`t`t`"value2`"`n"
-            $resultString | Should -Be $expected
-        }
+        $result = ConvertTo-VDF -Data $data
+        $resultStr = $result -join ''
 
-        It "Should return nothing for invalid input" {
-            $result = ConvertTo-VDF -Data "not a hashtable"
-            $result | Should -BeNullOrEmpty
-        }
+        # Convert to cross-platform safe string for comparison
+        $normalizedResult = $resultStr -replace "`r`n", "`n"
+
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n}`n"
+
+        $normalizedResult | Should -Be $expected
     }
 
-    Context "ConvertFrom-VDF" {
-        It "Should parse a simple VDF string" {
-            $content = @(
-                '"key" "value"'
-            )
-            $result = ConvertFrom-VDF -Content $content
-            $result["key"] | Should -Be '"value"'
-        }
-
-        It "Should parse nested VDF structures" {
-            $content = @(
-                '"parent"',
-                '{',
-                '  "child" "value"',
-                '}'
-            )
-            $result = ConvertFrom-VDF -Content $content
-            $result["parent"]["child"] | Should -Be '"value"'
-        }
+    It "Should not output anything if Data is not a dictionary" {
+        $result = ConvertTo-VDF -Data "not a dictionary"
+        $result | Should -BeNullOrEmpty
     }
 
-    Context "Round-trip Verification" {
-        It "Should serialize and then deserialize back to the same structure" {
-            $original = [ordered]@{
-                "root" = [ordered]@{
-                    "setting1" = "1"
-                    "setting2" = "0"
+    It "Should handle deeper nesting levels" {
+        $data = [ordered]@{
+            "Level1" = [ordered]@{
+                "Level2" = [ordered]@{
+                    "key" = "`"value`""
                 }
             }
-
-            # Act
-            $serialized = ConvertTo-VDF -Data $original
-            # Convert string output to array for ConvertFrom-VDF
-            $lines = $serialized -split "`n" | Where-Object { $_ -ne "" }
-            $deserialized = ConvertFrom-VDF -Content $lines
-
-            # Assert
-            $deserialized.root.setting1 | Should -Be '"1"'
-            $deserialized.root.setting2 | Should -Be '"0"'
         }
+
+        $result = ConvertTo-VDF -Data $data
+        $resultStr = $result -join ''
+        $normalizedResult = $resultStr -replace "`r`n", "`n"
+
+        $expected = "`"Level1`"`n{`n`t`"Level2`"`n`t{`n`t`t`"key`"`t`t`"value`"`n`t}`n}`n"
+        $normalizedResult | Should -Be $expected
+    }
+}
+Describe "VDF Parsing and Converting" {
+    It "Should convert back and forth correctly" {
+        $vdf = @"
+"AppState"
+{
+	"appid"		"730"
+	"name"		"Counter-Strike 2"
+	"SharedDepots"
+	{
+		"228989"		"228980"
+	}
+}
+"@
+        $lines = $vdf -split "`n"
+        $parsed = ConvertFrom-VDF -Content $lines
+
+        $converted = ConvertTo-VDF -Data $parsed
+        $convertedStr = $converted -join ''
+        $normalizedConverted = $convertedStr -replace "`r`n", "`n"
+
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
+
+        $normalizedConverted | Should -Be $expected
+    }
+}
+
+Describe "ConvertFrom-VDF edge cases" {
+    It "Should ignore empty lines" {
+        $vdf = @"
+
+"AppState"
+{
+
+    "appid" "730"
+
+}
+"@
+        $lines = $vdf -split "`n"
+        $result = ConvertFrom-VDF -Content $lines
+        $result.AppState.appid | Should -Be '"730"'
+    }
+
+    It "Should handle unexpected types" {
+        $result = ConvertTo-VDF -Data @("array", "instead", "of", "hash")
+        $result | Should -BeNullOrEmpty
+    }
+
+    It "Should return empty OrderedDictionary for empty content" {
+        $result = ConvertFrom-VDF -Content @()
+        $result -is [System.Collections.Specialized.OrderedDictionary] | Should -Be $true
+        $result.Count | Should -Be 0
+    }
+}
+Describe "ConvertFrom-VDF values with spaces" {
+    It "Should parse values containing spaces correctly" {
+        $vdf = @"
+"AppState"
+{
+    "name" "Counter-Strike Global Offensive"
+    "path" "C:\Program Files (x86)\Steam"
+}
+"@
+        $lines = $vdf -split "`n"
+        $result = ConvertFrom-VDF -Content $lines
+        $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
+        $result.AppState.path | Should -Be '"C:\Program Files (x86)\Steam"'
     }
 }

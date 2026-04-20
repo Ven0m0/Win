@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Comprehensive system update script for Windows.
 .DESCRIPTION
