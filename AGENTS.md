@@ -66,7 +66,7 @@ Review these files together whenever one changes:
 Use the smallest relevant checks:
 
 - Changed PowerShell files: `Invoke-ScriptAnalyzer -Path <changed-script>`
-- Guidance and workflow changes under `.github/`: verify every referenced path and command exists, then run `npx -y @yawlabs/ctxlint --depth 3 --mcp --strict --yes`
+- Guidance and workflow changes under `.github/`: verify every referenced path and command exists, then run the repo context lint command described in `.github/skills/validate/SKILL.md`
 - Use Pester only when the affected area already has tests or when you add new testable PowerShell logic.
 
 Current CI:
