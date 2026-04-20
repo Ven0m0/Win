@@ -341,16 +341,20 @@ function Action-CpuBoost {
 function Action-ClearCaches([string[]]$keys) {
     Write-Info "Clearing selected caches..."
     foreach ($key in $keys) {
-        $paths = $CACHE_PATHS[$key]
+        [array]$paths = $CACHE_PATHS[$key]
         $anyFound = $false
-        foreach ($path in $paths) {
-            if (Test-Path $path) {
-                $anyFound = $true
-                try {
-                    Remove-Item -LiteralPath $path -Recurse -Force
-                    Write-Ok "$key — deleted: $(Split-Path $path -Leaf)"
-                } catch {
-                    Write-Err "$key — deletion failed: $_"
+        if ($paths.Count -gt 0) {
+            [array]$pathResults = Test-Path -LiteralPath $paths
+            for ($i = 0; $i -lt $paths.Count; $i++) {
+                if ($pathResults[$i]) {
+                    $path = $paths[$i]
+                    $anyFound = $true
+                    try {
+                        Remove-Item -LiteralPath $path -Recurse -Force
+                        Write-Ok "$key — deleted: $(Split-Path $path -Leaf)"
+                    } catch {
+                        Write-Err "$key — deletion failed: $_"
+                    }
                 }
             }
         }
