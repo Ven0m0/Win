@@ -379,6 +379,10 @@ if ($DryRun) {
     }
 }
 
+Dism /Get-MountedWimInfo
+DISM /CleanUp-Wim
+rundll32.exe advapi32.dll,ProcessIdleTasks
+
 # ── 5. Set game process priority (if game already running)
 $gameProc = Get-GameProcess
 if ($gameProc) {
