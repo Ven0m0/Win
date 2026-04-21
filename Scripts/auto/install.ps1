@@ -20,8 +20,13 @@ dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 dism /online /enable-feature /featurename:LegacyComponents /all /norestart
 dism /online /enable-feature /featurename:DirectPlay /all /norestart
 
+Install-Module PSWindowsUpdate
+Import-Module PSWindowsUpdate
+Install-WindowsUpdate -AcceptAll
+
 schtasks /create /tn "post-reboot" /sc onlogon /rl highest /tr "powershell -ExecutionPolicy Bypass -File C:\setup\stage2.ps1"
 
+topgrade -y
 
 sfc /scannow; dism /online /cleanup-image /restoreHealth
 shutdown /r /t 0
