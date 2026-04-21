@@ -11,6 +11,8 @@ winget install -h Microsoft.DirectX Gyan.FFmpeg aria2.aria2 7zip.7zip
 winget insatall -h abbodi1406.vcredist Microsoft.VCLibs.14 Microsoft.VCLibs.Desktop.14 Microsoft.WindowsAppRuntime.1.8  
 winget install -h Microsoft.DotNet.Framework.Runtime Microsoft.DotNet.DesktopRuntime.5 Microsoft.DotNet.DesktopRuntime.6 Microsoft.DotNet.DesktopRuntime.7 Microsoft.DotNet.DesktopRuntime.8 Microsoft.DotNet.DesktopRuntime.9 Microsoft.DotNet.DesktopRuntime.10
 
+winget install -h Oracle.JavaRuntimeEnvironment EclipseAdoptium.Temurin.25.JRE
+
 scoop config aria2-enabled true
 
 dism /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
