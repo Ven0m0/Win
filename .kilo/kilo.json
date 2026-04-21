@@ -21,6 +21,7 @@
   "disabled_providers": ["openai"],
   "plugin": [
     "openslimedit@1.0.4",
+    "oh-my-opencode@3.16.0",
     "opencode-ignore@1.1.0",
     "@gotgenes/opencode-agent-identity@3.0.1",
     "opencode-websearch@0.5.0",
