@@ -12,7 +12,11 @@
     .\Setup-Dotfiles.ps1 -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess)]
-param()
+param(
+    [switch]$Unattended,
+    [switch]$SkipWingetTools,
+    [switch]$SkipWSL
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -426,22 +430,26 @@ try {
 # Phase 2: Install tools via winget
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '[2/5] Installing tools...' -ForegroundColor Cyan
-
-if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-  Write-Warning '  winget not found. Install from: https://aka.ms/getwinget'
+if ($SkipWingetTools) {
+    Write-Host '[2/5] Tool installation skipped (-SkipWingetTools)' -ForegroundColor Cyan
 } else {
-  $tools = @(
-    @{ id = 'Git.Git';                    name = 'Git' },
-    @{ id = 'Microsoft.PowerShell';       name = 'PowerShell 7+' },
-    @{ id = 'Microsoft.WindowsTerminal';  name = 'Windows Terminal' },
-    @{ id = 'Microsoft.VisualStudioCode'; name = 'VS Code' },
-    @{ id = 'yadm.yadm';                  name = 'yadm' }
-  )
+    Write-Host '[2/5] Installing tools...' -ForegroundColor Cyan
 
-  foreach ($tool in $tools) {
-    Install-WingetTool -Id $tool.id -Name $tool.name
-  }
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Warning '  winget not found. Install from: https://aka.ms/getwinget'
+    } else {
+        $tools = @(
+            @{ id = 'Git.Git';                    name = 'Git' },
+            @{ id = 'Microsoft.PowerShell';       name = 'PowerShell 7+' },
+            @{ id = 'Microsoft.WindowsTerminal';  name = 'Windows Terminal' },
+            @{ id = 'Microsoft.VisualStudioCode'; name = 'VS Code' },
+            @{ id = 'yadm.yadm';                  name = 'yadm' }
+        )
+
+        foreach ($tool in $tools) {
+            Install-WingetTool -Id $tool.id -Name $tool.name
+        }
+    }
 }
 
 # ---------------------------------------------------------------------------
