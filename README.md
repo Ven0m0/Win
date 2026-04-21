@@ -17,11 +17,60 @@ My Windows configuration files and scripts, managed with [yadm](https://yadm.io/
 - **Git Configuration**: Sensible git defaults and aliases
 - **yadm Bootstrap**: Automated setup on new machines
 
+## Fresh Windows 11 Install (One-Command)
+
+For a clean Windows 11 system, use the complete setup script that installs all prerequisites, clones the repository, and runs bootstrap automatically:
+
+```powershell
+# Download and execute the setup script (runs as admin)
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+```
+
+The script will:
+1. Install winget (if missing)
+2. Install Git, PowerShell 7+, and yadm
+3. Clone this repository via yadm
+4. Run the full bootstrap to deploy configs
+5. Optionally install WSL2 (recommended)
+
+**Unattended mode**: Append `-Unattended` for zero prompts (e.g., for automated deployments):
+
+```powershell
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex -Unattended
+```
+
+Alternatively, clone the repo manually first and run the local setup script:
+
+```powershell
+# Clone using yadm (installed from winget)
+yadm clone https://github.com/Ven0m0/Win.git
+
+# One-command local setup
+pwsh $HOME\.yadm\bootstrap
+```
+
 ## Quick Start
 
-### Prerequisites
+### Option 1: One-Command Setup (Fresh Windows 11)
 
-1. Install [yadm](https://yadm.io/):
+The fastest way to set up on a fresh Windows 11 install:
+
+```powershell
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+```
+
+This single command will automatically:
+- Install [winget](https://winstall.app) (Windows Package Manager) if missing
+- Install Git, PowerShell 7+, and yadm
+- Clone this repository
+- Run the full bootstrap
+- Optionally set up WSL2
+
+### Option 2: Manual Setup
+
+If you prefer explicit control or the one-command script fails, install prerequisites manually:
+
+1. **Install yadm** (the dotfile manager):
 
    ```powershell
    winget install yadm
@@ -33,25 +82,14 @@ My Windows configuration files and scripts, managed with [yadm](https://yadm.io/
    choco install yadm
    ```
 
-2. Optional but recommended:
+2. **Recommended tools** (bootstrap will install these if missing, but you can pre-install):
+
    ```powershell
    winget install Git.Git
    winget install Microsoft.PowerShell
    winget install Microsoft.WindowsTerminal
    winget install Microsoft.VisualStudioCode
    ```
-
-### Installation
-
-Clone this repository using yadm:
-
-```powershell
-# Clone the dotfiles
-yadm clone https://github.com/Ven0m0/Win.git
-
-# Run the bootstrap script (optional but recommended)
-pwsh $HOME\.yadm\bootstrap
-```
 
 The bootstrap script will:
 
@@ -75,87 +113,138 @@ The bootstrap script will:
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
-   Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
+Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
 
-3. **Git Config**:
+### Manual Setup (if bootstrap doesn't run)
 
-   ```powershell
-   # Copy template and customize
-   Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
-   # Edit with your name and email
-   notepad $HOME\.gitconfig
-   ```
+If automatic bootstrap fails, configure manually:
 
-4. **Enable Script Execution**:
+1. **Enable script execution**:
+
    ```cmd
    cd %USERPROFILE%\Scripts
-   allow-scripts.cmd
+   allow-scripts.ps1
+   ```
+
+2. **PowerShell Profile**:
+
+   ```powershell
+   Copy-Item "$HOME\user\.dotfiles\config\powershell\profile.ps1" $PROFILE -Force
+   ```
+
+3. **Windows Terminal Settings**:
+
+   ```powershell
+   Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
+   ```
+
+4. **Git Config**:
+
+   ```powershell
+   Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
+   notepad $HOME\.gitconfig
    ```
 
 ## Repository Structure
 
 ```
 .
-├── user/.dotfiles/config/
-│   ├── powershell/
-│   │   └── profile.ps1          # PowerShell profile
-│   └── windows-terminal/
-│       └── settings.json         # Windows Terminal config
-├── .yadm/
-│   └── bootstrap                 # Setup script
 ├── Scripts/
-│   ├── Common.ps1               # Shared utility functions
-│   ├── edid-manager.ps1         # Display EDID management
-│   ├── gaming-display.ps1       # Gaming display optimizations
-│   ├── gpu-display-manager.ps1  # GPU/display settings
-│   ├── debloat-windows.ps1      # System debloating suite
-│   ├── system-settings-manager.ps1 # System performance settings
-│   ├── allow-scripts.cmd        # PowerShell execution policy
-│   ├── steam.ps1                # Steam optimization
-│   ├── shader-cache.ps1         # Shader cache cleanup
-│   ├── Network-Tweaker.ps1      # Network adapter optimization
-│   ├── UltimateDiskCleanup.ps1  # Disk cleanup GUI
-│   ├── DLSS-force-latest.ps1    # DLSS configuration
-│   ├── arc-raiders/             # Arc Raiders utilities
-│   └── Hostbuilder/
-│       └── BuildHosts.ps1       # Hosts file builder
-├── .gitignore                   # Git ignore patterns
-└── README.md                    # This file
+│   ├── Setup-Win11.ps1           # Fresh Windows 11 one-command setup (local)
+│   ├── Setup-Dotfiles.ps1        # Core bootstrap logic (called by yadm)
+│   ├── Common.ps1                # Shared utility functions
+│   ├── shell-setup.ps1           # Full toolchain install (Scoop, Choco, apps)
+│   ├── allow-scripts.ps1         # Enable/disable PowerShell script execution
+│   ├── debloat-windows.ps1       # System debloating suite
+│   ├── system-settings-manager.ps1
+│   ├── system-update.ps1
+│   ├── system-maintenance.ps1
+│   ├── fix-system.ps1
+│   ├── additional-maintenance.ps1
+│   ├── edid-manager.ps1          # Display EDID management
+│   ├── gaming-display.ps1        # Fullscreen/MPO optimization
+│   ├── gpu-display-manager.ps1   # GPU/display settings
+│   ├── Network-Tweaker.ps1       # Network adapter optimization
+│   ├── UltimateDiskCleanup.ps1   # Disk cleanup GUI
+│   ├── shader-cache.ps1          # Shader cache cleanup
+│   ├── steam.ps1                 # Steam optimization
+│   ├── DLSS-force-latest.ps1     # DLSS configuration
+│   ├── arc-raiders/              # Arc Raiders utilities
+│   ├── Hostbuilder/
+│   │   └── BuildHosts.ps1        # Hosts file builder
+│   └── Common.Tests.ps1          # Pester tests
+├── user/.dotfiles/config/
+│   ├── powershell/profile.ps1    # PowerShell profile
+│   ├── windows-terminal/settings.json
+│   ├── firefox/user.js
+│   ├── brave/brave_debloater.reg
+│   ├── cmd/alias.cmd
+│   ├── bleachbit/cleaners/
+│   ├── games/(bf2, bo6, bo7)/   # Game-specific configs
+│   ├── nvidia/                   # NVIDIA assets
+│   ├── scoop/                    # Scoop bucket configs
+│   └── winget-configs/
+├── .yadm/
+│   └── bootstrap                 # yadm entry point
+├── .github/
+│   ├── scripts/
+│   │   └── bootstrap.ps1         # One-command internet bootstrap
+│   ├── instructions/
+│   │   ├── windows-11-setup.instructions.md
+│   │   ├── powershell.instructions.md
+│   │   └── ...
+│   ├── skills/
+│   │   ├── win-patterns/SKILL.md
+│   │   └── ...
+│   └── copilot-instructions.md
+├── AGENTS.md                     # This file
+├── .gitignore
+└── README.md
 ```
 
 ## Available Scripts
 
 All scripts are located in `~/Scripts/` and can be run directly:
 
+### Setup & Bootstrap
+
+- **`Setup-Win11.ps1`** — Complete fresh Windows 11 setup (one-command)
+- **`Setup-Dotfiles.ps1`** — Core bootstrap (called by `yadm bootstrap`)
+- **`shell-setup.ps1`** — Full toolchain install (Scoop, Chocolatey, apps)
+- **`allow-scripts.ps1`** — Enable/disable PowerShell script execution policy
+
 ### System Optimization
 
-- **`edid-manager.ps1`** - Apply/remove EDID overrides to fix display issues
-- **`gaming-display.ps1`** - Configure fullscreen mode and multiplane overlay
-- **`gpu-display-manager.ps1`** - GPU and display settings
-- **`system-settings-manager.ps1`** - Apply system performance optimizations
-- **`debloat-windows.ps1`** - System debloater (Apps, Services, Tasks, Features)
+- **`debloat-windows.ps1`** — System debloater (Apps, Services, Tasks, Features)
+- **`system-settings-manager.ps1`** — Apply system performance optimizations
+- **`system-update.ps1`** — Windows Update handler
+- **`system-maintenance.ps1`** — Scheduled maintenance runner
+- **`fix-system.ps1`** — System repair and recovery utilities
+- **`additional-maintenance.ps1`** — Extra maintenance routines
 
 ### Gaming Utilities
 
-- **`steam.ps1`** - Optimize Steam for minimal RAM/CPU usage
-- **`shader-cache.ps1`** - Clear Steam/game/GPU shader caches
-- **`DLSS-force-latest.ps1`** - Force latest DLSS version
+- **`steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
+- **`shader-cache.ps1`** — Clear Steam/game/GPU shader caches
+- **`DLSS-force-latest.ps1`** — Force latest DLSS version
+- **`edid-manager.ps1`** — Apply/remove EDID overrides for display issues
+- **`gaming-display.ps1`** — Configure fullscreen mode and multiplane overlay
+- **`gpu-display-manager.ps1`** — GPU and display settings
 
-### Maintenance
+### Maintenance & Cleanup
 
-- **`UltimateDiskCleanup.ps1`** - Comprehensive disk cleanup tool (GUI)
-- **`debloat-windows.ps1`** - Automated debloating and optimization suite
-- **`setup.ps1`** - Install common software and perform system maintenance
+- **`UltimateDiskCleanup.ps1`** — Comprehensive disk cleanup tool (GUI)
+- **`Clean-SpotifyCache.ps1`** — Clear Spotify cache
 
 ### Networking
 
-- **`Network-Tweaker.ps1`** - Advanced network adapter configuration GUI
-- **`Hostbuilder/BuildHosts.ps1`** - Build custom hosts file with ad/malware blocking
+- **`Network-Tweaker.ps1`** — Advanced network adapter configuration GUI
+- **`Hostbuilder/BuildHosts.ps1`** — Build custom hosts file with ad/malware blocking
 
-### Configuration
+### Other
 
-- **`allow-scripts.cmd`** - Enable/disable PowerShell script execution
-
+- **`PowerShell-Context-Menus.reg`** — Adds PowerShell to context menus
+- **`Common.ps1`** — Shared utility functions (imported by many scripts)
 
 ## yadm Usage
 

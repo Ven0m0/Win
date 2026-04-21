@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 # yadm bootstrap -- thin wrapper that delegates to Scripts/Setup-Dotfiles.ps1
-# Usage: yadm bootstrap [-- -WhatIf]
+# Usage: yadm bootstrap [-- -Unattended -SkipWingetTools -Force]
 
 $ErrorActionPreference = 'Stop'
 
