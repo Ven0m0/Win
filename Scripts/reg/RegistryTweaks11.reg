@@ -61,16 +61,6 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\SystemSettings\AccountNotifications]
 "EnableAccountNotifications"=dword:00000000
 
-; Remove gallery shortcut from file explorer
-[-HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}]
-
-; Remove home shortcut from file explorer
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}]
-
-; Open file explorer to this pc
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer]
-"HubMode"=dword:00000001
-
 ; Disable win 11 system requirements
 [HKEY_CURRENT_USER\Control Panel\UnsupportedHardwareNotificationCache]
 "SV2"=dword:00000000
@@ -94,8 +84,6 @@ Windows Registry Editor Version 5.00
 "ContentDeliveryAllowed"=dword:00000000
 "PreInstalledAppsEverEnabled"=dword:00000000
 "SubscribedContentEnabled"=dword:00000000
-
-[-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager\Subscriptions]
 
 ; Disable start menu tips and recommendations
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
