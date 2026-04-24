@@ -63,23 +63,23 @@ function Edit-Nip {
     if ($settingNameInfo) {
         $newsettingNameInfo.InnerText = $settingNameInfo
     }
-    $newSetting.AppendChild($newsettingNameInfo) | Out-Null
+    [void]($newSetting.AppendChild($newsettingNameInfo))
 
     #create the new setting
     $newsettingID = $nipContent.CreateElement('SettingID')
     $newsettingID.InnerText = $settingId
-    $newSetting.AppendChild($newsettingID) | Out-Null
+    [void]($newSetting.AppendChild($newsettingID))
 
     $newsettingValue = $nipContent.CreateElement('SettingValue')
     $newsettingValue.InnerText = $settingValue
-    $newSetting.AppendChild($newsettingValue) | Out-Null
+    [void]($newSetting.AppendChild($newsettingValue))
 
     $newvalueType = $nipContent.CreateElement('ValueType')
     $newvalueType.InnerText = $valueType
-    $newSetting.AppendChild($newvalueType) | Out-Null
+    [void]($newSetting.AppendChild($newvalueType))
 
     #add new setting to nip
-    $settings.AppendChild($newSetting) | Out-Null
+    [void]($settings.AppendChild($newSetting))
     $nipContent.Save($nipPath)
 
 
@@ -97,11 +97,11 @@ function Run-Trusted([String]$command) {
     $bytes = [System.Text.Encoding]::Unicode.GetBytes($command)
     $base64Command = [Convert]::ToBase64String($bytes)
     #change bin to command
-    sc.exe config TrustedInstaller binPath= "cmd.exe /c powershell.exe -encodedcommand $base64Command" | Out-Null
+    [void](sc.exe config TrustedInstaller binPath= "cmd.exe /c powershell.exe -encodedcommand $base64Command")
     #run the command
-    sc.exe start TrustedInstaller | Out-Null
+    [void](sc.exe start TrustedInstaller)
     #set bin back to default
-    sc.exe config TrustedInstaller binpath= "`"$DefaultBinPath`"" | Out-Null
+    [void](sc.exe config TrustedInstaller binpath= "`"$DefaultBinPath`"")
     Stop-Service -Name TrustedInstaller -Force -ErrorAction SilentlyContinue
 
 }
@@ -190,7 +190,7 @@ if (!(Check-Internet)) {
                 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
     -Name 'Userinit' -Value `"$currentValue`"
                 "
-                New-Item "$env:TEMP\safemodescript.ps1" -Value $safeModeScript -Force | Out-Null
+                [void](New-Item "$env:TEMP\safemodescript.ps1" -Value $safeModeScript -Force)
                 #create winlogon key
                 $scriptRun = "powershell.exe -nop -ep bypass -f $env:TEMP\safemodescript.ps1"
                 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
