@@ -96,7 +96,8 @@ foreach ($cmd in $vcsTools) {
         Set-Item -Path "Function:${prefix}a" -Value ([scriptblock]::Create("$cmd add `$args"))
         Set-Item -Path "Function:${prefix}c" -Value ([scriptblock]::Create("$cmd commit `$args"))
         Set-Item -Path "Function:${prefix}p" -Value ([scriptblock]::Create("$cmd push `$args"))
-        Set-Item -Path "Function:${prefix}l" -Value ([scriptblock]::Create("$cmd log --oneline --graph --decorate `$args"))
+        Set-Item -Path "Function:${prefix}l" -Value ([scriptblock]::Create(`
+            "$cmd log --oneline --graph --decorate `$args"))
         Set-Item -Path "Function:${prefix}d" -Value ([scriptblock]::Create("$cmd diff `$args"))
     }
 }
