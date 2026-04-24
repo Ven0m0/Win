@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
@@ -207,7 +207,9 @@ function Download-FromMega {
       & $megaCmd $MegaUrl $DestinationPath
 
       # Find downloaded file
-      $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") -Recurse |
+    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") `
+      -Recurse -ErrorAction SilentlyContinue `
+      |
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
 
@@ -233,7 +235,9 @@ function Download-FromMega {
     Read-Host
 
     # Find downloaded file
-    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") -Recurse -ErrorAction SilentlyContinue |
+    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") `
+      -Recurse -ErrorAction SilentlyContinue `
+      |
       Sort-Object LastWriteTime -Descending |
       Select-Object -First 1
 
@@ -276,7 +280,8 @@ function Remove-DriverBloat {
 
   $removed = 0
 
-  $bloatSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$bloatItems, [System.StringComparer]::OrdinalIgnoreCase)
+  $bloatSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$bloatItems, `
+    [System.StringComparer]::OrdinalIgnoreCase)
   $allItems = Get-ChildItem -Path $ExtractPath -Recurse -ErrorAction SilentlyContinue
 
   foreach ($file in $allItems) {
@@ -305,8 +310,10 @@ function Remove-DriverBloat {
 @echo off
 REM Additional telemetry cleanup for XtremeG driver
 echo Disabling NVIDIA telemetry services...
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client" /v "OptInOrOutPreference" /t REG_DWORD /d "0" /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup" /v "SendTelemetryData" /t REG_DWORD /d "0" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client" /v "OptInOrOutPreference" ^
+    /t REG_DWORD /d "0" /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup" /v "SendTelemetryData" ^
+    /t REG_DWORD /d "0" /f >nul 2>&1
 schtasks /change /disable /tn "NvTmRep_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
 schtasks /change /disable /tn "NvProfileUpdater_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
 echo Telemetry disabled.
@@ -391,8 +398,8 @@ Clear-Host
 
 # Create directories
 Write-Host "[1/8] Creating directories..." -ForegroundColor Cyan
-New-Item -ItemType Directory -Force -Path $downloadPath | Out-Null
-New-Item -ItemType Directory -Force -Path $extractPath | Out-Null
+[void](New-Item -ItemType Directory -Force -Path $downloadPath)
+[void](New-Item -ItemType Directory -Force -Path $extractPath)
 Write-Host "  ✓ Created: $downloadPath" -ForegroundColor Green
 Write-Host ""
 
@@ -482,7 +489,7 @@ if (Test-Path $7zipPath) {
 try {
   if ($use7zip) {
     Write-Host "  Using 7-Zip for extraction..." -ForegroundColor Gray
-    & $7zipPath x "$($driverFile.FullName)" -o"$extractPath" -y | Out-Null
+    [void](& $7zipPath x "$($driverFile.FullName)" -o"$extractPath" -y)
   } else {
     Write-Host "  Using built-in extraction..." -ForegroundColor Gray
     Expand-Archive -Path $driverFile.FullName -DestinationPath $extractPath -Force
@@ -585,7 +592,9 @@ try {
 }
 
 # Run post-install telemetry cleanup
-$telemetryScript = Get-ChildItem -Path $extractPath -Filter "disable-telemetry.bat" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+$telemetryScript = Get-ChildItem -Path $extractPath -Filter "disable-telemetry.bat" `
+  -Recurse -ErrorAction SilentlyContinue | `
+  Select-Object -First 1
 if ($telemetryScript) {
   Write-Host "Running post-install telemetry cleanup..." -ForegroundColor Cyan
   try {
