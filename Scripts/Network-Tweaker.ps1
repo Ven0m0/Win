@@ -2400,7 +2400,7 @@ function Initialize-AdapterUI {
     Write-Host $cb_AdapterNamesCombo.Text
     $Global:NIC_Desc = $cb_AdapterNamesCombo.Text
     $lbl_ndisver.Text = Get-NetAdapter -InterfaceDescription $AdapterName | Select-Object -expand NdisVersion
-    $PhysicalAdapter = Get-WmiObject -Class Win32_NetworkAdapter|Where-Object{$_.Name -like "$NIC_Desc"}
+    $PhysicalAdapter = Get-CimInstance -ClassName Win32_NetworkAdapter|Where-Object{$_.Name -like "$NIC_Desc"}
             $PhysicalAdapterName = $PhysicalAdapter.Name
             $DeviceID = $PhysicalAdapter.DeviceID
                 If([Int32]$DeviceID -lt 10)
@@ -2412,7 +2412,7 @@ function Initialize-AdapterUI {
           $AdapterDeviceNumber = "00"+$DeviceID
             }
 
-        $PnPEntity = Get-WmiObject -Class Win32_PnPEntity -Filter "Name = '$NIC_Desc'"
+        $PnPEntity = Get-CimInstance -ClassName Win32_PnPEntity -Filter "Name = '$NIC_Desc'"
         $Global:EthernetClassGuid = $PnPEntity.ClassGuid
         $Global:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
         $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID

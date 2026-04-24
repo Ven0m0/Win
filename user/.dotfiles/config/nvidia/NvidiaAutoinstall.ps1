@@ -91,7 +91,7 @@ function Run-Trusted([String]$command) {
 
     Stop-Service -Name TrustedInstaller -Force -ErrorAction SilentlyContinue
     #get bin path to revert later
-    $service = Get-WmiObject -Class Win32_Service -Filter "Name='TrustedInstaller'"
+    $service = Get-CimInstance -ClassName Win32_Service -Filter "Name='TrustedInstaller'"
     $DefaultBinPath = $service.PathName
     #convert command to base64 to avoid errors with spaces
     $bytes = [System.Text.Encoding]::Unicode.GetBytes($command)
@@ -788,11 +788,11 @@ if (!(Check-Internet)) {
 
     #get monitor info
     <#
-    $monitors = Get-WmiObject -Namespace root\wmi -Class WmiMonitorID
+    $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID
     $manufacturerNames = [System.Collections.Generic.List[string]]::new()
-    $soundDevices = Get-WmiObject -Class Win32_SoundDevice
-    $pnpDevices = Get-WmiObject -Class Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
-    $videoControllers = Get-WmiObject -Class Win32_VideoController
+    $soundDevices = Get-CimInstance -ClassName Win32_SoundDevice
+    $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
+    $videoControllers = Get-CimInstance -ClassName Win32_VideoController
     #>
     $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID
     $manufacturerNames = [System.Collections.Generic.List[string]]::new()

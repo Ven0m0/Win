@@ -206,7 +206,7 @@ function Is-Admin {
 }
 
 function Detect-RTX {
-    $gpu = (Get-WmiObject Win32_VideoController | Select-Object -First 1).Name
+    $gpu = (Get-CimInstance -ClassName Win32_VideoController | Select-Object -First 1).Name
     $supported = $gpu -match 'RTX|Radeon RX [6-9]\d{3}'
     return $supported, ($gpu -replace '^\s+|\s+$','')
 }
