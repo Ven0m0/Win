@@ -411,13 +411,13 @@ function Set-PredictionSource {
 }
 Set-PredictionSource
 if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init --cmd z powershell | Out-String) })
+    . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String)))
 } else {
     Write-Host "zoxide command not found. Attempting to install via winget..."
     try {
         winget install -e --id ajeetdsouza.zoxide
         Write-Host "zoxide installed successfully. Initializing..."
-        Invoke-Expression (& { (zoxide init --cmd z powershell | Out-String) })
+        . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String)))
     } catch {
         Write-Error "Failed to install zoxide. Error: $_"
     }
@@ -527,7 +527,7 @@ function Invoke-Starship-PreCommand {
 
 # Initialize Starship prompt (if available)
 if (Get-Command starship -ErrorAction SilentlyContinue) {
-    Invoke-Expression (&starship init powershell)
+    . ([scriptblock]::Create((starship init powershell | Out-String)))
 } else {
     # Fallback to custom prompt if Starship is not installed
     function prompt {
