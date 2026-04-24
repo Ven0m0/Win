@@ -254,7 +254,7 @@ function Get-NvidiaGpuSettings {
         $GpuPaths = Get-NvidiaGpuPaths
     }
 
-    $results = @()
+    $results = [System.Collections.Generic.List[psobject]]::new()
 
     foreach ($path in $GpuPaths) {
         $gpuName = ($path -split '\\')[-1]
@@ -281,7 +281,7 @@ function Get-NvidiaGpuSettings {
             }
         }
 
-        $results += [pscustomobject]$entry
+        $results.Add([pscustomobject]$entry)
     }
 
     return $results
