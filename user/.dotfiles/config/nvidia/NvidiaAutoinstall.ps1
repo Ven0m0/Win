@@ -1,4 +1,4 @@
-﻿﻿#nvidia driver auto installation script by zoic
+﻿﻿﻿﻿﻿﻿﻿﻿﻿#nvidia driver auto installation script by zoic
 
 # Import common functions if available
 if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
@@ -7,8 +7,41 @@ if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
 }
 
-If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+If `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    (!([Security.Principal.WindowsPrincipal]`
+    [Security.Principal.WindowsIdentity]::GetCurrent())`
+    .IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`""
+    -f $PSCommandPath) -Verb RunAs
     Exit
 }
 
@@ -135,7 +168,8 @@ if (!(Check-Internet)) {
                 break
             }
 
-            Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa `"$env:TEMP\DDU.exe`" -o`"$env:TEMP`"" -Wait
+            Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa `"$env:TEMP\DDU.exe`" -o`"$env:TEMP`"" -Wait
 
             $choice2 = Custom-MsgBox -message 'Boot to Safe Mode to Run (Recommended)?' -type Question
 
@@ -146,16 +180,21 @@ if (!(Check-Internet)) {
                 Start-process bcdedit.exe -ArgumentList '/set {current} safeboot minimal'
 
                 #create script to run on safe mode startup
-                $currentValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
+                $currentValue = (Get-ItemProperty
+    -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
                 $safeModeScript = "
                 Start-process bcdedit.exe -ArgumentList '/deletevalue safeboot'
-                Start-Process -FilePath `"$env:TEMP\DDU v18.0.8.6\Display Driver Uninstaller.exe`" -args `"-Restart -CleanNvidia -PreventWinUpdate -RemovePhysx -RemoveGFE -RemoveNVBROADCAST -RemoveNVCP`" -WindowStyle Hidden
-                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit' -Value `"$currentValue`"
+                Start-Process -FilePath `"$env:TEMP\DDU v18.0.8.6\Display Driver Uninstaller.exe`"
+    -args `"-Restart -CleanNvidia -PreventWinUpdate -RemovePhysx -RemoveGFE -RemoveNVBROADCAST -RemoveNVCP`"
+    -WindowStyle Hidden
+                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+    -Name 'Userinit' -Value `"$currentValue`"
                 "
                 New-Item "$env:TEMP\safemodescript.ps1" -Value $safeModeScript -Force | Out-Null
                 #create winlogon key
                 $scriptRun = "powershell.exe -nop -ep bypass -f $env:TEMP\safemodescript.ps1"
-                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
+                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+    -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
                 shutdown /f /r /t 0
             }
             else {
@@ -187,7 +226,8 @@ if (!(Check-Internet)) {
     $dllPath = Search-File '*HtmlAgilityPack.dll'
     Add-Type -Path $dllPath
     # NVIDIA API
-    $searchUrl = 'https://www.nvidia.com/Download/processFind.aspx?psid=120&pfid=929&osid=57&lid=1&whql=1&lang=en-us&ctk=0&dtcid=1'
+    $searchUrl = `
+    'https://www.nvidia.com/Download/processFind.aspx?psid=120&pfid=929&osid=57&lid=1&whql=1&lang=en-us&ctk=0&dtcid=1'
     $response = Invoke-WebRequest -Uri $searchUrl -UseBasicParsing
     $htmlDoc = New-Object HtmlAgilityPack.HtmlDocument
     $htmlDoc.LoadHtml($response.Content)
@@ -202,12 +242,14 @@ if (!(Check-Internet)) {
     # cleanup the text
     $releaseHighlights = foreach ($highlight in $highlights) {
         $trimmedHighlight = $highlight.Trim() -replace '\s+', ' '
-        $trimmedHighlight = $trimmedHighlight -replace 'Learn More in our Game Ready Driver article here. GeForce Game Ready Driver&nbsp;' , ''
+        $trimmedHighlight = $trimmedHighlight
+    -replace 'Learn More in our Game Ready Driver article here. GeForce Game Ready Driver&nbsp;' , ''
         $trimmedHighlight = $trimmedHighlight -replace '&amp;' , '&'
         $trimmedHighlight = $trimmedHighlight -replace '&ouml;' , 'o' #for god of ragnarok game
         $trimmedHighlight = $trimmedHighlight -replace '\[\d+\]' , '' #remove issue ids
         $trimmedHighlight = $trimmedHighlight -replace '  ' , "`n" #move double space to a newline
-        $trimmedHighlight = $trimmedHighlight -replace 'WHQL \d{3}\.\d{2} [A-Za-z]+ \d{1,2}, \d{4}' , '' #remove driver version/release date
+        $trimmedHighlight = $trimmedHighlight -replace 'WHQL \d{3}\.\d{2} [A-Za-z]+ \d{1,2}, \d{4}' ,
+    '' #remove driver version/release date
         $trimmedHighlight = $trimmedHighlight -replace '&nbsp;' , ' '
         $trimmedHighlight = $trimmedHighlight -replace '&quot;' , '"'
         $trimmedHighlight = $trimmedHighlight -replace '&gt;' , '>'
@@ -234,7 +276,8 @@ if (!(Check-Internet)) {
     $form.Icon = New-Object System.Drawing.Icon($Global:customIcon)
 
     $type = $form.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($form, $true, $null)
 
     $startColor = [System.Drawing.Color]::FromArgb(61, 74, 102)   #rgb(61, 74, 102)
@@ -333,11 +376,14 @@ if (!(Check-Internet)) {
     $tooltip1.SetToolTip($textboxCustom, 'Add, hf to the end for HotFix drivers
     Ex. 420.69hf')
 
-    $buttonOK = Create-ModernButton -Text 'OK' -Location (New-Object Drawing.Point(370, 330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::OK) -borderSize 2
+    $buttonOK = Create-ModernButton -Text 'OK' -Location (New-Object Drawing.Point(370,
+    330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::OK) -borderSize 2
 
     $form.Controls.Add($buttonOK)
 
-    $buttonSkip = Create-ModernButton -Text 'Skip' -Location (New-Object Drawing.Point(285, 330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::Cancel) -borderSize 2
+    $buttonSkip = Create-ModernButton -Text 'Skip' -Location (New-Object Drawing.Point(285,
+    330)) -Size (New-Object Drawing.Size(80,
+    27)) -DialogResult ([System.Windows.Forms.DialogResult]::Cancel) -borderSize 2
 
     $form.Controls.Add($buttonSkip)
 
@@ -379,10 +425,72 @@ if (!(Check-Internet)) {
             if ($selectedDriver -like '*hf') {
                 #remove hf
                 $driverNum = $selectedDriver -replace 'hf', ''
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-notebook-win10-win11-$windowsArchitecture-international-dch-hf.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-notebook`
+    -win10-win11-$windowsArchitecture-international-dch-hf.exe"
             }
             else {
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-notebook-win10-win11-$windowsArchitecture-international-dch-whql.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-notebook`
+    -win10-win11-$windowsArchitecture-international-dch-whql.exe"
             }
 
         }
@@ -390,10 +498,72 @@ if (!(Check-Internet)) {
             if ($selectedDriver -like '*hf') {
                 #remove hf
                 $driverNum = $selectedDriver -replace 'hf', ''
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-desktop-win10-win11-$windowsArchitecture-international-dch-hf.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-desktop`
+    -win10-win11-$windowsArchitecture-international-dch-hf.exe"
             }
             else {
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-desktop-win10-win11-$windowsArchitecture-international-dch-whql.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-desktop`
+    -win10-win11-$windowsArchitecture-international-dch-whql.exe"
             }
 
         }
@@ -417,11 +587,13 @@ if (!(Check-Internet)) {
         #extracting driver files to (%temp%)
         if ($7zipinstalled) {
             if ($stripDriver) {
-                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa $exepath $filesToExtract -o""$extractFolder""" -wait
+                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa $exepath $filesToExtract -o""$extractFolder""" -wait
             }
             else {
 
-                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa $exepath -o""$extractFolder""" -wait
+                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa $exepath -o""$extractFolder""" -wait
             }
 
         }
@@ -506,7 +678,9 @@ if (!(Check-Internet)) {
         }
 
         #disabling hdcp
-        $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
+        $subkeys = (Get-ChildItem
+    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
+    -Force -ErrorAction SilentlyContinue).Name
 
         foreach ($key in $subkeys) {
             if ($key -notlike '*Configuration') {
@@ -517,7 +691,8 @@ if (!(Check-Internet)) {
         Write-Status -Message 'Installing Driver...'  -Type Output
 
         #starting setup.exe in current directory (%temp%)
-        Start-Process "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\setup.exe" -WorkingDirectory "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall" -ArgumentList '-clean -s' -wait
+        Start-Process "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\setup.exe"
+    -WorkingDirectory "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall" -ArgumentList '-clean -s' -wait
         Clear-Host
         Write-Status -Message 'Driver installed, Cleaning up...'  -Type Output
 
@@ -530,7 +705,8 @@ if (!(Check-Internet)) {
         Remove-Item "$env:TEMP\safemodescript.ps1" -Force -ErrorAction SilentlyContinue
         #uninstalling 7zip
         if ($7zinstalledAlr -eq $false) {
-            $path = (Get-ChildItem -Path C:\ -Filter 7-Zip -Recurse -ErrorAction SilentlyContinue -Force | select-object -first 1).FullName
+            $path = (Get-ChildItem -Path C:\ -Filter 7-Zip -Recurse -ErrorAction SilentlyContinue -Force |
+    select-object -first 1).FullName
             Start-Process "$path\Uninstall.exe" -wait -ArgumentList '/S'
             remove-item 'HKLM:\SOFTWARE\7-Zip' -Force -Recurse -ErrorAction SilentlyContinue
 
@@ -542,7 +718,8 @@ if (!(Check-Internet)) {
 
         if ($stripDriver) {
             #removing a dll file needed to communicate with a telemetry server
-            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*" -Directory).FullName | ForEach-Object {
+            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*"
+    -Directory).FullName | ForEach-Object {
                 takeown /f "$_\NvTelemetry64.dll" *>$null
                 icacls "$_\NvTelemetry64.dll" /grant administrators:F /t *>$null
                 Remove-Item "$_\NvTelemetry64.dll" -Force
@@ -596,7 +773,8 @@ if (!(Check-Internet)) {
 
     #adding saturation reg key paths to an array
     $paths = if ($null -ne $dList -and $dList.Length -gt 0) {
-        $allDisplayDbKeys = @(Get-ChildItem -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
+        $allDisplayDbKeys = @(Get-ChildItem
+    -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
         foreach ($deviceId in $dList) {
             $match = $allDisplayDbKeys | Where-Object { $_.Name -like "*$deviceId*" } | Select-Object -First 1
             if ($null -ne $match) {
@@ -734,7 +912,8 @@ if (!(Check-Internet)) {
     $TabControl.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabControl.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabControl, $true, $null)
 
     $startColor = [System.Drawing.Color]::FromArgb(61, 74, 102)   #rgb(61, 74, 102)
@@ -761,7 +940,8 @@ if (!(Check-Internet)) {
     $TabPage1.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabPage1.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabPage1, $true, $null)
 
     # Override the form's paint event to apply the gradient
@@ -783,7 +963,8 @@ if (!(Check-Internet)) {
     $TabPage2.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabPage2.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabPage2, $true, $null)
 
     # Override the form's paint event to apply the gradient
@@ -967,7 +1148,9 @@ if (!(Check-Internet)) {
 
         # Create a custom style for transparency
         $sliderStyle = New-Object System.Windows.Style([System.Windows.Controls.Slider])
-        $backgroundSetter = New-Object System.Windows.Setter([System.Windows.Controls.Control]::BackgroundProperty, [System.Windows.Media.Brushes]::Transparent)
+        $backgroundSetter = New-Object `
+    System.Windows.Setter([System.Windows.Controls.Control]::BackgroundProperty, `
+    [System.Windows.Media.Brushes]::Transparent)
         $sliderStyle.Setters.Add($backgroundSetter)
         $trackBar.Style = $sliderStyle
 
@@ -1017,7 +1200,8 @@ if (!(Check-Internet)) {
     }
 
 
-    $applyButton = Create-ModernButton -Text 'Apply' -Location (New-Object Drawing.Point(140, 360)) -Size (New-Object Drawing.Size(100, 30)) -borderSize 2 -DialogResult ([System.Windows.Forms.DialogResult]::OK)
+    $applyButton = Create-ModernButton -Text 'Apply' -Location (New-Object Drawing.Point(140,
+    360)) -Size (New-Object Drawing.Size(100, 30)) -borderSize 2 -DialogResult ([System.Windows.Forms.DialogResult]::OK)
 
     $form.Controls.Add($applyButton)
 
@@ -1039,20 +1223,27 @@ if (!(Check-Internet)) {
                 #enable rebar
                 Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983226' -settingValue '1' -valueType 'Dword'
                 Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983227' -settingValue '1' -valueType 'Dword'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983295' -settingValue 'AAAAQAAAAAA=' -valueType 'Binary'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983295' -settingValue 'AAAAQAAAAAA='
+    -valueType 'Binary'
             }
             if ($radioButton2.Checked) {
                 #enable gsync
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196567' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Toggle the VRR global feature'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196727' -settingValue '1' -valueType 'Dword' -settingNameInfo 'VRR requested state'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '279476687' -settingValue '0' -valueType 'Dword' -settingNameInfo 'G-SYNC'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '294973784' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Enable G-SYNC globally'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196567' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Toggle the VRR global feature'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196727' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'VRR requested state'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '279476687' -settingValue '0'
+    -valueType 'Dword' -settingNameInfo 'G-SYNC'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '294973784' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Enable G-SYNC globally'
             }
 
             if ($radioButton3.Checked) {
                 #enable dlss latest
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385331' -settingValue '16777215' -valueType 'Dword' -settingNameInfo 'Override DLSS-SR presets'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385345' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Enable DLSS-SR override'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385331' -settingValue '16777215'
+    -valueType 'Dword' -settingNameInfo 'Override DLSS-SR presets'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385345' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Enable DLSS-SR override'
             }
 
             $inspector = Search-File '*nvidiaProfileInspector.exe'
@@ -1071,10 +1262,12 @@ if (!(Check-Internet)) {
             #enables legacy sharpen
             #check correct path
             if (test-path 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS') {
-                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f
+                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' `
+    /t REG_DWORD /d '0' /f
             }
             else {
-                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f
+                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS' /v 'EnableGR535' /t `
+    REG_DWORD /d '0' /f
             }
 
 
@@ -1084,14 +1277,17 @@ if (!(Check-Internet)) {
             Write-Status -Message 'Enabling MSI Mode For Driver...'  -Type Output
             #sets msi mode
             $instanceID = (Get-PnpDevice -Class Display).InstanceId
-            Reg.exe add "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v 'MSISupported' /t REG_DWORD /d '1' /f
+            Reg.exe add "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt `
+    Management\MessageSignaledInterruptProperties" /v 'MSISupported' /t REG_DWORD /d '1' /f
 
         }
 
         if ($checkbox4.Checked) {
             Write-Status -Message 'Disabling P0 State...'  -Type Output
             #disable p0 state
-            $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
+            $subkeys = (Get-ChildItem
+    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
+    -Force -ErrorAction SilentlyContinue).Name
 
             foreach ($key in $subkeys) {
                 if ($key -notlike '*Configuration') {

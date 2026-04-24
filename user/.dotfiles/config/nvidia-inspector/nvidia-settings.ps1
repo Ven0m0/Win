@@ -1,11 +1,44 @@
-﻿﻿# Import common functions if available
+﻿﻿﻿﻿﻿﻿﻿﻿﻿# Import common functions if available
 if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1"
 } elseif (Test-Path "$PSScriptRoot\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
 }
-    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))
-    {Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+    If `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    (!([Security.Principal.WindowsPrincipal]`
+    [Security.Principal.WindowsIdentity]::GetCurrent())`
+    .IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))
+    {Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`""
+    -f $PSCommandPath) -Verb RunAs
     Exit}
     $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + " (Administrator)"
     $Host.UI.RawUI.BackgroundColor = "Black"
@@ -26,7 +59,8 @@ if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
     $path = "C:\ProgramData\NVIDIA Corporation\Drs"
     Get-ChildItem -Path $path -Recurse | Unblock-File
     # download inspector
-    Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" -File "$env:TEMP\Inspector.exe"
+    Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe"
+    -File "$env:TEMP\Inspector.exe"
 
     switch ($choice) {
     1 {
@@ -234,7 +268,8 @@ Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Inspector
 # enable nvidia legacy sharpen
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
 reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" `
+    /f | Out-Null
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit
@@ -258,7 +293,8 @@ Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Defaults.
 # disable nvidia legacy sharpen
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
 reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" `
+    /f | Out-Null
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit
