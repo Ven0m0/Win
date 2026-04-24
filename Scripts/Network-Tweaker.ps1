@@ -3572,19 +3572,15 @@ function applyrsssettings {
         if ($cb_ManyCoreScaling.SelectedIndex -eq '2'){
         Write-Host "Skipping ManyCoreScaling"  -ForegroundColor Green}
 
-        #Write-Host "Testing Setting RSS"
         $error.clear()
         try {
-            #Write-Host "Using Powersh. now to set rss"
             Set-NetAdapterRss -InterfaceDescription $($Global:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text) -NumberOfReceiveQueues $($cb_rssqueues.Text) -Profile $($cb_rssprofile.Text) -MaxProcessors $($cb_rssmaxprocs.Text) -Enabled $($Global:Rssstatusset) -ErrorAction Stop
             Write-Host "Using Powershell to Set-NetAdapterRss."
             }
             catch { Write-Warning "Error occured while Setting Set-NetAdapterRss, testing now without NumberOfReceiveQueues!"
             bypassrssqueues
             }
-        #if (!$error) { Write-Host "No Error Occured, while Setting Set-NetAdapterRss with NumberOfReceiveQueues." }
 
-        #Set-NetAdapterRss -InterfaceDescription $($Global:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text) -NumberOfReceiveQueues $($cb_rssqueues.Text) -Profile $($cb_rssprofile.Text) -MaxProcessors $($cb_rssmaxprocs.Text) -Enabled $($Global:Rssstatusset)
 }
 
 function ApplyInterfaceSettings{
