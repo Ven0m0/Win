@@ -1,4 +1,4 @@
-﻿# Import common functions if available
+﻿﻿# Import common functions if available
 if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1"
 } elseif (Test-Path "$PSScriptRoot\..\..\..\Scripts\Common.ps1") {
