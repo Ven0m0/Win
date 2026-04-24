@@ -1,8 +1,48 @@
-#nvidia driver auto installation script by zoic
+﻿﻿﻿﻿﻿﻿﻿﻿﻿#nvidia driver auto installation script by zoic
 
-If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
-    Exit	
+# Import common functions if available
+if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
+  . "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1"
+} elseif (Test-Path "$PSScriptRoot\..\..\..\Scripts\Common.ps1") {
+  . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
+}
+
+If `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    (!([Security.Principal.WindowsPrincipal]`
+    [Security.Principal.WindowsIdentity]::GetCurrent())`
+    .IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`""
+    -f $PSCommandPath) -Verb RunAs
+    Exit
 }
 
 
@@ -29,20 +69,20 @@ function Edit-Nip {
     $newsettingID = $nipContent.CreateElement('SettingID')
     $newsettingID.InnerText = $settingId
     $newSetting.AppendChild($newsettingID) | Out-Null
-    
+
     $newsettingValue = $nipContent.CreateElement('SettingValue')
     $newsettingValue.InnerText = $settingValue
     $newSetting.AppendChild($newsettingValue) | Out-Null
-    
+
     $newvalueType = $nipContent.CreateElement('ValueType')
     $newvalueType.InnerText = $valueType
     $newSetting.AppendChild($newvalueType) | Out-Null
-    
+
     #add new setting to nip
     $settings.AppendChild($newSetting) | Out-Null
     $nipContent.Save($nipPath)
 
-    
+
 }
 
 
@@ -67,176 +107,33 @@ function Run-Trusted([String]$command) {
 }
 
 
-# download file function source: https://gist.github.com/ChrisStro/37444dd012f79592080bd46223e27adc
-function Get-FileFromWeb {
-    param (
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]$URL,
-  
-        # Parameter help description
-        [Parameter(Mandatory)]
-        [string]$File 
-    )
-    Begin {
-        function Show-Progress {
-            param (
-                # Enter total value
-                [Parameter(Mandatory)]
-                [Single]$TotalValue,
-        
-                # Enter current value
-                [Parameter(Mandatory)]
-                [Single]$CurrentValue,
-        
-                # Enter custom progresstext
-                [Parameter(Mandatory)]
-                [string]$ProgressText,
-        
-                # Enter value suffix
-                [Parameter()]
-                [string]$ValueSuffix,
-        
-                # Enter bar lengh suffix
-                [Parameter()]
-                [int]$BarSize = 40,
-
-                # show complete bar
-                [Parameter()]
-                [switch]$Complete
-            )
-            
-            # calc %
-            $percent = $CurrentValue / $TotalValue
-            $percentComplete = $percent * 100
-            if ($ValueSuffix) {
-                $ValueSuffix = " $ValueSuffix" # add space in front
-            }
-            if ($psISE) {
-                Write-Progress "$ProgressText $CurrentValue$ValueSuffix of $TotalValue$ValueSuffix" -id 0 -percentComplete $percentComplete            
-            }
-            else {
-                # build progressbar with string function
-                $curBarSize = $BarSize * $percent
-                $progbar = ''
-                $progbar = $progbar.PadRight($curBarSize, [char]9608)
-                $progbar = $progbar.PadRight($BarSize, [char]9617)
-        
-                if (!$Complete.IsPresent) {
-                    Write-Host -NoNewLine "`r$ProgressText $progbar [ $($CurrentValue.ToString('#.###').PadLeft($TotalValue.ToString('#.###').Length))$ValueSuffix / $($TotalValue.ToString('#.###'))$ValueSuffix ] $($percentComplete.ToString('##0.00').PadLeft(6)) % complete"
-                }
-                else {
-                    Write-Host -NoNewLine "`r$ProgressText $progbar [ $($TotalValue.ToString('#.###').PadLeft($TotalValue.ToString('#.###').Length))$ValueSuffix / $($TotalValue.ToString('#.###'))$ValueSuffix ] $($percentComplete.ToString('##0.00').PadLeft(6)) % complete"                    
-                }                
-            }   
-        }
-    }
-    Process {
-        try {
-            $storeEAP = $ErrorActionPreference
-            $ErrorActionPreference = 'Stop'
-        
-            # invoke request
-            $request = [System.Net.HttpWebRequest]::Create($URL)
-            $response = $request.GetResponse()
-  
-            if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
-                throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$URL'."
-            }
-  
-            if ($File -match '^\.\\') {
-                $File = Join-Path (Get-Location -PSProvider 'FileSystem') ($File -Split '^\.')[1]
-            }
-            
-            if ($File -and !(Split-Path $File)) {
-                $File = Join-Path (Get-Location -PSProvider 'FileSystem') $File
-            }
-
-            if ($File) {
-                $fileDirectory = $([System.IO.Path]::GetDirectoryName($File))
-                if (!(Test-Path($fileDirectory))) {
-                    [System.IO.Directory]::CreateDirectory($fileDirectory) | Out-Null
-                }
-            }
-
-            [long]$fullSize = $response.ContentLength
-            $fullSizeMB = $fullSize / 1024 / 1024
-  
-            # define buffer
-            [byte[]]$buffer = new-object byte[] 1048576
-            [long]$total = [long]$count = 0
-  
-            # create reader / writer
-            $reader = $response.GetResponseStream()
-            $writer = new-object System.IO.FileStream $File, 'Create'
-  
-            # start download
-            $finalBarCount = 0 #show final bar only one time
-            do {
-          
-                $count = $reader.Read($buffer, 0, $buffer.Length)
-          
-                $writer.Write($buffer, 0, $count)
-              
-                $total += $count
-                $totalMB = $total / 1024 / 1024
-          
-                if ($fullSize -gt 0) {
-                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading $($File.Name)" -ValueSuffix 'MB'
-                }
-
-                if ($total -eq $fullSize -and $count -eq 0 -and $finalBarCount -eq 0) {
-                    Show-Progress -TotalValue $fullSizeMB -CurrentValue $totalMB -ProgressText "Downloading $($File.Name)" -ValueSuffix 'MB' -Complete
-                    $finalBarCount++
-                    #Write-Host "$finalBarCount"
-                }
-
-            } while ($count -gt 0)
-        }
-  
-        catch {
-        
-            $ExeptionMsg = $_.Exception.Message
-            Write-Host "Download breaks with error : $ExeptionMsg"
-        }
-  
-        finally {
-            # cleanup
-            if ($reader) { $reader.Close() }
-            if ($writer) { $writer.Flush(); $writer.Close() }
-        
-            $ErrorActionPreference = $storeEAP
-            [GC]::Collect()
-        }    
-    }
-}
 
 
 if (!(Check-Internet)) {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Write-Status -Message 'Checking if 7zip is Installed...' -Type Output
-    
-    $7zinstalledAlr = $false    
-    $7zipinstalled = $false 
+
+    $7zinstalledAlr = $false
+    $7zipinstalled = $false
     if ((Test-path HKLM:\SOFTWARE\7-Zip\) -eq $true) {
         $7zpath = Get-ItemProperty -path  HKLM:\SOFTWARE\7-Zip\ -Name Path
         $7zpath = $7zpath.Path
         $7zpathexe = $7zpath + '7z.exe'
         if ((Test-Path $7zpathexe) -eq $true) {
             $archiverProgram = $7zpathexe
-            $7zipinstalled = $true 
+            $7zipinstalled = $true
             $7zinstalledAlr = $true
-        }    
+        }
     }
     else {
         Write-Status -Message 'Installing 7zip...' -Type Output
-       
+
         $7zip = 'https://www.7-zip.org/a/7z2301-x64.exe'
         $output = "$env:TEMP\7Zip.exe"
-        $ProgressPreference = 'SilentlyContinue' 
+        $ProgressPreference = 'SilentlyContinue'
         Invoke-RestMethod $7zip -OutFile $output | Wait-Event -Timeout 1
-        
-        Start-Process $output -Wait -ArgumentList '/S' 
+
+        Start-Process $output -Wait -ArgumentList '/S'
         # Delete the installer once it completes
         Remove-Item $output -Force
         $7zpath = Get-ItemProperty -path  HKLM:\SOFTWARE\7-Zip\ -Name Path
@@ -244,10 +141,10 @@ if (!(Check-Internet)) {
         $7zpathexe = $7zpath + '7z.exe'
         if ((Test-Path $7zpathexe) -eq $true) {
             $archiverProgram = $7zpathexe
-            $7zipinstalled = $true 
-        }   
+            $7zipinstalled = $true
+        }
     }
-    
+
 
 
 
@@ -258,11 +155,11 @@ if (!(Check-Internet)) {
     switch ($choice) {
         'OK' {
             Write-Status -Message 'Installing Display Driver Uninstaller...'  -Type Output
-        
+
             Remove-Item "$env:TEMP\DDU.exe" -ErrorAction SilentlyContinue -Force
             Remove-Item "$env:TEMP\DDU v18.0.8.6" -Recurse -Force -ErrorAction SilentlyContinue
-            $url = 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.6.exe'  
-            $ProgressPreference = 'SilentlyContinue' 
+            $url = 'https://www.wagnardsoft.com/DDU/download/DDU%20v18.0.8.6.exe'
+            $ProgressPreference = 'SilentlyContinue'
             try {
                 Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\DDU.exe" -ErrorAction Stop
             }
@@ -270,28 +167,34 @@ if (!(Check-Internet)) {
                 Write-Status -Message 'Unable to Install DDU Due to Download Error!'  -Type Error
                 break
             }
-            
-            Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa `"$env:TEMP\DDU.exe`" -o`"$env:TEMP`"" -Wait
+
+            Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa `"$env:TEMP\DDU.exe`" -o`"$env:TEMP`"" -Wait
 
             $choice2 = Custom-MsgBox -message 'Boot to Safe Mode to Run (Recommended)?' -type Question
 
             if ($choice2 -eq 'OK') {
                 Write-Status -Message 'Booting to Safe Mode...'  -Type Output
-             
+
                 #add safe mode minimal
-                Start-process bcdedit.exe -ArgumentList '/set {current} safeboot minimal' 
-                
+                Start-process bcdedit.exe -ArgumentList '/set {current} safeboot minimal'
+
                 #create script to run on safe mode startup
-                $currentValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
+                $currentValue = (Get-ItemProperty
+    -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
                 $safeModeScript = "
                 Start-process bcdedit.exe -ArgumentList '/deletevalue safeboot'
-                Start-Process -FilePath `"$env:TEMP\DDU v18.0.8.6\Display Driver Uninstaller.exe`" -args `"-Restart -CleanNvidia -PreventWinUpdate -RemovePhysx -RemoveGFE -RemoveNVBROADCAST -RemoveNVCP`" -WindowStyle Hidden
-                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit' -Value `"$currentValue`"
+                Start-Process -FilePath `"$env:TEMP\DDU v18.0.8.6\Display Driver Uninstaller.exe`"
+    -args `"-Restart -CleanNvidia -PreventWinUpdate -RemovePhysx -RemoveGFE -RemoveNVBROADCAST -RemoveNVCP`"
+    -WindowStyle Hidden
+                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+    -Name 'Userinit' -Value `"$currentValue`"
                 "
                 New-Item "$env:TEMP\safemodescript.ps1" -Value $safeModeScript -Force | Out-Null
                 #create winlogon key
                 $scriptRun = "powershell.exe -nop -ep bypass -f $env:TEMP\safemodescript.ps1"
-                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
+                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
+    -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
                 shutdown /f /r /t 0
             }
             else {
@@ -307,23 +210,24 @@ if (!(Check-Internet)) {
     #getting latest driver version num
     $uri = 'https://gfwsl.geforce.com/services_toolkit/services/com/nvidia/services/AjaxDriverService.php' +
     '?func=DriverManualLookup' +
-    '&psid=120' + 
-    '&pfid=929' +  
-    '&osID=57' + 
-    '&languageCode=1033' + 
-    '&isWHQL=1' + 
-    '&dch=1' + 
-    '&sort1=0' + 
-    '&numberOfResults=4' 
+    '&psid=120' +
+    '&pfid=929' +
+    '&osID=57' +
+    '&languageCode=1033' +
+    '&isWHQL=1' +
+    '&dch=1' +
+    '&sort1=0' +
+    '&numberOfResults=4'
 
     $response = Invoke-RestMethod -Uri $uri -UseBasicParsing
-    $versions = $response.IDS.downloadInfo.Version  
+    $versions = $response.IDS.downloadInfo.Version
 
     #add html agility pack to parse html response
     $dllPath = Search-File '*HtmlAgilityPack.dll'
-    Add-Type -Path $dllPath 
-    # NVIDIA API 
-    $searchUrl = 'https://www.nvidia.com/Download/processFind.aspx?psid=120&pfid=929&osid=57&lid=1&whql=1&lang=en-us&ctk=0&dtcid=1'
+    Add-Type -Path $dllPath
+    # NVIDIA API
+    $searchUrl = `
+    'https://www.nvidia.com/Download/processFind.aspx?psid=120&pfid=929&osid=57&lid=1&whql=1&lang=en-us&ctk=0&dtcid=1'
     $response = Invoke-WebRequest -Uri $searchUrl -UseBasicParsing
     $htmlDoc = New-Object HtmlAgilityPack.HtmlDocument
     $htmlDoc.LoadHtml($response.Content)
@@ -338,15 +242,17 @@ if (!(Check-Internet)) {
     # cleanup the text
     $releaseHighlights = foreach ($highlight in $highlights) {
         $trimmedHighlight = $highlight.Trim() -replace '\s+', ' '
-        $trimmedHighlight = $trimmedHighlight -replace 'Learn More in our Game Ready Driver article here. GeForce Game Ready Driver&nbsp;' , ''
+        $trimmedHighlight = $trimmedHighlight
+    -replace 'Learn More in our Game Ready Driver article here. GeForce Game Ready Driver&nbsp;' , ''
         $trimmedHighlight = $trimmedHighlight -replace '&amp;' , '&'
         $trimmedHighlight = $trimmedHighlight -replace '&ouml;' , 'o' #for god of ragnarok game
         $trimmedHighlight = $trimmedHighlight -replace '\[\d+\]' , '' #remove issue ids
         $trimmedHighlight = $trimmedHighlight -replace '  ' , "`n" #move double space to a newline
-        $trimmedHighlight = $trimmedHighlight -replace 'WHQL \d{3}\.\d{2} [A-Za-z]+ \d{1,2}, \d{4}' , '' #remove driver version/release date
-        $trimmedHighlight = $trimmedHighlight -replace '&nbsp;' , ' ' 
-        $trimmedHighlight = $trimmedHighlight -replace '&quot;' , '"' 
-        $trimmedHighlight = $trimmedHighlight -replace '&gt;' , '>' 
+        $trimmedHighlight = $trimmedHighlight -replace 'WHQL \d{3}\.\d{2} [A-Za-z]+ \d{1,2}, \d{4}' ,
+    '' #remove driver version/release date
+        $trimmedHighlight = $trimmedHighlight -replace '&nbsp;' , ' '
+        $trimmedHighlight = $trimmedHighlight -replace '&quot;' , '"'
+        $trimmedHighlight = $trimmedHighlight -replace '&gt;' , '>'
         $trimmedHighlight
     }
 
@@ -354,7 +260,7 @@ if (!(Check-Internet)) {
     if ($versions -eq $null) {
         Write-Status -Message 'UNABLE TO GET LATEST DRIVERS FROM NVIDIA API'  -Type Warning
         Write-Status -Message 'Use the Text Box Instead Ex. 551.86'  -Type Warning
-        
+
     }
 
     Add-Type -AssemblyName System.Windows.Forms
@@ -370,7 +276,8 @@ if (!(Check-Internet)) {
     $form.Icon = New-Object System.Drawing.Icon($Global:customIcon)
 
     $type = $form.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($form, $true, $null)
 
     $startColor = [System.Drawing.Color]::FromArgb(61, 74, 102)   #rgb(61, 74, 102)
@@ -381,9 +288,9 @@ if (!(Check-Internet)) {
             param($sender, $e)
             $rect = New-Object System.Drawing.Rectangle(0, 0, $form.Width, $form.Height)
             $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-                $rect, 
-                $startColor, 
-                $endColor, 
+                $rect,
+                $startColor,
+                $endColor,
                 [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal
             )
             $e.Graphics.FillRectangle($brush, $rect)
@@ -409,7 +316,7 @@ if (!(Check-Internet)) {
     $comboBox.SelectedIndex = 0
     $form.Controls.Add($comboBox)
 
- 
+
     $textBox = New-Object System.Windows.Forms.RichTextBox
     $textBox.Location = New-Object System.Drawing.Point(20, 70)
     $textBox.Size = New-Object System.Drawing.Size(400, 200)
@@ -442,7 +349,7 @@ if (!(Check-Internet)) {
     $checkbox2.BackColor = [System.Drawing.Color]::Transparent
     $form.Controls.Add($checkbox2)
 
-   
+
     $label = New-Object System.Windows.Forms.Label
     $label.Location = New-Object System.Drawing.Point(20, 310)
     $label.Size = New-Object System.Drawing.Size(130, 30)
@@ -469,11 +376,14 @@ if (!(Check-Internet)) {
     $tooltip1.SetToolTip($textboxCustom, 'Add, hf to the end for HotFix drivers
     Ex. 420.69hf')
 
-    $buttonOK = Create-ModernButton -Text 'OK' -Location (New-Object Drawing.Point(370, 330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::OK) -borderSize 2
+    $buttonOK = Create-ModernButton -Text 'OK' -Location (New-Object Drawing.Point(370,
+    330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::OK) -borderSize 2
 
     $form.Controls.Add($buttonOK)
 
-    $buttonSkip = Create-ModernButton -Text 'Skip' -Location (New-Object Drawing.Point(285, 330)) -Size (New-Object Drawing.Size(80, 27)) -DialogResult ([System.Windows.Forms.DialogResult]::Cancel) -borderSize 2
+    $buttonSkip = Create-ModernButton -Text 'Skip' -Location (New-Object Drawing.Point(285,
+    330)) -Size (New-Object Drawing.Size(80,
+    27)) -DialogResult ([System.Windows.Forms.DialogResult]::Cancel) -borderSize 2
 
     $form.Controls.Add($buttonSkip)
 
@@ -499,7 +409,7 @@ if (!(Check-Internet)) {
         }
 
         Write-Status -Message 'INSTALLING FILES'  -Type Output
-    
+
 
 
         # Checking Windows bitness
@@ -515,10 +425,72 @@ if (!(Check-Internet)) {
             if ($selectedDriver -like '*hf') {
                 #remove hf
                 $driverNum = $selectedDriver -replace 'hf', ''
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-notebook-win10-win11-$windowsArchitecture-international-dch-hf.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-notebook`
+    -win10-win11-$windowsArchitecture-international-dch-hf.exe"
             }
             else {
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-notebook-win10-win11-$windowsArchitecture-international-dch-whql.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-notebook`
+    -win10-win11-$windowsArchitecture-international-dch-whql.exe"
             }
 
         }
@@ -526,10 +498,72 @@ if (!(Check-Internet)) {
             if ($selectedDriver -like '*hf') {
                 #remove hf
                 $driverNum = $selectedDriver -replace 'hf', ''
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-desktop-win10-win11-$windowsArchitecture-international-dch-hf.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$driverNum-desktop`
+    -win10-win11-$windowsArchitecture-international-dch-hf.exe"
             }
             else {
-                $url = "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-desktop-win10-win11-$windowsArchitecture-international-dch-whql.exe"
+                $url = `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    `
+    "https://international.download.nvidia.com/Windows/$selectedDriver/$selectedDriver-desktop`
+    -win10-win11-$windowsArchitecture-international-dch-whql.exe"
             }
 
         }
@@ -546,24 +580,26 @@ if (!(Check-Internet)) {
             else {
                 $filesToExtract = 'Display.Driver GFExperience NVI2 EULA.txt ListDevices.txt setup.cfg setup.exe'
             }
-        
+
 
         }
 
         #extracting driver files to (%temp%)
         if ($7zipinstalled) {
             if ($stripDriver) {
-                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa $exepath $filesToExtract -o""$extractFolder""" -wait
+                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa $exepath $filesToExtract -o""$extractFolder""" -wait
             }
             else {
 
-                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa $exepath -o""$extractFolder""" -wait
+                Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1
+    -aoa $exepath -o""$extractFolder""" -wait
             }
-    
+
         }
         else {
             Write-Status -Message '7zip not installed '  -Type Error
-     
+
             Start-Sleep 3
             exit
         }
@@ -573,14 +609,14 @@ if (!(Check-Internet)) {
         #deleting some files from GFExperince folder
         if ($stripDriver) {
             Write-Status -Message 'Stripping Driver...'  -Type Output
-       
+
             if ([version]$selectedDriver -ge '566.36') {
                 $targetDirectory = "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\NvApp"
             }
             else {
                 $targetDirectory = "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\GFExperience"
             }
-        
+
 
             # List of folders to exclude from deletion
             $excludedFolders = @(
@@ -597,7 +633,7 @@ if (!(Check-Internet)) {
             )
 
             # Get all items (files and folders) in the target directory
-            $items = Get-ChildItem -Path $targetDirectory -Force 
+            $items = Get-ChildItem -Path $targetDirectory -Force
 
             # Iterate through each item
             foreach ($item in $items) {
@@ -606,7 +642,7 @@ if (!(Check-Internet)) {
                 # Check if the item is a folder and not in the excludedFolders list
                 if ($item.PSIsContainer -and $excludedFolders -notcontains $itemName) {
                     # Remove the folder and its contents recursively
-                    Remove-Item -Path $item.FullName -Recurse -Force 
+                    Remove-Item -Path $item.FullName -Recurse -Force
                 }
 
                 # Check if the item is a file and should not be excluded
@@ -636,13 +672,15 @@ if (!(Check-Internet)) {
                             Remove-Item $file.FullName -Force
                         }
                     }
-                
+
                 }
             }
         }
 
         #disabling hdcp
-        $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
+        $subkeys = (Get-ChildItem
+    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
+    -Force -ErrorAction SilentlyContinue).Name
 
         foreach ($key in $subkeys) {
             if ($key -notlike '*Configuration') {
@@ -651,22 +689,24 @@ if (!(Check-Internet)) {
 
         }
         Write-Status -Message 'Installing Driver...'  -Type Output
-    
+
         #starting setup.exe in current directory (%temp%)
-        Start-Process "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\setup.exe" -WorkingDirectory "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall" -ArgumentList '-clean -s' -wait 
+        Start-Process "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall\setup.exe"
+    -WorkingDirectory "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall" -ArgumentList '-clean -s' -wait
         Clear-Host
         Write-Status -Message 'Driver installed, Cleaning up...'  -Type Output
-   
+
         #cleaning up
         Remove-Item "$env:USERPROFILE\AppData\Local\Temp\NVCleanstall" -Recurse -Force
         Remove-Item "$env:USERPROFILE\AppData\Local\Temp\NvidiaLogging" -Recurse -Force -ErrorAction SilentlyContinue
-        Remove-Item "C:\$selectedDriver.exe" -Force 
+        Remove-Item "C:\$selectedDriver.exe" -Force
         Remove-Item "$env:TEMP\DDU.exe" -ErrorAction SilentlyContinue -Force
         Remove-Item "$env:TEMP\DDU v18.0.8.6" -Recurse -Force -ErrorAction SilentlyContinue
         Remove-Item "$env:TEMP\safemodescript.ps1" -Force -ErrorAction SilentlyContinue
         #uninstalling 7zip
         if ($7zinstalledAlr -eq $false) {
-            $path = (Get-ChildItem -Path C:\ -Filter 7-Zip -Recurse -ErrorAction SilentlyContinue -Force | select-object -first 1).FullName
+            $path = (Get-ChildItem -Path C:\ -Filter 7-Zip -Recurse -ErrorAction SilentlyContinue -Force |
+    select-object -first 1).FullName
             Start-Process "$path\Uninstall.exe" -wait -ArgumentList '/S'
             remove-item 'HKLM:\SOFTWARE\7-Zip' -Force -Recurse -ErrorAction SilentlyContinue
 
@@ -675,20 +715,21 @@ if (!(Check-Internet)) {
 
 
         Write-Status -Message 'Disabling Telemetry...'  -Type Output
-    
+
         if ($stripDriver) {
             #removing a dll file needed to communicate with a telemetry server
-            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*" -Directory).FullName | ForEach-Object { 
+            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*"
+    -Directory).FullName | ForEach-Object {
                 takeown /f "$_\NvTelemetry64.dll" *>$null
                 icacls "$_\NvTelemetry64.dll" /grant administrators:F /t *>$null
-                Remove-Item "$_\NvTelemetry64.dll" -Force 
+                Remove-Item "$_\NvTelemetry64.dll" -Force
             }
-        
+
 
         }
         else {
             #disables updater and telemetry tasks
-            Get-ScheduledTask -TaskName '*NvDriverUpdateCheckDaily*' | Disable-ScheduledTask 
+            Get-ScheduledTask -TaskName '*NvDriverUpdateCheckDaily*' | Disable-ScheduledTask
             Get-ScheduledTask -TaskName '*NVIDIA GeForce Experience SelfUpdate*' | Disable-ScheduledTask
             Get-ScheduledTask -TaskName '*NvProfileUpdaterDaily*' | Disable-ScheduledTask
             Get-ScheduledTask -TaskName '*NvProfileUpdaterOnLogon*' | Disable-ScheduledTask
@@ -702,7 +743,7 @@ if (!(Check-Internet)) {
         }
 
     }
-    
+
 
 
 
@@ -715,15 +756,15 @@ if (!(Check-Internet)) {
 
     if ($monitorDevices) {
         $dList = [System.Collections.Generic.List[string]]::new()
-    
+
         foreach ($device in $monitorDevices) {
             $deviceId = $device.ToString() -replace '^.*?DISPLAY\\(.*?)\\.*$', '$1'
-        
+
             if ($deviceId.Length -eq 7 -and !$dList.Contains($deviceId)) {
-            
+
                 $dList.Add($deviceId)
-            
-                
+
+
             }
         }
         $dList = $dList.ToArray()
@@ -732,7 +773,8 @@ if (!(Check-Internet)) {
 
     #adding saturation reg key paths to an array
     $paths = if ($null -ne $dList -and $dList.Length -gt 0) {
-        $allDisplayDbKeys = @(Get-ChildItem -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
+        $allDisplayDbKeys = @(Get-ChildItem
+    -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
         foreach ($deviceId in $dList) {
             $match = $allDisplayDbKeys | Where-Object { $_.Name -like "*$deviceId*" } | Select-Object -First 1
             if ($null -ne $match) {
@@ -742,8 +784,8 @@ if (!(Check-Internet)) {
     } else {
         @()
     }
- 
-  
+
+
     #get monitor info
     <#
     $monitors = Get-WmiObject -Namespace root\wmi -Class WmiMonitorID
@@ -848,7 +890,7 @@ if (!(Check-Internet)) {
             }
         }
     }
-   
+
 
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName WindowsFormsIntegration
@@ -866,11 +908,12 @@ if (!(Check-Internet)) {
 
     $TabControl = New-Object System.Windows.Forms.TabControl
     $TabControl.Location = New-Object System.Drawing.Size(10, 10)
-    $TabControl.Size = New-Object System.Drawing.Size(370, 350) 
+    $TabControl.Size = New-Object System.Drawing.Size(370, 350)
     $TabControl.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabControl.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabControl, $true, $null)
 
     $startColor = [System.Drawing.Color]::FromArgb(61, 74, 102)   #rgb(61, 74, 102)
@@ -881,9 +924,9 @@ if (!(Check-Internet)) {
             param($sender, $e)
             $rect = New-Object System.Drawing.Rectangle(0, 0, $TabControl.Width, $TabControl.Height)
             $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-                $rect, 
-                $startColor, 
-                $endColor, 
+                $rect,
+                $startColor,
+                $endColor,
                 [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal
             )
             $e.Graphics.FillRectangle($brush, $rect)
@@ -897,7 +940,8 @@ if (!(Check-Internet)) {
     $TabPage1.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabPage1.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabPage1, $true, $null)
 
     # Override the form's paint event to apply the gradient
@@ -905,9 +949,9 @@ if (!(Check-Internet)) {
             param($sender, $e)
             $rect = New-Object System.Drawing.Rectangle(0, 0, $TabPage1.Width, $TabPage1.Height)
             $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-                $rect, 
-                $startColor, 
-                $endColor, 
+                $rect,
+                $startColor,
+                $endColor,
                 [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal
             )
             $e.Graphics.FillRectangle($brush, $rect)
@@ -919,7 +963,8 @@ if (!(Check-Internet)) {
     $TabPage2.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
 
     $type = $TabPage2.GetType()
-    $propInfo = $type.GetProperty('DoubleBuffered', [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
+    $propInfo = $type.GetProperty('DoubleBuffered',
+    [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic)
     $propInfo.SetValue($TabPage2, $true, $null)
 
     # Override the form's paint event to apply the gradient
@@ -927,21 +972,21 @@ if (!(Check-Internet)) {
             param($sender, $e)
             $rect = New-Object System.Drawing.Rectangle(0, 0, $TabPage2.Width, $TabPage2.Height)
             $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
-                $rect, 
-                $startColor, 
-                $endColor, 
+                $rect,
+                $startColor,
+                $endColor,
                 [System.Drawing.Drawing2D.LinearGradientMode]::ForwardDiagonal
             )
             $e.Graphics.FillRectangle($brush, $rect)
             $brush.Dispose()
         })
-   
+
     $TabControl.Controls.Add($TabPage1)
     $TabControl.Controls.Add($TabPage2)
 
 
 
-    $Form.Controls.Add($TabControl) 
+    $Form.Controls.Add($TabControl)
 
 
     $checkbox1 = new-object System.Windows.Forms.checkbox
@@ -951,7 +996,7 @@ if (!(Check-Internet)) {
     $checkbox1.ForeColor = 'White'
     $checkbox1.BackColor = [System.Drawing.Color]::Transparent
     $checkbox1.Checked = $false
-    $Form.Controls.Add($checkbox1)  
+    $Form.Controls.Add($checkbox1)
     $TabPage1.Controls.Add($checkBox1)
 
     $radiobutton1 = New-Object System.Windows.Forms.checkbox
@@ -1038,10 +1083,10 @@ if (!(Check-Internet)) {
     $vibrance.ForeColor = 'White'
     $vibrance.BackColor = [System.Drawing.Color]::Transparent
     $vibrance.AutoSize = $true
-    $vibrance.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold) 
+    $vibrance.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
     $vibrance.Location = New-Object System.Drawing.Point(100, 10)
     $tabPage2.Controls.Add($vibrance)
-        
+
     $trackbarValues = @{}
     $checkboxes = [System.Collections.Generic.List[System.Windows.Forms.checkbox]]::new()
     $checkboxesColor = [System.Collections.Generic.List[System.Windows.Forms.checkbox]]::new()
@@ -1103,7 +1148,9 @@ if (!(Check-Internet)) {
 
         # Create a custom style for transparency
         $sliderStyle = New-Object System.Windows.Style([System.Windows.Controls.Slider])
-        $backgroundSetter = New-Object System.Windows.Setter([System.Windows.Controls.Control]::BackgroundProperty, [System.Windows.Media.Brushes]::Transparent)
+        $backgroundSetter = New-Object `
+    System.Windows.Setter([System.Windows.Controls.Control]::BackgroundProperty, `
+    [System.Windows.Media.Brushes]::Transparent)
         $sliderStyle.Setters.Add($backgroundSetter)
         $trackBar.Style = $sliderStyle
 
@@ -1153,7 +1200,8 @@ if (!(Check-Internet)) {
     }
 
 
-    $applyButton = Create-ModernButton -Text 'Apply' -Location (New-Object Drawing.Point(140, 360)) -Size (New-Object Drawing.Size(100, 30)) -borderSize 2 -DialogResult ([System.Windows.Forms.DialogResult]::OK)
+    $applyButton = Create-ModernButton -Text 'Apply' -Location (New-Object Drawing.Point(140,
+    360)) -Size (New-Object Drawing.Size(100, 30)) -borderSize 2 -DialogResult ([System.Windows.Forms.DialogResult]::OK)
 
     $form.Controls.Add($applyButton)
 
@@ -1175,24 +1223,31 @@ if (!(Check-Internet)) {
                 #enable rebar
                 Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983226' -settingValue '1' -valueType 'Dword'
                 Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983227' -settingValue '1' -valueType 'Dword'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983295' -settingValue 'AAAAQAAAAAA=' -valueType 'Binary'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '983295' -settingValue 'AAAAQAAAAAA='
+    -valueType 'Binary'
             }
             if ($radioButton2.Checked) {
                 #enable gsync
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196567' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Toggle the VRR global feature'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196727' -settingValue '1' -valueType 'Dword' -settingNameInfo 'VRR requested state'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '279476687' -settingValue '0' -valueType 'Dword' -settingNameInfo 'G-SYNC'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '294973784' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Enable G-SYNC globally'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196567' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Toggle the VRR global feature'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '278196727' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'VRR requested state'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '279476687' -settingValue '0'
+    -valueType 'Dword' -settingNameInfo 'G-SYNC'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '294973784' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Enable G-SYNC globally'
             }
 
             if ($radioButton3.Checked) {
                 #enable dlss latest
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385331' -settingValue '16777215' -valueType 'Dword' -settingNameInfo 'Override DLSS-SR presets'
-                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385345' -settingValue '1' -valueType 'Dword' -settingNameInfo 'Enable DLSS-SR override'
-            }          
-           
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385331' -settingValue '16777215'
+    -valueType 'Dword' -settingNameInfo 'Override DLSS-SR presets'
+                Edit-Nip -nipPath "$dirPath\Custom.nip" -settingId '283385345' -settingValue '1'
+    -valueType 'Dword' -settingNameInfo 'Enable DLSS-SR override'
+            }
+
             $inspector = Search-File '*nvidiaProfileInspector.exe'
-        
+
             $arguments = 's', '-load', "$dirPath\Custom.nip"
             & $inspector $arguments | Wait-Process
 
@@ -1201,33 +1256,38 @@ if (!(Check-Internet)) {
 
         }
 
-    
+
         if ($checkbox2.Checked) {
             Write-Status -Message 'Enabling Legacy Sharpen...'  -Type Output
             #enables legacy sharpen
             #check correct path
             if (test-path 'HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS') {
-                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f
+                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' `
+    /t REG_DWORD /d '0' /f
             }
             else {
-                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f
+                Reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS' /v 'EnableGR535' /t `
+    REG_DWORD /d '0' /f
             }
-            
-        
+
+
         }
 
         if ($checkbox3.Checked) {
             Write-Status -Message 'Enabling MSI Mode For Driver...'  -Type Output
             #sets msi mode
             $instanceID = (Get-PnpDevice -Class Display).InstanceId
-            Reg.exe add "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties" /v 'MSISupported' /t REG_DWORD /d '1' /f
+            Reg.exe add "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt `
+    Management\MessageSignaledInterruptProperties" /v 'MSISupported' /t REG_DWORD /d '1' /f
 
         }
 
         if ($checkbox4.Checked) {
             Write-Status -Message 'Disabling P0 State...'  -Type Output
             #disable p0 state
-            $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
+            $subkeys = (Get-ChildItem
+    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
+    -Force -ErrorAction SilentlyContinue).Name
 
             foreach ($key in $subkeys) {
                 if ($key -notlike '*Configuration') {
@@ -1236,7 +1296,7 @@ if (!(Check-Internet)) {
 
             }
         }
-   
+
 
         foreach ($checkbox in $checkboxes) {
             if ($checkbox.Checked) {
@@ -1245,9 +1305,9 @@ if (!(Check-Internet)) {
             }
         }
 
-        #looping through trackbar values and setting them in registry to the corresponding monitor 
+        #looping through trackbar values and setting them in registry to the corresponding monitor
         $i = 0
-   
+
         foreach ($key in $trackbarValues.Keys) {
             $value = $trackbarValues[$key]
             if ($value -ne 50) {
@@ -1258,7 +1318,7 @@ if (!(Check-Internet)) {
                 Start-Sleep 1
                 $i++
             }
-        
+
         }
 
         foreach ($checkbox in $checkboxesColor) {
@@ -1286,16 +1346,16 @@ if (!(Check-Internet)) {
                     Run-Trusted -command $command
                     Start-Sleep 1
                 }
-            
-               
+
+
             }
-            
+
         }
         Write-Status -message 'Restarting Graphics Driver to Apply Changes...' -type Output
         $d = Get-PnpDevice | Where-Object { $_.class -like 'Display*' }
         $d  | Disable-PnpDevice -Confirm:$false
         $d  | Enable-PnpDevice -Confirm:$false
- 
+
     }
 
 
