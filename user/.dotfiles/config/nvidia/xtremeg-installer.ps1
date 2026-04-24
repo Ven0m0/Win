@@ -391,8 +391,8 @@ Clear-Host
 
 # Create directories
 Write-Host "[1/8] Creating directories..." -ForegroundColor Cyan
-New-Item -ItemType Directory -Force -Path $downloadPath | Out-Null
-New-Item -ItemType Directory -Force -Path $extractPath | Out-Null
+[void](New-Item -ItemType Directory -Force -Path $downloadPath)
+[void](New-Item -ItemType Directory -Force -Path $extractPath)
 Write-Host "  ✓ Created: $downloadPath" -ForegroundColor Green
 Write-Host ""
 
@@ -482,7 +482,7 @@ if (Test-Path $7zipPath) {
 try {
   if ($use7zip) {
     Write-Host "  Using 7-Zip for extraction..." -ForegroundColor Gray
-    & $7zipPath x "$($driverFile.FullName)" -o"$extractPath" -y | Out-Null
+    [void](& $7zipPath x "$($driverFile.FullName)" -o"$extractPath" -y)
   } else {
     Write-Host "  Using built-in extraction..." -ForegroundColor Gray
     Expand-Archive -Path $driverFile.FullName -DestinationPath $extractPath -Force
