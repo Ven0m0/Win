@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Deploys dotfiles and sets up a Windows development environment.
@@ -327,7 +327,16 @@ function Deploy-StarWarsBattlefrontIIConfigs {
 
   $profileOptionsPath = Join-Path $SourceDir 'ProfileOptions_profile'
   if (Test-Path $profileOptionsPath) {
-    Deploy-Config -Source $profileOptionsPath -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') -Label "$Label/ProfileOptions_profile"
+    Deploy-Config `
+      -Source $profileOptionsPath `
+      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
+      -Label "$Label/ProfileOptions_profile"
+      -Source $profileOptionsPath `
+      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
+      -Label "$Label/ProfileOptions_profile"
+      -Source $profileOptionsPath `
+      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
+      -Label "$Label/ProfileOptions_profile"
   }
 }
 
@@ -459,13 +468,22 @@ Write-Host ''
 Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
 # PowerShell profile
-Deploy-Config `
+    ResolveDestination = {
+      $profilePath = Get-FirefoxDefaultProfilePath
+      if ($profilePath) { Join-Path $profilePath 'user.js' }
+    }
   -Source (Join-Path $configRoot 'powershell\profile.ps1') `
   -Destination $PROFILE `
-  -Label 'PowerShell profile'
+    ResolveDestination = {
+      $profilePath = Get-FirefoxDefaultProfilePath
+      if ($profilePath) { Join-Path $profilePath 'user.js' }
+    }
 
 # Windows Terminal - glob for package dir to handle version string changes
-$wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue |
+    ResolveDestination = {
+      $profilePath = Get-FirefoxDefaultProfilePath
+      if ($profilePath) { Join-Path $profilePath 'user.js' }
+    }
   Select-Object -First 1
 if ($wtPackageDir) {
   Deploy-Config `
@@ -482,28 +500,35 @@ Deploy-ConfigDirectory `
   -DestDir "$env:APPDATA\BleachBit\cleaners" `
   -Filter '*.xml' `
   -Label 'BleachBit cleaners'
-
+    Note  = 'manual deployment required; the folder contains mixed scripts, profiles, docs, ' +
+            'and registry assets for install-specific locations'
 # Configs with manifest-driven handlers
 $callOfDutyPlayersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty\players'
 $firefoxProfilesRoot = Join-Path $env:APPDATA 'Mozilla\Firefox'
 $configManifest = @(
   @{
-    Path               = 'firefox\user.js'
+    Note  = 'manual deployment required; the folder contains mixed scripts, profiles, docs, ' +
+            'and registry assets for install-specific locations'
     Mode               = 'file'
     Label              = 'Firefox user.js'
-    ResolveDestination = { $profilePath = Get-FirefoxDefaultProfilePath; if ($profilePath) { Join-Path $profilePath 'user.js' } }
-    GetSkipReason      = { "Firefox profile not found under: $firefoxProfilesRoot" }
+    Note  = 'manual deployment required; the folder contains mixed scripts, '
+            'profiles, docs, and registry assets for install-specific locations'
+      Deploy-StarWarsBattlefrontIIConfigs `
+        -SourceDir $sourceDir `
+        -Label $label
   },
   @{
     Path  = 'brave\brave_debloater.reg'
     Mode  = 'registry'
     Label = 'Brave policies'
   },
-  @{
+      Deploy-StarWarsBattlefrontIIConfigs `
+        -SourceDir $sourceDir `
+        -Label $label
     Path  = 'nvidia'
     Mode  = 'manual'
     Label = 'NVIDIA assets'
-    Note  = 'manual deployment required; the folder contains mixed scripts, profiles, docs, and registry assets for install-specific locations'
+      Deploy-StarWarsBattlefrontIIConfigs -SourceDir $sourceDir -Label $label
   },
   @{
     Path   = 'cmd'
@@ -579,7 +604,10 @@ foreach ($dir in $commonDirs) {
       Write-Host "  [OK] Created $dir" -ForegroundColor Green
     }
   }
-}
+  @{
+    label = 'Execution policy (User)'
+    ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined')
+  }
 
 # ---------------------------------------------------------------------------
 # Phase 5: Verification summary
@@ -588,11 +616,17 @@ Write-Host ''
 Write-Host '[5/5] Verification summary' -ForegroundColor Cyan
 
 $updatedPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-$checks = @(
+  @{
+    label = 'Execution policy (User)'
+    ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined')
+  }
   @{ label = 'PowerShell profile';      ok = Test-Path $PROFILE },
   @{ label = 'Scripts directory';       ok = Test-Path $scriptsPath },
   @{ label = 'Scripts in PATH';         ok = ($updatedPath -like "*$scriptsPath*") },
-  @{ label = 'Execution policy (User)'; ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined') }
+  @{
+    label = 'Execution policy (User)'
+    ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined')
+  }
 )
 
 foreach ($check in $checks) {
