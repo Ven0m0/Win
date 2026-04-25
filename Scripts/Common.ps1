@@ -621,7 +621,8 @@ function Get-MonitorInstances {
 
     if ($ForceRefresh -or -not $script:CachedMonitorInstances) {
         try {
-            $script:CachedMonitorInstances = (Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID -ErrorAction Stop).InstanceName -replace '_0', ''
+            $script:CachedMonitorInstances = (Get-WmiObject -Namespace root\wmi -Class WmiMonitorID `
+                -ErrorAction Stop).InstanceName -replace '_0', ''
         } catch {
             Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
             $script:CachedMonitorInstances = @()

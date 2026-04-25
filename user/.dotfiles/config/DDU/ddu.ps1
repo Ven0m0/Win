@@ -1,3 +1,5 @@
+﻿
+
 [void](reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\DriverSearching" `
     /v "SearchOrderConfig" /t REG_DWORD /d "0" /f)
 # toggle safe mode

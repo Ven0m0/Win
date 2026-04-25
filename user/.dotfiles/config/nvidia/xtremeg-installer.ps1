@@ -235,9 +235,8 @@ function Download-FromMega {
     Read-Host
 
     # Find downloaded file
-    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") `
-      -Recurse -ErrorAction SilentlyContinue `
-      |
+    $downloaded = Get-ChildItem -Path $DestinationPath -Include @("*.zip", "*.7z", "*.rar") -Recurse `
+      -ErrorAction SilentlyContinue |
       Sort-Object LastWriteTime -Descending |
       Select-Object -First 1
 
@@ -310,10 +309,10 @@ function Remove-DriverBloat {
 @echo off
 REM Additional telemetry cleanup for XtremeG driver
 echo Disabling NVIDIA telemetry services...
-reg add "HKLM\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client" /v "OptInOrOutPreference" ^
-    /t REG_DWORD /d "0" /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup" /v "SendTelemetryData" ^
-    /t REG_DWORD /d "0" /f >nul 2>&1
+reg add "HKLM\SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client" /v "OptInOrOutPreference" `
+  /t REG_DWORD /d "0" /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\Startup" /v "SendTelemetryData" `
+  /t REG_DWORD /d "0" /f >nul 2>&1
 schtasks /change /disable /tn "NvTmRep_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
 schtasks /change /disable /tn "NvProfileUpdater_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}" >nul 2>&1
 echo Telemetry disabled.
@@ -592,9 +591,8 @@ try {
 }
 
 # Run post-install telemetry cleanup
-$telemetryScript = Get-ChildItem -Path $extractPath -Filter "disable-telemetry.bat" `
-  -Recurse -ErrorAction SilentlyContinue | `
-  Select-Object -First 1
+$telemetryScript = Get-ChildItem -Path $extractPath -Filter "disable-telemetry.bat" -Recurse `
+  -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($telemetryScript) {
   Write-Host "Running post-install telemetry cleanup..." -ForegroundColor Cyan
   try {
