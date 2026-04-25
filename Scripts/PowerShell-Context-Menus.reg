@@ -2,21 +2,12 @@ Windows Registry Editor Version 5.00
 
 ; ── .ps1 files → Run as Administrator (pwsh 7) ────────────────────────────────
 [HKEY_CLASSES_ROOT\Microsoft.PowerShellScript.1\Shell\RunAsAdmin]
-@="Run as &Administrator (pwsh 7)"
+@="Run as &Administrator"
 "Icon"="pwsh.exe"
 "HasLUAShield"=""
 
 [HKEY_CLASSES_ROOT\Microsoft.PowerShellScript.1\Shell\RunAsAdmin\command]
 @="powershell.exe -WindowStyle Hidden -Command \"Start-Process pwsh.exe -ArgumentList '-ExecutionPolicy Bypass -NoProfile -File \\\"%1\\\"' -Verb RunAs\""
-
-; ── .ps1 files → Run as Administrator (PowerShell 5.1) ────────────────────────
-[HKEY_CLASSES_ROOT\Microsoft.PowerShellScript.1\Shell\RunAsAdmin51]
-@="Run as &Administrator (PS 5.1)"
-"Icon"="powershell.exe"
-"HasLUAShield"=""
-
-[HKEY_CLASSES_ROOT\Microsoft.PowerShellScript.1\Shell\RunAsAdmin51\command]
-@="powershell.exe -ExecutionPolicy Bypass -NoProfile -File \"%1\""
 
 ; ── Folders → Open PowerShell 7 here (Administrator) ─────────────────────────
 [HKEY_CLASSES_ROOT\Directory\shell\PowerShellAdmin]
