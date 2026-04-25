@@ -1,0 +1,64 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; NVIDIA Display Scaling and Image Quality Tweaks
+; ============================================================
+; Advanced display output optimizations
+; Based on community research and testing
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+; Disable DWM (Desktop Window Manager) MPO when not needed
+; Alternative to our toggle - registry-based control
+; "OverlayTestMode"=dword:00000005  ; Enable (default)
+; "OverlayTestMode"=dword:00000000  ; Disable (fixes flickering)
+; NOTE: Use our toggles/enable-mpo.reg or disable-mpo.reg instead
+
+; Force GPU scaling (instead of display scaling)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"NV_Scaling"=dword:00000003
+
+; Image Sharpening (0 = Off, 1 = On)
+; Note: Better controlled via NVIDIA Control Panel
+"ImageSharpening"=dword:00000000
+
+; ============================================================
+; Color and Output Settings
+; ============================================================
+
+; Set output color depth to maximum (10-bit if supported)
+"ColorDepth"=dword:0000000a
+
+; Set output color format (0 = RGB, 1 = YCbCr422, 2 = YCbCr444)
+"ColorFormat"=dword:00000000
+
+; ============================================================
+; Refresh Rate and Timing
+; ============================================================
+
+; Allow maximum refresh rate
+"MaxRefreshRate"=dword:000000f0
+
+; Disable refresh rate switching (keep at max)
+"DisableRefreshRateSwitching"=dword:00000001
+
+; ============================================================
+; Latency Optimizations
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; Ultra Low Latency Mode via registry
+; NOTE: Better set via NVIDIA Control Panel
+; 0 = Off, 1 = On, 2 = Ultra
+"PreferredLatencyMode"=dword:00000002
+
+; ============================================================
+; Variable Refresh Rate (G-SYNC/FreeSync)
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+; Enable Variable Refresh Rate
+"EnableVRR"=dword:00000001
+
+; G-SYNC compatible mode (for FreeSync monitors)
+"GSyncCompatible"=dword:00000001

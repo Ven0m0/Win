@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable P-State 0 Lock (Restore Dynamic Clocking)
+; ============================================================
+; Restores dynamic GPU clock adjustment
+; GPU will adjust clocks based on load to save power
+; Use this if you want normal power-saving behavior
+; Note: Change 0000 to your GPU index if needed
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"DisableDynamicPstate"=dword:00000000

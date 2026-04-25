@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable ECC (Error Correction Code) - EXPERIMENTAL
+; ============================================================
+; WARNING: Only use this if you know what you're doing!
+; ECC helps prevent memory errors. Disabling may cause instability.
+; Primarily useful for workstation/datacenter GPUs (Quadro/Tesla)
+; Gaming GPUs typically don't have ECC anyway
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"RMAERRForceDisable"=dword:00000001
+"RMNoECCFuseCheck"=dword:00000001
+"RMDisableRCOnDBE"=dword:00000001
+"RM1441072"=dword:00000001
+"RMAERRHandling"=dword:00000000

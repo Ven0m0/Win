@@ -1,0 +1,134 @@
+name: Registry File Validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.reg"
+      - ".github/workflows/reg-validate.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.reg"
+      - ".github/workflows/reg-validate.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-reg-files:
+    name: Validate .reg Files
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get changed .reg files
+        id: changed
+        shell: pwsh
+        run: |
+          # Compare against the base branch
+          $baseRef = '${{ github.base_ref }}'
+          if ($baseRef -and $baseRef -ne '') {
+            # Ensure the base ref is available
+            git fetch origin "refs/heads/$baseRef" --depth=1 2>$null
+            $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.reg$' })
+          }
+          if ($files.Count -eq 0) {
+            # Fallback to all reg files if no changes detected
+            $files = @(Get-ChildItem -Path . -Recurse -Include *.reg -File | Select-Object -ExpandProperty FullName)
+          }
+          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          Write-Host "Changed files: $($files -join ', ')"
+
+      - name: Validate registry files
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+          $issues = @()
+          $warnings = @()
+
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) { continue }
+
+            $content = Get-Content -Path $file -Raw
+            $lines = $content -replace "`r" -split "`n"
+
+            # ========================================
+            # Check: Required header (critical for valid .reg file)
+            # ========================================
+            if ($lines.Count -gt 0 -and $lines[0] -notmatch '^Windows Registry Editor Version 5\.00$') {
+              $issues += "[$file]:1: Missing or invalid header. Expected 'Windows Registry Editor Version 5.00'"
+            }
+
+            # Note: Duplicate keys, deletion keys (-KEY), and other patterns
+            # are intentionally allowed as they are valid .reg file constructs
+          }
+
+          # ========================================
+          # Output results
+          # ========================================
+          if ($warnings.Count -gt 0) {
+            Write-Host "## Warnings (informational)" -ForegroundColor Yellow
+            $warnings | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            Write-Host ""
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host "## Validation Issues Found" -ForegroundColor Red
+            $issues | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+            Write-Host ""
+            Write-Host "Total issues: $($issues.Count)"
+            exit 1
+          } else {
+            Write-Host "## All .reg files have valid headers" -ForegroundColor Green
+            exit 0
+          }
+
+      - name: Check registry value safety
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
+
+          # Patterns that should be reviewed (not necessarily errors)
+          $suspiciousPatterns = @(
+            @{ Pattern = 'DisableSecurity'; Message = 'Disabling security settings' },
+            @{ Pattern = 'PromptOnSecureDesktop'; Message = 'UAC security modification' },
+            @{ Pattern = 'EnableLUA.*=dword:00000000'; Message = 'Disabling UAC' },
+            @{ Pattern = 'ConsentPromptBehaviorAdmin.*=dword:00000000'; Message = 'Disabling admin prompts' },
+            @{ Pattern = 'fAllowToGetHelp.*=dword:00000000'; Message = 'Disabling remote assistance' },
+            @{ Pattern = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\.*Start.*=dword:00000004'; Message = 'Disabling a service' },
+            @{ Pattern = 'Windows\\System\\Rpc'; Message = 'RPC configuration change' },
+            @{ Pattern = 'TcpTimedWaitDelay'; Message = 'Network timing configuration' }
+          )
+
+          $safetyNotes = @()
+          foreach ($file in $files) {
+            if (-not (Test-Path $file)) { continue }
+            $content = Get-Content -Path $file -Raw
+
+            foreach ($check in $suspiciousPatterns) {
+              if ($content -match $check.Pattern) {
+                $safetyNotes += "[$file]: $($check.Message) - verify this is intentional"
+              }
+            }
+          }
+
+          if ($safetyNotes.Count -gt 0) {
+            Write-Host ""
+            Write-Host "## Safety Review Notes (informational)" -ForegroundColor Cyan
+            Write-Host "The following changes may affect system security or functionality:"
+            $safetyNotes | Select-Object -Unique | ForEach-Object { Write-Host $_ -ForegroundColor Cyan }
+            Write-Host ""
+            Write-Host "These are informational only. Review each change before applying."
+          }

@@ -1,0 +1,61 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; NVIDIA OpenGL and Vulkan Optimizations
+; ============================================================
+; Performance tweaks for OpenGL and Vulkan APIs
+; Useful for older games (OpenGL) and modern titles (Vulkan)
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; OpenGL Triple Buffering (reduces input lag)
+"OpenGLTripleBuffering"=dword:00000000
+
+; Vulkan heap budget optimization
+"VulkanHeapBudgetOptimization"=dword:00000001
+
+; Enable Vulkan timeline semaphores
+"EnableVulkanTimelineSemaphores"=dword:00000001
+
+; ============================================================
+; OpenGL Specific Settings
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\OpenGL]
+; Disable OpenGL overlay (reduces overhead)
+"EnableOverlay"=dword:00000000
+
+; Force maximum OpenGL performance
+"ForceMaxPerformance"=dword:00000001
+
+; ============================================================
+; Vulkan Specific Settings
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\Vulkan]
+; Enable Vulkan optimizations
+"EnableOptimizations"=dword:00000001
+
+; Disable Vulkan overlay
+"EnableOverlay"=dword:00000000
+
+; ============================================================
+; API Thread Optimization
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; Enable API threaded optimization (use with caution)
+; Can improve performance but may cause issues in some games
+"EnableThreadedOptimization"=dword:00000001
+
+; D3D9 optimizations
+"D3D9ThreadedOptimization"=dword:00000001
+
+; D3D11 optimizations
+"D3D11ThreadedOptimization"=dword:00000001
+
+; ============================================================
+; Note: Some of these settings are better controlled via
+; NVIDIA Control Panel → Manage 3D Settings
+; These registry values provide a base configuration
+; ============================================================

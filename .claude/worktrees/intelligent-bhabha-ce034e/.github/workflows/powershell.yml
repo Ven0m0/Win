@@ -1,0 +1,75 @@
+# PSScriptAnalyzer linting workflow
+# Analyzes PowerShell scripts for script quality, best practices, and potential issues.
+#
+# Rules configured in PSScriptAnalyzerSettings.psd1:
+# - AvoidGlobalAliases: Discourages use of global aliases
+# - AvoidUsingConvertToSecureStringWithPlainText: Warns against insecure practices
+# - AvoidUsingEmptyCatchBlock: Ensures catch blocks handle errors
+# - AvoidUsingInvokeExpression: Warns against Invoke-Expression usage
+# - UseApprovedVerbs: Ensures cmdlets use approved verbs
+# - UseConsistentIndentation: Enforces consistent indentation
+# - UseConsistentWhitespace: Enforces consistent whitespace
+# - And more...
+#
+# See: https://github.com/PowerShell/PSScriptAnalyzer
+
+name: PSScriptAnalyzer Lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/powershell.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/powershell.yml"
+  schedule:
+    - cron: "27 2 * * 1"
+
+# Cancel in-progress runs for the same workflow + ref to avoid
+# duplicate SARIF uploads and wasted runner minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # required for github/codeql-action/upload-sarif to get the Action run status
+    name: PSScriptAnalyzer
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@v1.1
+        with:
+          # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.
+          # Runs PSScriptAnalyzer across the entire repository with the shared repo settings.
+          path: .\
+          recurse: true
+          settings: .\PSScriptAnalyzerSettings.psd1
+          output: results.sarif
+
+      # Upload the SARIF file generated in the previous step
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif

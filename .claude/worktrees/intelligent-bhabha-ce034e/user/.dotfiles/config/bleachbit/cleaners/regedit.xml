@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    BleachBit
+    Copyright (C) 2008-2019 Andrew Ziem
+    https://www.bleachbit.org
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    @app Microsoft Windows
+    @url none
+    @os Windows
+    @cleanerversion v1.1.0
+    @cleanerdate 2019-03-22
+    @cleanerby https://github.com/Tobias-B-Besemer (2019-03-07 - 2019-03-22)
+    @tested ok v???, Windows 7
+    @testeddate 2019-03-10 (... with an old version of the cleaner!)
+    @testedby https://github.com/Tobias-B-Besemer
+    @note That we don't need so much translation, we combine all in "History"! Tobias.
+
+-->
+<cleaner id="regedit" os="windows">
+  <label>Registry Editor</label>
+  <description>Utility</description>
+  <!-- That we don't need so much translation, we combine all in "History"! Tobias. -->
+  <option id="history">
+    <label>History</label>
+    <description>Delete the usage history</description>
+    <!-- That we don't need so much translation, we combine all in "History"! Tobias.
+  <option id="lastkey">
+    <label>Last Key</label>
+    <description>Delete the Last Key Setting</description>
+  -->
+    <action command="winreg" path="HKCU\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit" name="LastKey"/>
+  </option>
+</cleaner>

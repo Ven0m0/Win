@@ -1,0 +1,290 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; NVIDIA Performance Optimization Registry Tweaks
+; ============================================================
+; Consolidated from multiple experimental tweak files
+; Apply these tweaks for maximum gaming/performance
+; Reboot required after applying
+; ============================================================
+
+; ============================================================
+; GPU Driver Performance Settings (0000 = First GPU)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+
+; === Memory Management ===
+"WDDMv21Enable2MPageSupport"=dword:00000001
+"WDDMv21Enable64KbSysmemSupport"=dword:00000001
+"WDDMv2SupportPageTableInSystemMemory"=dword:00000001
+"PreferSystemMemoryContiguous"=dword:00000001
+"CPUVisibleHeap"=dword:00000001
+
+; === Display Features ===
+"EnableIndependentFlip"=dword:00000001
+"EnableDirectFlip"=dword:00000001
+"EnableDirectFlipFor3dLut"=dword:00000001
+
+; === Performance Modes ===
+"AllowMaxPerf"=dword:00000001
+"EnablePerformanceMode"=dword:00000001
+"EnableAggressivePStateBoost"=dword:00000001
+
+; === Multi-Threading ===
+"RMEnableMultiThreading"=dword:00000001
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+"RMDisablePerIntrDPCQueueing"=dword:00000001
+
+; === Cache & Memory Optimizations ===
+"EnableTLBInvalidateOpt"=dword:00000001
+"RmPVMRL"=dword:00000001
+"RMGpuCacheEnable"=dword:00000001
+"RMIMPDynamicMempoolAllocation"=dword:00000001
+
+; === Power & Clock Management ===
+"RMUseAggressiveGC6"=dword:00000001
+"EnableFastGC6"=dword:00000001
+"AllowHWGC6"=dword:00000001
+"RmClkPowerOffDramPllWhenUnused"=dword:00000000
+"FastResume"=dword:00000001
+
+; === Audio (Disable D3Cold for lower latency) ===
+"EnableHDAudioD3Cold"=dword:00000000
+
+; === Advanced Optimizations ===
+"RMLockingMode"=dword:00000001
+"RMIntrLockingMode"=dword:00000001
+"EnableRS4ContextlessPresent"=dword:00000001
+"EnableSparseTexture"=dword:00000001
+"EnableSegmentPreservation"=dword:00000001
+"EnableAllocationMigration"=dword:00000001
+
+; === Security/Telemetry Reduction ===
+"RmValidateClientData"=dword:00000000
+"RMUcodeEncryption"=dword:00000000
+"RMEnableEventTracer"=dword:00000000
+"EnableNVLinkL2Tracking"=dword:00000000
+"RmLockTimeCollect"=dword:00000000
+"RMCtxswLog"=dword:00000000
+
+; === DPC & Priority ===
+"RM654663"=dword:00000001
+"RMEnableForceSharedLock"=dword:00000001
+"RMPriorityBoost"=dword:00000001
+"RmStreamMemOps"=dword:00000001
+
+; === Resource Management ===
+"RMClientListDeferredFree"=dword:00000001
+"RMClientListDeferredFreeLimit"=dword:00000001
+"RmForceGridDisplayless"=dword:00000001
+"RMForcePcieConfigSave"=dword:00000001
+"RMForceEnableDisplayMScg"=dword:00000001
+"RMPcieFLRPolicy"=dword:00000001
+
+; === Additional Performance ===
+"RMSupportUserdMapDma"=dword:00000001
+"RmIgnoreHulkErrors"=dword:00000001
+"RmDisableFanDiag"=dword:00000001
+"RMG5xL2VidmemPromote"=dword:00000001
+
+; === P-State Lock (Force Maximum Performance) ===
+"DisableDynamicPstate"=dword:00000001
+"PerfLevelSrc"=dword:00002222
+"PowerMizerEnable"=dword:00000001
+"PowerMizerLevel"=dword:00000001
+"PowerMizerLevelAC"=dword:00000001
+
+; === HDCP Disable (improves latency, breaks DRM content) ===
+"RMHdcpKeyglobZero"=dword:00000001
+
+; === GPU Firmware ===
+"EnableGpuFirmware"=dword:00000001
+"UsePageAttributeTable"=dword:00000001
+"InitializeSystemMemoryAllocations"=dword:00000000
+
+; ============================================================
+; NVLDDMKM Service Settings
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+
+; === Memory & PTE Optimizations ===
+"UseOptimizedUpdatePTEWddm2"=dword:00000001
+"UseOptimizedUpdatePTEWddm1"=dword:00000001
+"UseOptimizedUpdatePTEvGPUwddm1"=dword:00000001
+"WDDMV2_128K_PTE"=dword:00000001
+"WDDMv21Enable64KbSysmemSupport"=dword:00000001
+"WDDMv21Enable2MPageSupport"=dword:00000001
+"DisableWriteCombining"=dword:00000001
+
+; === Display Features ===
+"EnableIndependentFlip"=dword:00000001
+"EnableDirectFlip"=dword:00000001
+"EnableGFESharedMemory"=dword:00000001
+
+; === Power Management ===
+"EnableGC6FSM"=dword:00000001
+"AllowHWGC6"=dword:00000001
+"RMUseAggressiveGC6"=dword:00000001
+"EnableHDAudioD3Cold"=dword:00000000
+
+; === Texture & Segment ===
+"EnableSparseTexture"=dword:00000001
+"EnableSegmentPreservation"=dword:00000001
+
+; === System Compatibility ===
+"DmaRemappingCompatible"=dword:00000000
+"EnableIommuIsolationOnWDDM216"=dword:00000000
+
+; === Logging (Disable for performance) ===
+"LogWarningEntries"=dword:00000000
+"LogPagingEntries"=dword:00000000
+"LogEventEntries"=dword:00000000
+"LogErrorEntries"=dword:00000000
+
+; === Performance Settings ===
+"PreferSystemMemoryContiguous"=dword:00000001
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+"RMDisablePerIntrDPCQueueing"=dword:00000001
+"RM654663"=dword:00000001
+"RMEnableForceSharedLock"=dword:00000001
+"RMPriorityBoost"=dword:00000001
+"RmStreamMemOps"=dword:00000001
+"RMClientListDeferredFree"=dword:00000001
+"RMClientListDeferredFreeLimit"=dword:00000001
+"RmForceGridDisplayless"=dword:00000001
+"RMForcePcieConfigSave"=dword:00000001
+"RMForceEnableDisplayMScg"=dword:00000001
+"RMPcieFLRPolicy"=dword:00000001
+"PrimaryPushBufferSize"=dword:00000001
+"EnablePerformanceMode"=dword:00000001
+"DisableBugcheckCallback"=dword:00000001
+"EnableMidGfxpSharedBuffer"=dword:00000001
+"AllowMaxPerf"=dword:00000001
+
+; === Preemption (Disable for lower latency, may cause instability) ===
+"DisablePreemption"=dword:00000001
+
+; === Unified Memory ===
+"UvmDisable"=dword:00000001
+
+; === DX12 Hybrid/Optimus ===
+"EnableDx12OnOptimus"=dword:00000001
+"EnableDx12OnMsHybrid"=dword:00000001
+
+; === Advanced Features ===
+"EnableAggressivePStateBoost"=dword:00000001
+"EnableStreamMemOPs"=dword:00000001
+"EnableGpuFirmware"=dword:00000001
+"UsePageAttributeTable"=dword:00000001
+"RMIntrLockingMode"=dword:00000001
+
+; ============================================================
+; NVLDDMKM Parameters
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters]
+
+; === Memory & PTE ===
+"UseOptimizedUpdatePTEWddm2"=dword:00000001
+"UseOptimizedUpdatePTEWddm1"=dword:00000001
+"WDDMV2_128K_PTE"=dword:00000001
+"WDDMv21Enable64KbSysmemSupport"=dword:00000001
+"WDDMv21Enable2MPageSupport"=dword:00000001
+"DisableWriteCombining"=dword:00000001
+
+; === Display ===
+"EnableIndependentFlip"=dword:00000001
+"EnableDirectFlip"=dword:00000001
+"EnableGFESharedMemory"=dword:00000001
+"EnableGC6FSM"=dword:00000001
+
+; === Audio ===
+"EnableHDAudioD3Cold"=dword:00000000
+
+; === Texture & Segment ===
+"EnableSparseTexture"=dword:00000001
+"EnableSegmentPreservation"=dword:00000001
+"AllowHWGC6"=dword:00000001
+
+; === System ===
+"DmaRemappingCompatible"=dword:00000000
+"EnableIommuIsolationOnWDDM216"=dword:00000000
+
+; === Logging ===
+"LogWarningEntries"=dword:00000000
+"LogPagingEntries"=dword:00000000
+"LogEventEntries"=dword:00000000
+"LogErrorEntries"=dword:00000000
+
+; === Performance ===
+"PreferSystemMemoryContiguous"=dword:00000001
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+"RMDisablePerIntrDPCQueueing"=dword:00000001
+"RMUseAggressiveGC6"=dword:00000001
+"RM654663"=dword:00000001
+"RMEnableForceSharedLock"=dword:00000001
+"RMPriorityBoost"=dword:00000001
+"RmStreamMemOps"=dword:00000001
+"RMClientListDeferredFree"=dword:00000001
+"RMClientListDeferredFreeLimit"=dword:00000001
+"RmForceGridDisplayless"=dword:00000001
+"RMForcePcieConfigSave"=dword:00000001
+"RMForceEnableDisplayMScg"=dword:00000001
+"RMPcieFLRPolicy"=dword:00000001
+"PrimaryPushBufferSize"=dword:00000001
+"EnablePerformanceMode"=dword:00000001
+"DisableBugcheckCallback"=dword:00000001
+"EnableMidGfxpSharedBuffer"=dword:00000001
+"DisablePreemption"=dword:00000001
+"UvmDisable"=dword:00000001
+
+; === Advanced ===
+"EnableAggressivePStateBoost"=dword:00000001
+"EnableStreamMemOPs"=dword:00000001
+"EnableGpuFirmware"=dword:00000001
+"UsePageAttributeTable"=dword:00000001
+"RMIntrLockingMode"=dword:00000001
+
+; ============================================================
+; NVTweak Settings
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Global\NVTweak]
+"DisplayPowerSaving"=dword:00000000
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+
+; ============================================================
+; NVAPI Settings
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\NVAPI]
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+
+; ============================================================
+; Graphics Drivers Global Settings
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power]
+"RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler]
+"EnablePreemption"=dword:00000000
+"VsyncIdleTimeout"=dword:00000000
+
+; ============================================================
+; Windows Media Foundation (Disable Frame Server for lower latency)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows Media Foundation]
+"EnableFrameServerMode"=-
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Media Foundation]
+"EnableFrameServerMode"=-
+
+; ============================================================
+; NVIDIA Image Scaling (NIS) - New Version (Driver 535+)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
+"EnableGR535"=dword:00000001
+
+; ============================================================
+; END OF FILE
+; ============================================================

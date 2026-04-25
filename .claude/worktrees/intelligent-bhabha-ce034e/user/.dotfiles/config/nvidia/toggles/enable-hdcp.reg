@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable HDCP (High-bandwidth Digital Content Protection)
+; ============================================================
+; Restores HDCP support for DRM content
+; Required for: Netflix, Prime Video, Disney+, Blu-ray playback
+; Note: Change 0000 to your GPU index if needed
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"RMHdcpKeyglobZero"=dword:00000000
