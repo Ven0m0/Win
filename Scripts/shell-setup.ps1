@@ -365,7 +365,8 @@ if ($HomeWorkstation) {
   if ($appIds) { [void]$InstalledIDs.AddRange([string[]]$appIds) }
   foreach ($item in $SteamDB) {
     if ($InstalledIDs -notcontains $item) {
-      Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
+      Start-Process -FilePath ".\steam.exe" -ArgumentList "-applaunch","$item" `
+        -WorkingDirectory "${Env:Programfiles(x86)}\Steam\" -Wait
     }
   }
 }
