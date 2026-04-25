@@ -2503,13 +2503,6 @@ function Initialize-AdapterUI {
         $cb_rssqueues.Text = $AdapterQueues
         }
 
-        #$RegistryQueues = Get-ItemPropertyValue -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
-        #$PowershellQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -expand NumberOfReceiveQueues
-        #if($RegistryQueues -eq $PowershellQueues){
-        #    Write-Host "NumberOfReceiveQueues is equal."
-        #}else{
-        #    Write-Warning "NumberOfReceiveQueues is not the same. (Powershell and Registry not equal!) Using Registry Value."
-
         #RSS Profiles
         $OSRSSProfiles = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetAdapterRss.Profile].GetEnumValues()
         [void] $cb_rssprofile.Items.AddRange([object[]]@($OSRSSProfiles))
