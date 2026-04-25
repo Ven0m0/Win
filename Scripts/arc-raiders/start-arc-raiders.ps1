@@ -104,17 +104,49 @@ try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch {
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."
-Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
-    $dl = $_.DriveLetter
-    $med = try {
-        (Get-PhysicalDisk | Where-Object {
-            (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $_.UniqueId
-        } | Select-Object -First 1).MediaType
-    } catch { 'Unspecified' }
-    if ($med -ne 'HDD') {
-        Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
-        Write-Host "  ${dl}: ReTrim issued."
+$disks = Get-Disk -ErrorAction SilentlyContinue
+$parts = Get-Partition -ErrorAction SilentlyContinue
+$phys  = Get-PhysicalDisk -ErrorAction SilentlyContinue
+
+$diskMap = @{}
+if ($null -ne $disks) {
+    foreach ($d in $disks) {
+        if ($null -ne $d.Number) {
+            $diskMap[$d.Number] = $d.UniqueId
+        }
+    }
+}
+
+$dlToUid = @{}
+if ($null -ne $parts) {
+    foreach ($p in $parts) {
+        if ($p.DriveLetter -and $null -ne $diskMap[$p.DiskNumber]) {
+            $dlToUid[$p.DriveLetter] = $diskMap[$p.DiskNumber]
+        }
+    }
+}
+
+$uidToMed = @{}
+if ($null -ne $phys) {
+    foreach ($pd in $phys) {
+        if ($pd.UniqueId) {
+            $uidToMed[$pd.UniqueId] = $pd.MediaType
+        }
+    }
+}
+
+$vols = Get-Volume -ErrorAction SilentlyContinue
+if ($null -ne $vols) {
+    foreach ($vol in $vols) {
+        if ($vol.DriveType -eq 'Fixed' -and $vol.DriveLetter) {
+            $dl = $vol.DriveLetter
+            $uid = $dlToUid[$dl]
+            $med = if ($uid -and $null -ne $uidToMed[$uid]) { $uidToMed[$uid] } else { 'Unspecified' }
+            if ($med -ne 'HDD') {
+                Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+                Write-Host "  ${dl}: ReTrim issued."
+            }
+        }
     }
 }
 
