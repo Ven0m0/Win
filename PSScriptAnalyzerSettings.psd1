@@ -1,4 +1,4 @@
-﻿@{
+@{
   # Core analysis rules
   IncludeRules = @(
     # Avoid problematic patterns
@@ -8,7 +8,6 @@
     'PSAvoidUsingInvokeExpression'
     'PSAvoidUsingPositionalParameters'
     'PSAvoidUsingUsernameAndPasswordParams'
-    'PSAvoidUsingWriteHost'
     'PSUseBOMForUnicodeEncodedFile'
     'PSUseCorrectCasing'
     # Best practices
@@ -27,6 +26,8 @@
   ExcludeRules = @(
     # Exclude rule that requires OutputType for internal scripts
     'PSUseOutputTypeCorrectly'
+    # Exclude WriteHost as it's widely used for colored output in scripts
+    'PSAvoidUsingWriteHost'
   )
   # Severity levels: Error, Warning, Information
   Severity = 'Warning'
