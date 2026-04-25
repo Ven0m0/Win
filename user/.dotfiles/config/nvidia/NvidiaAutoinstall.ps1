@@ -791,13 +791,13 @@ if (!(Check-Internet)) {
     $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID
     $manufacturerNames = [System.Collections.Generic.List[string]]::new()
     $soundDevices = Get-CimInstance -ClassName Win32_SoundDevice
-    $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
+    $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity -Filter "PNPDeviceID IS NOT NULL"
     $videoControllers = Get-CimInstance -ClassName Win32_VideoController
     #>
     $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID
     $manufacturerNames = [System.Collections.Generic.List[string]]::new()
     $soundDevices = Get-CimInstance -ClassName Win32_SoundDevice
-    $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity | Where-Object { $_.PNPDeviceID -ne $null }
+    $pnpDevices = Get-CimInstance -ClassName Win32_PnPEntity -Filter "PNPDeviceID IS NOT NULL"
     $videoControllers = Get-CimInstance -ClassName Win32_VideoController
 
     # Pre-filter NVIDIA Video Controllers
