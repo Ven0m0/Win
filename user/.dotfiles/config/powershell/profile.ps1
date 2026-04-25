@@ -208,32 +208,90 @@ Set-Alias -Name myip -Value Get-PublicIP
 function touch {
     <#
     .SYNOPSIS
-        Create a new file or update timestamp
+        Create new files or update timestamps, accepting pipeline input
     #>
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path
+    )
 
-    if (Test-Path $Path) {
-        (Get-Item $Path).LastWriteTime = Get-Date
-        Write-Warning "File $Path already exists. Timestamp updated."
-    } else {
-        [void](New-Item -ItemType File -Path $Path)
-        Write-Host "SUCCESS: File $Path created." -ForegroundColor Green
+    begin {
+        [System.Collections.Generic.List[string]]$allPaths = [System.Collections.Generic.List[string]]::new()
+    }
+
+    process {
+        if ($Path) {
+            $allPaths.AddRange($Path)
+        }
+    }
+
+    end {
+        if ($allPaths -and $allPaths.Count -gt 0) {
+            [array]$exists = Test-Path -LiteralPath $allPaths
+
+            [System.Collections.Generic.List[string]]$existingPaths = [System.Collections.Generic.List[string]]::new()
+            [System.Collections.Generic.List[string]]$newPaths = [System.Collections.Generic.List[string]]::new()
+
+            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+                if ($exists[$i]) {
+                    $existingPaths.Add($allPaths[$i])
+                } else {
+                    $newPaths.Add($allPaths[$i])
+                }
+            }
+
+            if ($existingPaths.Count -gt 0) {
+                $now = Get-Date
+                Get-Item -LiteralPath $existingPaths | ForEach-Object {
+                    $_.LastWriteTime = $now
+                    Write-Warning "File $($_.FullName) already exists. Timestamp updated."
+                }
+            }
+
+            foreach ($p in $newPaths) {
+                [void](New-Item -ItemType File -Path $p)
+                Write-Host "SUCCESS: File $p created." -ForegroundColor Green
+            }
+        }
     }
 }
 
 function mkcd {
     <#
     .SYNOPSIS
-        Create directory and change into it
+        Create directory and change into it, accepting pipeline input
     #>
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path
+    )
 
-    if (Test-Path $Path) {
-        Write-Warning "Directory $Path already exists."
-    } else {
-        [void](New-Item -ItemType Directory -Path $Path -Force)
+    begin {
+        [System.Collections.Generic.List[string]]$allPaths = [System.Collections.Generic.List[string]]::new()
     }
-    Set-Location $Path
+
+    process {
+        if ($Path) {
+            $allPaths.AddRange($Path)
+        }
+    }
+
+    end {
+        if ($allPaths -and $allPaths.Count -gt 0) {
+            [array]$exists = Test-Path -LiteralPath $allPaths
+
+            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+                $p = $allPaths[$i]
+                if ($exists[$i]) {
+                    Write-Warning "Directory $p already exists."
+                } else {
+                    [void](New-Item -ItemType Directory -Path $p -Force)
+                }
+            }
+            # Change to the last path specified
+            Set-Location $allPaths[-1]
+        }
+    }
 }
 
 # Network Utilities
