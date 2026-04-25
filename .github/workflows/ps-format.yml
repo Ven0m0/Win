@@ -46,7 +46,7 @@ jobs:
           }
           if ($files.Count -eq 0) {
             # Fallback to all ps1 files if no changes detected
-            $files = @(Get-ChildItem -Path . -Recurse -Include *.ps1,*.psm1,*.psd1 -File | Select-Object -ExpandProperty FullName)
+            $files = @()
           }
           "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"

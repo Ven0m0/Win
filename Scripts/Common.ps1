@@ -1,4 +1,4 @@
-﻿# Common.ps1 - Shared utility functions for Windows optimization scripts
+﻿## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
 # Suppress Write-Host warnings for UI helper functions
 #pragma warning disable PSAvoidUsingWriteHost
@@ -254,7 +254,9 @@ function Get-NvidiaGpuSettings {
         $GpuPaths = Get-NvidiaGpuPaths
     }
 
-    [array]$results = foreach ($path in $GpuPaths) {
+    $results = @()
+
+    foreach ($path in $GpuPaths) {
         $gpuName = ($path -split '\\')[-1]
         $entry = [ordered]@{
             GpuName = $gpuName
@@ -279,7 +281,7 @@ function Get-NvidiaGpuSettings {
             }
         }
 
-        [pscustomobject]$entry
+        $results += [pscustomobject]$entry
     }
 
     return $results
