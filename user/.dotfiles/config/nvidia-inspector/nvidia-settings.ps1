@@ -266,10 +266,10 @@ Set-Content -Path "$env:TEMP\Inspector.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Inspector.nip"
 # enable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" `
-    /f | Out-Null
+[void](reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f)
+[void](reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" /f)
+[void](reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "0" `
+    /f)
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit
@@ -291,10 +291,10 @@ Set-Content -Path "$env:TEMP\Defaults.nip" -Value $MultilineComment -Force
 # import config
 Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\Defaults.nip"
 # disable nvidia legacy sharpen
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
-reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f | Out-Null
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" `
-    /f | Out-Null
+[void](reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f)
+[void](reg add "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" /f)
+[void](reg add "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" /v "EnableGR535" /t REG_DWORD /d "1" `
+    /f)
 # open nvidiacontrolpanel
 Start-Process "shell:appsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel"
 exit

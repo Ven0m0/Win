@@ -216,7 +216,7 @@ function touch {
         (Get-Item $Path).LastWriteTime = Get-Date
         Write-Warning "File $Path already exists. Timestamp updated."
     } else {
-        New-Item -ItemType File -Path $Path | Out-Null
+        [void](New-Item -ItemType File -Path $Path)
         Write-Host "SUCCESS: File $Path created." -ForegroundColor Green
     }
 }
@@ -231,7 +231,7 @@ function mkcd {
     if (Test-Path $Path) {
         Write-Warning "Directory $Path already exists."
     } else {
-        New-Item -ItemType Directory -Path $Path -Force | Out-Null
+        [void](New-Item -ItemType Directory -Path $Path -Force)
     }
     Set-Location $Path
 }
@@ -462,9 +462,8 @@ function supdate {
 
     foreach ($package in $packages) {
         Write-Host "Upgrading $package..." -ForegroundColor Cyan
-        winget upgrade --id $package `
-            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 |
-  Out-Null
+        [void](winget upgrade --id $package `
+            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1)
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✓ $package upgraded" -ForegroundColor Green
         }
