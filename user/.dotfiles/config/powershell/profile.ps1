@@ -1,4 +1,4 @@
-﻿## PowerShell Profile
+## PowerShell Profile
 # Location: $HOME\.dotfiles\config\powershell\profile.ps1
 # Managed by yadm
 
@@ -61,7 +61,7 @@ if (Get-Module -ListAvailable -Name PSColor) {
         File = @{
             Default    = @{ Color = 'White' }
             Directory  = @{ Color = 'Blue'}
-            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.' }
+            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.'; }
             Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html)$' }
             Executable = @{ Color = 'Red'; Pattern = '\.(exe|bat|cmd|py|pl|ps1|psm1|vbs|rb|reg)$' }
             Text       = @{ Color = 'Yellow'; Pattern = '\.(txt|cfg|conf|ini|csv|log|config|xml|yml|md|markdown)$' }
@@ -208,32 +208,90 @@ Set-Alias -Name myip -Value Get-PublicIP
 function touch {
     <#
     .SYNOPSIS
-        Create a new file or update timestamp
+        Create new files or update timestamps, accepting pipeline input
     #>
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path
+    )
 
-    if (Test-Path $Path) {
-        (Get-Item $Path).LastWriteTime = Get-Date
-        Write-Warning "File $Path already exists. Timestamp updated."
-    } else {
-        New-Item -ItemType File -Path $Path | Out-Null
-        Write-Host "SUCCESS: File $Path created." -ForegroundColor Green
+    begin {
+        [System.Collections.Generic.List[string]]$allPaths = [System.Collections.Generic.List[string]]::new()
+    }
+
+    process {
+        if ($Path) {
+            $allPaths.AddRange($Path)
+        }
+    }
+
+    end {
+        if ($allPaths -and $allPaths.Count -gt 0) {
+            [array]$exists = Test-Path -LiteralPath $allPaths
+
+            [System.Collections.Generic.List[string]]$existingPaths = [System.Collections.Generic.List[string]]::new()
+            [System.Collections.Generic.List[string]]$newPaths = [System.Collections.Generic.List[string]]::new()
+
+            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+                if ($exists[$i]) {
+                    $existingPaths.Add($allPaths[$i])
+                } else {
+                    $newPaths.Add($allPaths[$i])
+                }
+            }
+
+            if ($existingPaths.Count -gt 0) {
+                $now = Get-Date
+                Get-Item -LiteralPath $existingPaths | ForEach-Object {
+                    $_.LastWriteTime = $now
+                    Write-Warning "File $($_.FullName) already exists. Timestamp updated."
+                }
+            }
+
+            foreach ($p in $newPaths) {
+                [void](New-Item -ItemType File -Path $p)
+                Write-Host "SUCCESS: File $p created." -ForegroundColor Green
+            }
+        }
     }
 }
 
 function mkcd {
     <#
     .SYNOPSIS
-        Create directory and change into it
+        Create directory and change into it, accepting pipeline input
     #>
-    param([Parameter(Mandatory)][string]$Path)
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [string[]]$Path
+    )
 
-    if (Test-Path $Path) {
-        Write-Warning "Directory $Path already exists."
-    } else {
-        New-Item -ItemType Directory -Path $Path -Force | Out-Null
+    begin {
+        [System.Collections.Generic.List[string]]$allPaths = [System.Collections.Generic.List[string]]::new()
     }
-    Set-Location $Path
+
+    process {
+        if ($Path) {
+            $allPaths.AddRange($Path)
+        }
+    }
+
+    end {
+        if ($allPaths -and $allPaths.Count -gt 0) {
+            [array]$exists = Test-Path -LiteralPath $allPaths
+
+            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+                $p = $allPaths[$i]
+                if ($exists[$i]) {
+                    Write-Warning "Directory $p already exists."
+                } else {
+                    [void](New-Item -ItemType Directory -Path $p -Force)
+                }
+            }
+            # Change to the last path specified
+            Set-Location $allPaths[-1]
+        }
+    }
 }
 
 # Network Utilities
@@ -462,11 +520,10 @@ function supdate {
 
     foreach ($package in $packages) {
         Write-Host "Upgrading $package..." -ForegroundColor Cyan
-        winget upgrade --id $package `
-            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 |
-  Out-Null
+        [void](winget upgrade --id $package `
+            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1)
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ $package upgraded" -ForegroundColor Green
+            Write-Host "$package upgraded" -ForegroundColor Green
         }
     }
 }
@@ -538,9 +595,9 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 
         # Shorten path if too long
         if ($path.Length -gt 30) {
-            $pathParts = $path.Split('\')
+            $pathParts = $path.Split('\\')
             if ($pathParts.Count -gt 3) {
-                $path = "\..\$($pathParts[-2])\$($pathParts[-1])"
+                $path = "\..\ $($pathParts[-2])\$($pathParts[-1])"
             }
         }
 

@@ -45,10 +45,10 @@ jobs:
             $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
           }
           if ($files.Count -eq 0) {
-            # Fallback to all ps1 files if no changes detected
-            $files = @(Get-ChildItem -Path . -Recurse -Include *.ps1,*.psm1,*.psd1 -File | Select-Object -ExpandProperty FullName)
+            # Fallback: no changes detected, use empty array (avoids full-repo scan on push)
+            $files = @()
           }
-          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          "files=$($files -join ',')") | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"
 
       - name: Run formatting check
@@ -67,10 +67,11 @@ jobs:
             $bytes = [System.IO.File]::ReadAllBytes($file)
             $content = [System.IO.File]::ReadAllText($file, [System.Text.UTF8Encoding]::new($true))
 
-            # Remove BOM from content for processing
-            if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-              $content = $content.Substring(1)
-            }
+            # ReadAllText with UTF8Encoding automatically strips the BOM if present
+            # We don't need to manually substring it, otherwise we lose the first character
+            # if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+            #   $content = $content.Substring(1)
+            # }
 
              $lines = $content -split "\r?\n"
 
