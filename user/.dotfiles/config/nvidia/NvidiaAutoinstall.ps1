@@ -776,7 +776,13 @@ if (!(Check-Internet)) {
         $allDisplayDbKeys = @(Get-ChildItem
     -Path 'registry::HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm\State\DisplayDatabase\')
         foreach ($deviceId in $dList) {
-            $match = $allDisplayDbKeys | Where-Object { $_.Name -like "*$deviceId*" } | Select-Object -First 1
+            $match = $null
+            foreach ($key in $allDisplayDbKeys) {
+                if ($key.Name -like "*$deviceId*") {
+                    $match = $key
+                    break
+                }
+            }
             if ($null -ne $match) {
                 $match
             }
