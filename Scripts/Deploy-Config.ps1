@@ -458,7 +458,7 @@ foreach ($key in $script:Results.Keys | Sort-Object) {
     $status = $script:Results[$key]
     $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
     Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
-    
+
     switch ($status) {
         'OK' { $successCount++ }
         'FAIL' { $failCount++ }

@@ -94,12 +94,12 @@ Describe "VDF Parsing and Converting" {
         $vdf = @"
 "AppState"
 {
-	"appid"		"730"
-	"name"		"Counter-Strike 2"
-	"SharedDepots"
-	{
-		"228989"		"228980"
-	}
+  "appid"    "730"
+  "name"    "Counter-Strike 2"
+  "SharedDepots"
+  {
+    "228989"    "228980"
+  }
 }
 "@
         $lines = $vdf -split "`n"
