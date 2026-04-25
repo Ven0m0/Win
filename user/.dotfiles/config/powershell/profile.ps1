@@ -1,4 +1,4 @@
-﻿## PowerShell Profile
+## PowerShell Profile
 # Location: $HOME\.dotfiles\config\powershell\profile.ps1
 # Managed by yadm
 
@@ -61,7 +61,7 @@ if (Get-Module -ListAvailable -Name PSColor) {
         File = @{
             Default    = @{ Color = 'White' }
             Directory  = @{ Color = 'Blue'}
-            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.' }
+            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.'; }
             Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html)$' }
             Executable = @{ Color = 'Red'; Pattern = '\.(exe|bat|cmd|py|pl|ps1|psm1|vbs|rb|reg)$' }
             Text       = @{ Color = 'Yellow'; Pattern = '\.(txt|cfg|conf|ini|csv|log|config|xml|yml|md|markdown)$' }
@@ -523,7 +523,7 @@ function supdate {
         [void](winget upgrade --id $package `
             --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1)
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ $package upgraded" -ForegroundColor Green
+            Write-Host "$package upgraded" -ForegroundColor Green
         }
     }
 }
@@ -595,9 +595,9 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 
         # Shorten path if too long
         if ($path.Length -gt 30) {
-            $pathParts = $path.Split('\')
+            $pathParts = $path.Split('\\')
             if ($pathParts.Count -gt 3) {
-                $path = "\..\$($pathParts[-2])\$($pathParts[-1])"
+                $path = "\..\ $($pathParts[-2])\$($pathParts[-1])"
             }
         }
 
