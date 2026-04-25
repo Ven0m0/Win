@@ -819,7 +819,22 @@ $managers = @(
                     }
                     if (-not $installed -and $pkgFailed) { $anyFailed = $true }
                     # Brief pause only after a successful install to let Windows Installer service settle
-                    if ($installed) { Start-Sleep -Seconds 2 }
+                    if ($installed) {
+                        $msiWaitStart = [System.Diagnostics.Stopwatch]::StartNew()
+                        while ($msiWaitStart.Elapsed.TotalSeconds -lt 10) {
+                            try {
+                                $mutex = [System.Threading.Mutex]::OpenExisting("Global\_MSIExecute")
+                                $mutex.Dispose()
+                                Start-Sleep -Milliseconds 200
+                            } catch {
+                                if ($_.Exception.InnerException -is [System.UnauthorizedAccessException]) {
+                                    Start-Sleep -Milliseconds 200
+                                } else {
+                                    break
+                                }
+                            }
+                        }
+                    }
                 }
 
                 # Recapture status for post-hooks
