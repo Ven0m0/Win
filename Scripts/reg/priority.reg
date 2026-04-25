@@ -15,6 +15,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences]
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Call of Duty HQ\\cod24\\cod24-cod.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
+"C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe"="GpuPreference=2;VRROptimizeEnable=0;AutoHDREnable=0;SwapEffectUpgradeEnable=1;"
 "DirectXUserGlobalSettings"="VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe]
@@ -24,3 +25,11 @@ Windows Registry Editor Version 5.00
 "MitigationAuditOptions"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
   00,00,00,00,00,00,00,00
 "EAFModules"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe\PerfOptions]
+"CpuPriorityClass"=dword:00000006
+"IoPriority"=dword:00000003
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe]
+"UseLargePages"=dword:00000001
+
