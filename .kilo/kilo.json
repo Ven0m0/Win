@@ -26,7 +26,10 @@
     "@gotgenes/opencode-agent-identity@3.0.1",
     "github:joshuadavidthomas/opencode-agent-memory",
     "github:kdcokenny/opencode-background-agents",
-    "github:spoons-and-mirrors/subtask2"
+    "github:spoons-and-mirrors/subtask2",
+    "opencode-betterglob",
+    "opencode-bettergrep",
+    "opencode-betterread"
   ],
   "formatter": {
     "biome": {
