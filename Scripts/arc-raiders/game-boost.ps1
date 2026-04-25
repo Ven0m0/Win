@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Arc Raiders — Game Boost
@@ -333,7 +333,8 @@ foreach ($procName in $KILL_LIST.Keys) {
 
     $friendly = $KILL_LIST[$procName]
     foreach ($proc in $procs) {
-        $ramKB = try { $proc.WorkingSet64 / 1KB } catch { 0 }
+        $ws = $proc.WorkingSet64
+        $ramKB = if ($null -ne $ws) { [long]($ws / 1KB) } else { 0 }
         $killedRamKB += [long]$ramKB
 
         if ($DryRun) {
