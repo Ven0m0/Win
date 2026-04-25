@@ -125,7 +125,7 @@ $script:Config = @{
                 $script:_acrobatProcs = @(Get-Process -Name 'Acrobat', 'AcroRd32', 'AcroCEF' -ErrorAction SilentlyContinue)
                 if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray; $script:_acrobatProcs | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 }
                 Write-Host "  Clearing temporary files to prevent Acrobat extraction errors..." -ForegroundColor Gray
-                Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match '\.tmp|\.log' } | Remove-Item -Force -ErrorAction SilentlyContinue
+                @(Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue).Where({ $_.Extension -match '\.tmp|\.log' }) | Remove-Item -Force -ErrorAction SilentlyContinue
             }
             Post = { if ($script:_acrobatProcs.Count -gt 0) { $p = @((Join-Path $env:ProgramFiles 'Adobe\Acrobat DC\Acrobat\Acrobat.exe'), (Join-Path ${env:ProgramFiles(x86)} 'Adobe\Acrobat Reader DC\Reader\AcroRd32.exe')) | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($p) { Start-Process $p -ErrorAction SilentlyContinue } } }
         }
@@ -1446,7 +1446,7 @@ else {
         $tempPath = $env:TEMP
         $cutoff = (Get-Date).AddDays(-$script:Config.TempCleanupDays)
         if ($tempPath -and (Test-Path $tempPath)) {
-            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            @(Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue).Where({ $_.LastWriteTime -lt $cutoff }) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
             Write-Status "Temp files cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
         }
     }
@@ -1455,7 +1455,7 @@ else {
     if ($isAdmin) {
         try {
             if (Test-Path 'C:\Windows\Temp') {
-                Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+                @(Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue).Where({ $_.LastWriteTime -lt $cutoff }) | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
                 Write-Status "C:\Windows\Temp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
             }
         }
