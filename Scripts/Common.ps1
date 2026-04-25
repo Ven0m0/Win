@@ -254,9 +254,7 @@ function Get-NvidiaGpuSettings {
         $GpuPaths = Get-NvidiaGpuPaths
     }
 
-    $results = @()
-
-    foreach ($path in $GpuPaths) {
+    [array]$results = foreach ($path in $GpuPaths) {
         $gpuName = ($path -split '\\')[-1]
         $entry = [ordered]@{
             GpuName = $gpuName
@@ -281,7 +279,7 @@ function Get-NvidiaGpuSettings {
             }
         }
 
-        $results += [pscustomobject]$entry
+        [pscustomobject]$entry
     }
 
     return $results
