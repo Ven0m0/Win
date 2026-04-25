@@ -11,8 +11,11 @@ function Request-AdminElevation {
     .DESCRIPTION
         Checks if the current session has admin rights. If not, relaunches the script with elevation
     #>
-    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-        Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+    $principal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    $adminRole = [Security.Principal.WindowsBuiltInRole]'Administrator'
+    if (!($principal.IsInRole($adminRole))) {
+        $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath
+        Start-Process PowerShell.exe -ArgumentList $args -Verb RunAs
         Exit
     }
 }
@@ -267,7 +270,8 @@ function Get-NvidiaGpuSettings {
 
         if ($Setting -eq "All" -or $Setting -eq "P0State") {
             try {
-                $entry.P0State = (Get-ItemProperty -Path "Registry::$path" -Name 'DisableDynamicPstate' -ErrorAction Stop).DisableDynamicPstate
+                $prop = Get-ItemProperty -Path "Registry::$path" -Name 'DisableDynamicPstate' -ErrorAction Stop
+                $entry.P0State = $prop.DisableDynamicPstate
             } catch {
                 $entry.P0State = $null
             }
@@ -275,7 +279,8 @@ function Get-NvidiaGpuSettings {
 
         if ($Setting -eq "All" -or $Setting -eq "HDCP") {
             try {
-                $entry.HDCP = (Get-ItemProperty -Path "Registry::$path" -Name 'RMHdcpKeyglobZero' -ErrorAction Stop).RMHdcpKeyglobZero
+                $prop = Get-ItemProperty -Path "Registry::$path" -Name 'RMHdcpKeyglobZero' -ErrorAction Stop
+                $entry.HDCP = $prop.RMHdcpKeyglobZero
             } catch {
                 $entry.HDCP = $null
             }
@@ -391,7 +396,8 @@ function Set-NvidiaSignatureOverride {
     if (($bcdNoIntegrityExitCode -eq 0) -and ($bcdTestSigningExitCode -eq 0)) {
         Write-Host "  [OK] BCDEDIT settings updated ($value)" -ForegroundColor Green
     } else {
-        Write-Host "  [WARN] Failed to update BCDEDIT settings (may require Secure Boot disabled or elevated PowerShell)" -ForegroundColor Yellow
+        Write-Host "  [WARN] Failed to update BCDEDIT settings `
+              (may require Secure Boot disabled or elevated PowerShell)" -ForegroundColor Yellow
         if ($bcdNoIntegrityExitCode -ne 0 -and $bcdNoIntegrityOutput) {
             Write-Host "    nointegritychecks error (exit code $bcdNoIntegrityExitCode):" -ForegroundColor Yellow
             Write-Host "      $bcdNoIntegrityOutput"
@@ -404,11 +410,15 @@ function Set-NvidiaSignatureOverride {
 
     # NVIDIA Registry Keys
     $regError = $false
-    Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+    $path = "HKLM\SOFTWARE\NVIDIA Corporation\Global"
+    $name = "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    Set-RegistryValue -Path $path -Name $name -Type "REG_BINARY" -Data $regData
     if ($LASTEXITCODE -ne 0) {
         $regError = $true
     }
-    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}" -Type "REG_BINARY" -Data $regData
+    $path = "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm"
+    $name = "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    Set-RegistryValue -Path $path -Name $name -Type "REG_BINARY" -Data $regData
     if ($LASTEXITCODE -ne 0) {
         $regError = $true
     }
@@ -430,7 +440,9 @@ function Get-NvidiaSignatureStatus {
         ServiceOverride = $false
     }
 
-    $globalVal = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    $path = "HKLM:\SOFTWARE\NVIDIA Corporation\Global"
+    $name = "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    $globalVal = Get-RegistryValueSafe -Path $path -Name $name
     if ($null -ne $globalVal) {
         if ($globalVal -is [array]) {
             $status.GlobalOverride = $globalVal[0] -eq 1
@@ -439,7 +451,9 @@ function Get-NvidiaSignatureStatus {
         }
     }
 
-    $serviceVal = Get-RegistryValueSafe -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm" -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    $path = "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm"
+    $name = "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+    $serviceVal = Get-RegistryValueSafe -Path $path -Name $name
     if ($null -ne $serviceVal) {
         if ($serviceVal -is [array]) {
             $status.ServiceOverride = $serviceVal[0] -eq 1
@@ -485,7 +499,9 @@ function Get-FileFromWeb {
         if ($psISE) {
             Write-Progress "$ProgressText" -id 0 -percentComplete $percentComplete
         } else {
-            Write-Host -NoNewLine "`r$ProgressText $(''.PadRight($BarSize * $percent, [char]9608).PadRight($BarSize, [char]9617)) $($percentComplete.ToString('##0.00').PadLeft(6)) % "
+            $bar = ''.PadRight($BarSize * $percent, [char]9608).PadRight($BarSize, [char]9617)
+            $pct = $($percentComplete.ToString('##0.00').PadLeft(6))
+            Write-Host -NoNewLine "`r$ProgressText $bar $pct % "
         }
     }
 
@@ -606,7 +622,8 @@ function Get-MonitorInstances {
 
     if ($ForceRefresh -or -not $script:CachedMonitorInstances) {
         try {
-            $script:CachedMonitorInstances = (Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID -ErrorAction Stop).InstanceName -replace '_0', ''
+            $monitors = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID -ErrorAction Stop
+            $script:CachedMonitorInstances = $monitors.InstanceName -replace '_0', ''
         } catch {
             Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
             $script:CachedMonitorInstances = @()
@@ -631,18 +648,22 @@ function Set-FullscreenMode {
 
     if ($Mode -eq 'FSO') {
         # Fullscreen Optimizations (Default)
-        Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "0"
+        $path = "HKCU\System\GameConfigStore"
+        Set-RegistryValue -Path $path -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "0"
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -Type REG_DWORD -Data "0"
         Remove-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehavior"
-        Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "0"
+        $path = "HKCU\System\GameConfigStore"
+        Set-RegistryValue -Path $path -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "0"
 
         Write-Host "Fullscreen Optimizations (FSO) enabled." -ForegroundColor Green
     } else {
         # Fullscreen Exclusive
-        Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "1"
+        $path = "HKCU\System\GameConfigStore"
+        Set-RegistryValue -Path $path -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "1"
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -Type REG_DWORD -Data "2"
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_FSEBehavior" -Type REG_DWORD -Data "2"
-        Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "1"
+        $path = "HKCU\System\GameConfigStore"
+        Set-RegistryValue -Path $path -Name "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "1"
 
         Write-Host "Fullscreen Exclusive (FSE) enabled." -ForegroundColor Green
         Write-Host ""
@@ -674,17 +695,22 @@ function Set-MultiPlaneOverlay {
             Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode"
 
             # Enable optimizations for windowed games
-            Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
+            $path = "HKCU\Software\Microsoft\DirectX\UserGpuPreferences"
+            $data = "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
+            Set-RegistryValue -Path $path -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data $data
 
             Write-Host "Multiplane Overlay: Enabled" -ForegroundColor Green
             Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
         }
         'Disabled' {
             # Disable multiplane overlay
-            Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Type REG_DWORD -Data "5"
+            $path = "HKLM\SOFTWARE\Microsoft\Windows\Dwm"
+            Set-RegistryValue -Path $path -Name "OverlayTestMode" -Type REG_DWORD -Data "5"
 
             # Disable optimizations for windowed games
-            Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
+            $path = "HKCU\Software\Microsoft\DirectX\UserGpuPreferences"
+            $data = "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
+            Set-RegistryValue -Path $path -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data $data
 
             Write-Host "Multiplane Overlay: Disabled" -ForegroundColor Yellow
             Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
@@ -694,7 +720,9 @@ function Set-MultiPlaneOverlay {
             Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode"
 
             # Disable optimizations for windowed games
-            Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
+            $path = "HKCU\Software\Microsoft\DirectX\UserGpuPreferences"
+            $data = "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
+            Set-RegistryValue -Path $path -Name "DirectXUserGlobalSettings" -Type REG_SZ -Data $data
 
             Write-Host "Multiplane Overlay: Default (Enabled)" -ForegroundColor Cyan
             Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Cyan
@@ -736,7 +764,8 @@ function Show-GamingDisplayStatus {
     }
 
     # Check DirectX settings
-    $dxSettings = Get-RegistryValueSafe -Path "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings"
+    $path = "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences"
+    $dxSettings = Get-RegistryValueSafe -Path $path -Name "DirectXUserGlobalSettings"
     if ($null -ne $dxSettings) {
         if ($dxSettings -like '*SwapEffectUpgradeEnable=1*') {
             Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
@@ -831,7 +860,8 @@ function Clear-DirectorySafe {
     $null = robocopy "$empty" "$Path" /MIR /R:1 /W:0 /ZB /NFL /NDL /NJH /NJS 2>&1
 
     # Fallback
-    Get-ChildItem "$Path" -Recurse -File -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    $items = Get-ChildItem "$Path" -Recurse -File -Force -ErrorAction SilentlyContinue
+    $items | Remove-Item -Force -ErrorAction SilentlyContinue
 }
 #endregion
 
@@ -854,7 +884,8 @@ function New-RestorePoint {
         Enable-ComputerRestore -Drive "$($env:SystemDrive)\" -ErrorAction SilentlyContinue
 
         # Create restore point
-        Checkpoint-Computer -Description "$Description $(Get-Date -Format 'yyyy-MM-dd HH:mm')" -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
+        $desc = "$Description $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+        Checkpoint-Computer -Description $desc -RestorePointType "MODIFY_SETTINGS" -ErrorAction Stop
         Write-Host "  Restore point created successfully" -ForegroundColor Green
     } catch {
         Write-Host "  Warning: Could not create restore point" -ForegroundColor Yellow
@@ -900,7 +931,8 @@ function Remove-AppxPackageSafe {
             try {
                 Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
             } catch {
-                Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" -ForegroundColor Red
+                $msg = "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)"
+                Write-Host $msg -ForegroundColor Red
             }
         }
     }
@@ -914,7 +946,9 @@ function Set-EDIDOverride {
         Applies EDID override to all monitors to fix display driver stuttering
     #>
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
-    $edidHex = '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
+    $edidHex = '02030400000000000000000000000000000000000000000000000000000000000000000000000000' +
+                '00000000000000000000000000000000000000000000000000000000000000000000000000000000' +
+                '000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
@@ -1027,7 +1061,8 @@ function Set-MSIMode {
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
-        $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+        $basePath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management"
+        $regPath = "$basePath\MessageSignaledInterruptProperties"
         Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
     }
 
@@ -1036,7 +1071,8 @@ function Set-MSIMode {
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
-        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+        $basePath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters"
+        $regPath = "$basePath\Interrupt Management\MessageSignaledInterruptProperties"
 
         Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
         Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
@@ -1409,9 +1445,12 @@ function Stop-SteamGracefully {
     if (Get-Process -Name 'steam' -ErrorAction SilentlyContinue) {
         Write-Info "Shutting down Steam..."
 
-        $steamPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" -Name 'InstallPath' -ErrorAction SilentlyContinue).InstallPath
+        $path = "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam"
+        $prop = Get-ItemProperty $path -Name 'InstallPath' -ErrorAction SilentlyContinue
+        $steamPath = $prop.InstallPath
         if (-not $steamPath) {
-            $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath
+            $prop = Get-ItemProperty "HKCU:\Software\Valve\Steam" -Name 'SteamPath' -ErrorAction SilentlyContinue
+            $steamPath = $prop.SteamPath
         }
 
         if ($steamPath) {
@@ -1424,7 +1463,8 @@ function Stop-SteamGracefully {
         }
 
         # Force kill if still running
-        Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+        $procs = Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue
+        $procs | Stop-Process -Force -ErrorAction SilentlyContinue
         Write-Success "Steam stopped"
     }
 }
