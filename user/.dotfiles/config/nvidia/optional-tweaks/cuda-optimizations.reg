@@ -35,7 +35,7 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
 ; Disable compute preemption for lower latency (may reduce stability)
 ; Only use if you're not running heavy compute tasks alongside gaming
-"DisableComputePreemption"=dword:00000001
+"DisableComputePreemption"=dword:00000000
 
 ; ============================================================
 ; Note: For NVIDIA Profile Inspector CUDA settings:
