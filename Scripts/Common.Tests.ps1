@@ -157,3 +157,26 @@ Describe "ConvertFrom-VDF values with spaces" {
         $result.AppState.path | Should -Be '"C:\Program Files (x86)\Steam"'
     }
 }
+
+Describe "Show-RestartRequired" {
+    It "Should call Write-Host and Wait-ForKeyPress" {
+        Mock Write-Host
+        Mock Wait-ForKeyPress
+
+        Show-RestartRequired
+
+        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke Wait-ForKeyPress -Times 1
+    }
+
+    It "Should call Write-Host with custom message" {
+        Mock Write-Host
+        Mock Wait-ForKeyPress
+
+        $msg = "Custom Restart Message"
+        Show-RestartRequired -CustomMessage $msg
+
+        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke Wait-ForKeyPress -Times 1
+    }
+}
