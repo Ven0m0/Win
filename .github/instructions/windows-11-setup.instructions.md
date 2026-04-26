@@ -6,6 +6,28 @@ applyTo: "**/Setup-Win11.ps1,**/bootstrap.ps1,**/Setup-Dotfiles.ps1"
 
 These instructions apply to Windows 11-specific setup and bootstrap scripts.
 
+## Unattended USB Install (Scripts/auto/)
+
+`Scripts/auto/autounattend.xml` provides a fully unattended Windows 11 install from USB:
+
+1. Copy `autounattend.xml` to the **root of the USB drive** — that is the only file required.
+2. Boot from the USB. Windows Setup detects the file and runs fully unattended.
+3. All setup scripts are **embedded inside the XML** via the `ExtractScript` mechanism and extracted to `C:\Windows\Setup\Scripts\` during the specialize pass.
+
+**Do not** add flat `.ps1` or `.cmd` files alongside the XML in `Scripts/auto/`; they become stale duplicates.
+
+**Install sequence after first boot:**
+- `FirstLogon.ps1` → calls `install.ps1` (winget packages, Windows Update, reboot)
+- `stage2.ps1` (scheduled task on next logon) → WSL/Ubuntu, then sets WinUtil RunOnce
+- Next logon → WinUtil opens for final tweaks (Win11 Creator compatible)
+
+**Validate the XML** after any edit:
+```powershell
+$xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
+```
+
+**WinUtil Win11 Creator**: use any USB creation tool (WinUtil, Rufus, Ventoy), then copy `autounattend.xml` to the USB root to replace the generated answer file.
+
 ## Fresh Windows 11 Install Path
 
 A clean Windows 11 installation can be fully automated with a single command:

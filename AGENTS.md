@@ -21,6 +21,7 @@ Ven0m0/Win is a Windows dotfiles and optimization suite managed with [yadm](http
 
 - `Scripts/` contains the main PowerShell automation surface.
 - `Scripts/Common.ps1` is the shared helper library.
+- `Scripts/auto/autounattend.xml` is the self-contained unattended Windows 11 USB installer. All setup scripts are embedded inside the XML via `ExtractScript`; no companion flat files belong alongside it.
 - `user/.dotfiles/config/` contains tracked dotfile content.
 - `.yadm/bootstrap` is the bootstrap entry point and delegates to `Scripts/Setup-Dotfiles.ps1`.
 - `.github/instructions/` and `.github/skills/` hold Copilot-facing guidance.

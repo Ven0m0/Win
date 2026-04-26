@@ -1107,13 +1107,13 @@ function Test-InternetConnectivity {
 }
 
 function Install-WingetPackage {
-    param([string[]]$Packages, [int]$MaxRetries = 3)
+    param([string[]]$Packages, [string[]]$ExtraArgs = @(), [int]$MaxRetries = 3)
     if (-not (Test-InternetConnectivity)) {
         Write-Host "[WARN] No internet connectivity, skipping: $($Packages -join ', ')" -ForegroundColor Yellow
         return
     }
     for ($i = 1; $i -le $MaxRetries; $i++) {
-        $result = winget install @W @Packages 2>`&gt;1
+        $result = winget install @W @Packages @ExtraArgs 2>&amp;1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "[OK] Installed: $($Packages[0])" -ForegroundColor Green
             return
@@ -1140,18 +1140,7 @@ if (-not (Test-InternetConnectivity)) {
 
     Install-WingetPackage -Packages @('Git.Git') -ExtraArgs @('--source', 'winget')
     Install-WingetPackage -Packages @('Microsoft.PowerShell', 'Microsoft.WindowsTerminal', 'Microsoft.AppInstaller', 'Microsoft.VisualStudioCode', 'VSCodium.VSCodium', 'GitHub.cli', 'Notepad++.Notepad++', 'CodeSector.TeraCopy', 'MathiasCodes.Winstow', 'PuTTY.PuTTY', 'Eugeny.Terminus')
-    Microsoft.PowerShell Microsoft.WindowsTerminal Microsoft.AppInstaller `
-    Microsoft.VisualStudioCode VSCodium.VSCodium `
-    GitHub.cli Notepad++.Notepad++ `
-    CodeSector.TeraCopy MathiasCodes.Winstow `
-    PuTTY.PuTTY Eugeny.Terminus
-
-winget install @W `
-    eza-community.eza BurntSushi.ripgrep.MSVC Genivia.ugrep `
-    sharkdp.fd sharkdp.bat dandavison.delta `
-    Starship.Starship JanDeDobbeleer.OhMyPosh `
-    aria2.aria2 7zip.7zip Meta.Zstandard `
-    TimVisee.ffsend Rclone.Rclone
+    Install-WingetPackage -Packages @('eza-community.eza', 'BurntSushi.ripgrep.MSVC', 'sharkdp.fd', 'sharkdp.bat', 'dandavison.delta', 'Starship.Starship', 'JanDeDobbeleer.OhMyPosh', 'aria2.aria2', '7zip.7zip')
 
 Install-WingetPackage -Packages @('VideoLAN.VLC', 'mpv.net', 'GIMP.GIMP', 'tannerhelland.PhotoDemon', 'XnSoft.XnViewMP', 'XnSoft.XnConvert', 'eibol.FFmpegBatchAVConverter', 'HandBrake.HandBrake', 'Avidemux.Avidemux', 'Meltytech.Shotcut', 'KDE.Kdenlive', 'OBSProject.OBSStudio', 'Audacity.Audacity', 'chaiNNer-org.chaiNNer', 'Upscayl.Upscayl', 'Greenshot.Greenshot', 'ShareX.ShareX')
 
@@ -1159,9 +1148,9 @@ Install-WingetPackage -Packages @('VideoLAN.VLC', 'mpv.net', 'GIMP.GIMP', 'tanne
 
     Install-WingetPackage -Packages @('Mozilla.Firefox', 'Ablaze.Floorp', 'Microsoft.EdgeDriver')
 
-    Install-WingetPackage -Packages @('Valve.Steam', 'EpicGames.EpicGamesLauncher', 'HeroicGamesLauncher.HeroicGamesLauncher', 'PrismLauncher.PrismLauncher', 'Cemu.Cemu', 'Modrinth.ModrinthApp', 'Libretro.RetroArch', 'Playnite.Playnite', 'DevelopedMethods.playit', 'GorillaDevs.Ferium', 'MoonlightGameStreamingProject.Moonlight', 'smartfrigde.Legcord')
+    Install-WingetPackage -Packages @('Valve.Steam', 'EpicGames.EpicGamesLauncher', 'HeroicGamesLauncher.HeroicGamesLauncher', 'PrismLauncher.PrismLauncher', 'Playnite.Playnite', 'DevelopedMethods.playit', 'GorillaDevs.Ferium', 'smartfrigde.Legcord')
 
-    Install-WingetPackage -Packages @('Microsoft.PowerToys', 'Microsoft.Sysinternals.Autoruns', 'Sysinternals.Autologon', 'AutoHotkey.AutoHotkey', 'voidtools.Everything', 'CPUID.CPU-Z', 'TechPowerUp.GPU-Z', 'Guru3D.Afterburner.Beta', 'BleachBit.BleachBit', 'qarmin.czkawka.gui', 'RevoUninstaller.RevoUninstaller', 'Klocman.BulkCrapUninstaller', 'WinDirStat.WinDirStat', 'GlennDelahoy.SnappyDriverInstallerOrigin', 'SteelSeries.SteelSeriesEngine', 'ToastyX.CustomResolutionUtility', 'TechPowerUp.NVCleanstall', 'Wagnardsoft.DisplayDriverUninstaller', 'ViGEm.ViGEmBus', 'lostindark.DriverStoreExplorer', 'Recol.DLSSUpdater', 'Nlitesoft.NTLite', 'CodingWondersSoftware.DISMTools.Stable', 'Universal-Debloater-Alliance.uad-ng', 'DevToys-app.DevToys', 'Intel.PresentMon.Beta', 'WindowsPostInstallWizard.UniversalSilentSwitchFinder', 'Rainmeter.Rainmeter', 'ClamWin.ClamWin', 'MartiCliment.UniGetUI', 'CodecGuide.K-LiteCodecPack.Basic', 'UPX.UPX', 'SingularLabs.CCEnhancer', 'EditorConfig-Checker.EditorConfig-Checker', 'szTheory.exifcleaner', 'topgrade-rs.topgrade', 'TheDocumentFoundation.LibreOffice')
+    Install-WingetPackage -Packages @('Microsoft.PowerToys', 'Microsoft.Sysinternals.Autoruns', 'Sysinternals.Autologon', 'AutoHotkey.AutoHotkey', 'voidtools.Everything', 'Guru3D.Afterburner.Beta', 'BleachBit.BleachBit', 'RevoUninstaller.RevoUninstaller', 'SteelSeries.GG', 'ToastyX.CustomResolutionUtility', 'TechPowerUp.NVCleanstall', 'Wagnardsoft.DisplayDriverUninstaller', 'Recol.DLSSUpdater', 'MartiCliment.UniGetUI', 'CodecGuide.K-LiteCodecPack.Basic', 'topgrade-rs.topgrade', 'ONLYOFFICE.DesktopEditors')
 
     Install-WingetPackage -Packages @('Chocolatey.Chocolatey', 'Chocolatey.ChocolateyGUI')
     Install-WingetPackage -Packages @('CodeF0x.ffzap')
@@ -1182,6 +1171,7 @@ if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
 }
 if (Get-Command scoop -ErrorAction SilentlyContinue) {
     scoop bucket add extras
+    scoop install extras/sdi-origin
 }
 
 if (Get-Command uv -ErrorAction SilentlyContinue) {
@@ -1213,6 +1203,10 @@ Start-Transcript -Path 'C:\Windows\Setup\Scripts\stage2.log' -Append
 wsl --install -d Ubuntu --web-download
 wsl --set-default-version 2
 winget install -h Microsoft.WSL Canonical.Ubuntu Bostrot.WSLManager
+
+# Chris Titus WinUtil — opens on next logon (Win11 Creator compatible)
+New-Item -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Force -ErrorAction SilentlyContinue | Out-Null
+Set-ItemProperty -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'WinUtil' -Type String -Force -Value 'powershell.exe -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString(''https://christitus.com/win''))"'
 
 Unregister-ScheduledTask -TaskName 'post-reboot' -Confirm:$false
 Stop-Transcript

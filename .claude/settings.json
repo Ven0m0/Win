@@ -113,6 +113,17 @@
             "statusMessage": "Running PSScriptAnalyzer..."
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notlike '*autounattend.xml') { exit 0 }; try { $xml = [xml]::new(); $xml.Load($fp); Write-Host 'XML valid: autounattend.xml' } catch { Write-Error 'XML validation failed'; exit 1 }",
+            "shell": "powershell",
+            "statusMessage": "Validating autounattend.xml..."
+          }
+        ]
       }
     ]
   }
