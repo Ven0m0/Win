@@ -13,7 +13,7 @@ iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
 iwr -useb https://christitus.com/win | iex
 ```
 
-My Windows configuration files and scripts, managed with [yadm](https://yadm.io/).
+My Windows configuration files and scripts, managed with dotbot and git.
 
 ## Features
 
@@ -21,7 +21,7 @@ My Windows configuration files and scripts, managed with [yadm](https://yadm.io/
 - **Windows Terminal Settings**: Modern terminal configuration
 - **Optimization Scripts**: Collection of Windows optimization and gaming tweaks
 - **Git Configuration**: Sensible git defaults and aliases
-- **yadm Bootstrap**: Automated setup on new machines
+- **Dotbot Bootstrap**: Automated setup on new machines
 
 ## Fresh Windows 11 Install (One-Command)
 
@@ -34,8 +34,8 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 
 The script will:
 1. Install winget (if missing)
-2. Install Git, PowerShell 7+, and yadm
-3. Clone this repository via yadm
+2. Install Git, PowerShell 7+, and dotbot
+3. Clone this repository
 4. Run the full bootstrap to deploy configs
 5. Optionally install WSL2 (recommended)
 
@@ -48,11 +48,11 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 Alternatively, clone the repo manually first and run the local setup script:
 
 ```powershell
-# Clone using yadm (installed from winget)
-yadm clone https://github.com/Ven0m0/Win.git
+# Clone using git
+git clone https://github.com/Ven0m0/Win.git
 
 # One-command local setup
-pwsh $HOME\.yadm\bootstrap
+mise run bootstrap
 ```
 
 ## Quick Start
@@ -67,7 +67,7 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 
 This single command will automatically:
 - Install [winget](https://winstall.app) (Windows Package Manager) if missing
-- Install Git, PowerShell 7+, and yadm
+- Install Git, PowerShell 7+, and dotbot
 - Clone this repository
 - Run the full bootstrap
 - Optionally set up WSL2
@@ -76,16 +76,16 @@ This single command will automatically:
 
 If you prefer explicit control or the one-command script fails, install prerequisites manually:
 
-1. **Install yadm** (the dotfile manager):
+1. **Install dotbot** (the dotfile manager):
 
    ```powershell
-   winget install yadm
+   pip install dotbot
    ```
 
-   Or via Chocolatey:
+   Or via mise:
 
    ```powershell
-   choco install yadm
+   mise install dotbot
    ```
 
 2. **Recommended tools** (bootstrap will install these if missing, but you can pre-install):
@@ -157,7 +157,7 @@ If automatic bootstrap fails, configure manually:
 .
 ├── Scripts/
 │   ├── Setup-Win11.ps1           # Fresh Windows 11 one-command setup (local)
-│   ├── Setup-Dotfiles.ps1        # Core bootstrap logic (called by yadm)
+│   ├── Setup-Dotfiles.ps1        # Core bootstrap logic (called by dotbot)
 │   ├── Common.ps1                # Shared utility functions
 │   ├── shell-setup.ps1           # Full toolchain install (Scoop, Choco, apps)
 │   ├── allow-scripts.ps1         # Enable/disable PowerShell script execution
@@ -190,8 +190,7 @@ If automatic bootstrap fails, configure manually:
 │   ├── nvidia/                   # NVIDIA assets
 │   ├── scoop/                    # Scoop bucket configs
 │   └── winget-configs/
-├── .yadm/
-│   └── bootstrap                 # yadm entry point
+├── install.conf.yaml             # dotbot configuration entry point
 ├── .github/
 │   ├── scripts/
 │   │   └── bootstrap.ps1         # One-command internet bootstrap
@@ -215,7 +214,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 ### Setup & Bootstrap
 
 - **`Setup-Win11.ps1`** — Complete fresh Windows 11 setup (one-command)
-- **`Setup-Dotfiles.ps1`** — Core bootstrap (called by `yadm bootstrap`)
+- **`Setup-Dotfiles.ps1`** — Core bootstrap (called via dotbot / `mise run bootstrap`)
 - **`shell-setup.ps1`** — Full toolchain install (Scoop, Chocolatey, apps)
 - **`allow-scripts.ps1`** — Enable/disable PowerShell script execution policy
 
@@ -252,28 +251,27 @@ All scripts are located in `~/Scripts/` and can be run directly:
 - **`PowerShell-Context-Menus.reg`** — Adds PowerShell to context menus
 - **`Common.ps1`** — Shared utility functions (imported by many scripts)
 
-## yadm Usage
+## Dotbot Usage
 
 ### Basic Commands
 
 ```powershell
-# Check status
-yadm status
+# Deploy dotfiles
+mise run deploy
+# or
+dotbot -c install.conf.yaml
 
-# Add a new dotfile
-yadm add <file>
+# Full bootstrap (install dotbot + deploy)
+mise run bootstrap
+
+# Check git status
+git status
 
 # Commit changes
-yadm commit -m "Update configuration"
+git commit -m "Update configuration"
 
 # Push to remote
-yadm push
-
-# Pull from remote
-yadm pull
-
-# Show differences
-yadm diff
+git push
 ```
 
 ### Adding New Dotfiles
@@ -281,29 +279,31 @@ yadm diff
 To track a new configuration file:
 
 ```powershell
-# Add the file to yadm
-yadm add $HOME\.my-new-config
+# Add the file to git
+git add $HOME\.my-new-config
 
 # Commit
-yadm commit -m "Add my new config"
+git commit -m "Add my new config"
 
 # Push
-yadm push
+git push
 ```
 
 ### Updating on Another Machine
 
 ```powershell
 # Pull latest changes
-yadm pull
+git pull
 
 # Re-run bootstrap if needed
-pwsh $HOME\.yadm\bootstrap
+mise run deploy
+# or
+dotbot -c install.conf.yaml
 ```
 
 ### Templates
 
-yadm supports templates with the `##template` suffix. These files can contain variables that are replaced based on the system.
+Dotbot configuration supports templates in `install.conf.yaml`. Configuration files can specify conditions and variable substitution.
 
 Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
 
@@ -315,7 +315,6 @@ The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
 
 - **Navigation**: `~` (go home)
 - **Git**: `gs`, `ga`, `gc`, `gp`, `gl`, `gd`
-- **yadm**: `ys`, `ya`, `yc`, `yp`, `yl`
 - **Docker**: `d`, `dc`, `dps`, `dimg` (if docker installed)
 - **Unix-like**: `which`, `grep`, `df`, `du`, `touch`, `myip`
 
@@ -341,11 +340,11 @@ The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
 
 ### Local Customizations
 
-Create `~/.config/powershell/local.ps1` for machine-specific configuration that won't be tracked by yadm:
+Create `~/.config/powershell/local.ps1` for machine-specific configuration that won't be tracked by git:
 
 ```powershell
 # ~/.config/powershell/local.ps1
-# This file is ignored by yadm
+# This file is ignored by git
 
 # Machine-specific aliases
 Set-Alias -Name myapp -Value "C:\path\to\app.exe"
@@ -385,7 +384,9 @@ Manually run:
 
 ```powershell
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-pwsh $HOME\.yadm\bootstrap
+mise run bootstrap
+# or
+dotbot -c install.conf.yaml
 ```
 
 ### Windows Terminal Settings Not Applied
@@ -441,15 +442,15 @@ Check these locations for debugging:
 - `C:\Windows\Setup\Scripts\stage2.log` - WSL installation logs
 - `C:\Windows\Setup\Scripts\Specialize.log` - System customization logs
 
-### yadm Commands Not Working
+### Dotbot Commands Not Working
 
-Make sure yadm is in your PATH:
+Make sure dotbot is installed:
 
 ```powershell
-where.exe yadm
+where.exe dotbot
 ```
 
-If not found, reinstall yadm or add it to PATH manually.
+If not found, reinstall dotbot via pip or mise.
 
 ## Contributing
 

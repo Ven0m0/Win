@@ -1,6 +1,6 @@
 ---
 name: copilot-init
-description: Refresh Copilot bootstrap assets for the Win repository so guidance matches its Windows dotfiles, PowerShell, yadm, and registry-focused workflows.
+description: Refresh Copilot bootstrap assets for the Win repository so guidance matches its Windows dotfiles, PowerShell, dotbot, and registry-focused workflows.
 allowed-tools: 'Read, Write, Edit, Glob, Grep, Bash'
 ---
 
@@ -10,8 +10,8 @@ Create or refresh the smallest set of Copilot assets that improve understanding 
 
 ## Audit first
 
-- Confirm the real stack from `AGENTS.md`, `README.md`, `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, and `.github/workflows/`.
-- Treat the repository as a Windows dotfiles repo built around PowerShell, yadm, CMD or Batch files, AutoHotkey v2, registry assets, and tracked config under `user/.dotfiles/config/`.
+- Confirm the real stack from `AGENTS.md`, `README.md`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, and `.github/workflows/`.
+- Treat the repository as a Windows dotfiles repo built around PowerShell, dotbot, CMD or Batch files, AutoHotkey v2, registry assets, and tracked config under `user/.dotfiles/config/`.
 - Do not add guidance or workflows for Bun, uv, Node app builds, or other stacks that the repo does not use.
 
 ## Expected split
@@ -32,7 +32,7 @@ Create or refresh the smallest set of Copilot assets that improve understanding 
 
 - Keep `Scripts/Common.ps1` as the shared PowerShell helper surface.
 - Keep tracked config under `user/.dotfiles/config/`.
-- Review `.yadm/bootstrap` and `Scripts/Setup-Dotfiles.ps1` together for bootstrap changes.
+- Review `install.conf.yaml` and `Scripts/Setup-Dotfiles.ps1` together for bootstrap changes.
 - Prefer moving detailed conventions into `.github/skills/win-patterns/SKILL.md` instead of bloating always-loaded context.
 
 ## Validation

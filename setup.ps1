@@ -429,7 +429,6 @@ Invoke-Winget -ArgumentList @('install', 'FFmpeg (Essentials Build)', '-h') -Act
 Invoke-Winget -ArgumentList @('install', 'CodeF0x.ffzap', '-h') -Action 'Install ffzap'
 Invoke-Winget -ArgumentList @('install', 'PaulPacifico.ShutterEncoder', '-h') -Action 'Install Shutter Encoder'
 Invoke-Winget -ArgumentList @('install', 'Microsoft.Edit', '-h') -Action 'Install Microsoft Edit'
-Invoke-Winget -ArgumentList @('install', 'yadm', '-h') -Action 'Install yadm'
 
 # GMK Driver
 Invoke-RestMethod https://offset-power.net/GMKDriver/setup.exe -OutFile "$env:TEMP\gmk.exe"

@@ -19,7 +19,7 @@ Two styles are used — prefer conventional commits for code changes:
 feat: add new-script.ps1 for GPU monitoring
 fix: harden bootstrap path handling (#52)
 chore: remove non-deployable clutter from Scripts/
-docs: update AGENTS.md with yadm workflow
+docs: update AGENTS.md with dotbot workflow
 perf: consolidate redundant WMI queries in Network-Tweaker.ps1
 refactor: extract registry helpers to Common.ps1
 ```
@@ -192,7 +192,7 @@ bd remember           # persistent knowledge
 When changing setup/bootstrap, these three files **always change together**:
 
 ```
-.yadm/bootstrap
+install.conf.yaml
 AGENTS.md
 Scripts/Setup-Dotfiles.ps1
 ```

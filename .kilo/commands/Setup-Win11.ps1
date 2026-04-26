@@ -130,14 +130,6 @@ if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
     Write-Status 'PowerShell 7+ is available' -Status 'OK'
 }
 
-# yadm - the dotfile manager
-if (-not (Get-Command yadm -ErrorAction SilentlyContinue)) {
-    $yadmInstalled = Invoke-Operation -Name 'Installing yadm' -Action {
-        winget install --id yadm.yadm --silent --accept-source-agreements --accept-package-agreements | Out-Null
-    }
-} else {
-    Write-Status 'yadm is available' -Status 'OK'
-}
 
 # ---------------------------------------------------------------------------
 # Phase 2: Clone or update dotfiles repository
@@ -146,18 +138,18 @@ Write-Host ''
 Write-Host '[2/5] Setting up dotfiles repository...' -ForegroundColor Cyan
 
 $repoUrl = 'https://github.com/Ven0m0/Win.git'
-$yadmDir = Join-Path $HOME '.yadm'
+$repoDir = Join-Path $HOME 'Win'
 
 # Check if repo already cloned
-if (Test-Path $yadmDir) {
+if (Test-Path $repoDir) {
     if ($Force) {
-        Write-Status 'Existing yadm repo found - forcing re-clone' -Status 'RUNNING'
+        Write-Status 'Existing repo found - forcing re-clone' -Status 'RUNNING'
         # Backup and remove
-        Remove-Item $yadmDir -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item $repoDir -Recurse -Force -ErrorAction SilentlyContinue
     } else {
-        Write-Status 'yadm repository already initialized - pulling latest changes' -Status 'RUNNING'
+        Write-Status 'Repository already initialized - pulling latest changes' -Status 'RUNNING'
         try {
-            yadm pull
+            git -C $repoDir pull
             Write-Status 'Dotfiles updated' -Status 'OK'
         } catch {
             Write-Status "Failed to pull updates: $_" -Status 'WARN'
@@ -165,10 +157,10 @@ if (Test-Path $yadmDir) {
     }
 }
 
-if (-not (Test-Path $yadmDir)) {
+if (-not (Test-Path $repoDir)) {
     Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
     try {
-        yadm clone $repoUrl
+        git clone $repoUrl $repoDir
         Write-Status 'Repository cloned' -Status 'OK'
     } catch {
         Write-Status "Clone failed: $_" -Status 'FAIL'
@@ -176,30 +168,35 @@ if (-not (Test-Path $yadmDir)) {
     }
 }
 
+# Ensure Python and dotbot are installed
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Status 'Installing Python via winget...' -Status 'RUNNING'
+    try { winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null; Write-Status 'Python installed' -Status 'OK' }
+    catch { Write-Status "Python installation failed: $_" -Status 'WARN' }
+}
+
+if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
+    Write-Status 'Installing dotbot via pip...' -Status 'RUNNING'
+    try { pip install dotbot | Out-Null; Write-Status 'dotbot installed' -Status 'OK' }
+    catch { Write-Status "dotbot installation failed: $_" -Status 'WARN' }
+}
+
 # ---------------------------------------------------------------------------
-# Phase 3: Run bootstrap
+# Phase 3: Run bootstrap via dotbot
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '[3/5] Running bootstrap...' -ForegroundColor Cyan
+Write-Host '[3/5] Running bootstrap via dotbot...' -ForegroundColor Cyan
 
-$bootstrapArgs = @()
-if ($Unattended) { $bootstrapArgs += '-Unattended' }
-if ($Force) { $bootstrapArgs += '-Force' }
-if ($SkipWingetTools) { $bootstrapArgs += '-SkipWingetTools' }
-
-$bootstrapScript = Join-Path $yadmDir 'bootstrap'
-if (Test-Path $bootstrapScript) {
-    try {
-        pwsh -NoProfile -ExecutionPolicy Bypass -File $bootstrapScript @bootstrapArgs
-        Write-Status 'Bootstrap completed' -Status 'OK'
-    } catch {
-        Write-Status "Bootstrap failed: $_" -Status 'FAIL'
-        exit 1
-    }
-} else {
-    Write-Status "Bootstrap script not found at $bootstrapScript" -Status 'FAIL'
+pushd $repoDir
+try {
+    dotbot -c install.conf.yaml
+    Write-Status 'Bootstrap completed' -Status 'OK'
+} catch {
+    Write-Status "Bootstrap failed: $_" -Status 'FAIL'
+    popd
     exit 1
 }
+popd
 
 # ---------------------------------------------------------------------------
 # Phase 4: Optional WSL2 setup

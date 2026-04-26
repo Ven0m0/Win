@@ -14,7 +14,7 @@ Load this skill when the task touches repository conventions or spans multiple r
 - `Scripts/Common.ps1` for shared helpers
 - `Scripts/auto/autounattend.xml` for unattended Windows 11 USB install
 - `user/.dotfiles/config/` for tracked config and game assets
-- `.yadm/bootstrap` and `Scripts/Setup-Dotfiles.ps1` for bootstrap behavior
+- `install.conf.yaml` (dotbot) and `Scripts/Setup-Dotfiles.ps1` for bootstrap behavior
 - `.github/` for Copilot guidance and workflow metadata
 
 ## Common workflows
@@ -30,7 +30,7 @@ Load this skill when the task touches repository conventions or spans multiple r
 
 Review these files together:
 
-- `.yadm/bootstrap`
+- `install.conf.yaml` (dotbot config)
 - `Scripts/Setup-Dotfiles.ps1`
 - `README.md`
 - `AGENTS.md`

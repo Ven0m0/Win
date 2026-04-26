@@ -4,9 +4,47 @@
 
 ## Repository Identity
 
-Ven0m0/Win is a Windows dotfiles and optimization suite managed with [yadm](https://yadm.io/). It centers on PowerShell automation, tracked application config, registry tweaks, and game-specific tuning assets.
+Ven0m0/Win is a Windows dotfiles and optimization suite. It centers on PowerShell automation, tracked application config, registry tweaks, and game-specific tuning assets.
 
-**Primary stack:** yadm, PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget.
+**Primary stack:** PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget, dotbot.
+
+## Architecture
+
+Three-layer bootstrap:
+
+1. **Internet bootstrap** (`.github/scripts/bootstrap.ps1`) — one-command entry point; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo, then delegates to the repo bootstrap.
+2. **Repo bootstrap** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs winget packages, deploys config files using SHA256 hash comparison (copies only when content differs), configures PATH, creates directories.
+3. **Unattended USB install** (`Scripts/auto/autounattend.xml`) — fully self-contained XML; copy to USB root and Windows Setup auto-detects it. Scripts are embedded via `ExtractScript` and extracted to `C:\Windows\Setup\Scripts\` at runtime; no companion flat files belong alongside the XML.
+
+Config files live in `user/.dotfiles/config/` and are deployed by hash (no symlinks), which preserves Windows compatibility without admin rights.
+
+## Commands
+
+```powershell
+# Lint a changed PowerShell file
+Invoke-ScriptAnalyzer -Path Scripts\<changed>.ps1 -Settings PSScriptAnalyzerSettings.psd1
+
+# Validate autounattend.xml (PowerShell)
+$xml = [xml]::new(); $xml.Load("$PWD\Scripts\auto\autounattend.xml")
+
+# Deploy all dotfiles to their real Windows paths (dotbot must be installed)
+mise run deploy          # or: dotbot -c install.conf.yaml
+
+# Deploy a single config group (no dotbot needed)
+pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTools -SkipWSL
+# Available targets: 'PowerShell profile', 'Windows Terminal settings', 'BleachBit cleaners',
+#   'Firefox user.js', 'Brave policies', 'CMD aliases',
+#   'Star Wars Battlefront II (2017) configs', 'Call of Duty Black Ops 6 configs',
+#   'Call of Duty Black Ops 7 configs', 'NVIDIA assets'
+
+# Full bootstrap (installs dotbot then deploys all)
+mise run bootstrap       # or: pip install dotbot && dotbot -c install.conf.yaml
+
+# One-command fresh Windows 11 install
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+```
+
+CI runs `PSScriptAnalyzer` on all PowerShell changes (`.github/workflows/powershell.yml`), enforcing `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
 
 ## High-signal rules
 
@@ -23,7 +61,7 @@ Ven0m0/Win is a Windows dotfiles and optimization suite managed with [yadm](http
 - `Scripts/Common.ps1` is the shared helper library.
 - `Scripts/auto/autounattend.xml` is the self-contained unattended Windows 11 USB installer. All setup scripts are embedded inside the XML via `ExtractScript`; no companion flat files belong alongside it.
 - `user/.dotfiles/config/` contains tracked dotfile content.
-- `.yadm/bootstrap` is the bootstrap entry point and delegates to `Scripts/Setup-Dotfiles.ps1`.
+- `install.conf.yaml` is the dotbot configuration; it delegates to `Scripts/Setup-Dotfiles.ps1`.
 - `.github/instructions/` and `.github/skills/` hold Copilot-facing guidance.
 
 ## Change guidance
@@ -50,7 +88,7 @@ Ven0m0/Win is a Windows dotfiles and optimization suite managed with [yadm](http
 
 Review these files together whenever one changes:
 
-- `.yadm/bootstrap`
+- `install.conf.yaml`
 - `Scripts/Setup-Dotfiles.ps1`
 - `README.md`
 - guidance files that describe bootstrap behavior
@@ -77,7 +115,7 @@ Current CI:
 
 ## Git
 
-- Use git for repo changes and yadm for synced home-directory behavior.
+- Use git for repo changes and dotbot for dotfile deployment.
 - Commit messages follow `<type>: <subject>`.
 - Common types: `feat`, `fix`, `docs`, `refactor`, `style`, `chore`, and `perf`.
 

@@ -12,7 +12,7 @@ Run only the checks that match the files you changed.
 
 - `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, or `setup.ps1`
 - `user/.dotfiles/config/**`
-- `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, or `README.md`
+- `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, or `README.md`
 - `.github/` workflows, instructions, or skills
 
 ## Relevant checks
@@ -30,7 +30,7 @@ pwsh -NoLogo -NoProfile -Command "Invoke-ScriptAnalyzer -Path '<changed-script>'
 
 - Verify the referenced source and destination paths exist.
 - If the change also touches PowerShell deployment logic, run ScriptAnalyzer on the changed script files.
-- Review `.yadm/bootstrap`, `Scripts/Setup-Dotfiles.ps1`, and the affected docs together.
+- Review `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, and the affected docs together.
 
 ### Guidance or workflow changes under `.github/`
 

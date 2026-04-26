@@ -5,7 +5,7 @@
 .DESCRIPTION
     Consolidates package installation from setup.ps1, Setup-Dotfiles.ps1, Setup-Win11.ps1,
     shell-setup.ps1, and auto/install.ps1. Installs tools via winget, Scoop, and Chocolatey
-    without requiring yadm.
+    without requiring a full bootstrap.
 .PARAMETER SkipWinget
     Skip winget package installations.
 .PARAMETER SkipScoop

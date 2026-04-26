@@ -86,7 +86,6 @@ if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
     $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action { winget install --id Microsoft.PowerShell --silent --accept-source-agreements --accept-package-agreements | Out-Null }
 } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
-# yadm replaced with dotbot - dotbot installation handled in bootstrap.ps1
 
 # ---------------------------------------------------------------------------
 # Phase 2: Clone or update dotfiles repository
@@ -112,6 +111,19 @@ if (-not (Test-Path $repoDir)) {
     Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
     try { git clone $repoUrl $repoDir; Write-Status 'Repository cloned' -Status 'OK' }
     catch { Write-Status "Clone failed: $_" -Status 'FAIL'; exit 1 }
+}
+
+# Ensure Python and dotbot are installed
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Status 'Installing Python via winget...' -Status 'RUNNING'
+    try { winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null; Write-Status 'Python installed' -Status 'OK' }
+    catch { Write-Status "Python installation failed: $_" -Status 'WARN' }
+}
+
+if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
+    Write-Status 'Installing dotbot via pip...' -Status 'RUNNING'
+    try { pip install dotbot | Out-Null; Write-Status 'dotbot installed' -Status 'OK' }
+    catch { Write-Status "dotbot installation failed: $_" -Status 'WARN' }
 }
 
 # ---------------------------------------------------------------------------

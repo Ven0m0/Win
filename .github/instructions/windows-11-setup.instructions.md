@@ -40,9 +40,9 @@ This script performs a complete hands-free setup:
 
 1. **Elevates to administrator** automatically
 2. **Installs winget** (Windows Package Manager) if not present
-3. **Installs core tools**: Git, PowerShell 7+, yadm (via winget)
-4. **Clones the repository** using yadm
-5. **Runs the repository bootstrap** (deploys configs, sets up PATH, etc.)
+3. **Installs core tools**: Git, PowerShell 7+ (via winget)
+4. **Clones the repository** using git
+5. **Runs the repository bootstrap** (deploys configs via dotbot, sets up PATH, etc.)
 6. **Offers WSL2 installation** (can be skipped with `-SkipWSL`)
 
 ### Unattended Mode
@@ -74,7 +74,7 @@ If you've already cloned the repository manually:
 
 ```powershell
 # Run the local bootstrap script
-pwsh $HOME\.yadm\bootstrap [-Unattended] [-SkipWingetTools]
+pwsh $HOME\Scripts\Setup-Dotfiles.ps1 [-Unattended] [-SkipWingetTools]
 ```
 
 Arguments are forwarded to `Scripts/Setup-Dotfiles.ps1`:
@@ -92,14 +92,14 @@ bootstrap.ps1 (download & run)
     ↓
 Check winget → Install winget (if needed)
     ↓
-Install Git, PowerShell 7, yadm via winget
+Install Git, PowerShell 7 via winget
     ↓
-yadm clone https://github.com/Ven0m0/Win.git
+git clone https://github.com/Ven0m0/Win.git
     ↓
-.yadm/bootstrap → Scripts/Setup-Dotfiles.ps1
+install.conf.yaml (dotbot) → Scripts/Setup-Dotfiles.ps1
     ↓
 Phase 1: Set execution policy (RemoteSigned)
-Phase 2: Install tools via winget (Git, PS7, WT, VSCode, yadm)
+Phase 2: Install tools via winget (Git, PS7, WT, VSCode)
 Phase 3: Deploy config files (PowerShell profile, Win Terminal, Firefox, etc.)
 Phase 4: Configure PATH, create directories
 Phase 5: Verification summary
@@ -107,7 +107,7 @@ Phase 5: Verification summary
 
 ## Repository Conventions
 
-- **Bootstrap entry points**: `.yadm/bootstrap` (yadm-managed) and `bootstrap.ps1` (standalone)
+- **Bootstrap entry points**: `install.conf.yaml` (dotbot config) and `bootstrap.ps1` (standalone)
 - **Main setup logic**: `Scripts/Setup-Dotfiles.ps1`
 - **Shared utilities**: `Scripts/Common.ps1`
 - **Config deployment**: Manifest-driven in `Setup-Dotfiles.ps1` with hash-based change detection
@@ -122,6 +122,6 @@ After running setup:
 - [ ] Scripts directory (`~/Scripts`) is in PATH
 - [ ] Execution policy set to `RemoteSigned` (CurrentUser scope)
 - [ ] Core tools available: `git`, `pwsh`, `code`, `wt`
-- [ ] yadm status shows clean repo
+- [ ] Git status shows clean repo
 
 If any check fails, review the console output for errors and re-run with `-WhatIf` first to preview changes.

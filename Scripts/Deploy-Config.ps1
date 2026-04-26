@@ -3,7 +3,7 @@
 .SYNOPSIS
     Deploys all tracked configuration files to their system locations.
 .DESCRIPTION
-    Consolidates config deployment from Setup-Dotfiles.ps1 without requiring yadm.
+    Consolidates config deployment from Setup-Dotfiles.ps1 without requiring a full bootstrap.
     Deploys PowerShell profile, Windows Terminal settings, Firefox user.js, CMD aliases,
     game configs, and other tracked configurations.
 .PARAMETER WhatIf

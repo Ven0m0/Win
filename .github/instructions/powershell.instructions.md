@@ -52,7 +52,7 @@ Reach for existing helpers in `Scripts/Common.ps1` before adding new ones, espec
 
 - Prefer `[System.Collections.Generic.List[T]]::new()` when building large collections.
 - Keep related config deployment logic close to the script that owns it.
-- When touching bootstrap behavior, review `.yadm/bootstrap` and `Scripts/Setup-Dotfiles.ps1` together.
+- When touching bootstrap behavior, review `install.conf.yaml` and `Scripts/Setup-Dotfiles.ps1` together.
 
 ## Validation
 

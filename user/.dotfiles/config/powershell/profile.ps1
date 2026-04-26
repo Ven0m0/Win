@@ -1,6 +1,6 @@
 ## PowerShell Profile
 # Location: $HOME\.dotfiles\config\powershell\profile.ps1
-# Managed by yadm
+# Managed by dotbot
 
 #opt-out of telemetry before doing anything, only if PowerShell is run as admin
 if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) {
@@ -87,8 +87,8 @@ if (Get-Module -ListAvailable -Name PSColor) {
     }
 }
 
-# VCS aliases (git, yadm)
-$vcsTools = @('git', 'yadm')
+# VCS aliases (git)
+$vcsTools = @('git')
 foreach ($cmd in $vcsTools) {
     if (Get-Command $cmd -ErrorAction SilentlyContinue) {
         $prefix = $cmd.Substring(0, 1)
@@ -625,7 +625,7 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 # Minimal startup for faster loading
 #endregion
 
-# Load any local customizations (not tracked by yadm)
+# Load any local customizations (not tracked in git)
 $localProfile = "$HOME\.dotfiles\config\powershell\local.ps1"
 if (Test-Path $localProfile) {
     . $localProfile

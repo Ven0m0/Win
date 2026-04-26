@@ -1,12 +1,73 @@
+---
+# Dotbot configuration for Ven0m0/Win
+# Each shell entry deploys one config group to its real Windows path.
+# Deployment uses hash-based file copying (no symlinks — works without admin).
+# Run all:  dotbot -c install.conf.yaml
+# Run one:  pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'
+
 - defaults:
     shell:
-      command: pwsh -NoProfile -ExecutionPolicy Bypass -Command
       stdin: false
       stdout: true
       stderr: true
 
 - shell:
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1
-      description: Deploy dotfiles and configure environment
-      stdout: true
-      stderr: true
+    # ── PowerShell profile ──────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/powershell/profile.ps1
+    # Target:  ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTools -SkipWSL
+      description: "PowerShell profile → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+
+    # ── Windows Terminal ────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/windows-terminal/settings.json
+    # Target:  %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Windows Terminal settings' -SkipWingetTools -SkipWSL
+      description: "Windows Terminal → %LOCALAPPDATA%\\Packages\\Microsoft.WindowsTerminal_*\\LocalState\\settings.json"
+
+    # ── BleachBit cleaners ──────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/bleachbit/cleaners/*.xml
+    # Target:  %APPDATA%\BleachBit\cleaners\
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'BleachBit cleaners' -SkipWingetTools -SkipWSL
+      description: "BleachBit cleaners → %APPDATA%\\BleachBit\\cleaners\\"
+
+    # ── Firefox user.js ─────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/firefox/user.js
+    # Target:  %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Firefox user.js' -SkipWingetTools -SkipWSL
+      description: "Firefox user.js → %APPDATA%\\Mozilla\\Firefox\\<default-release-profile>\\user.js"
+
+    # ── Brave policies (registry) ───────────────────────────────────────────
+    # Source:  user/.dotfiles/config/brave/brave_debloater.reg
+    # Target:  HKLM\SOFTWARE\Policies\BraveSoftware\Brave  (via reg import)
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Brave policies' -SkipWingetTools -SkipWSL
+      description: "Brave policies → HKLM\\SOFTWARE\\Policies\\BraveSoftware\\Brave"
+
+    # ── CMD aliases ─────────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/cmd/alias.cmd
+    # Target:  %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'CMD aliases' -SkipWingetTools -SkipWSL
+      description: "CMD aliases → %USERPROFILE%\\alias.cmd + HKCU AutoRun registry"
+
+    # ── Star Wars Battlefront II configs ────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/bf2/
+    # Target:  ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Star Wars Battlefront II (2017) configs' -SkipWingetTools -SkipWSL
+      description: "BF2 configs → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/"
+
+    # ── Call of Duty Black Ops 6 configs ────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/bo6/
+    # Target:  ~/Documents/Call of Duty/players/
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Call of Duty Black Ops 6 configs' -SkipWingetTools -SkipWSL
+      description: "CoD BO6 configs → ~/Documents/Call of Duty/players/"
+
+    # ── Call of Duty Black Ops 7 configs ────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/bo7/
+    # Target:  ~/Documents/Call of Duty/players/
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Call of Duty Black Ops 7 configs' -SkipWingetTools -SkipWSL
+      description: "CoD BO7 configs → ~/Documents/Call of Duty/players/"
+
+    # ── NVIDIA assets (manual) ──────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/nvidia/
+    # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA assets' -SkipWingetTools -SkipWSL
+      description: "NVIDIA assets → manual (skipped — apply selectively from user/.dotfiles/config/nvidia/)"

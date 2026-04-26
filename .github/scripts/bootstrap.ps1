@@ -50,7 +50,7 @@ Write-Host '=== Ven0m0/Win - One-Command Bootstrap ===' -ForegroundColor Cyan
 Write-Host ''
 
 # ---------------------------------------------------------------------------
-# Step 1: Ensure winget (pre-requisite for yadm)
+# Step 1: Ensure winget (pre-requisite for dotbot installation)
 # ---------------------------------------------------------------------------
 Write-Info 'Checking for winget...'
 
@@ -132,7 +132,7 @@ if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
 # ---------------------------------------------------------------------------
 Write-Info 'Cloning dotfiles repository...'
 $repoUrl = 'https://github.com/Ven0m0/Win.git'
-$repoDir = Join-Path $HOME 'Win'  # Changed from .yadm to Win to match actual repo name
+$repoDir = Join-Path $HOME 'Win'
 
 if (Test-Path $repoDir) {
     Write-Info 'Repository already exists - pulling updates...'
@@ -148,17 +148,6 @@ if (Test-Path $repoDir) {
 if (-not (Test-Path $repoDir)) {
     try {
         git clone $repoUrl $repoDir
-        Write-Ok 'Repository cloned'
-    } catch {
-        Write-Fail "Failed to clone repository: $_"
-        exit 1
-    }
-}
-}
-
-if (-not (Test-Path $yadmDir)) {
-    try {
-        yadm clone $repoUrl
         Write-Ok 'Repository cloned'
     } catch {
         Write-Fail "Failed to clone repository: $_"
