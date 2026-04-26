@@ -1,4 +1,4 @@
-<#
+﻿<#
 .NAME
     Tweaking Adapter
 #>
@@ -2473,18 +2473,18 @@ function Initialize-AdapterUI {
     $IPv6_2 = (Get-ItemPropertyValue -Path "REGISTRY::HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -Name "EnableICSIPv6")
 
     if ($IPv6_1 -eq "255" -and $IPv6_2 -eq "0"){
-         Write-Warning  "IPv6 is Disabled by Registry."  -ForegroundColor Green
-         $cb_IPv6.Checked = $False
-         $cb_IPv6.Enabled = $False
-         $cb_IPv6.Visible = $False
-         $cb_IPv4.Checked = $True
-         $Global:AddressFamily = "IPv4"
-         }else{
+        Write-Warning  "IPv6 is Disabled by Registry."  -ForegroundColor Green
+        $cb_IPv6.Checked = $False
+        $cb_IPv6.Enabled = $False
+        $cb_IPv6.Visible = $False
+        $cb_IPv4.Checked = $True
+        $Global:AddressFamily = "IPv4"
+        }else{
           Write-Warning  "IPv4/IPv6 is Enabled by Registry. Selecting IPv4 as Default for AddressFamily"  -ForegroundColor Green
           $cb_IPv4.Checked = $true
           $cb_IPv6.Checked = $false
           $Global:AddressFamily = "IPv4"
-         }
+        }
 
     #RSS Queues
     #Query Available RSSQueues
@@ -2502,13 +2502,6 @@ function Initialize-AdapterUI {
         $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
         $cb_rssqueues.Text = $AdapterQueues
         }
-
-        #$RegistryQueues = Get-ItemPropertyValue -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
-        #$PowershellQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -expand NumberOfReceiveQueues
-        #if($RegistryQueues -eq $PowershellQueues){
-        #    Write-Host "NumberOfReceiveQueues is equal."
-        #}else{
-        #    Write-Warning "NumberOfReceiveQueues is not the same. (Powershell and Registry not equal!) Using Registry Value."
 
         #RSS Profiles
         $OSRSSProfiles = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetAdapterRss.Profile].GetEnumValues()
