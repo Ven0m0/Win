@@ -1,0 +1,10 @@
+[tools]
+python = "3.12"
+
+[tasks.bootstrap]
+description = "Install dotbot and deploy dotfiles"
+run = ["pip install dotbot", "dotbot -c install.conf.yaml"]
+
+[tasks.deploy]
+description = "Deploy dotfiles (dotbot must be installed)"
+run = "dotbot -c install.conf.yaml"

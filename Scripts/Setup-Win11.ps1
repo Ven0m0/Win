@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Complete Windows 11 setup: installs prerequisites, clones dotfiles with yadm, runs bootstrap.
+    Complete Windows 11 setup: installs prerequisites, clones dotfiles, runs bootstrap.
 .DESCRIPTION
     One-command fresh Windows 11 setup. Detects and installs missing prerequisites
-    (winget, Git, PowerShell 7, yadm), clones the dotfiles repository via yadm, and
-    runs the full bootstrap process.
+    (winget, Git, PowerShell 7), clones the dotfiles repository via git, and
+    runs the full bootstrap process via dotbot.
 .PARAMETER Unattended
     Skip all prompts and use defaults (no user interaction).
 .PARAMETER Force
@@ -62,7 +62,7 @@ if (-not $isAdmin) {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 1: Prerequisites (winget, Git, PowerShell 7, yadm)
+# Phase 1: Prerequisites (winget, Git, PowerShell 7)
 # ---------------------------------------------------------------------------
 Write-Host '[1/5] Checking prerequisites...' -ForegroundColor Cyan
 
@@ -86,9 +86,7 @@ if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
     $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action { winget install --id Microsoft.PowerShell --silent --accept-source-agreements --accept-package-agreements | Out-Null }
 } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
-if (-not (Get-Command yadm -ErrorAction SilentlyContinue)) {
-    $null = Invoke-Operation -Name 'Installing yadm' -Action { winget install --id yadm.yadm --silent --accept-source-agreements --accept-package-agreements | Out-Null }
-} else { Write-Status 'yadm is available' -Status 'OK' }
+# yadm replaced with dotbot - dotbot installation handled in bootstrap.ps1
 
 # ---------------------------------------------------------------------------
 # Phase 2: Clone or update dotfiles repository
@@ -97,44 +95,42 @@ Write-Host ''
 Write-Host '[2/5] Setting up dotfiles repository...' -ForegroundColor Cyan
 
 $repoUrl = 'https://github.com/Ven0m0/Win.git'
-$yadmDir = Join-Path $HOME '.yadm'
+$repoDir = Join-Path $HOME 'Win'
 
-if (Test-Path $yadmDir) {
+if (Test-Path $repoDir) {
     if ($Force) {
-        Write-Status 'Existing yadm repo found - forcing re-clone' -Status 'RUNNING'
-        Remove-Item $yadmDir -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Status 'Existing repo found - forcing re-clone' -Status 'RUNNING'
+        Remove-Item $repoDir -Recurse -Force -ErrorAction SilentlyContinue
     } else {
-        Write-Status 'yadm repository already initialized - pulling latest changes' -Status 'RUNNING'
-        try { yadm pull; Write-Status 'Dotfiles updated' -Status 'OK' }
+        Write-Status 'Repository already initialized - pulling latest changes' -Status 'RUNNING'
+        try { git -C $repoDir pull; Write-Status 'Dotfiles updated' -Status 'OK' }
         catch { Write-Status "Pull failed: $_" -Status 'WARN' }
     }
 }
 
-if (-not (Test-Path $yadmDir)) {
+if (-not (Test-Path $repoDir)) {
     Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
-    try { yadm clone $repoUrl; Write-Status 'Repository cloned' -Status 'OK' }
+    try { git clone $repoUrl $repoDir; Write-Status 'Repository cloned' -Status 'OK' }
     catch { Write-Status "Clone failed: $_" -Status 'FAIL'; exit 1 }
 }
 
 # ---------------------------------------------------------------------------
-# Phase 3: Run bootstrap
+# Phase 3: Run bootstrap via dotbot
 # ---------------------------------------------------------------------------
 Write-Host ''
-Write-Host '[3/5] Running bootstrap...' -ForegroundColor Cyan
+Write-Host '[3/5] Running bootstrap via dotbot...' -ForegroundColor Cyan
 
-$bootstrapScript = Join-Path $yadmDir 'bootstrap'
-if (-not (Test-Path $bootstrapScript)) { Write-Fail "Bootstrap not found: $bootstrapScript"; exit 1 }
-
+# Change to repository directory and run dotbot
+pushd $repoDir
 try {
-    $bootstrapArgs = @()
-    if ($Unattended) { $bootstrapArgs += '-Unattended' }
-    if ($SkipWingetTools) { $bootstrapArgs += '-SkipWingetTools' }
-    pwsh -NoProfile -ExecutionPolicy Bypass -File $bootstrapScript @bootstrapArgs
+    dotbot -c install.conf.yaml
     Write-Status 'Bootstrap completed' -Status 'OK'
 } catch {
     Write-Status "Bootstrap failed: $_" -Status 'FAIL'
+    popd
     exit 1
 }
+popd
 
 # ---------------------------------------------------------------------------
 # Phase 4: Optional WSL2

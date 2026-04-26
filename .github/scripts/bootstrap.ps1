@@ -1,9 +1,9 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Standalone bootstrap: installs yadm if missing, clones repo, runs full setup.
+    Standalone bootstrap: installs dotbot if missing, clones repo, runs full setup.
 .DESCRIPTION
-    This script can be downloaded and executed directly without yadm pre-installed.
+    This script can be downloaded and executed directly without dotbot pre-installed.
     It handles all prerequisites and then delegates to the repository's bootstrap.
     Perfect for a single-command fresh Windows install.
 
@@ -93,41 +93,67 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 2: Install yadm via winget
+# Step 2: Install dotbot via pip
 # ---------------------------------------------------------------------------
-Write-Info 'Installing yadm (dotfile manager)...'
-if (-not (Get-Command yadm -ErrorAction SilentlyContinue)) {
+Write-Info 'Installing dotbot (dotfile manager)...'
+if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
+    # Ensure Python is available via winget
+    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+        Write-Info 'Installing Python via winget...'
+        winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne -1978335189) {
+            Write-Fail "Failed to install Python: Exit code: $LASTEXITCODE"
+            exit 1
+        }
+        Write-Ok 'Python installed'
+    } else {
+        Write-Ok 'Python is already installed'
+    }
+    
+    # Install dotbot via pip
     try {
-        winget install --id yadm.yadm --silent --accept-source-agreements --accept-package-agreements | Out-Null
-        if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq -1978335189) {
-            Write-Ok 'yadm installed'
+        Write-Info 'Installing dotbot via pip...'
+        pip install dotbot | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Ok 'dotbot installed'
         } else {
             throw "Exit code: $LASTEXITCODE"
         }
     } catch {
-        Write-Fail "Failed to install yadm: $_"
+        Write-Fail "Failed to install dotbot: $_"
         exit 1
     }
 } else {
-    Write-Ok 'yadm is already installed'
+    Write-Ok 'dotbot is already installed'
 }
 
 # ---------------------------------------------------------------------------
-# Step 3: Clone repository via yadm
+# Step 3: Clone repository via git
 # ---------------------------------------------------------------------------
 Write-Info 'Cloning dotfiles repository...'
 $repoUrl = 'https://github.com/Ven0m0/Win.git'
-$yadmDir = Join-Path $HOME '.yadm'
+$repoDir = Join-Path $HOME 'Win'  # Changed from .yadm to Win to match actual repo name
 
-if (Test-Path $yadmDir) {
+if (Test-Path $repoDir) {
     Write-Info 'Repository already exists - pulling updates...'
     try {
-        yadm pull
+        git -C $repoDir pull
         Write-Ok 'Repository updated'
     } catch {
         Write-Warn "Pull failed, attempting fresh clone: $_"
-        Remove-Item $yadmDir -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item $repoDir -Recurse -Force -ErrorAction SilentlyContinue
     }
+}
+
+if (-not (Test-Path $repoDir)) {
+    try {
+        git clone $repoUrl $repoDir
+        Write-Ok 'Repository cloned'
+    } catch {
+        Write-Fail "Failed to clone repository: $_"
+        exit 1
+    }
+}
 }
 
 if (-not (Test-Path $yadmDir)) {
@@ -141,26 +167,20 @@ if (-not (Test-Path $yadmDir)) {
 }
 
 # ---------------------------------------------------------------------------
-# Step 4: Run repository bootstrap
+# Step 4: Run repository bootstrap via dotbot
 # ---------------------------------------------------------------------------
 Write-Info 'Running repository bootstrap...'
-$bootstrapScript = Join-Path $yadmDir 'bootstrap'
-if (-not (Test-Path $bootstrapScript)) {
-    Write-Fail "Bootstrap script not found: $bootstrapScript"
-    exit 1
-}
-
+# Change to repository directory and run dotbot
+pushd $repoDir
 try {
-    $bootstrapArgs = @()
-    if ($Unattended) { $bootstrapArgs += '-Unattended' }
-    if ($SkipWSL) { $bootstrapArgs += '-SkipWSL' }
-
-    pwsh -NoProfile -ExecutionPolicy Bypass -File $bootstrapScript @bootstrapArgs
+    dotbot -c install.conf.yaml
     Write-Ok 'Bootstrap completed successfully'
 } catch {
     Write-Fail "Bootstrap failed: $_"
+    popd
     exit 1
 }
+popd
 
 Write-Host ''
 Write-Ok 'Setup Complete!'

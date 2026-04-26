@@ -1,0 +1,12 @@
+- defaults:
+    shell:
+      command: pwsh -NoProfile -ExecutionPolicy Bypass -Command
+      stdin: false
+      stdout: true
+      stderr: true
+
+- shell:
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1
+      description: Deploy dotfiles and configure environment
+      stdout: true
+      stderr: true

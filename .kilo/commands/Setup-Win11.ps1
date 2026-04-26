@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    One-command Windows 11 setup: installs prerequisites, clones dotfiles with yadm, and runs bootstrap.
+    One-command Windows 11 setup: installs prerequisites, clones dotfiles, and runs bootstrap.
 .DESCRIPTION
     Designed for fresh Windows 11 installs. Detects and installs missing prerequisites
-    (winget, Git, PowerShell 7, yadm), clones this repository via yadm, and runs the
-    full bootstrap process. Can run unattended with -Unattended.
+    (winget, Git, PowerShell 7), clones this repository via git, and runs the
+    full bootstrap process via dotbot. Can run unattended with -Unattended.
 .PARAMETER Unattended
     Skip all prompts and use defaults (no user interaction).
 .PARAMETER Force
@@ -87,7 +87,7 @@ if (-not $isAdmin) {
 }
 
 # ---------------------------------------------------------------------------
-# Phase 1: Prerequisites (winget, Git, PowerShell 7, yadm)
+# Phase 1: Prerequisites (winget, Git, PowerShell 7)
 # ---------------------------------------------------------------------------
 Write-Host '[1/5] Checking prerequisites...' -ForegroundColor Cyan
 
