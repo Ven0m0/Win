@@ -396,6 +396,51 @@ Manually copy:
 Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
 ```
 
+### Automated Windows 11 Installation (autounattend.xml)
+
+The `Scripts/auto/autounattend.xml` file enables fully automated Windows 11 installation.
+
+#### Prerequisites
+
+- **Windows 11 ISO** - Download from [UUP dump](https://uupdump.net) or Microsoft
+- **8GB+ USB drive** - For installation media
+- **Internet connection** - Required for winget app installations
+- **Disable BitLocker** - Before installation, disable BitLocker in Windows or BIOS
+- **Disable Secure Boot** - Some systems require disabling in BIOS/UEFI
+- **Backup data** - Installation will format the target disk
+
+#### Usage
+
+1. Copy `Scripts/auto/autounattend.xml` to the root of your Windows 11 installation USB
+2. Boot from the USB and follow the prompts
+3. Installation proceeds automatically (~45-60 minutes)
+4. System will restart and install apps automatically
+
+#### Installation Flow
+
+1. Windows PE loads → bypasses TPM/SecureBoot/RAM checks
+2. Disk is partitioned (GPT: EFI 550MB, Windows, Recovery 1000MB)
+3. Windows image is applied
+4. System specialized with bloatware removal and registry tweaks
+5. User "Ven0m0" created with auto-logon
+6. First login → runs install.ps1 (100+ apps via winget)
+7. Final reboot → stage2.ps1 installs WSL2
+
+#### Troubleshooting
+
+- **Installation hangs at disk partitioning**: Ensure disk 0 is available and not in use
+- **winget packages fail to install**: Check internet connectivity, packages may be retried automatically
+- **No internet after install**: Run `C:\Windows\Setup\Scripts\install.ps1` manually
+- **WSL2 install fails**: Run `wsl --install -d Ubuntu --web-download` manually
+
+#### Log Files
+
+Check these locations for debugging:
+
+- `C:\Windows\Setup\Scripts\install.log` - App installation logs
+- `C:\Windows\Setup\Scripts\stage2.log` - WSL installation logs
+- `C:\Windows\Setup\Scripts\Specialize.log` - System customization logs
+
 ### yadm Commands Not Working
 
 Make sure yadm is in your PATH:

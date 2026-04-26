@@ -1095,32 +1095,51 @@ $ErrorActionPreference = 'Continue'
 $ProgressPreference    = 'SilentlyContinue'
 Start-Transcript -Path 'C:\Windows\Setup\Scripts\install.log' -Append
 
+function Test-InternetConnectivity {
+    $testUrls = @('https://github.com', 'https://microsoft.com', 'https://winget.azureedge.net')
+    foreach ($url in $testUrls) {
+        try {
+            $response = Invoke-WebRequest -Uri $url -Method Head -TimeoutSec 10 -UseBasicParsing -ErrorAction Stop
+            if ($response.StatusCode -eq 200) { return $true }
+        } catch { continue }
+    }
+    return $false
+}
+
+function Install-WingetPackage {
+    param([string[]]$Packages, [int]$MaxRetries = 3)
+    if (-not (Test-InternetConnectivity)) {
+        Write-Host "[WARN] No internet connectivity, skipping: $($Packages -join ', ')" -ForegroundColor Yellow
+        return
+    }
+    for ($i = 1; $i -le $MaxRetries; $i++) {
+        $result = winget install @W @Packages 2>`&gt;1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Installed: $($Packages[0])" -ForegroundColor Green
+            return
+        }
+        Write-Host "[RETRY $i/$MaxRetries] Failed: $($Packages[0])" -ForegroundColor Yellow
+        Start-Sleep -Seconds 5
+    }
+    Write-Host "[FAIL] Failed after $MaxRetries attempts: $($Packages[0])" -ForegroundColor Red
+}
+
 $W = @('--accept-package-agreements', '--accept-source-agreements', '-h')
 
-winget upgrade -r -u @W --disable-interactivity
+if (-not (Test-InternetConnectivity)) {
+    Write-Host '[WARN] No internet detected. Skipping winget installations.' -ForegroundColor Yellow
+    Write-Host '[INFO] Run manually after connecting to internet:' -ForegroundColor Cyan
+    Write-Host '  powershell -ExecutionPolicy Bypass -File C:\Windows\Setup\Scripts\install.ps1' -ForegroundColor Cyan
+} else {
+    Write-Host '[INFO] Internet connectivity confirmed. Proceeding with installations...' -ForegroundColor Green
+    winget upgrade -r -u @W --disable-interactivity
 
-winget install @W `
-    Microsoft.VCRedist.2015+.x64 Microsoft.VCRedist.2013.x64 `
-    Microsoft.VCLibs.14 Microsoft.VCLibs.Desktop.14 Microsoft.WindowsAppRuntime.1.8 `
-    Microsoft.DotNet.Framework.DeveloperPack_4 `
-    Microsoft.DotNet.Runtime.6 `
-    Microsoft.DotNet.DesktopRuntime.5 Microsoft.DotNet.DesktopRuntime.6 `
-    Microsoft.DotNet.DesktopRuntime.7 Microsoft.DotNet.DesktopRuntime.8 `
-    Microsoft.DotNet.DesktopRuntime.9 Microsoft.DotNet.DesktopRuntime.10 `
-    Microsoft.DirectX Microsoft.XNARedist `
-    KhronosGroup.VulkanRT KhronosGroup.VulkanSDK `
-    Microsoft.OpenCLGLVulkanCompatibilityPack `
-    Oracle.JavaRuntimeEnvironment EclipseAdoptium.Temurin.21.JRE EclipseAdoptium.Temurin.25.JRE `
-    OpenAL.OpenAL Gyan.FFmpeg
+    Install-WingetPackage -Packages @('Microsoft.VCRedist.2015+.x64', 'Microsoft.VCRedist.2013.x64', 'Microsoft.VCLibs.14', 'Microsoft.VCLibs.Desktop.14', 'Microsoft.WindowsAppRuntime.1.8', 'Microsoft.DotNet.Framework.DeveloperPack_4', 'Microsoft.DotNet.Runtime.6', 'Microsoft.DotNet.DesktopRuntime.5', 'Microsoft.DotNet.DesktopRuntime.6', 'Microsoft.DotNet.DesktopRuntime.7', 'Microsoft.DotNet.DesktopRuntime.8', 'Microsoft.DotNet.DesktopRuntime.9', 'Microsoft.DotNet.DesktopRuntime.10', 'Microsoft.DirectX', 'Microsoft.XNARedist', 'KhronosGroup.VulkanRT', 'KhronosGroup.VulkanSDK', 'Microsoft.OpenCLGLVulkanCompatibilityPack', 'Oracle.JavaRuntimeEnvironment', 'EclipseAdoptium.Temurin.21.JRE', 'EclipseAdoptium.Temurin.25.JRE', 'OpenAL.OpenAL', 'Gyan.FFmpeg')
 
-winget install @W `
-    astral-sh.uv Oven-sh.Bun Schniz.fnm jdx.mise OpenJS.NodeJS Python.Python.3.13 `
-    MartinStorsjo.LLVM-MinGW.UCRT Rustlang.Rust.MSVC `
-    SQLite.SQLite ast-grep.ast-grep koalaman.shellcheck `
-    oxc-project.oxlint BiomeJS.Biome evilmartians.lefthook
+    Install-WingetPackage -Packages @('astral-sh.uv', 'Oven-sh.Bun', 'Schniz.fnm', 'jdx.mise', 'OpenJS.NodeJS', 'Python.Python.3.13', 'MartinStorsjo.LLVM-MinGW.UCRT', 'Rustlang.Rust.MSVC', 'SQLite.SQLite', 'ast-grep.ast-grep', 'koalaman.shellcheck', 'oxc-project.oxlint', 'BiomeJS.Biome', 'evilmartians.lefthook')
 
-winget install @W --source winget Git.Git
-winget install @W `
+    Install-WingetPackage -Packages @('Git.Git') -ExtraArgs @('--source', 'winget')
+    Install-WingetPackage -Packages @('Microsoft.PowerShell', 'Microsoft.WindowsTerminal', 'Microsoft.AppInstaller', 'Microsoft.VisualStudioCode', 'VSCodium.VSCodium', 'GitHub.cli', 'Notepad++.Notepad++', 'CodeSector.TeraCopy', 'MathiasCodes.Winstow', 'PuTTY.PuTTY', 'Eugeny.Terminus')
     Microsoft.PowerShell Microsoft.WindowsTerminal Microsoft.AppInstaller `
     Microsoft.VisualStudioCode VSCodium.VSCodium `
     GitHub.cli Notepad++.Notepad++ `
@@ -1134,58 +1153,21 @@ winget install @W `
     aria2.aria2 7zip.7zip Meta.Zstandard `
     TimVisee.ffsend Rclone.Rclone
 
-winget install @W `
-    VideoLAN.VLC mpv.net `
-    GIMP.GIMP tannerhelland.PhotoDemon `
-    XnSoft.XnViewMP XnSoft.XnConvert `
-    eibol.FFmpegBatchAVConverter HandBrake.HandBrake `
-    Avidemux.Avidemux Meltytech.Shotcut KDE.Kdenlive `
-    OBSProject.OBSStudio Audacity.Audacity `
-    chaiNNer-org.chaiNNer Upscayl.Upscayl `
-    Greenshot.Greenshot ShareX.ShareX
+Install-WingetPackage -Packages @('VideoLAN.VLC', 'mpv.net', 'GIMP.GIMP', 'tannerhelland.PhotoDemon', 'XnSoft.XnViewMP', 'XnSoft.XnConvert', 'eibol.FFmpegBatchAVConverter', 'HandBrake.HandBrake', 'Avidemux.Avidemux', 'Meltytech.Shotcut', 'KDE.Kdenlive', 'OBSProject.OBSStudio', 'Audacity.Audacity', 'chaiNNer-org.chaiNNer', 'Upscayl.Upscayl', 'Greenshot.Greenshot', 'ShareX.ShareX')
 
-winget install @W `
-    IridiumIO.CompactGUI `
-    Nikkho.FileOptimizer xanderfrangos.crushee `
-    SaeraSoft.CaesiumImageCompressor OptiPNG.OptiPNG `
-    fhanau.Efficient-Compression-Tool Kornelski.DSSIM `
-    GiantPinkRobots.Varia aandrew-me.ytDownloader
+    Install-WingetPackage -Packages @('IridiumIO.CompactGUI', 'Nikkho.FileOptimizer', 'xanderfrangos.crushee', 'SaeraSoft.CaesiumImageCompressor', 'OptiPNG.OptiPNG', 'fhanau.Efficient-Compression-Tool', 'Kornelski.DSSIM', 'GiantPinkRobots.Varia', 'aandrew-me.ytDownloader')
 
-winget install @W Mozilla.Firefox Ablaze.Floorp Microsoft.EdgeDriver
+    Install-WingetPackage -Packages @('Mozilla.Firefox', 'Ablaze.Floorp', 'Microsoft.EdgeDriver')
 
-winget install @W `
-    Valve.Steam EpicGames.EpicGamesLauncher HeroicGamesLauncher.HeroicGamesLauncher `
-    PrismLauncher.PrismLauncher Cemu.Cemu Modrinth.ModrinthApp `
-    Libretro.RetroArch Playnite.Playnite DevelopedMethods.playit `
-    GorillaDevs.Ferium `
-    MoonlightGameStreamingProject.Moonlight smartfrigde.Legcord
+    Install-WingetPackage -Packages @('Valve.Steam', 'EpicGames.EpicGamesLauncher', 'HeroicGamesLauncher.HeroicGamesLauncher', 'PrismLauncher.PrismLauncher', 'Cemu.Cemu', 'Modrinth.ModrinthApp', 'Libretro.RetroArch', 'Playnite.Playnite', 'DevelopedMethods.playit', 'GorillaDevs.Ferium', 'MoonlightGameStreamingProject.Moonlight', 'smartfrigde.Legcord')
 
-winget install @W `
-    Microsoft.PowerToys Microsoft.Sysinternals.Autoruns Sysinternals.Autologon `
-    AutoHotkey.AutoHotkey voidtools.Everything `
-    CPUID.CPU-Z TechPowerUp.GPU-Z Guru3D.Afterburner.Beta `
-    BleachBit.BleachBit qarmin.czkawka.gui `
-    RevoUninstaller.RevoUninstaller Klocman.BulkCrapUninstaller `
-    WinDirStat.WinDirStat GlennDelahoy.SnappyDriverInstallerOrigin `
-    SteelSeries.SteelSeriesEngine `
-    ToastyX.CustomResolutionUtility `
-    TechPowerUp.NVCleanstall Wagnardsoft.DisplayDriverUninstaller `
-    ViGEm.ViGEmBus lostindark.DriverStoreExplorer `
-    Recol.DLSSUpdater Nlitesoft.NTLite `
-    CodingWondersSoftware.DISMTools.Stable `
-    Universal-Debloater-Alliance.uad-ng `
-    DevToys-app.DevToys Intel.PresentMon.Beta `
-    WindowsPostInstallWizard.UniversalSilentSwitchFinder `
-    Rainmeter.Rainmeter ClamWin.ClamWin `
-    MartiCliment.UniGetUI CodecGuide.K-LiteCodecPack.Basic `
-    UPX.UPX SingularLabs.CCEnhancer `
-    EditorConfig-Checker.EditorConfig-Checker szTheory.exifcleaner `
-    topgrade-rs.topgrade TheDocumentFoundation.LibreOffice
+    Install-WingetPackage -Packages @('Microsoft.PowerToys', 'Microsoft.Sysinternals.Autoruns', 'Sysinternals.Autologon', 'AutoHotkey.AutoHotkey', 'voidtools.Everything', 'CPUID.CPU-Z', 'TechPowerUp.GPU-Z', 'Guru3D.Afterburner.Beta', 'BleachBit.BleachBit', 'qarmin.czkawka.gui', 'RevoUninstaller.RevoUninstaller', 'Klocman.BulkCrapUninstaller', 'WinDirStat.WinDirStat', 'GlennDelahoy.SnappyDriverInstallerOrigin', 'SteelSeries.SteelSeriesEngine', 'ToastyX.CustomResolutionUtility', 'TechPowerUp.NVCleanstall', 'Wagnardsoft.DisplayDriverUninstaller', 'ViGEm.ViGEmBus', 'lostindark.DriverStoreExplorer', 'Recol.DLSSUpdater', 'Nlitesoft.NTLite', 'CodingWondersSoftware.DISMTools.Stable', 'Universal-Debloater-Alliance.uad-ng', 'DevToys-app.DevToys', 'Intel.PresentMon.Beta', 'WindowsPostInstallWizard.UniversalSilentSwitchFinder', 'Rainmeter.Rainmeter', 'ClamWin.ClamWin', 'MartiCliment.UniGetUI', 'CodecGuide.K-LiteCodecPack.Basic', 'UPX.UPX', 'SingularLabs.CCEnhancer', 'EditorConfig-Checker.EditorConfig-Checker', 'szTheory.exifcleaner', 'topgrade-rs.topgrade', 'TheDocumentFoundation.LibreOffice')
 
-winget install @W Chocolatey.Chocolatey Chocolatey.ChocolateyGUI
-winget install @W 'CodeF0x.ffzap'
-winget install @W 'PaulPacifico.ShutterEncoder'
-winget install @W 'Microsoft.Edit'
+    Install-WingetPackage -Packages @('Chocolatey.Chocolatey', 'Chocolatey.ChocolateyGUI')
+    Install-WingetPackage -Packages @('CodeF0x.ffzap')
+    Install-WingetPackage -Packages @('PaulPacifico.ShutterEncoder')
+    Install-WingetPackage -Packages @('Microsoft.Edit')
+}
 
 $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
             [System.Environment]::GetEnvironmentVariable('Path', 'User')
