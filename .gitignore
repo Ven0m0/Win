@@ -306,3 +306,11 @@ $RECYCLE.BIN/
 .omg/
 .cachebro/
 .opencode
+
+## Build artifacts
+psscriptanalyzer_report.json
+*.sarif
+results.sarif
+
+## PowerShell log files
+*.psscriptanalyzer.log
