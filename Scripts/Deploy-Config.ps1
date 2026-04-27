@@ -407,7 +407,7 @@ if ((Test-Path $arcRaidersSource) -and (Test-Path (Split-Path $arcRaidersPath -P
 # Phase 6: PATH and directory setup
 # ============================================================================
 Write-Host ''
-Write-Host '[6/5] Configuring PATH and directories...' -ForegroundColor Cyan
+Write-Host '[6/6] Configuring PATH and directories...' -ForegroundColor Cyan
 
 $scriptsPath = Join-Path $HOME 'Scripts'
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')

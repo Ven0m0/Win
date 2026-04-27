@@ -82,8 +82,9 @@ function Get-MenuChoice {
 
     while ($true) {
         $choice = Read-Host "Select option ($Min-$Max)"
-        if ($choice -match "^[$Min-$Max]$") {
-            return [int]$choice
+        if ($choice -match '^\d+$') {
+            $num = [int]$choice
+            if ($num -ge $Min -and $num -le $Max) { return $num }
         }
         Write-Host "Invalid input. Please select a valid option ($Min-$Max)." -ForegroundColor Red
     }
@@ -856,6 +857,8 @@ function Clear-DirectorySafe {
     # Use robocopy for performance
     $null = robocopy "$empty" "$Path" /MIR /R:1 /W:0 /ZB /NFL /NDL /NJH /NJS 2>&1
 
+    Remove-Item $empty -Force -ErrorAction SilentlyContinue
+
     # Fallback
     Get-ChildItem "$Path" -Recurse -File -Force `
         -ErrorAction SilentlyContinue | Remove-Item -Force `
@@ -1061,9 +1064,7 @@ function Set-MSIMode {
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
-        $regPath = `
-            $path = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters" + `
-                "\Interrupt Management\MessageSignaledInterruptProperties"
+        $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
         Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
     }
 
@@ -1072,9 +1073,7 @@ function Set-MSIMode {
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
-        $regPath = `
-            $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters" + `
-                "\Interrupt Management\MessageSignaledInterruptProperties"
+        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
 
         Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
         Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
@@ -1152,7 +1151,7 @@ function Write-Info {
 #endregion
 
 #region Logging
-$script:LogOutput = @()
+$script:LogOutput = [System.Collections.Generic.List[string]]::new()
 
 function Add-Log {
     <#
@@ -1163,7 +1162,7 @@ function Add-Log {
     #>
     param([string]$Text)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $script:LogOutput += "[$timestamp] $Text"
+    $script:LogOutput.Add("[$timestamp] $Text")
 }
 
 function Get-Log {
@@ -1179,7 +1178,7 @@ function Clear-Log {
     .SYNOPSIS
         Clears all log entries
     #>
-    $script:LogOutput = @()
+    $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 }
 #endregion
 
