@@ -77,7 +77,7 @@ echo.
 :: ============================================================
 echo [4/6] Removing NVIDIA telemetry files...
 
-PowerShell -ExecutionPolicy Unrestricted -NoProfile -Command ^
+PowerShell -ExecutionPolicy RemoteSigned -NoProfile -Command ^
 "$paths = @('%PROGRAMFILES(X86)%\NVIDIA Corporation\NvTelemetry\*', '%PROGRAMFILES%\NVIDIA Corporation\NvTelemetry\*', '%SYSTEMROOT%\System32\DriverStore\FileRepository\NvTelemetry*.dll'); " ^
 "foreach ($pathPattern in $paths) { " ^
 "  $expandedPath = [System.Environment]::ExpandEnvironmentVariables($pathPattern); " ^

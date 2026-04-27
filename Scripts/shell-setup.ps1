@@ -3,7 +3,7 @@
   Initialize custom PowerShell + tooling environment (Scoop, Winget, Choco, apps, custom downloads).
 .NOTES
   Requires Windows, PowerShell 5+; will elevate for certain steps.
-  ExecutionPolicy for CurrentUser will be set to Unrestricted on first run.
+  ExecutionPolicy for CurrentUser will be set to RemoteSigned on first run.
 #>
 [CmdletBinding()]
 param()
@@ -135,14 +135,14 @@ function Enable-Bucket {
   }
 }
 
-# ExecutionPolicy: CurrentUser -> Unrestricted
-if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "Unrestricted") {
+# ExecutionPolicy: CurrentUser -> RemoteSigned
+if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "RemoteSigned") {
   Write-Verbose "Setting Execution Policy for Current User..."
   Run-Elevated -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy",
     "-Scope",
     "CurrentUser",
     "-ExecutionPolicy",
-    "Unrestricted",
+    "RemoteSigned",
     "-Force"
   Write-Output "Restart/Re-Run script required."
   Start-Sleep -Seconds 10
