@@ -5,8 +5,6 @@
 
 . "$PSScriptRoot\Common.ps1"
 
-Request-AdminElevation
-Initialize-ConsoleUI -Title "PowerShell Script Manager (Administrator)"
 
 function Enable-ScriptExecution {
   <#
@@ -61,24 +59,29 @@ function Disable-ScriptExecution {
   Write-Host "  - Double-click execution disabled" -ForegroundColor Gray
 }
 
-while ($true) {
-  Show-Menu -Title "PowerShell Script Manager" -Options @(
-    "Enable Scripts (Recommended)"
-    "Disable Scripts"
-    "Exit"
-  )
+if ($MyInvocation.InvocationName -ne '.') {
+  Request-AdminElevation
+  Initialize-ConsoleUI -Title "PowerShell Script Manager (Administrator)"
 
-  $choice = Get-MenuChoice -Min 1 -Max 3
+  while ($true) {
+    Show-Menu -Title "PowerShell Script Manager" -Options @(
+      "Enable Scripts (Recommended)"
+      "Disable Scripts"
+      "Exit"
+    )
 
-  switch ($choice) {
-    1 {
-      Enable-ScriptExecution
-      Wait-ForKeyPress -Message "Press any key to continue..."
+    $choice = Get-MenuChoice -Min 1 -Max 3
+
+    switch ($choice) {
+      1 {
+        Enable-ScriptExecution
+        Wait-ForKeyPress -Message "Press any key to continue..."
+      }
+      2 {
+        Disable-ScriptExecution
+        Wait-ForKeyPress -Message "Press any key to continue..."
+      }
+      3 { exit }
     }
-    2 {
-      Disable-ScriptExecution
-      Wait-ForKeyPress -Message "Press any key to continue..."
-    }
-    3 { exit }
   }
 }
