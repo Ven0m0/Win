@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
     . "$PSScriptRoot/Common.ps1"
     . "$PSScriptRoot/additional-maintenance.ps1"
@@ -22,19 +22,10 @@ Describe "additional-maintenance.ps1" {
             # Actually, `Mock Invoke-Operation { }` uses an empty script block, which expects no parameters if parameter binding occurs.
             # Let's specify the param block in the Mock!
             Mock Invoke-Operation {
-                param(
-                    $Name,
-                    $Action,
-                    $Result,
-                    $Results,
-                    $DryRun,
-                    $CaptureOutput,
-                    $Command,
-                    $ArgumentList
-                )
+
             }
             Mock Invoke-ServiceOperation {
-                param($Name, $Action, $Restart, $Force)
+
             }
             Mock Clear-PathSafe {}
             Mock Out-File {}
@@ -42,10 +33,10 @@ Describe "additional-maintenance.ps1" {
 
             Start-AdditionalMaintenance -DryRun
 
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun -eq $true } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' -and $DryRun -eq $true } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun -eq $true } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'StoreCacheClear' -and $DryRun -eq $true } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' -and $DryRun } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'StoreCacheClear' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'BITSClear' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'FontCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'IconCache' -and $DryRun -eq $true } -Times 1
@@ -66,19 +57,10 @@ Describe "additional-maintenance.ps1" {
             Mock Get-Log { return "log" }
             Mock Show-Summary {}
             Mock Invoke-Operation {
-                param(
-                    $Name,
-                    $Action,
-                    $Result,
-                    $Results,
-                    $DryRun,
-                    $CaptureOutput,
-                    $Command,
-                    $ArgumentList
-                )
+
             }
             Mock Invoke-ServiceOperation {
-                param($Name, $Action, $Restart, $Force)
+
             }
             Mock Clear-PathSafe {}
             Mock Out-File {}

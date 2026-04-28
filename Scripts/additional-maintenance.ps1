@@ -43,7 +43,8 @@ function Start-AdditionalMaintenance {
         Write-Info "Skipping restore point creation"
         $Results['SystemRestorePoint'] = 'SKIPPED'
     } else {
-        Invoke-Operation -Name 'SystemRestorePoint' -Results $Results -DryRun:$DryRun -Result 'CREATED' -Action {
+        Invoke-Operation -Name 'SystemRestorePoint' -Results $Results -DryRun:$DryRun `
+            -Result 'CREATED' -Action {
             Enable-ComputerRestore -Drive "$env:SystemDrive\" -ErrorAction SilentlyContinue
             Checkpoint-Computer -Description "Pre-Maintenance-$(Get-Date -Format 'yyyyMMdd')" -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
         }
@@ -51,11 +52,14 @@ function Start-AdditionalMaintenance {
 
     # 2. DISM Component Store Analysis
     Write-Info "=== DISM Component Store Analysis ==="
-    Invoke-Operation -Name 'DISM_ComponentAnalysis' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /AnalyzeComponentStore'
-    Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
+    Invoke-Operation -Name 'DISM_ComponentAnalysis' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
+        -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /AnalyzeComponentStore'
+    Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
+        -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
 
     # 3. Clear Windows Store Cache
-    Invoke-Operation -Name 'StoreCacheClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {} -Command 'wsreset.exe' -ArgumentList '-i'
+    Invoke-Operation -Name 'StoreCacheClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' `
+        -Action {} -Command 'wsreset.exe' -ArgumentList '-i'
 
     # 4. Clear BITS Queue
     Invoke-Operation -Name 'BITSClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
@@ -115,7 +119,8 @@ function Start-AdditionalMaintenance {
     Show-Summary -Results $Results -StartTime $StartTime
 
     # Write log file
-    $logFile = Join-Path $PSScriptRoot "maintenance-log-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $logFileName = "maintenance-log-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $logFile = Join-Path $PSScriptRoot $logFileName
     $logContent = Get-Log
     $logContent | Out-File -FilePath $logFile
     Write-Info "Log written to: $logFile"
