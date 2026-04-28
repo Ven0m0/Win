@@ -44,9 +44,10 @@ function Start-AdditionalMaintenance {
         $Results['SystemRestorePoint'] = 'SKIPPED'
     } else {
         Invoke-Operation -Name 'SystemRestorePoint' -Results $Results -DryRun:$DryRun `
-            -Result 'CREATED' -Action {
+        -Result 'CREATED' -Action {
             Enable-ComputerRestore -Drive "$env:SystemDrive\" -ErrorAction SilentlyContinue
-            Checkpoint-Computer -Description "Pre-Maintenance-$(Get-Date -Format 'yyyyMMdd')" -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
+            Checkpoint-Computer -Description "Pre-Maintenance-$(Get-Date -Format 'yyyyMMdd')" `
+            -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
         }
     }
 
@@ -96,10 +97,13 @@ function Start-AdditionalMaintenance {
     }
 
     # 8. Clear DNS Client Cache
-    Invoke-Operation -Name 'DNSCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action { Clear-DnsClientCache -ErrorAction Stop }
+    Invoke-Operation -Name 'DNSCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action { `
+        Clear-DnsClientCache -ErrorAction Stop `
+    }
 
     # 9. Clear Temp Files
-    Invoke-Operation -Name 'TempFiles' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    Invoke-Operation -Name 'TempFiles' -Results $Results -DryRun:$DryRun `
+        -Result 'CLEARED' -Action {
         $tempPaths = @(
             $env:TEMP,
             "$env:SystemRoot\Temp",

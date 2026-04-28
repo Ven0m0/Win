@@ -20,22 +20,19 @@ Describe "additional-maintenance.ps1" {
             # Since Invoke-Operation has mandatory Action parameter, Pester mock sometimes tries to validate it.
             # We can override the param block by not using -CommandName, or just let Pester mock it with the same signature.
             # Actually, `Mock Invoke-Operation { }` uses an empty script block, which expects no parameters if parameter binding occurs.
-            # Let's specify the param block in the Mock!
-            Mock Invoke-Operation {
-
-            }
-            Mock Invoke-ServiceOperation {
-
-            }
+            Mock -CommandName Invoke-Operation -MockWith { }
+            Mock -CommandName Invoke-ServiceOperation -MockWith { }
             Mock Clear-PathSafe {}
-            Mock Out-File {}
+            Mock -CommandName Out-File -MockWith { }
             Mock Join-Path { return "dummy_path" }
 
             Start-AdditionalMaintenance -DryRun
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' -and $DryRun } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' -and $DryRun } `
+                -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } `
+                -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'StoreCacheClear' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'BITSClear' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'FontCache' -and $DryRun -eq $true } -Times 1
@@ -56,14 +53,10 @@ Describe "additional-maintenance.ps1" {
             Mock Clear-Log {}
             Mock Get-Log { return "log" }
             Mock Show-Summary {}
-            Mock Invoke-Operation {
-
-            }
-            Mock Invoke-ServiceOperation {
-
-            }
+            Mock -CommandName Invoke-Operation -MockWith { }
+            Mock -CommandName Invoke-ServiceOperation -MockWith { }
             Mock Clear-PathSafe {}
-            Mock Out-File {}
+            Mock -CommandName Out-File -MockWith { }
             Mock Join-Path { return "dummy_path" }
 
             Start-AdditionalMaintenance -NoRestorePoint
