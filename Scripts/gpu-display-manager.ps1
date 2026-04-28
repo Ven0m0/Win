@@ -22,7 +22,8 @@ function Set-P0State {
   $gpuPaths = Set-NvidiaGpuRegistryValue -Name "DisableDynamicPstate" -Type REG_DWORD -Data $Value
 
   Clear-Host
-  Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
+  $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
+  Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $color
   Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "P0State" -GpuPaths $gpuPaths
 }
 
@@ -32,7 +33,8 @@ function Set-HDCP {
   $gpuPaths = Set-NvidiaGpuRegistryValue -Name "RMHdcpKeyglobZero" -Type REG_DWORD -Data $Value
 
   Clear-Host
-  Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
+  $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
+  Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $color
   Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "HDCP" -GpuPaths $gpuPaths
 }
 #endregion
@@ -97,7 +99,8 @@ function Show-NvidiaMenu {
       6 {
         $installerPath = "$PSScriptRoot\..\user\.dotfiles\config\nvidia\xtremeg-installer.ps1"
         if (Test-Path $installerPath) {
-          Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath) -Verb RunAs
+          $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath
+          Start-Process powershell.exe -ArgumentList $args -Verb RunAs
         } else {
           Write-Host "XtremeG Installer not found at: $installerPath" -ForegroundColor Red
           Wait-ForKeyPress
@@ -107,8 +110,10 @@ function Show-NvidiaMenu {
         Clear-Host
         Show-NvidiaGpuSettings
         Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
-        Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' })
-        Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' })
+        $gColor = if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' }
+        Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $gColor
+        $sColor = if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' }
+        Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $sColor
         Write-Host ""
         Wait-ForKeyPress -Message "Press any key to continue..." -UseReadHost
       }
