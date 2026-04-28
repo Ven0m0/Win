@@ -18,6 +18,7 @@ ruff = "latest"
 prek = "latest"
 pytest = "latest"
 basedpyright = "latest"
+"pipx:dotbot" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
