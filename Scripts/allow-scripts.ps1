@@ -1,12 +1,10 @@
-# allow-scripts.ps1 - PowerShell Script Execution Policy Manager
+﻿# allow-scripts.ps1 - PowerShell Script Execution Policy Manager
 # Enables or disables PowerShell script execution and file associations
 
 #Requires -RunAsAdministrator
 
 . "$PSScriptRoot\Common.ps1"
 
-Request-AdminElevation
-Initialize-ConsoleUI -Title "PowerShell Script Manager (Administrator)"
 
 function Enable-ScriptExecution {
   <#
@@ -18,7 +16,8 @@ function Enable-ScriptExecution {
 
   Write-Host "[1/3] Configuring PowerShell file associations..."
   Set-RegistryValue -Path 'HKCR\Applications\powershell.exe\shell\open\command' -Name '' `
-    -Type REG_SZ -Data 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -ExecutionPolicy RemoteSigned -File "%1"'
+    -Type REG_SZ `
+    -Data 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -ExecutionPolicy RemoteSigned -File "%1"'
 
   Write-Host "[2/3] Setting execution policy to RemoteSigned..."
   Set-RegistryValue -Path 'HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' `
@@ -61,24 +60,29 @@ function Disable-ScriptExecution {
   Write-Host "  - Double-click execution disabled" -ForegroundColor Gray
 }
 
-while ($true) {
-  Show-Menu -Title "PowerShell Script Manager" -Options @(
-    "Enable Scripts (Recommended)"
-    "Disable Scripts"
-    "Exit"
-  )
+if ($MyInvocation.InvocationName -ne '.') {
+  Request-AdminElevation
+  Initialize-ConsoleUI -Title "PowerShell Script Manager (Administrator)"
 
-  $choice = Get-MenuChoice -Min 1 -Max 3
+  while ($true) {
+    Show-Menu -Title "PowerShell Script Manager" -Options @(
+      "Enable Scripts (Recommended)"
+      "Disable Scripts"
+      "Exit"
+    )
 
-  switch ($choice) {
-    1 {
-      Enable-ScriptExecution
-      Wait-ForKeyPress -Message "Press any key to continue..."
+    $choice = Get-MenuChoice -Min 1 -Max 3
+
+    switch ($choice) {
+      1 {
+        Enable-ScriptExecution
+        Wait-ForKeyPress -Message "Press any key to continue..."
+      }
+      2 {
+        Disable-ScriptExecution
+        Wait-ForKeyPress -Message "Press any key to continue..."
+      }
+      3 { exit }
     }
-    2 {
-      Disable-ScriptExecution
-      Wait-ForKeyPress -Message "Press any key to continue..."
-    }
-    3 { exit }
   }
 }

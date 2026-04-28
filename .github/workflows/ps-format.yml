@@ -49,7 +49,7 @@ jobs:
             Write-Host "No specific changed files detected. Skipping legacy full-repo check."
             $files = @()
           }
-          "files=$($files -join ',')") | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"
 
       - name: Run formatting check
@@ -68,11 +68,7 @@ jobs:
             $bytes = [System.IO.File]::ReadAllBytes($file)
             $content = [System.IO.File]::ReadAllText($file, [System.Text.UTF8Encoding]::new($true))
 
-            # ReadAllText with UTF8Encoding automatically strips the BOM if present
-            # We don't need to manually substring it, otherwise we lose the first character
-            # if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-            #   $content = $content.Substring(1)
-            # }
+            # ReadAllText with UTF8Encoding(true) already handles the BOM correctly.
 
              $lines = $content -split "\r?\n"
 

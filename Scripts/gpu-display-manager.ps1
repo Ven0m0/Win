@@ -8,10 +8,12 @@
 . "$PSScriptRoot\Common.ps1"
 
 # Request admin elevation
-Request-AdminElevation
+if ($MyInvocation.InvocationName -ne '.') {
+  Request-AdminElevation
 
 # Initialize console UI
-Initialize-ConsoleUI -Title "GPU & Display Manager (Administrator)"
+  Initialize-ConsoleUI -Title "GPU & Display Manager (Administrator)"
+}
 
 #region NVIDIA GPU Settings
 function Set-P0State {
@@ -20,7 +22,8 @@ function Set-P0State {
   $gpuPaths = Set-NvidiaGpuRegistryValue -Name "DisableDynamicPstate" -Type REG_DWORD -Data $Value
 
   Clear-Host
-  Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
+  $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
+  Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $color
   Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "P0State" -GpuPaths $gpuPaths
 }
 
@@ -30,7 +33,8 @@ function Set-HDCP {
   $gpuPaths = Set-NvidiaGpuRegistryValue -Name "RMHdcpKeyglobZero" -Type REG_DWORD -Data $Value
 
   Clear-Host
-  Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $(if ($Value -eq '1') { 'Green' } else { 'Cyan' })
+  $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
+  Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $color
   Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "HDCP" -GpuPaths $gpuPaths
 }
 #endregion
@@ -95,7 +99,8 @@ function Show-NvidiaMenu {
       6 {
         $installerPath = "$PSScriptRoot\..\user\.dotfiles\config\nvidia\xtremeg-installer.ps1"
         if (Test-Path $installerPath) {
-          Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath) -Verb RunAs
+          $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath
+          Start-Process powershell.exe -ArgumentList $args -Verb RunAs
         } else {
           Write-Host "XtremeG Installer not found at: $installerPath" -ForegroundColor Red
           Wait-ForKeyPress
@@ -105,8 +110,12 @@ function Show-NvidiaMenu {
         Clear-Host
         Show-NvidiaGpuSettings
         Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
-        Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' })
-        Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $(if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' })
+        $gColor = if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' }
+        $gStatus = if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' }
+        Write-Host "  Global Override: $gStatus" -ForegroundColor $gColor
+        $sColor = if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' }
+        $sStatus = if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' }
+        Write-Host "  Service Override: $sStatus" -ForegroundColor $sColor
         Write-Host ""
         Wait-ForKeyPress -Message "Press any key to continue..." -UseReadHost
       }
@@ -222,16 +231,18 @@ function Show-GamingDisplayMenu {
 }
 #endregion
 
-# Main program loop
-while ($true) {
-  Show-MainMenu
-  $choice = Get-MenuChoice -Min 1 -Max 5
+if ($MyInvocation.InvocationName -ne '.') {
+  # Main program loop
+  while ($true) {
+    Show-MainMenu
+    $choice = Get-MenuChoice -Min 1 -Max 5
 
-  switch ($choice) {
-    1 { Show-NvidiaMenu }
-    2 { Show-MSIMenu }
-    3 { Show-EDIDMenu }
-    4 { Show-GamingDisplayMenu }
-    5 { exit }
+    switch ($choice) {
+      1 { Show-NvidiaMenu }
+      2 { Show-MSIMenu }
+      3 { Show-EDIDMenu }
+      4 { Show-GamingDisplayMenu }
+      5 { exit }
   }
+}
 }

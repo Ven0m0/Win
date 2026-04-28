@@ -826,7 +826,7 @@ $managers = @(
                 $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
-                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch {}
+                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch { }
 
                 $script:stepChanged = $anyInstalled
                 if (-not $anyFailed) {
@@ -842,7 +842,7 @@ $managers = @(
                 } else {
                     $script:stepMessage = if ($anyInstalled) { 'completed with some failures' } else { 'failed; see warnings above' }
                 }
-            }
+            } catch { Write-Warning $_ }
         }
         RequiresCommand = 'winget'
         SlowOperation   = $false

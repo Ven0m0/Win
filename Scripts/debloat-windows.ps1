@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
   Comprehensive Windows debloating and optimization script
@@ -9,13 +9,7 @@
 #>
 
 # Import common functions
-. "$PSScriptRoot\Common.ps1"
-
-# Request admin elevation
-Request-AdminElevation
-
-# Initialize console UI
-Initialize-ConsoleUI -Title "Windows Debloater (Administrator)"
+. "$PSScriptRoot/Common.ps1"
 
 #region Phase 1: App Removal
 function Remove-BloatwareApps {
@@ -130,7 +124,8 @@ function Disable-WindowsFeatures {
     $state = Get-WindowsOptionalFeature -Online -FeatureName $feature.Name -ErrorAction SilentlyContinue
     if ($state -and $state.State -eq "Enabled") {
       Write-Host "  Disabling: $($feature.Name) ($($feature.Desc))" -ForegroundColor Yellow
-      Disable-WindowsOptionalFeature -Online -FeatureName $feature.Name -NoRestart -ErrorAction SilentlyContinue | Out-Null
+      Disable-WindowsOptionalFeature -Online -FeatureName $feature.Name -NoRestart `
+        -ErrorAction SilentlyContinue | Out-Null
     }
   }
 
@@ -214,20 +209,40 @@ function Apply-RegistryTweaks {
 
   $tweaks = @(
     # Telemetry
-    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection"; Name = "AllowTelemetry"; Value = 0; Type = "REG_DWORD"; Desc = "Disable telemetry" }
-    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection"; Name = "DoNotShowFeedbackNotifications"; Value = 1; Type = "REG_DWORD"; Desc = "Disable feedback notifications" }
+    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
+        Name = "AllowTelemetry"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable telemetry" }
+    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
+        Name = "DoNotShowFeedbackNotifications"; Value = 1;
+        Type = "REG_DWORD"; Desc = "Disable feedback notifications" }
     # Cortana/Search
-    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search"; Name = "AllowCortana"; Value = 0; Type = "REG_DWORD"; Desc = "Disable Cortana" }
-    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search"; Name = "DisableWebSearch"; Value = 1; Type = "REG_DWORD"; Desc = "Disable web search in Start" }
+    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search";
+        Name = "AllowCortana"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable Cortana" }
+    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search";
+        Name = "DisableWebSearch"; Value = 1;
+        Type = "REG_DWORD"; Desc = "Disable web search in Start" }
     # Suggestions
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"; Name = "SystemPaneSuggestionsEnabled"; Value = 0; Type = "REG_DWORD"; Desc = "Disable Start menu suggestions" }
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"; Name = "SilentInstalledAppsEnabled"; Value = 0; Type = "REG_DWORD"; Desc = "Disable silent app installs" }
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
+        Name = "SystemPaneSuggestionsEnabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable Start menu suggestions" }
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
+        Name = "SilentInstalledAppsEnabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable silent app installs" }
     # Privacy
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"; Name = "Enabled"; Value = 0; Type = "REG_DWORD"; Desc = "Disable advertising ID" }
-    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\System"; Name = "EnableActivityFeed"; Value = 0; Type = "REG_DWORD"; Desc = "Disable activity feed" }
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo";
+        Name = "Enabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable advertising ID" }
+    @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\System";
+        Name = "EnableActivityFeed"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable activity feed" }
     # Performance
-    @{ Path = "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management"; Name = "ClearPageFileAtShutdown"; Value = 0; Type = "REG_DWORD"; Desc = "Don't clear pagefile at shutdown" }
-    @{ Path = "HKCU\Control Panel\Desktop"; Name = "MenuShowDelay"; Value = "50"; Type = "REG_SZ"; Desc = "Reduce menu show delay" }
+    @{ Path = "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management";
+        Name = "ClearPageFileAtShutdown"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Don't clear pagefile at shutdown" }
+    @{ Path = "HKCU\Control Panel\Desktop";
+        Name = "MenuShowDelay"; Value = "50";
+        Type = "REG_SZ"; Desc = "Reduce menu show delay" }
   )
 
   foreach ($tweak in $tweaks) {
@@ -297,33 +312,41 @@ function Run-AllPhases {
   Show-RestartRequired -CustomMessage "Debloating complete. Restart recommended to apply all changes."
 }
 
-# Main menu loop
-while ($true) {
-  Show-Menu -Title "Windows Debloater - Main Menu" -Options @(
-    "Run All Phases (Recommended)"
-    "Phase 1: Remove Bloatware Apps"
-    "Phase 2: Disable Unnecessary Services"
-    "Phase 3: Disable Windows Features"
-    "Phase 4: Disable Scheduled Tasks"
-    "Phase 5: Apply Registry Tweaks"
-    "Phase 6: System Cleanup"
-    "Exit"
-  )
+if ($MyInvocation.InvocationName -ne '.') {
+  # Request admin elevation
+  Request-AdminElevation
 
-  $choice = Get-MenuChoice -Min 1 -Max 8
+  # Initialize console UI
+  Initialize-ConsoleUI -Title "Windows Debloater (Administrator)"
 
-  switch ($choice) {
-    1 { Run-AllPhases }
-    2 { Remove-BloatwareApps }
-    3 { Disable-UnnecessaryServices }
-    4 { Disable-WindowsFeatures }
-    5 { Disable-ScheduledTasks }
-    6 { Apply-RegistryTweaks }
-    7 { Run-SystemCleanup }
-    8 { exit }
-  }
+  # Main menu loop
+  while ($true) {
+    Show-Menu -Title "Windows Debloater - Main Menu" -Options @(
+      "Run All Phases (Recommended)"
+      "Phase 1: Remove Bloatware Apps"
+      "Phase 2: Disable Unnecessary Services"
+      "Phase 3: Disable Windows Features"
+      "Phase 4: Disable Scheduled Tasks"
+      "Phase 5: Apply Registry Tweaks"
+      "Phase 6: System Cleanup"
+      "Exit"
+    )
 
-  if ($choice -ne 8) {
-    Wait-ForKeyPress -Message "`nPress any key to return to menu..."
+    $choice = Get-MenuChoice -Min 1 -Max 8
+
+    switch ($choice) {
+      1 { Run-AllPhases }
+      2 { Remove-BloatwareApps }
+      3 { Disable-UnnecessaryServices }
+      4 { Disable-WindowsFeatures }
+      5 { Disable-ScheduledTasks }
+      6 { Apply-RegistryTweaks }
+      7 { Run-SystemCleanup }
+      8 { exit }
+    }
+
+    if ($choice -ne 8) {
+      Wait-ForKeyPress -Message "`nPress any key to return to menu..."
+    }
   }
 }
