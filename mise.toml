@@ -1,5 +1,37 @@
+[settings]
+experimental = true
+color = true
+yes = true
+auto_install = true
+
+[settings.python]
+uv_venv_auto = "create|source"
+uv_venv_create_args = ["--seed", "--system-site-packages"]
+
+[settings.pipx]
+uvx = true
+
+[settings.dotnet]
+cli_telemetry_optout = true
+
 [tools]
-python = "3.14.4"
+python = "3.14"
+uv = "latest"
+ruff = "latest"
+ty = "latest"
+prek = "latest"
+"pipx:pytest" = "latest"
+"pipx:basedpyright" = "latest"
+"pipx:dotbot" = "latest"
+
+[env]
+PROJECT_ROOT = "{{config_root}}"
+# Ensure uv uses the exact Python interpreter installed by `mise install`.
+# `tools = true` makes `tools.python.path` available when mise resolves tool-aware env vars at runtime.
+UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
+UV_LINK_MODE = "symlink"
+_.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
+
 
 [tasks.bootstrap]
 description = "Install dotbot and deploy dotfiles"
