@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Initialize custom PowerShell + tooling environment (Scoop, Winget, Choco, apps, custom downloads).
 .NOTES
@@ -6,7 +6,9 @@
   ExecutionPolicy for CurrentUser will be set to RemoteSigned on first run.
 #>
 [CmdletBinding()]
-param()
+param(
+  [switch]$HomeWorkstation
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -135,6 +137,9 @@ function Enable-Bucket {
   }
 }
 
+function Start-MainFunction {
+  param([switch]$HomeWorkstation)
+
 # ExecutionPolicy: CurrentUser -> RemoteSigned
 if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "RemoteSigned") {
   Write-Verbose "Setting Execution Policy for Current User..."
@@ -259,7 +264,9 @@ if (-not $Env:TERM) {
 }
 
 # Home workstation prompt
-$HomeWorkstation = $(Read-Host -Prompt "Is this a workstation for Home use (y/n)?") -eq "y"
+if (-not $PSBoundParameters.ContainsKey("HomeWorkstation")) {
+  $HomeWorkstation = $(Read-Host -Prompt "Is this a workstation for Home use (y/n)?") -eq "y"
+}
 
 if ($HomeWorkstation -and -not (Test-Path -LiteralPath $Env:UserProfile\bin)) {
   Write-Verbose "Creating bin directory in $Env:UserProfile"
@@ -520,4 +527,11 @@ finally {
 '@ > $Env:Temp\ps7.ps1
   Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
   Remove-Item -LiteralPath $Env:Temp\ps7.ps1 -Force
+}
+
+}
+
+if ($MyInvocation.InvocationName -ne '.') {
+  Start-MainFunction @PSBoundParameters
+  exit $LASTEXITCODE
 }
