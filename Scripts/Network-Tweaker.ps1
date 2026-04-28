@@ -1,4 +1,4 @@
-<#
+﻿<#
 .NAME
     Tweaking Adapter
 #>
@@ -2391,8 +2391,6 @@ $NetworkDirectGlobalFlags = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHI
 
 #Adapter Selection
 $AdapterName = Get-NetAdapter -physical | Where-Object status -eq 'up' | Select-Object -expand InterfaceDescription
-#$AdapterName = Get-NetAdapter -IncludeHidden | Select-Object -expand InterfaceDescription
-#if($AdapterName )
 [void] $cb_AdapterNamesCombo.Items.AddRange([object[]]@($AdapterName))
 
 function Initialize-AdapterUI {
