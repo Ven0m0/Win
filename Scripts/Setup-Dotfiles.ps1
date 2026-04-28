@@ -332,12 +332,6 @@ function Deploy-StarWarsBattlefrontIIConfigs {
       -Source $profileOptionsPath `
       -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
       -Label "$Label/ProfileOptions_profile"
-      -Source $profileOptionsPath `
-      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
-      -Label "$Label/ProfileOptions_profile"
-      -Source $profileOptionsPath `
-      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
-      -Label "$Label/ProfileOptions_profile"
   }
 }
 

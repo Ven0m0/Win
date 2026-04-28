@@ -1,4 +1,4 @@
-﻿ # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
+ # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 #Requires -RunAsAdministrator
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
@@ -39,7 +39,6 @@ foreach ($app in $apps) {
   }
 }
 #--- Graceful/forced Steam & app shutdown
-<<<<<<< HEAD
 $gameProcesses = $apps.name
 $stopParts = foreach ($app in $apps) { "+app_stop $($app.id)" }
 $appStopArgs = $stopParts -join ' '
@@ -51,24 +50,6 @@ Stop-SteamGracefully -AppStopArgs $appStopArgs
 $gameProcesses | ForEach-Object { Stop-Process -Name $_ -Force -ErrorAction SilentlyContinue }
 Remove-Item "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
 
-=======
-$kill = [System.Collections.Generic.List[string]]@('steamwebhelper','steam')
-$stopParts = [System.Collections.Generic.List[string]]@()
-foreach ($a in $apps) {
-  $kill.Add($a.name)
-  $stopParts.Add(" +app_stop $($a.id)")
-}
-$stop = $stopParts -join ''
-$kill = $kill.ToArray()
-if ((Get-ItemProperty "HKCU:\Software\Valve\Steam\ActiveProcess" -EA 0).pid -gt 0 -and
-  (Get-Process steamwebhelper -EA 0)) {
-  Start-Process "$STEAM\Steam.exe" -ArgumentList "-ifrunning -silent $stop -shutdown +quit now" -Wait
-}
-while (Get-Process steamwebhelper,steam -EA 0) {
-  $kill | ForEach-Object { Stop-Process -Name $_ -Force -EA 0 }
-  Remove-Item "$STEAM\.crash" -Force -EA 0
-Start-Sleep -Milliseconds 250
-}
 Write-Host "`n* Clearing STEAM logs..." -ForegroundColor Cyan
 Clear-DirectorySafe "$STEAM\logs"
 Write-Host "`n* Clearing STEAM dumps..." -ForegroundColor Cyan

@@ -34,6 +34,9 @@ $ProgressPreference = 'SilentlyContinue'
 $script:StartTime = Get-Date
 $script:Results = @{}
 
+function Write-Warning { param([string]$msg) Write-Host "[WARN] $msg" -ForegroundColor Yellow }
+function Write-Fail { param([string]$msg) Write-Host "[FAIL] $msg" -ForegroundColor Red }
+
 function Write-Status { param([string]$Message, [string]$Status = 'INFO')
     $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
     Write-Host "  [$Status] $Message" -ForegroundColor $color
@@ -192,5 +195,3 @@ if ($Unattended) { Write-Host 'Unattended setup complete. Review results above f
 else { Write-Host 'Setup complete! Re-run with -Force to re-execute.' -ForegroundColor Cyan }
 Write-Host ''
 
-function Write-Warning($msg) { Write-Host "[WARN] $msg" -ForegroundColor Yellow }
-function Write-Fail($msg) { Write-Host "[FAIL] $msg" -ForegroundColor Red }
