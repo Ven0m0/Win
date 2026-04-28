@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
@@ -6,7 +6,9 @@ Describe "system-update.ps1" {
     Context "Syntax and Basic Execution" {
         It "Can be parsed and executed without throwing" {
             $content = Get-Content "$PSScriptRoot/system-update.ps1" -Raw
-            $content = $content.Replace('([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")', '$true')
+            $adminCheck = "([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]"
+            $adminCheck += "::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]""Administrator"")"
+            $content = $content.Replace($adminCheck, '$true')
             $content = $content.Replace('$env:LOCALAPPDATA', "'$PSScriptRoot'")
             $content = $content.Replace('$env:SystemRoot', "'$PSScriptRoot'")
             $content = $content.Replace('$env:ProgramFiles', "'$PSScriptRoot'")
@@ -29,7 +31,9 @@ Describe "system-update.ps1" {
 
         It "Completes with all skip flags enabled" {
             $content = Get-Content "$PSScriptRoot/system-update.ps1" -Raw
-            $content = $content.Replace('([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")', '$true')
+            $adminCheck = "([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]"
+            $adminCheck += "::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]""Administrator"")"
+            $content = $content.Replace($adminCheck, '$true')
             $content = $content.Replace('$env:LOCALAPPDATA', "'$PSScriptRoot'")
             $content = $content.Replace('$env:SystemRoot', "'$PSScriptRoot'")
             $content = $content.Replace('$env:ProgramFiles', "'$PSScriptRoot'")
@@ -41,7 +45,9 @@ Describe "system-update.ps1" {
             Set-Content -Path $tempScript -Value $content
 
             $runBlock = {
-                . $tempScript -DryRun -SkipCleanup -SkipWindowsUpdate -SkipNode -SkipRust -SkipGo -SkipFlutter -SkipGitLFS -SkipWSL -SkipVSCodeExtensions -SkipPowerShellModules
+                . $tempScript -DryRun -SkipCleanup -SkipWindowsUpdate `
+                -SkipNode -SkipRust -SkipGo -SkipFlutter -SkipGitLFS `
+                -SkipWSL -SkipVSCodeExtensions -SkipPowerShellModules
             }
 
             $runBlock | Should -Not -Throw

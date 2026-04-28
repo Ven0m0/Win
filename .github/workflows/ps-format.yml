@@ -49,7 +49,7 @@ jobs:
             Write-Host "No specific changed files detected. Skipping legacy full-repo check."
             $files = @()
           }
-          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          "files=$($files -join ',')") | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"
 
       - name: Run formatting check
