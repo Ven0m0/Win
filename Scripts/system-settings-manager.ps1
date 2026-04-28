@@ -20,28 +20,35 @@ function Set-PerformanceSettings {
   # Disable hibernate
   Write-Host "  [*] Disabling hibernate..." -ForegroundColor Gray
   powercfg /hibernate off 2>&1 | Out-Null
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabled" -Type REG_DWORD -Data "0"
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabledDefault" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabled" \
+    -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabledDefault" \
+    -Type REG_DWORD -Data "0"
 
   # Disable lock option
   Write-Host "  [*] Disabling lock option..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowLockOption" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" \
+    -Name "ShowLockOption" -Type REG_DWORD -Data "0"
 
   # Disable sleep option
   Write-Host "  [*] Disabling sleep option..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" \
+    -Name "ShowSleepOption" -Type REG_DWORD -Data "0"
 
   # Disable fast boot
   Write-Host "  [*] Disabling fast boot..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" \
+    -Type REG_DWORD -Data "0"
 
   # Disable power throttling
   Write-Host "  [*] Disabling power throttling..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" -Name "PowerThrottlingOff" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" -Name "PowerThrottlingOff" \
+    -Type REG_DWORD -Data "1"
 
   # Enable USB overclock with secure boot
   Write-Host "  [*] Enabling USB overclock compatibility..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "WHQLSettings" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "WHQLSettings" \
+    -Type REG_DWORD -Data "1"
 
   # Disable raw mouse throttling
   Write-Host "  [*] Disabling raw mouse throttling..." -ForegroundColor Gray
@@ -69,20 +76,25 @@ function Restore-DefaultPerformanceSettings {
 
   # Enable hibernate
   Write-Host "  [*] Enabling hibernate..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabled" -Type REG_DWORD -Data "1"
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabledDefault" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabled" \
+    -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Power" -Name "HibernateEnabledDefault" \
+    -Type REG_DWORD -Data "1"
 
   # Enable lock option
   Write-Host "  [*] Enabling lock option..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowLockOption" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" \
+    -Name "ShowLockOption" -Type REG_DWORD -Data "1"
 
   # Enable sleep option
   Write-Host "  [*] Enabling sleep option..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" \
+    -Name "ShowSleepOption" -Type REG_DWORD -Data "1"
 
   # Enable fast boot
   Write-Host "  [*] Enabling fast boot..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" \
+    -Type REG_DWORD -Data "1"
 
   # Remove power throttling override
   Write-Host "  [*] Removing power throttling override..." -ForegroundColor Gray
@@ -90,7 +102,8 @@ function Restore-DefaultPerformanceSettings {
 
   # Restore USB settings
   Write-Host "  [*] Restoring USB settings..." -ForegroundColor Gray
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "WHQLSettings" -Type REG_DWORD -Data "0"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "WHQLSettings" \
+    -Type REG_DWORD -Data "0"
 
   # Re-enable raw mouse throttling
   Write-Host "  [*] Re-enabling raw mouse throttling..." -ForegroundColor Gray
@@ -129,13 +142,16 @@ function Disable-KeyboardShortcuts {
   Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\hidserv" -Name "Start" -Type REG_DWORD -Data "4"
 
   # Disable Windows key hotkeys
-  Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoWinKeys" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" \
+    -Name "NoWinKeys" -Type REG_DWORD -Data "1"
 
   # Disable shortcut keys
-  Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisabledHotkeys" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" \
+    -Name "DisabledHotkeys" -Type REG_DWORD -Data "1"
 
   # Disable Win, Alt, ESC keys (ESC rebound to =)
-  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" -Type REG_BINARY -Data "00000000000000000700000000005be000005ce000003800000038e00000010001000d0000000000"
+  Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" \
+    -Type REG_BINARY -Data "00000000000000000700000000005be000005ce000003800000038e00000010001000d0000000000"
 
   Clear-Host
   Write-Host "Keyboard shortcuts disabled successfully!" -ForegroundColor Green

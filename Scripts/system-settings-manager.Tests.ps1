@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Dot source Common.ps1 first so we get the real commands, then we mock them
@@ -41,7 +41,8 @@ Describe "System Settings Manager" {
             Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "WHQLSettings" -and $Data -eq "1" }
 
             # Check network binding
-            Should -Invoke Disable-NetAdapterBinding -ParameterFilter { $Name -eq "*" -and $ComponentID -eq "ms_server" }
+            Should -Invoke Disable-NetAdapterBinding \
+                -ParameterFilter { $Name -eq "*" -and $ComponentID -eq "ms_server" }
         }
 
         It "Should call Set-RegistryValue to restore defaults" {
