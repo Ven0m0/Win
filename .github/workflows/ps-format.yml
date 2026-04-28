@@ -71,8 +71,8 @@ jobs:
             # ReadAllText with UTF8Encoding automatically strips the BOM if present
             # We don't need to manually substring it, otherwise we lose the first character
             # if ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-            #   $content = $content.Substring(1)
-            # }
+          #   $content = $content.Substring(1)
+          # }
 
              $lines = $content -split "\r?\n"
 
