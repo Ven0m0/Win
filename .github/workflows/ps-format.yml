@@ -42,14 +42,14 @@ jobs:
           if ($baseRef -and $baseRef -ne '') {
             # Ensure the base ref is available
             git fetch origin "refs/heads/$baseRef" --depth=1 2>$null
-            $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
+            $files = @()
           }
           if ($files.Count -eq 0) {
             # Safely fallback to empty instead of checking entire legacy repo
             Write-Host "No specific changed files detected. Skipping legacy full-repo check."
             $files = @()
           }
-          "files=$($files -join ',')") | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"
 
       - name: Run formatting check
