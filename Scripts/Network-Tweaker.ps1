@@ -1,4 +1,4 @@
-<#
+﻿<#
 .NAME
     Tweaking Adapter
 #>
@@ -4294,4 +4294,6 @@ $btn_afd.Add_Click({btn_regopenafd})
 
 #endregion
 
-[void]$Form.ShowDialog()
+if ($MyInvocation.InvocationName -ne '.') {
+    [void]$Form.ShowDialog()
+}
