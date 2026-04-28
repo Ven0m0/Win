@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Complete Windows 11 setup: installs prerequisites, clones dotfiles, runs bootstrap.
@@ -70,7 +70,9 @@ function Start-SetupWin11 {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended') { if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" } }
+        foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended') {
+            if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
+        }
         Start-Process $shell -ArgumentList $argList -Verb RunAs
         return $true
     }
@@ -87,17 +89,23 @@ function Start-SetupWin11 {
             Write-Status 'Prerequisites installed' -Status 'OK'
         } else {
             Write-Fail 'winget not found and shell-setup.ps1 unavailable.'
-            Write-Host '  Install winget from https://aka.ms/getwinget then re-run.' -ForegroundColor Yellow
+            Write-Host '  Install winget from https://aka.ms/getwinget then re-run.' `
+                -ForegroundColor Yellow
             return $false
         }
     } else { Write-Status 'winget is available' -Status 'OK' }
 
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        $null = Invoke-Operation -Name 'Installing Git' -Action { winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements | Out-Null }
+        $null = Invoke-Operation -Name 'Installing Git' -Action {
+            winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        }
     } else { Write-Status 'Git is available' -Status 'OK' }
 
     if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
-        $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action { winget install --id Microsoft.PowerShell --silent --accept-source-agreements --accept-package-agreements | Out-Null }
+        $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action {
+            winget install --id Microsoft.PowerShell --silent --accept-source-agreements `
+                --accept-package-agreements | Out-Null
+        }
     } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
 
@@ -115,7 +123,8 @@ function Start-SetupWin11 {
             Write-Status 'Existing repo found - forcing re-clone' -Status 'RUNNING'
             Remove-Item $repoDir -Recurse -Force -ErrorAction SilentlyContinue
         } else {
-            Write-Status 'Repository already initialized - pulling latest changes' -Status 'RUNNING'
+            Write-Status 'Repository already initialized - pulling latest changes' `
+                -Status 'RUNNING'
             try { git -C $repoDir pull; Write-Status 'Dotfiles updated' -Status 'OK' }
             catch { Write-Status "Pull failed: $_" -Status 'WARN' }
         }
@@ -130,7 +139,11 @@ function Start-SetupWin11 {
     # Ensure Python and dotbot are installed
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
         Write-Status 'Installing Python via winget...' -Status 'RUNNING'
-        try { winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null; Write-Status 'Python installed' -Status 'OK' }
+        try {
+            winget install --id Python.Python.3.12 --silent --accept-source-agreements `
+                --accept-package-agreements | Out-Null
+            Write-Status 'Python installed' -Status 'OK'
+        }
         catch { Write-Status "Python installation failed: $_" -Status 'WARN' }
     }
 
@@ -170,7 +183,8 @@ function Start-SetupWin11 {
         } else {
             if ($Unattended) { $installWSL = $true }
             else {
-                $installWSL = $host.UI.PromptForChoice('WSL2','Install WSL2 (recommended for Windows 11)?', @('&Yes','&No'), 0) -eq 0
+                $installWSL = $host.UI.PromptForChoice(
+                    'WSL2','Install WSL2 (recommended for Windows 11)?', @('&Yes','&No'), 0) -eq 0
             }
             if ($installWSL) {
                 $null = Invoke-Operation -Name 'Installing WSL2' -Action { wsl --install --no-distribution | Out-Null }
@@ -190,8 +204,15 @@ function Start-SetupWin11 {
     Write-Host ''
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
-        $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
-        Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
+        $color = switch ($status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'RUNNING' { 'Cyan' }
+            default { 'White' }
+        }
+        Write-Host "  $($key.PadRight(50)) : " -NoNewline
+        Write-Host "$status" -ForegroundColor $color
     }
     Write-Host ''
     $duration = (Get-Date) - $script:StartTime
@@ -202,8 +223,12 @@ function Start-SetupWin11 {
     Write-Host '  2. Verify profile: Get-Command about_*' -ForegroundColor Gray
     Write-Host '  3. Explore Scripts/ for utilities.' -ForegroundColor Gray
     Write-Host ''
-    if ($Unattended) { Write-Host 'Unattended setup complete. Review results above for failures.' -ForegroundColor Cyan }
-    else { Write-Host 'Setup complete! Re-run with -Force to re-execute.' -ForegroundColor Cyan }
+    if ($Unattended) {
+        Write-Host 'Unattended setup complete. Review results above for failures.' -ForegroundColor Cyan
+    }
+    else {
+        Write-Host 'Setup complete! Re-run with -Force to re-execute.' -ForegroundColor Cyan
+    }
     Write-Host ''
 
     return $true

@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
     . "$PSScriptRoot/Setup-Win11.ps1"
 }
@@ -24,7 +24,8 @@ Describe "Start-SetupWin11" {
 
     Context "When prerequisites are present" {
         It "Should succeed" {
-            Mock Get-Command { return [pscustomobject]@{ Name = $Name; Source = "$Name.exe" } } -ParameterFilter { $Name -in @('winget', 'git', 'pwsh', 'python', 'dotbot', 'pip', 'wsl') }
+            Mock Get-Command { return [pscustomobject]@{ Name = $Name; Source = "$Name.exe" } } `
+                -ParameterFilter { $Name -in @('winget', 'git', 'pwsh', 'python', 'dotbot', 'pip', 'wsl') }
             Mock Get-Command { return [pscustomobject]@{ Name = 'cmd'; Source = 'cmd.exe' } }
 
             Mock Test-Path { return $true }
