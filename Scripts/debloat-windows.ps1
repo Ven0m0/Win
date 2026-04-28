@@ -210,39 +210,39 @@ function Apply-RegistryTweaks {
   $tweaks = @(
     # Telemetry
     @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
-       Name = "AllowTelemetry"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable telemetry" }
+        Name = "AllowTelemetry"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable telemetry" }
     @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
-       Name = "DoNotShowFeedbackNotifications"; Value = 1;
-       Type = "REG_DWORD"; Desc = "Disable feedback notifications" }
+        Name = "DoNotShowFeedbackNotifications"; Value = 1;
+        Type = "REG_DWORD"; Desc = "Disable feedback notifications" }
     # Cortana/Search
     @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search";
-       Name = "AllowCortana"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable Cortana" }
+        Name = "AllowCortana"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable Cortana" }
     @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search";
-       Name = "DisableWebSearch"; Value = 1;
-       Type = "REG_DWORD"; Desc = "Disable web search in Start" }
+        Name = "DisableWebSearch"; Value = 1;
+        Type = "REG_DWORD"; Desc = "Disable web search in Start" }
     # Suggestions
     @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
-       Name = "SystemPaneSuggestionsEnabled"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable Start menu suggestions" }
+        Name = "SystemPaneSuggestionsEnabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable Start menu suggestions" }
     @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager";
-       Name = "SilentInstalledAppsEnabled"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable silent app installs" }
+        Name = "SilentInstalledAppsEnabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable silent app installs" }
     # Privacy
     @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo";
-       Name = "Enabled"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable advertising ID" }
+        Name = "Enabled"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable advertising ID" }
     @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\System";
-       Name = "EnableActivityFeed"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Disable activity feed" }
+        Name = "EnableActivityFeed"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Disable activity feed" }
     # Performance
     @{ Path = "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management";
-       Name = "ClearPageFileAtShutdown"; Value = 0;
-       Type = "REG_DWORD"; Desc = "Don't clear pagefile at shutdown" }
+        Name = "ClearPageFileAtShutdown"; Value = 0;
+        Type = "REG_DWORD"; Desc = "Don't clear pagefile at shutdown" }
     @{ Path = "HKCU\Control Panel\Desktop";
-       Name = "MenuShowDelay"; Value = "50";
-       Type = "REG_SZ"; Desc = "Reduce menu show delay" }
+        Name = "MenuShowDelay"; Value = "50";
+        Type = "REG_SZ"; Desc = "Reduce menu show delay" }
   )
 
   foreach ($tweak in $tweaks) {
