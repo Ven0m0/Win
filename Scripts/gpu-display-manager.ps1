@@ -111,9 +111,11 @@ function Show-NvidiaMenu {
         Show-NvidiaGpuSettings
         Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
         $gColor = if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' }
-        Write-Host "  Global Override: $(if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $gColor
+        $gStatus = if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' }
+        Write-Host "  Global Override: $gStatus" -ForegroundColor $gColor
         $sColor = if ($sigStatus.ServiceOverride) { 'Green' } else { 'Gray' }
-        Write-Host "  Service Override: $(if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' })" -ForegroundColor $sColor
+        $sStatus = if ($sigStatus.ServiceOverride) { 'Enabled' } else { 'Disabled' }
+        Write-Host "  Service Override: $sStatus" -ForegroundColor $sColor
         Write-Host ""
         Wait-ForKeyPress -Message "Press any key to continue..." -UseReadHost
       }
