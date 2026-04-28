@@ -8,10 +8,12 @@
 . "$PSScriptRoot\Common.ps1"
 
 # Request admin elevation
-Request-AdminElevation
+if ($MyInvocation.InvocationName -ne '.') {
+  Request-AdminElevation
 
 # Initialize console UI
-Initialize-ConsoleUI -Title "GPU & Display Manager (Administrator)"
+  Initialize-ConsoleUI -Title "GPU & Display Manager (Administrator)"
+}
 
 #region NVIDIA GPU Settings
 function Set-P0State {
@@ -222,16 +224,18 @@ function Show-GamingDisplayMenu {
 }
 #endregion
 
-# Main program loop
-while ($true) {
-  Show-MainMenu
-  $choice = Get-MenuChoice -Min 1 -Max 5
+if ($MyInvocation.InvocationName -ne '.') {
+  # Main program loop
+  while ($true) {
+    Show-MainMenu
+    $choice = Get-MenuChoice -Min 1 -Max 5
 
-  switch ($choice) {
-    1 { Show-NvidiaMenu }
-    2 { Show-MSIMenu }
-    3 { Show-EDIDMenu }
-    4 { Show-GamingDisplayMenu }
-    5 { exit }
+    switch ($choice) {
+      1 { Show-NvidiaMenu }
+      2 { Show-MSIMenu }
+      3 { Show-EDIDMenu }
+      4 { Show-GamingDisplayMenu }
+      5 { exit }
   }
+}
 }
