@@ -3,6 +3,9 @@
 # Provides user-friendly interface for Windows cleanup utilities
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
+function Start-UltimateDiskCleanup {
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
 # Request admin elevation
 Request-AdminElevation
 # Load Windows Forms assemblies
@@ -222,4 +225,10 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
     $usedInGB = [math]::Round($drive.Used / 1GB, 4)
     Write-Host 'AFTER CLEANING' -ForegroundColor Green
     Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Green
+}
+}
+
+if ($MyInvocation.InvocationName -ne '.') {
+    Start-UltimateDiskCleanup @PSBoundParameters
+    exit $LASTEXITCODE
 }
