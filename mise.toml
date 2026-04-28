@@ -15,9 +15,10 @@ uvx = true
 python = "3.14"
 uv = "latest"
 ruff = "latest"
+ty = "latest"
 prek = "latest"
 "pipx:pytest" = "latest"
-basedpyright = "latest"
+"pipx:basedpyright" = "latest"
 "pipx:dotbot" = "latest"
 
 [env]
