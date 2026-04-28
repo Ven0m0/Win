@@ -7,12 +7,6 @@
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
 
-# Request admin elevation
-Request-AdminElevation
-
-# Initialize console UI
-Initialize-ConsoleUI -Title "System Settings Manager (Administrator)"
-
 #region Performance Settings
 function Set-PerformanceSettings {
   <#
@@ -227,14 +221,26 @@ function Show-KeyboardMenu {
 }
 #endregion
 
-# Main program loop
-while ($true) {
-  Show-MainMenu
-  $choice = Get-MenuChoice -Min 1 -Max 3
+function Start-SystemSettingsManager {
+  # Request admin elevation
+  Request-AdminElevation
 
-  switch ($choice) {
-    1 { Show-PerformanceMenu }
-    2 { Show-KeyboardMenu }
-    3 { exit }
+  # Initialize console UI
+  Initialize-ConsoleUI -Title "System Settings Manager (Administrator)"
+
+  # Main program loop
+  while ($true) {
+    Show-MainMenu
+    $choice = Get-MenuChoice -Min 1 -Max 3
+
+    switch ($choice) {
+      1 { Show-PerformanceMenu }
+      2 { Show-KeyboardMenu }
+      3 { exit }
+    }
   }
+}
+
+if ($MyInvocation.InvocationName -ne '.') {
+  Start-SystemSettingsManager
 }
