@@ -29,6 +29,10 @@ project_name: "agent_d7447074-a115-40be-8890-21b64114aa1e"
 languages:
 - powershell
 - python
+- bash
+- yaml
+- toml
+- markdown
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
