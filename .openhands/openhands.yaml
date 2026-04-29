@@ -39,7 +39,7 @@ hooks:
 
   post_commit:
     script: .openhands/post-commit.sh
-    enabled: true
+    enabled: false
     fail_fast: false
 
 # Task definitions
