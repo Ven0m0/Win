@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Version 5.1
+
+<#
 .SYNOPSIS
   Initialize custom PowerShell + tooling environment (Scoop, Winget, Choco, apps, custom downloads).
 .NOTES

@@ -1,4 +1,7 @@
 ﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Complete Windows 11 setup: installs prerequisites, clones dotfiles, runs bootstrap.
@@ -44,7 +47,7 @@ function Start-SetupWin11 {
     $script:Results = @{}
 
     function Write-Status { param([string]$Message, [string]$Status = 'INFO')
-        $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+        $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default {
         Write-Host "  [$Status] $Message" -ForegroundColor $color
         $script:Results[$Message] = $Status
     }
@@ -62,11 +65,11 @@ function Start-SetupWin11 {
     # Elevation
     function Test-IsAdmin {
         if ($IsLinux -or $IsMacOS) { return $true }
-        return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Secur
     }
     $isAdmin = Test-IsAdmin
     if (-not $isAdmin) {
-        Write-Host '  [REQUIRED] Administrator privileges required. Relaunching as administrator...' -ForegroundColor Yellow
+        Write-Host '  [REQUIRED] Administrator privileges required. Relaunching as administrator...' -ForegroundColor Ye
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""

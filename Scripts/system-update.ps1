@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Version 5.1
+
+<#
 .SYNOPSIS
     Comprehensive system update script for Windows.
 .DESCRIPTION
@@ -78,7 +80,7 @@ catch {
 }
 
 $ErrorActionPreference = 'Continue'
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.
 $startTime = Get-Date
 $script:IsSimulation = $DryRun -or $WhatIfPreference
 $updateResults = @{
@@ -97,37 +99,37 @@ $script:Config = @{
     LogRetentionDays   = 7
     TempCleanupDays    = 7
     SkipManagers       = @()          # Names of managers to skip (e.g., 'Chocolatey', 'WSL')
-    FastModeSkip       = @('Chocolatey', 'WSLDistros', 'npm', 'pnpm', 'bun', 'deno', 'rust', 'cargo-binaries', 'go', 'gh-extensions', 'pipx', 'poetry', 'composer', 'rubygems', 'yt-dlp', 'tldr', 'oh-my-posh', 'volta', 'fnm', 'mise', 'juliaup', 'ollama-models', 'git-lfs', 'git-credential-manager', 'pip', 'uv', 'uv-tools', 'uv-python', 'dotnet', 'dotnet-workloads', 'vscode-extensions', 'pwsh-resources')
+    FastModeSkip       = @('Chocolatey', 'WSLDistros', 'npm', 'pnpm', 'bun', 'deno', 'rust', 'cargo-binaries', 'go', 'gh
     ManagersParallel   = @('Scoop', 'Chocolatey', 'WSL')   # can run in parallel
     # Custom hooks for winget upgrades
     WingetUpgradeHooks = @{
         'Spotify.Spotify'             = @{
-            Pre  = { $script:_spotifyWasRunning = [bool](Get-Process -Name Spotify -ErrorAction SilentlyContinue); Stop-Process -Name Spotify -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2 }
-            Post = { if ($script:_spotifyWasRunning) { Start-Process "$env:APPDATA\Spotify\Spotify.exe" -ErrorAction SilentlyContinue } }
+            Pre  = { $script:_spotifyWasRunning = [bool](Get-Process -Name Spotify -ErrorAction SilentlyContinue); Stop-
+            Post = { if ($script:_spotifyWasRunning) { Start-Process "$env:APPDATA\Spotify\Spotify.exe" -ErrorAction Sil
         }
         'Google.Chrome'               = @{
-            Pre  = { $script:_chromeWasRunning = [bool](Get-Process -Name 'chrome' -ErrorAction SilentlyContinue); if ($script:_chromeWasRunning) { Write-Host "  Closing Chrome..." -ForegroundColor Gray; Stop-Process -Name 'chrome' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 } }
-            Post = { if ($script:_chromeWasRunning) { $p = Join-Path ${env:ProgramFiles(x86)} 'Google\Chrome\Application\chrome.exe'; if (-not(Test-Path $p)) { $p = Join-Path $env:ProgramFiles 'Google\Chrome\Application\chrome.exe' } if (Test-Path $p) { Start-Process $p -ErrorAction SilentlyContinue } } }
+            Pre  = { $script:_chromeWasRunning = [bool](Get-Process -Name 'chrome' -ErrorAction SilentlyContinue); if ($
+            Post = { if ($script:_chromeWasRunning) { $p = Join-Path ${env:ProgramFiles(x86)} 'Google\Chrome\Application
         }
         'Microsoft.VisualStudioCode'  = @{
-            Pre  = { $script:_vscodeWasRunning = [bool](Get-Process -Name 'Code' -ErrorAction SilentlyContinue); if ($script:_vscodeWasRunning) { Write-Host "  Closing VS Code..." -ForegroundColor Gray; Stop-Process -Name 'Code' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 } }
-            Post = { if ($script:_vscodeWasRunning) { $p = Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.exe'; if (Test-Path $p) { Start-Process $p -ErrorAction SilentlyContinue } } }
+            Pre  = { $script:_vscodeWasRunning = [bool](Get-Process -Name 'Code' -ErrorAction SilentlyContinue); if ($sc
+            Post = { if ($script:_vscodeWasRunning) { $p = Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.
         }
         'Foxit.FoxitReader' = @{
             Pre  = {
-                $script:_foxitWasRunning = [bool](Get-Process -Name 'FoxitPDFReader', 'FoxitReader' -ErrorAction SilentlyContinue)
-                if ($script:_foxitWasRunning) { Write-Host "  Closing Foxit Reader..." -ForegroundColor Gray; Stop-Process -Name 'FoxitPDFReader', 'FoxitReader' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2 }
+                $script:_foxitWasRunning = [bool](Get-Process -Name 'FoxitPDFReader', 'FoxitReader' -ErrorAction Silentl
+                if ($script:_foxitWasRunning) { Write-Host "  Closing Foxit Reader..." -ForegroundColor Gray; Stop-Proce
             }
-            Post = { if ($script:_foxitWasRunning) { $p = @((Join-Path $env:ProgramFiles 'Foxit Software\Foxit PDF Reader\FoxitPDFReader.exe'), (Join-Path ${env:ProgramFiles(x86)} 'Foxit Software\Foxit Reader\FoxitReader.exe')) | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($p) { Start-Process $p -ErrorAction SilentlyContinue } } }
+            Post = { if ($script:_foxitWasRunning) { $p = @((Join-Path $env:ProgramFiles 'Foxit Software\Foxit PDF Reade
         }
         'Adobe.Acrobat.Reader.64-bit' = @{
             Pre  = {
-                $script:_acrobatProcs = @(Get-Process -Name 'Acrobat', 'AcroRd32', 'AcroCEF' -ErrorAction SilentlyContinue)
-                if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray; $script:_acrobatProcs | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 }
+                $script:_acrobatProcs = @(Get-Process -Name 'Acrobat', 'AcroRd32', 'AcroCEF' -ErrorAction SilentlyContin
+                if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray; 
                 Write-Host "  Clearing temporary files to prevent Acrobat extraction errors..." -ForegroundColor Gray
-                Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match '\.tmp|\.log' } | Remove-Item -Force -ErrorAction SilentlyContinue
+                Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Extension -
             }
-            Post = { if ($script:_acrobatProcs.Count -gt 0) { $p = @((Join-Path $env:ProgramFiles 'Adobe\Acrobat DC\Acrobat\Acrobat.exe'), (Join-Path ${env:ProgramFiles(x86)} 'Adobe\Acrobat Reader DC\Reader\AcroRd32.exe')) | Where-Object { Test-Path $_ } | Select-Object -First 1; if ($p) { Start-Process $p -ErrorAction SilentlyContinue } } }
+            Post = { if ($script:_acrobatProcs.Count -gt 0) { $p = @((Join-Path $env:ProgramFiles 'Adobe\Acrobat DC\Acro
         }
     }
 }
@@ -181,7 +183,7 @@ elseif (-not $isAdmin -and -not $NoElevate) {
 
 if ($Schedule) {
     if (-not $isAdmin -and -not $script:IsSimulation) {
-        throw "Scheduled task registration requires Administrator privileges. Re-run with -AutoElevate or from an elevated shell."
+        throw "Scheduled task registration requires Administrator privileges. Re-run with -AutoElevate or from an elevat
     }
 
     $taskName = 'DailySystemUpdate'
@@ -196,7 +198,7 @@ if ($Schedule) {
         $action = New-ScheduledTaskAction -Execute $shellPath -Argument ($taskArgs -join ' ')
         $trigger = New-ScheduledTaskTrigger -Daily -At $ScheduleTime
         $settings = New-ScheduledTaskSettingsSet -RunOnlyIfNetworkAvailable -StartWhenAvailable
-        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force | Out-Null
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highe
         Write-Host "[OK] Scheduled task '$taskName' registered to run daily at $ScheduleTime." -ForegroundColor Green
     }
     exit
@@ -404,7 +406,7 @@ function Invoke-WingetWithTimeout {
         $stderr = Get-Content -Raw -Path $stderrFile -Encoding UTF8 -ErrorAction SilentlyContinue
         $combined = (($stdout + $stderr) -replace '\x00', '').Trim()
         # Strip winget progress bar lines (e.g. "████░░░  45%")
-        $combined = (($combined -split "`r?`n") | Where-Object { $_ -notmatch '^[\s\u2588\u2591\u2592\u2593]+\s*\d+%\s*$' }) -join "`n"
+        $combined = (($combined -split "`r?`n") | Where-Object { $_ -notmatch '^[\s\u2588\u2591\u2592\u2593]+\s*\d+%\s*$
         return [pscustomobject]@{ Output = $combined; ExitCode = $proc.ExitCode }
     }
     finally {
@@ -421,10 +423,10 @@ function Get-WingetUpgradeEntries {
     foreach ($line in ($WingetOutput -split "`r?`n")) {
         $trimmed = $line.Trim()
         if (-not $trimmed) { continue }
-        if ($trimmed -match '^(Name|Found|The following|No installed package|No applicable upgrade|There are no available upgrades|\d+\s+upgrades available)') { continue }
+        if ($trimmed -match '^(Name|Found|The following|No installed package|No applicable upgrade|There are no availabl
         if ($trimmed -match '^[-\s]+$') { continue }
 
-        if ($trimmed -match '^(?<name>.+?)\s+(?<id>(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\.\-_]*\.[A-Za-z0-9\.\-_]+)\s+(?<version>\S+)\s+(?<available>\S+)$') {
+        if ($trimmed -match '^(?<name>.+?)\s+(?<id>(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\.\-_]*\.[A-Za-z0-9\.\-_]+)\s+(?<v
             $entries.Add([pscustomobject]@{
                 Name      = $Matches['name'].Trim()
                 Id        = $Matches['id'].Trim()
@@ -441,7 +443,7 @@ function Add-WingetBlockingPin {
     param([Parameter(Mandatory)][string]$PackageId)
 
     $pinRun = Invoke-StreamingCapture -ScriptBlock {
-        winget pin add --id $PackageId --blocking --exact --source winget --accept-source-agreements --disable-interactivity --force
+        winget pin add --id $PackageId --blocking --exact --source winget --accept-source-agreements --disable-interacti
     }
     return (Read-CapturedOutput $pinRun.OutputPath)
 }
@@ -458,7 +460,7 @@ function Get-WingetPinnedPackageIds {
         $trimmed = $line.Trim()
         if (-not $trimmed) { continue }
         if ($trimmed -match '^(Name|Found|The following|There are no pins|[-\s]+$)') { continue }
-        if ($trimmed -match '^(?<name>.+?)\s+(?<id>(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\.\-_]*\.[A-Za-z0-9\.\-_]+)\s+(?<version>\S+)\s+(?<source>\S+)\s+(?<pinType>.+)$') {
+        if ($trimmed -match '^(?<name>.+?)\s+(?<id>(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\.\-_]*\.[A-Za-z0-9\.\-_]+)\s+(?<v
             if (-not $pkgIds.Contains($matches.id)) {
                 $pkgIds.Add($matches.id)
             }
@@ -532,7 +534,7 @@ function Save-State {
 function Update-WingetState {
     # Get current list of installed winget packages using export JSON to avoid parsing truncated table output.
     try {
-        $exportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("winget-state-{0}.json" -f ([guid]::NewGuid().ToString('N')))
+        $exportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("winget-state-{0}.json" -f ([guid]::NewGuid().ToStrin
         & winget export -o $exportPath --include-versions --accept-source-agreements --disable-interactivity | Out-Null
         $exportData = Get-Content -Raw -Path $exportPath | ConvertFrom-Json
         $newMap = @{}
@@ -583,7 +585,7 @@ function Update-ChocolateyState {
             $map = @{}
             foreach ($line in ($list -split "`n")) {
                 $trimmed = $line.Trim()
-                if (-not $trimmed -or $trimmed -match '^\d+ packages installed' -or $trimmed -match '^Chocolatey') { continue }
+                if (-not $trimmed -or $trimmed -match '^\d+ packages installed' -or $trimmed -match '^Chocolatey') { con
                 $parts = $trimmed -split '\s+', 2
                 if ($parts.Count -ge 2) {
                     $name = $parts[0]
@@ -631,10 +633,10 @@ function Invoke-Update {
 
     # Determine skip reasons
     if ($Disabled) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'flag' }); return }
-    if ($RequiresCommand -and -not (Test-Command $RequiresCommand)) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'not installed' }); return }
-    if ($RequiresAnyCommand -and -not ($RequiresAnyCommand | Where-Object { Test-Command $_ } | Select-Object -First 1)) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'not installed' }); return }
-    if ($RequiresAdmin -and -not $isAdmin) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'requires admin' }); return }
-    if ($SlowOperation -and $FastMode) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'fast mode' }); return }
+    if ($RequiresCommand -and -not (Test-Command $RequiresCommand)) { $updateResults.Skipped.Add([pscustomobject]@{ Name
+    if ($RequiresAnyCommand -and -not ($RequiresAnyCommand | Where-Object { Test-Command $_ } | Select-Object -First 1))
+    if ($RequiresAdmin -and -not $isAdmin) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'requi
+    if ($SlowOperation -and $FastMode) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'fast mode
 
     if ($script:IsSimulation) {
         Write-Host "  [DryRun] Would run: $Title" -ForegroundColor DarkCyan
@@ -654,7 +656,7 @@ function Invoke-Update {
         Complete-StepState
         $elapsed = ((Get-Date) - $sectionStart).TotalSeconds
         if ($script:stepChanged) {
-            Write-Status "$Name updated ($([math]::Round($elapsed, 1).ToString('F1', [cultureinfo]::InvariantCulture))s)" -Type Success
+            Write-Status "$Name updated ($([math]::Round($elapsed, 1).ToString('F1', [cultureinfo]::InvariantCulture))s)
             $updateResults.Success.Add($Name)
             $updateResults.Details[$Name] = $script:stepMessage
         }
@@ -700,7 +702,7 @@ $managers = @(
             if ($out -match '(?i)error|failed') { Write-Status "Scoop self-update warning: $out" -Type Warning }
             $pkgUpdate = Invoke-StreamingCapture -ScriptBlock { scoop update '*' }
             $out = Read-CapturedOutput $pkgUpdate.OutputPath
-            if ($out -and $out -notmatch 'Scoop is up to date') { $script:stepChanged = $true; $script:stepMessage = "Updated correctly" }
+            if ($out -and $out -notmatch 'Scoop is up to date') { $script:stepChanged = $true; $script:stepMessage = "Up
             scoop cleanup '*' 2>&1 | Out-Null
             scoop cache rm '*' 2>&1 | Out-Null
         }
@@ -716,18 +718,18 @@ $managers = @(
             # 1. Check for updates and run pre-hooks (needs for Adobe temp cleanup)
             Write-Host "  Checking for available updates (pre-hooks)..." -ForegroundColor Gray
             try {
-                $preScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity')
+                $preScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', 
                 if ($preScan.Output) { Write-FilteredOutput -Text $preScan.Output -Color ([ConsoleColor]::Gray) }
                 $checkOut = $preScan.Output
                 Invoke-WingetUpgradeHook -Phase 'Pre' -WingetOutput $checkOut
             } catch {}
 
             # 2. Main Upgrade
-            Write-Host "  Upgrading all (winget source, timeout: $($script:Config.WingetTimeoutSec)s)..." -ForegroundColor Gray
+            Write-Host "  Upgrading all (winget source, timeout: $($script:Config.WingetTimeoutSec)s)..." -ForegroundCol
 
             # Scope TEMP/TMP overrides to winget child processes to avoid MSI 1632 failures.
             if (-not $isAdmin) {
-                Write-Status "Running as NON-ADMIN. MSI installers (GitHub CLI, CMake, etc.) will likely fail with 1632." -Type Warning
+                Write-Status "Running as NON-ADMIN. MSI installers (GitHub CLI, CMake, etc.) will likely fail with 1632.
                 Write-Status "Please run with -AutoElevate or as Administrator." -Type Info
             }
 
@@ -741,13 +743,13 @@ $managers = @(
                     }
                     Write-Detail "Using scoped TEMP override for winget MSI installs: $wingetTempPath" -Type Info
                 } else {
-                    Write-Detail "System temp directory not found for scoped winget override: $wingetTempPath" -Type Warning
+                    Write-Detail "System temp directory not found for scoped winget override: $wingetTempPath" -Type War
                 }
             }
 
             try {
-                $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
-                if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray) }
+                $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrad
+                if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray) 
                 $upgradeList = $upgradeScan.Output
                 $upgradeEntries = @(Get-WingetUpgradeEntries -WingetOutput $upgradeList)
                 $existingPinnedIds = @(Get-WingetPinnedPackageIds)
@@ -758,7 +760,7 @@ $managers = @(
                 $pinnedUnknownIds = [System.Collections.Generic.List[string]]::new()
 
                 foreach ($entry in $unknownEntries) {
-                    Write-Detail "Auto-pinning $($entry.Id) because winget reports installed version as Unknown" -Type Warning
+                    Write-Detail "Auto-pinning $($entry.Id) because winget reports installed version as Unknown" -Type W
                     $pinOutput = Add-WingetBlockingPin -PackageId $entry.Id
                     if ($pinOutput -match 'Pin added|Successfully pinned|already exists|Found an existing pin') {
                         $pinnedUnknownIds.Add($entry.Id)
@@ -775,7 +777,7 @@ $managers = @(
                 $anyFailed    = $false
                 $skippedIds   = [System.Collections.Generic.List[string]]::new()
                 if ($pkgIds.Count -eq 0) {
-                    $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "pinned unknown-version packages: $($pinnedUnknownIds -join ', ')" } else { 'already current' }
+                    $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "pinned unknown-version packages: $($pinn
                     return
                 }
 
@@ -787,7 +789,7 @@ $managers = @(
                     $pkgFailed = $false
                     for ($attempt = 1; $attempt -le 3; $attempt++) {
                         try {
-                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--id', $pkgId, '--include-unknown', '--source', 'winget', '--silent', '--accept-source-agreements', '--accept-package-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
+                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments
                             $exitCode = $pkgResult.ExitCode
                             $pkgOutput = $pkgResult.Output
                             if ($pkgOutput) { Write-FilteredOutput -Text $pkgOutput -Color ([ConsoleColor]::Gray) }
@@ -798,7 +800,7 @@ $managers = @(
                             break
                         }
                         if ($exitCode -eq 1632) {
-                            Write-Host "    Windows Installer busy (1632), waiting 10s before retry $attempt/3..." -ForegroundColor Yellow
+                            Write-Host "    Windows Installer busy (1632), waiting 10s before retry $attempt/3..." -Fore
                             Start-Sleep -Seconds 10
                         } elseif ($pkgOutput -match 'No installed package found matching input criteria') {
                             $skippedIds.Add($pkgId)
@@ -810,7 +812,7 @@ $managers = @(
                             } else {
                                 $pkgFailed = $true
                                 if ($pkgOutput) {
-                                    $firstLine = ($pkgOutput -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -First 1)
+                                    $firstLine = ($pkgOutput -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object
                                     if ($firstLine) { Write-Detail "$pkgId failed: $firstLine" -Type Warning }
                                 }
                             }
@@ -823,7 +825,7 @@ $managers = @(
                 }
 
                 # Recapture status for post-hooks
-                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
+                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade'
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
                 try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch { }
@@ -834,13 +836,13 @@ $managers = @(
                         $details = [System.Collections.Generic.List[string]]::new()
                         $details.Add('updated correctly')
                         if ($skippedIds.Count -gt 0) { $details.Add("skipped stale ids: $($skippedIds.Count)") }
-                        if ($pinnedUnknownIds.Count -gt 0) { $details.Add("auto-pinned unknown-version packages: $($pinnedUnknownIds.Count)") }
+                        if ($pinnedUnknownIds.Count -gt 0) { $details.Add("auto-pinned unknown-version packages: $($pinn
                         $script:stepMessage = ($details -join '; ')
                     } else {
-                        $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "already current; auto-pinned unknown-version packages: $($pinnedUnknownIds.Count)" } else { 'already current' }
+                        $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "already current; auto-pinned unknown
                     }
                 } else {
-                    $script:stepMessage = if ($anyInstalled) { 'completed with some failures' } else { 'failed; see warnings above' }
+                    $script:stepMessage = if ($anyInstalled) { 'completed with some failures' } else { 'failed; see warn
                 }
             } catch { Write-Warning $_ }
         }
@@ -877,15 +879,15 @@ $managers = @(
             if ($out -and $out -notmatch 'most recent version.+already installed') {
                 $script:stepChanged = $true
             }
-            if ($out -match 'most recent version.+already installed') { $script:stepMessage = 'platform already up to date' } else { $script:stepMessage = 'WSL platform updated' }
+            if ($out -match 'most recent version.+already installed') { $script:stepMessage = 'platform already up to da
 
             if (-not $SkipWSLDistros) {
-                $distroNames = @( wsl --list --quiet 2>&1 | ForEach-Object { ($_ -replace '\x00', '').Trim() } | Where-Object { $_ -and $_ -notmatch '^\s*$' } )
+                $distroNames = @( wsl --list --quiet 2>&1 | ForEach-Object { ($_ -replace '\x00', '').Trim() } | Where-O
                 if ($distroNames.Count -eq 0) { $script:stepMessage = 'platform current; no distros found' }
                 else {
                     foreach ($dn in $distroNames) {
                         Write-Detail "Updating WSL Distro: $dn"
-                        wsl -d $dn -- sh -lc "if command -v apt-get >/dev/null; then sudo apt-get update -qq && sudo apt-get upgrade -y -qq; elif command -v pacman >/dev/null; then sudo pacman -Syu --noconfirm; fi" 2>&1 | Out-Null
+                        wsl -d $dn -- sh -lc "if command -v apt-get >/dev/null; then sudo apt-get update -qq && sudo apt
                     }
                     $script:stepMessage += " (Checked inside Distros)"
                 }
@@ -911,7 +913,7 @@ function Invoke-WingetUpgradeHook {
 
 # --- Execute managers -----------------------------------------------------------
 foreach ($mgr in $managers) {
-    Invoke-Update -Name $mgr.Name -Title $mgr.Title -Action $mgr.Action -RequiresCommand $mgr.RequiresCommand -Disabled:$mgr.Disabled -RequiresAdmin:$mgr.RequiresAdmin -SlowOperation:$mgr.SlowOperation
+    Invoke-Update -Name $mgr.Name -Title $mgr.Title -Action $mgr.Action -RequiresCommand $mgr.RequiresCommand -Disabled:
 }
 
 # --- Dev Tools -----------------------------------------------------------------
@@ -936,7 +938,7 @@ if (-not $SkipWindowsUpdate) {
         }
         Import-Module PSWindowsUpdate
         try {
-            $wuParams = @{ Install = $true; AcceptAll = $true; NotCategory = 'Drivers'; IgnoreReboot = $true; RecurseCycle = 3; Verbose = $false; Confirm = $false }
+            $wuParams = @{ Install = $true; AcceptAll = $true; NotCategory = 'Drivers'; IgnoreReboot = $true; RecurseCyc
             $wuRun = Invoke-StreamingCapture -ScriptBlock { Get-WindowsUpdate @wuParams }
             $wuOut = Read-CapturedOutput $wuRun.OutputPath
             if ($wuOut -match 'No updates found|There are no applicable updates') {
@@ -972,11 +974,11 @@ if (-not $SkipWindowsUpdate) {
     } -Disabled:$SkipWindowsUpdate
 }
 
-Invoke-Update -Name 'StoreApps' -Title 'Microsoft Store Apps' -Disabled:$SkipStoreApps -RequiresCommand 'winget' -Action {
+Invoke-Update -Name 'StoreApps' -Title 'Microsoft Store Apps' -Disabled:$SkipStoreApps -RequiresCommand 'winget' -Action
     Write-Detail "Checking Microsoft Store app upgrades via winget"
-    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --source msstore --all --silent --accept-package-agreements --accept-source-agreements }
+    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --source msstore --all --silent --accept-package-agr
     $storeOutput = Read-CapturedOutput $result.OutputPath
-    if (-not $storeOutput -or $storeOutput -match 'No installed package found matching input criteria|No applicable upgrade found|There are no available upgrades') {
+    if (-not $storeOutput -or $storeOutput -match 'No installed package found matching input criteria|No applicable upgr
         $script:stepMessage = 'no Microsoft Store app updates'
     }
     else {
@@ -990,9 +992,9 @@ Invoke-Update -Name 'StoreApps' -Title 'Microsoft Store Apps' -Disabled:$SkipSto
     }
 }
 
-Invoke-Update -Name 'DefenderSignatures' -Title 'Microsoft Defender Signatures' -Disabled:$SkipDefender -RequiresCommand 'Update-MpSignature' -RequiresAdmin -Action {
+Invoke-Update -Name 'DefenderSignatures' -Title 'Microsoft Defender Signatures' -Disabled:$SkipDefender -RequiresCommand
     $mpStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
-    if ($mpStatus -and -not ($mpStatus.AMServiceEnabled -and $mpStatus.AntivirusEnabled)) { $script:stepMessage = 'Microsoft Defender is not the active AV'; return }
+    if ($mpStatus -and -not ($mpStatus.AMServiceEnabled -and $mpStatus.AntivirusEnabled)) { $script:stepMessage = 'Micro
     $beforeVersion = $mpStatus.AntivirusSignatureVersion
     try {
         Invoke-StreamingCapture -ScriptBlock { Update-MpSignature -ErrorAction Stop } | Out-Null
@@ -1077,7 +1079,7 @@ Invoke-Update -Name 'pnpm' -RequiresCommand 'pnpm' -Disabled:$SkipNode -Action {
 
 Invoke-Update -Name 'Bun' -RequiresCommand 'bun' -Disabled:$SkipNode -Action {
     $out = (bun upgrade 2>&1 | Out-String).Trim()
-    if ($out -and $out -notmatch 'already on the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } else { $script:stepMessage = 'already current' }
+    if ($out -and $out -notmatch 'already on the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated'
 }
 
 Invoke-Update -Name 'Deno' -RequiresCommand 'deno' -Disabled:$SkipNode -Action {
@@ -1085,7 +1087,7 @@ Invoke-Update -Name 'Deno' -RequiresCommand 'deno' -Disabled:$SkipNode -Action {
     if ($mgr) { $script:stepMessage = "managed by $mgr (already updated)"; return }
     $denoRun = Invoke-StreamingCapture -ScriptBlock { deno upgrade }
     $out = Read-CapturedOutput $denoRun.OutputPath
-    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } else { $script:stepMessage = 'already current' }
+    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } 
 }
 
 Invoke-Update -Name 'Rust' -RequiresCommand 'rustup' -Disabled:$SkipRust -Action {
@@ -1100,9 +1102,9 @@ Invoke-Update -Name 'Go' -RequiresCommand 'go' -Disabled:$SkipGo -Action {
     $mgr = Get-ToolInstallManager 'go'
     if ($mgr) { $script:stepMessage = "managed by $mgr (already updated)" }
     else {
-        $goRun = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GoLang.Go --accept-source-agreements --accept-package-agreements --disable-interactivity }
+        $goRun = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GoLang.Go --accept-source-agreements --accep
         $r = Read-CapturedOutput $goRun.OutputPath
-        if ($r -match 'Successfully installed') { $script:stepChanged = $true; $script:stepMessage = 'updated via winget' } else { $script:stepMessage = 'no newer version available' }
+        if ($r -match 'Successfully installed') { $script:stepChanged = $true; $script:stepMessage = 'updated via winget
     }
 }
 
@@ -1129,11 +1131,11 @@ Invoke-Update -Name 'pipx' -Title 'pipx (Python Tools)' -RequiresCommand 'pipx' 
 
 Invoke-Update -Name 'Poetry' -Title 'Poetry' -RequiresCommand 'poetry' -Disabled:$SkipPoetry -Action {
     $out = (poetry self update 2>&1 | Out-String).Trim()
-    if ($out -and $out -notmatch 'already using the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } else { $script:stepMessage = 'already current' }
+    if ($out -and $out -notmatch 'already using the latest') { $script:stepChanged = $true; $script:stepMessage = 'updat
 }
 
 Invoke-Update -Name 'Composer' -Title 'Composer (PHP)' -RequiresCommand 'composer' -Disabled:$SkipComposer -Action {
-    composer self-update --no-interaction 2>&1 | Out-Null; composer global update --no-interaction 2>&1 | Out-Null; $script:stepMessage = 'checked'
+    composer self-update --no-interaction 2>&1 | Out-Null; composer global update --no-interaction 2>&1 | Out-Null; $scr
 }
 
 Invoke-Update -Name 'RubyGems' -RequiresCommand 'gem' -Disabled:$SkipRuby -Action {
@@ -1197,14 +1199,14 @@ Invoke-Update -Name 'juliaup' -RequiresCommand 'juliaup' -Action {
     juliaup update 2>&1 | Out-Null; $script:stepMessage = 'checked'
 }
 
-Invoke-Update -Name 'ollama-models' -Title 'Ollama Models' -RequiresCommand 'ollama' -Disabled:(-not $UpdateOllamaModels) -Action {
+Invoke-Update -Name 'ollama-models' -Title 'Ollama Models' -RequiresCommand 'ollama' -Disabled:(-not $UpdateOllamaModels
     $models = (ollama list 2>&1 | Select-Object -Skip 1 | ForEach-Object { ($_ -split '\s+')[0] })
     foreach ($m in $models) { if ($m) { ollama pull $m } }
     $script:stepMessage = "checked $($models.Count) models"
 }
 
 Invoke-Update -Name 'git-lfs' -RequiresCommand 'git-lfs' -Disabled:$SkipGitLFS -Action {
-    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GitHub.GitLFS --accept-source-agreements --accept-package-agreements --disable-interactivity }
+    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GitHub.GitLFS --accept-source-agreements --acce
     $gitLfsOutput = Read-CapturedOutput $result.OutputPath
     if ($gitLfsOutput -match 'Successfully installed|Successfully upgraded|successfully installed') {
         $script:stepChanged = $true
@@ -1216,7 +1218,7 @@ Invoke-Update -Name 'git-lfs' -RequiresCommand 'git-lfs' -Disabled:$SkipGitLFS -
 }
 
 Invoke-Update -Name 'git-credential-manager' -RequiresCommand 'git-credential-manager' -Action {
-    winget upgrade --id Git.Git --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Out-Null; $script:stepMessage = 'updated via git upgrade'
+    winget upgrade --id Git.Git --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Ou
 }
 
 Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
@@ -1241,7 +1243,7 @@ Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
     }
 
     if ($batchPkgs.Count -gt 0) {
-        $pipRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --no-input $batchPkgs }
+        $pipRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --n
         $pkgOutput = Read-CapturedOutput $pipRun.OutputPath
         if ($pipRun.ExitCode -eq 0) {
             foreach ($pkgName in $batchPkgs) { $updated.Add($pkgName) }
@@ -1249,7 +1251,7 @@ Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
         else {
             # Batch failed — fall back to per-package to identify which ones failed
             foreach ($pkgName in $batchPkgs) {
-                $singleRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --no-input $pkgName }
+                $singleRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-versio
                 $singleOut = Read-CapturedOutput $singleRun.OutputPath
                 if ($singleRun.ExitCode -eq 0) {
                     $updated.Add($pkgName)
@@ -1278,7 +1280,7 @@ Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
 Invoke-Update -Name 'uv' -Title 'UV' -RequiresCommand 'uv' -Action {
     $uvRun = Invoke-StreamingCapture -ScriptBlock { uv self update }
     $out = Read-CapturedOutput $uvRun.OutputPath
-    if ($out -match 'installed via pip|only available for uv binaries installed via the standalone installation scripts') {
+    if ($out -match 'installed via pip|only available for uv binaries installed via the standalone installation scripts'
         $script:stepMessage = 'managed by another installer'
     }
     elseif ($uvRun.ExitCode -eq 0 -and $out -match 'updated|successfully') {
@@ -1314,7 +1316,7 @@ Invoke-Update -Name 'uv-python' -Title 'uv Python Versions' -RequiresCommand 'uv
 }
 
 Invoke-Update -Name 'cargo-binaries' -Title 'Cargo Global Binaries' -RequiresCommand 'cargo' -Action {
-    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update } | Out-Null }
+    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update 
     $cargoRun = Invoke-StreamingCapture -ScriptBlock { cargo install-update -a }
     $out = Read-CapturedOutput $cargoRun.OutputPath
     if ($out -match 'Updated [1-9]\d* packages?|Overall updated [1-9]\d* packages?') {
@@ -1363,7 +1365,7 @@ Invoke-Update -Name 'vscode-extensions' -Title 'VS Code Extensions' -Disabled:$S
     }
     $out = Read-CapturedOutput $vsCodeRun.OutputPath
     if ($out -match 'VS Code CLI not found') { $script:stepMessage = 'VS Code not found' }
-    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated' }
+    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated' 
     else { $script:stepMessage = 'extensions checked' }
 }
 
@@ -1396,10 +1398,10 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         $psrCommand = Get-Command Update-PSResource -ErrorAction SilentlyContinue
         $supportsAcceptLicense = $psrCommand -and $psrCommand.Parameters.ContainsKey('AcceptLicense')
         $beforeSnapshot = @{}
-        @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Version }
+        @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$
         $updateArgs = @{ Name = '*'; ErrorAction = 'SilentlyContinue' }
         if ($supportsAcceptLicense) { $updateArgs.AcceptLicense = $true }
-        try { Update-PSResource @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-PSResource failed: $($_.Exception.Message)" }
+        try { Update-PSResource @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-PSResource failed: $($_.Exce
         @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object {
             $prev = $beforeSnapshot[$_.Name]
             $curr = [string]$_.Version
@@ -1411,10 +1413,10 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         $moduleCommand = Get-Command Update-Module -ErrorAction SilentlyContinue
         $supportsAcceptLicense = $moduleCommand -and $moduleCommand.Parameters.ContainsKey('AcceptLicense')
         $beforeSnapshot = @{}
-        @(Get-InstalledModule -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Version }
+        @(Get-InstalledModule -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Ve
         $updateArgs = @{ ErrorAction = 'SilentlyContinue' }
         if ($supportsAcceptLicense) { $updateArgs.AcceptLicense = $true }
-        try { Update-Module @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-Module failed: $($_.Exception.Message)" }
+        try { Update-Module @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-Module failed: $($_.Exception.Me
         @(Get-InstalledModule -ErrorAction SilentlyContinue) | ForEach-Object {
             $prev = $beforeSnapshot[$_.Name]
             $curr = [string]$_.Version
@@ -1446,7 +1448,7 @@ else {
         $tempPath = $env:TEMP
         $cutoff = (Get-Date).AddDays(-$script:Config.TempCleanupDays)
         if ($tempPath -and (Test-Path $tempPath)) {
-            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } 
             Write-Status "Temp files cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
         }
     }
@@ -1455,7 +1457,7 @@ else {
     if ($isAdmin) {
         try {
             if (Test-Path 'C:\Windows\Temp') {
-                Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+                Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -l
                 Write-Status "C:\Windows\Temp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
             }
         }
@@ -1463,13 +1465,13 @@ else {
     }
 
     try { Clear-DnsClientCache -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch {}
-    try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catch {}
+    try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catc
 
     if ($isAdmin -and $DeepClean) {
-        try { DISM /Online /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null; Write-Status "DISM component store cleaned" -Type Success } catch {}
-        try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization cache cleared" -Type Success } catch {}
+        try { DISM /Online /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null; Write-Status "DISM component store cle
+        try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization 
         if (-not $SkipDestructive) {
-            try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue; Write-Status "Prefetch files cleared" -Type Success } catch {}
+            try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -
         }
     }
     $updateResults.Checked.Add('cleanup')
@@ -1519,7 +1521,7 @@ Write-Host (" UPDATE COMPLETE -- {0}" -f $duration.ToString('hh\:mm\:ss')) -Fore
 Write-Host "$('=' * 54)" -ForegroundColor Green
 
 $updatedNames = @($updateResults.Success | Select-Object -Unique)
-$checkedNames = @($updateResults.Checked | Where-Object { $_ -notin $updatedNames -and $_ -notin $updateResults.Failed } | Select-Object -Unique)
+$checkedNames = @($updateResults.Checked | Where-Object { $_ -notin $updatedNames -and $_ -notin $updateResults.Failed }
 
 if ($updatedNames.Count -gt 0) {
     Write-Host "`n[OK] Updated   ($($updatedNames.Count))" -ForegroundColor Green
@@ -1531,7 +1533,7 @@ if ($checkedNames.Count -gt 0) {
 }
 if ($updateResults.Failed.Count -gt 0) {
     Write-Host "[X] Failed    ($($updateResults.Failed.Count))" -ForegroundColor Red
-    foreach ($name in $updateResults.Failed) { Write-Detail ('{0}: {1}' -f $name, $updateResults.Details[$name]) -Type Error }
+    foreach ($name in $updateResults.Failed) { Write-Detail ('{0}: {1}' -f $name, $updateResults.Details[$name]) -Type E
 }
 if ($updateResults.Skipped.Count -gt 0) {
     Write-Host "[!] Skipped   ($($updateResults.Skipped.Count))" -ForegroundColor Yellow
@@ -1543,7 +1545,7 @@ if ($script:SectionTimings.Count -gt 0) {
     $timingsToShow = @( $script:SectionTimings.GetEnumerator() | Sort-Object Value -Descending )
     if ($timingsToShow.Count -gt 0) {
         Write-Host "`n  Section timings:" -ForegroundColor DarkGray
-        $timingsToShow | ForEach-Object { Write-Host ("    {0,-30} {1,6}s" -f $_.Key, $_.Value.ToString('F1', [cultureinfo]::InvariantCulture)) -ForegroundColor DarkGray }
+        $timingsToShow | ForEach-Object { Write-Host ("    {0,-30} {1,6}s" -f $_.Key, $_.Value.ToString('F1', [culturein
     }
 }
 
@@ -1551,7 +1553,7 @@ if ($script:SectionTimings.Count -gt 0) {
 try {
     if (Get-Module -ListAvailable -Name BurntToast -ErrorAction SilentlyContinue) {
         Import-Module BurntToast -ErrorAction SilentlyContinue
-        $msg = if ($updateResults.Failed.Count -gt 0) { "$($updatedNames.Count) updated, $($updateResults.Failed.Count) failed" } elseif ($updatedNames.Count -gt 0) { "$($updatedNames.Count) components updated" } else { 'No updates were needed' }
+        $msg = if ($updateResults.Failed.Count -gt 0) { "$($updatedNames.Count) updated, $($updateResults.Failed.Count) 
         New-BurntToastNotification -Text 'Update-Everything', $msg -ErrorAction SilentlyContinue
     }
 }

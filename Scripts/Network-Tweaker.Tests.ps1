@@ -1,3 +1,5 @@
+﻿#Requires -Version 5.1
+
 # Setup logic outside of BeforeAll for Pester 5 Discovery phase
 $scriptPath = "$PSScriptRoot/Network-Tweaker.ps1"
 $canLoadForms = $false

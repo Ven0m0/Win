@@ -1,4 +1,6 @@
-﻿# system-settings-manager.ps1 - Unified System Settings Manager
+﻿#Requires -Version 5.1
+
+# system-settings-manager.ps1 - Unified System Settings Manager
 # Combines performance settings and keyboard shortcuts management
 # Replaces: settings.ps1, keyboard-shortcuts.ps1
 

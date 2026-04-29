@@ -2,18 +2,22 @@
 
 [![Maintainability](https://qlty.sh/gh/Ven0m0/projects/.github/maintainability.svg)](https://qlty.sh/gh/Ven0m0/projects/.github)
 
-- [Winget](https://winstall.app)
-- [Scoop](https://scoop.sh)
-```pwsh
-iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
-```
-- [Chocolatey](https://chocolatey.org)
-- CCT (Chris Titus Tech): Use the `winutil` function defined in the PowerShell profile
-```pwsh
-iwr -useb https://christitus.com/win | iex
-```
+> My Windows configuration files and scripts, managed with [dotbot](https://github.com/anishathalye/dotbot) and git.
 
-My Windows configuration files and scripts, managed with dotbot and git.
+## Package Managers
+
+The following package managers are recommended for Windows:
+
+- [Winget](https://winstall.app) — Windows Package Manager (built-in)
+- [Scoop](https://scoop.sh) — Command-line installer
+  ```powershell
+  iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+  ```
+- [Chocolatey](https://chocolatey.org) — Package manager for Windows
+- **CCT (Chris Titus Tech)**: Use the `winutil` function defined in the PowerShell profile
+  ```powershell
+  iwr -useb https://christitus.com/win | iex
+  ```
 
 ## Features
 
@@ -121,15 +125,13 @@ The bootstrap script will:
 
 Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
 
-### Manual Setup (if bootstrap doesn't run)
-
 If automatic bootstrap fails, configure manually:
 
 1. **Enable script execution**:
 
-   ```cmd
-   cd %USERPROFILE%\Scripts
-   allow-scripts.ps1
+   ```powershell
+   cd $HOME\Scripts
+   .\allow-scripts.ps1
    ```
 
 2. **PowerShell Profile**:
@@ -153,7 +155,7 @@ If automatic bootstrap fails, configure manually:
 
 ## Repository Structure
 
-```
+```text
 .
 ├── Scripts/
 │   ├── Setup-Win11.ps1           # Fresh Windows 11 one-command setup (local)
@@ -202,9 +204,10 @@ If automatic bootstrap fails, configure manually:
 │   │   ├── win-patterns/SKILL.md
 │   │   └── ...
 │   └── copilot-instructions.md
-├── AGENTS.md                     # This file
+├── AGENTS.md                     # AI assistant guide
+├── CLAUDE.md                     # Symlink to AGENTS.md
 ├── .gitignore
-└── README.md
+└── README.md                    # This file
 ```
 
 ## Available Scripts
@@ -303,7 +306,7 @@ dotbot -c install.conf.yaml
 
 ### Templates
 
-Dotbot configuration supports templates in `install.conf.yaml`. Configuration files can specify conditions and variable substitution.
+Dotbot configuration supports templates in [`install.conf.yaml`](install.conf.yaml). Configuration files can specify conditions and variable substitution.
 
 Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
 
@@ -376,7 +379,7 @@ Similarly, for git: `~/.gitconfig.local` (already included in `.gitconfig##templ
 
 ### PowerShell Scripts Won't Run
 
-Run `Scripts\allow-scripts.cmd` as administrator to enable script execution.
+Run `Scripts\allow-scripts.ps1` as administrator to enable script execution.
 
 ### Bootstrap Script Doesn't Run
 
@@ -399,7 +402,7 @@ Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOC
 
 ### Automated Windows 11 Installation (autounattend.xml)
 
-The `Scripts/auto/autounattend.xml` file enables fully automated Windows 11 installation.
+The [`Scripts/auto/autounattend.xml`](Scripts/auto/autounattend.xml) file enables fully automated Windows 11 installation.
 
 #### Prerequisites
 

@@ -1,4 +1,6 @@
-﻿BeforeAll {
+﻿#Requires -Version 5.1
+
+BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Dot source Common.ps1 first so we get the real commands, then we mock them

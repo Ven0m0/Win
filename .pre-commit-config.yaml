@@ -58,3 +58,36 @@ repos:
     hooks:
       - id: gha-update
         stages: [manual]
+
+
+  # =============================================================================
+  # PowerShell hooks (local hooks)
+  # =============================================================================
+  - repo: local
+    hooks:
+      - id: psscriptanalyzer-lint
+        name: PSScriptAnalyzer (Lint)
+        description: Run PSScriptAnalyzer for PowerShell linting
+        entry: pwsh -NoProfile -File .github/scripts/Lint-PowerShell.ps1 -CheckMode
+        language: system
+        types: [powershell]
+        files: \.(ps1|psm1|psd1)$
+        stages: [pre-commit]
+
+      - id: psscriptanalyzer-format
+        name: PowerShell Format Check
+        description: Check PowerShell file formatting (indentation, BOM, trailing whitespace)
+        entry: pwsh -NoProfile -File .github/scripts/Format-PowerShell.ps1 -CheckMode
+        language: system
+        types: [powershell]
+        files: \.(ps1|psm1|psd1)$
+        stages: [pre-commit]
+
+      - id: pester-tests
+        name: Pester Tests
+        description: Run Pester unit tests for PowerShell scripts
+        entry: pwsh -NoProfile -File .github/scripts/Test-PowerShell.ps1
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        always_run: false

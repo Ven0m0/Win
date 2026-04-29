@@ -100,7 +100,7 @@ public class MemUtil2 {
 "@ -ErrorAction SilentlyContinue
 
 try { [MemUtil2]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
+try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."
@@ -169,7 +169,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
         $ui = $ui.Replace('bSignIntoFriends\":true', 'bSignIntoFriends\":false')
         $ui = $ui.Replace('PersonaNotifications\":1', 'PersonaNotifications\":0'); $write = $true
     }
-    if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*')) {
+    if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*'))
         $ui = $ui.Replace('bAnimatedAvatars\":true', 'bAnimatedAvatars\":false')
         $ui = $ui.Replace('bDisableRoomEffects\":false', 'bDisableRoomEffects\":true'); $write = $true
     }
@@ -178,7 +178,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
 }
 
 # ── Steam: update localconfig.vdf ─────────────────────────────────────────────
-$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
+$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList
 if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
 Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
     $file  = $_.FullName

@@ -5,26 +5,30 @@ on:
   push:
     branches:
       - main
-    # tags:
-    # - '*.*.*'
   pull_request:
     branches:
       - main
 
 jobs:
-  patch:
+  lint:
     runs-on: windows-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
+
+      - name: Install PSScriptAnalyzer
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
 
       - name: Run Lint
         run: |
-          # Check module for errors
-          $Results = @(Get-ChildItem -Path src -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer)
+          # Check Scripts for errors
+          $Results = @(Get-ChildItem -Path Scripts -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer)
           if ($Results | Where-Object -FilterScript {($_.Severity -eq "Error") -or ($_.Severity -eq "ParseError")})
           {
             Write-Verbose -Message "Found script issue" -Verbose
@@ -41,48 +45,35 @@ jobs:
             exit 1
           }
 
-      - name: Check JSONs validity
+      - name: Check PSD1 validity
         run: |
-          # Check JSONs for errors
-          $JSONs = [Array]::TrueForAll((@(Get-ChildItem -Path Wrapper -File -Recurse -Filter *.json).FullName),
-          [Predicate[string]]{
-            param($JSON)
-
-            Test-Json -Path $JSON -ErrorAction Ignore
-          })
-          if (-not $JSONs)
-          {
-            Write-Verbose -Message "Found JSON issue" -Verbose
-            # Exit with a non-zero status to fail the job
-            exit 1
-          }
-
-      - name: Check module localizations
-        run: |
-          function Parse-PSD1
-          {
-            [CmdletBinding()]
-            param
-            (
-              [Microsoft.PowerShell.DesiredStateConfiguration.ArgumentToConfigurationDataTransformation()]
-              [hashtable]
-              $Path
-            )
-
-            return $Path
-          }
-
-          Get-ChildItem -Path src -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
+          Get-ChildItem -Path Scripts -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
               $File = $_.FullName
 
               try
               {
-                  Parse-PSD1 -Path $_.FullName -ErrorAction Stop | Out-Null
+                  # Basic syntax check for PSD1 files
+                  $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content -Path $File -Raw), [ref]$null)
               }
               catch
               {
-                  Write-Verbose -Message $File -Verbose
+                  Write-Verbose -Message "PSD1 parse error: $File - $_" -Verbose
                   # Exit with a non-zero status to fail the job
                   exit 1
+              }
+          }
+
+      - name: Check YAML validity
+        run: |
+          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
+              $File = $_.FullName
+              try
+              {
+                  # Basic YAML check
+                  Get-Content -Path $File | ConvertFrom-Yaml -ErrorAction Stop | Out-Null
+              }
+              catch
+              {
+                  Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
               }
           }

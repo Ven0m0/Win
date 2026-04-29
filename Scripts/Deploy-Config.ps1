@@ -1,4 +1,7 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Deploys all tracked configuration files to their system locations.
@@ -35,7 +38,7 @@ if (-not (Test-Path $script:ConfigRoot)) {
 
 function Write-Status {
     param([string]$Message, [string]$Status = 'INFO')
-    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
+    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 
     Write-Host "  [$Status] $Message" -ForegroundColor $color
     $script:Results[$Message] = $Status
 }
@@ -102,7 +105,7 @@ function Deploy-ConfigDirectory {
     }
 
     foreach ($file in $files) {
-        Deploy-ConfigFile -Source $file.FullName -Destination (Join-Path $DestDir $file.Name) -Label "$Label/$($file.Name)"
+        Deploy-ConfigFile -Source $file.FullName -Destination (Join-Path $DestDir $file.Name) -Label "$Label/$($file.Nam
     }
 }
 
@@ -248,7 +251,7 @@ function Set-CmdAliasAutoRun {
         if (-not (Test-Path $commandProcessorKey)) {
             New-Item -Path $commandProcessorKey -Force | Out-Null
         }
-        New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force | Out-Null
+        New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force | Out-N
         Write-Status "$Label configured" -Status 'OK'
     }
 }
@@ -286,7 +289,7 @@ function Deploy-StarWarsBattlefrontIIConfigs {
 
     $profileOptionsPath = Join-Path $SourceDir 'ProfileOptions_profile'
     if (Test-Path $profileOptionsPath) {
-        Deploy-ConfigFile -Source $profileOptionsPath -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') -Label "$Label/ProfileOptions_profile"
+        Deploy-ConfigFile -Source $profileOptionsPath -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile
     }
 }
 
@@ -323,7 +326,7 @@ Write-Host ''
 Write-Host '[3/5] Deploying Windows Terminal settings...' -ForegroundColor Cyan
 
 $wtSettingsSource = Join-Path $script:ConfigRoot 'windows-terminal\settings.json'
-$wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+$wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -Error
 
 if ($wtPackageDir -and (Test-Path $wtSettingsSource)) {
     $wtTarget = Join-Path $wtPackageDir.FullName 'LocalState\settings.json'
@@ -353,7 +356,7 @@ if ($firefoxProfile -and (Test-Path $firefoxSource)) {
 $bleachbitSource = Join-Path $script:ConfigRoot 'bleachbit\cleaners'
 $bleachbitDest = "$env:APPDATA\BleachBit\cleaners"
 if (Test-Path $bleachbitSource) {
-    Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' -Label 'BleachBit cleaners'
+    Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' -Label 'BleachBit cleaner
 }
 
 # Brave debloater registry
@@ -456,7 +459,7 @@ $upToDateCount = 0
 
 foreach ($key in $script:Results.Keys | Sort-Object) {
     $status = $script:Results[$key]
-    $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
+    $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 
     Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
 
     switch ($status) {

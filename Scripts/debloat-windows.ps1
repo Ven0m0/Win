@@ -1,4 +1,6 @@
-﻿#Requires -RunAsAdministrator
+﻿#Requires -Version 5.1
+
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
   Comprehensive Windows debloating and optimization script

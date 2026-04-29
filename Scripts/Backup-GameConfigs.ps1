@@ -1,3 +1,5 @@
+﻿#Requires -Version 5.1
+
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
@@ -54,7 +56,7 @@ if (Test-Path $bo6Source) {
         }
     }
 
-    $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^s\.' }
+    $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^s\
     foreach ($file in $rootFiles) {
         Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
         Write-BackupStatus "  Copied: $($file.Name)" -Color Gray
@@ -72,7 +74,7 @@ if (Test-Path $arcRaidersSource) {
         [void](New-Item -ItemType Directory -Path $arcRaidersDest -Force)
     }
 
-    $keybindsFile = Get-ChildItem -Path $arcRaidersSource -File -Filter "*KeyBindings*.sav" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $keybindsFile = Get-ChildItem -Path $arcRaidersSource -File -Filter "*KeyBindings*.sav" -ErrorAction SilentlyContinu
     if ($keybindsFile) {
         Copy-Item -Path $keybindsFile.FullName -Destination (Join-Path $arcRaidersDest "keybinds.sav") -Force
         Write-BackupStatus "  Copied: keybinds.sav" -Color Gray
@@ -80,7 +82,7 @@ if (Test-Path $arcRaidersSource) {
 
     $settingsFiles = @('GameUserSettings.ini', 'Engine.ini')
     foreach ($settingsFile in $settingsFiles) {
-        $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile -Recurse -ErrorAction SilentlyCo
         if ($sourceFile) {
             Copy-Item -Path $sourceFile.FullName -Destination $arcRaidersDest -Force
             Write-BackupStatus "  Copied: $settingsFile" -Color Gray

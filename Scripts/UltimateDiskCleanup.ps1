@@ -1,4 +1,6 @@
-﻿#Requires -RunAsAdministrator
+﻿#Requires -Version 5.1
+
+#Requires -RunAsAdministrator
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
 # Import common functions

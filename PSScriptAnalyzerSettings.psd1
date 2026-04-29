@@ -1,4 +1,4 @@
-@{
+﻿@{
   # Core analysis rules
   IncludeRules = @(
     # Avoid problematic patterns

@@ -1,3 +1,5 @@
+﻿#Requires -Version 5.1
+
 # Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
 
 # Options
@@ -12,8 +14,8 @@ $NoGPU         = 1
 . "$PSScriptRoot\Common.ps1"
 
 # Steam quick launch arguments
-$QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite " + (if ($NoJoystick) { "-nojoy " } else { "" })
-$QUICK += (if ($NoShaders) { "-noshaders " } else { "" }) + (if ($NoGPU) { "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox " } else { "" })
+$QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite " + (if ($NoJoystick) { "-no
+$QUICK += (if ($NoShaders) { "-noshaders " } else { "" }) + (if ($NoGPU) { "-nodirectcomp -cef-disable-gpu -cef-disable-
 $QUICK += "-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console"
 
 # Locate Steam installation
@@ -60,7 +62,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
     $ui = $ui.Replace('bSignIntoFriends\":true','bSignIntoFriends\":false')
     $ui = $ui.Replace('PersonaNotifications\":1','PersonaNotifications\":0'); $write = $true
   }
-  if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*') ) {
+  if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*') ) 
     $ui = $ui.Replace('bAnimatedAvatars\":true','bAnimatedAvatars\":false')
     $ui = $ui.Replace('bDisableRoomEffects\":false','bDisableRoomEffects\":true'); $write = $true
   }
@@ -69,7 +71,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
 }
 
 # --- Update localconfig.vdf: library perf/small mode
-$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
+$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList
 if ($ShowGameIcons -eq 1) {$opt.LibraryDisplayIconInGameList = 1}
 Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
   $file = $_.FullName

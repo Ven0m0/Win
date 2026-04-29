@@ -1,0 +1,311 @@
+# =============================================================================
+# PowerShell Lint, Format, and Test CI Workflow
+# =============================================================================
+# Unified workflow for comprehensive PowerShell code quality:
+# - PSScriptAnalyzer linting with severity checks
+# - Formatting validation (indentation, BOM, trailing whitespace, line length)
+# - Pester unit tests
+#
+# Triggers: Push to main, PRs, and manual dispatch
+# =============================================================================
+
+name: PowerShell Lint, Format & Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/lint-format-test.yml"
+      - ".github/scripts/Lint-PowerShell.ps1"
+      - ".github/scripts/Format-PowerShell.ps1"
+      - ".github/scripts/Test-PowerShell.ps1"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/lint-format-test.yml"
+      - ".github/scripts/Lint-PowerShell.ps1"
+      - ".github/scripts/Format-PowerShell.ps1"
+      - ".github/scripts/Test-PowerShell.ps1"
+
+# Cancel in-progress runs for the same workflow + ref
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ===========================================================================
+  # Job 1: Linting with PSScriptAnalyzer
+  # ===========================================================================
+  lint:
+    name: PSScriptAnalyzer Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install PSScriptAnalyzer
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module PSScriptAnalyzer
+          Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        env:
+          PSANALYZER_SETTINGS: ./PSScriptAnalyzerSettings.psd1
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS } else { $null }
+          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
+
+          $issues = @()
+          foreach ($file in $psFiles) {
+            $params = @{ Path = $file.FullName }
+            if ($settingsPath) { $params['Settings'] = $settingsPath }
+
+            try {
+              $results = Invoke-ScriptAnalyzer @params
+              foreach ($result in $results) {
+                if ($result.Severity -eq 'Warning' -or $result.Severity -eq 'Error') {
+                  $issues += [PSCustomObject]@{
+                    File = $result.ScriptPath
+                    Line = $result.Line
+                    Severity = $result.Severity
+                    Rule = $result.RuleName
+                    Message = $result.Message
+                  }
+                }
+              }
+            } catch {
+              Write-Warning "Error analyzing $($file.FullName): $_"
+            }
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host "## Lint Issues Found ($($issues.Count))" -ForegroundColor Red
+            Write-Host ""
+            $issues | Sort-Object Severity, File, Line | Format-Table -AutoSize -Wrap
+            exit 1
+          } else {
+            Write-Host "## No lint issues found" -ForegroundColor Green
+            exit 0
+          }
+
+      - name: Upload lint results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: |
+            lint-output.json
+          retention-days: 7
+
+  # ===========================================================================
+  # Job 2: Formatting validation
+  # ===========================================================================
+  format:
+    name: PowerShell Format Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run formatting check
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          # Get changed files
+          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File
+          $issues = @()
+          $MaxLineLength = 120
+
+          foreach ($file in $psFiles) {
+            # Skip files in ignored directories
+            if ($file.FullName -match 'node_modules|\.git') { continue }
+
+            # Read as bytes to check BOM
+            $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+
+            # Read content
+            $content = [System.IO.File]::ReadAllText($file.FullName, [System.Text.UTF8Encoding]::new($true))
+            $lines = $content -split "\r?\n"
+
+            # Check 1: UTF-8 BOM
+            if ($bytes.Count -ge 3) {
+              $bom = [System.Text.Encoding]::UTF8.GetPreamble()
+              $hasBom = $true
+              for ($i = 0; $i -lt $bom.Length; $i++) {
+                if ($bytes[$i] -ne $bom[$i]) { $hasBom = $false; break }
+              }
+              if (-not $hasBom) {
+                $issues += "[$($file.Name)]: Missing UTF-8 BOM"
+              }
+            } else {
+              $issues += "[$($file.Name)]: Missing UTF-8 BOM"
+            }
+
+            # Check 2: Indentation
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i]
+              if ([string]::IsNullOrWhiteSpace($line)) { continue }
+
+              # Check for tabs
+              if ($line -match '^\t') {
+                $issues += "[$($file.Name)]:$($i+1): Line uses tabs instead of spaces"
+              }
+
+              # Check indentation is multiple of 2
+              if ($line -match '^(\s+)') {
+                $spaces = $matches[1].Length
+                if ($spaces % 2 -ne 0 -and $line -notmatch '^\s*#') {
+                  $issues += "[$($file.Name)]:$($i+1): Indentation not multiple of 2 spaces"
+                }
+              }
+            }
+
+            # Check 3: Trailing whitespace
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i]
+              $trimmedLine = $line.TrimEnd()
+              if ($trimmedLine -ne '' -and $trimmedLine -match '\s+$') {
+                $issues += "[$($file.Name)]:$($i+1): Trailing whitespace"
+              }
+            }
+
+            # Check 4: Max line length
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              $line = $lines[$i]
+              if ([string]::IsNullOrWhiteSpace($line)) { continue }
+              if ($line -match '^\s*#') { continue }
+              if ($line.Length -gt $MaxLineLength) {
+                $issues += "[$($file.Name)]:$($i+1): Line exceeds $MaxLineLength characters ($($line.Length))"
+              }
+            }
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host "## Formatting Issues Found ($($issues.Count))" -ForegroundColor Red
+            $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
+            exit 1
+          } else {
+            Write-Host "## No formatting issues found" -ForegroundColor Green
+            exit 0
+          }
+
+  # ===========================================================================
+  # Job 3: Pester tests
+  # ===========================================================================
+  test:
+    name: Pester Tests
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester)) {
+            Install-Module -Name Pester -MinimumVersion 5.0.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module Pester
+          Write-Host "Pester version: $(Get-Module Pester | Select-Object -ExpandProperty Version)"
+
+      - name: Create test output directory
+        shell: pwsh
+        run: |
+          $outputDir = ".agents_tmp"
+          if (-not (Test-Path $outputDir)) {
+            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+          }
+
+      - name: Run Pester tests
+        shell: pwsh
+        env:
+          DOTFILES_ROOT: ${{ github.workspace }}
+        run: |
+          Set-StrictMode -Version Latest
+
+          $testFiles = Get-ChildItem -Path Scripts -Recurse -Include *.Tests.ps1 -File
+
+          if ($testFiles.Count -eq 0) {
+            Write-Host "No test files found"
+            exit 0
+          }
+
+          Write-Host "Running $($testFiles.Count) test file(s)..."
+
+          $config = New-PesterConfiguration
+          $config.Run.Path = $testFiles.FullName
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = ".agents_tmp/test-results.xml"
+          $config.TestResult.OutputFormat = 'NUnitXml'
+
+          $result = Invoke-Pester -Configuration $config
+
+          Write-Host ""
+          if ($result.FailedCount -gt 0) {
+            Write-Host "Tests failed: $($result.FailedCount) of $($result.TotalCount)" -ForegroundColor Red
+            exit 1
+          } else {
+            Write-Host "All tests passed: $($result.PassedCount)" -ForegroundColor Green
+            exit 0
+          }
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: .agents_tmp/test-results.xml
+          retention-days: 14
+
+  # ===========================================================================
+  # Summary job - always runs after others
+  # ===========================================================================
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, format, test]
+    if: always()
+    steps:
+      - name: Summary
+        run: |
+          echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if (needs.lint.result == 'failure' || needs.format.result == 'failure' || needs.test.result == 'failure') {
+            echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          } else {
+            echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          }

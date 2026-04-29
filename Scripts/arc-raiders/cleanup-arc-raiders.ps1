@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
@@ -158,7 +158,7 @@ public class MemUtil {
 "@ -ErrorAction SilentlyContinue
 
 try { [MemUtil]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
+try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_"
 
 rundll32.exe advapi32.dll,ProcessIdleTasks
 Write-Host "  Idle tasks queued."
@@ -203,10 +203,10 @@ public class LsaUtil {
     [StructLayout(LayoutKind.Sequential)] struct LSA_OBJECT_ATTRIBUTES {
         public int Length, pad1; public IntPtr pad2, pad3, pad4, pad5;
     }
-    [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr sys, ref LSA_OBJECT_ATTRIBUTES attr, uint access, out IntPtr handle);
-    [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr pol, IntPtr sid, LSA_UNICODE_STRING[] rights, int count);
+    [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr sys, ref LSA_OBJECT_ATTRIBUTES attr, uint access
+    [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr pol, IntPtr sid, LSA_UNICODE_STRING[] righ
     [DllImport("advapi32.dll")] static extern uint LsaClose(IntPtr h);
-    [DllImport("advapi32.dll")] static extern bool LookupAccountName(string sys, string name, IntPtr sid, ref int sidLen, StringBuilder dom, ref int domLen, out int use);
+    [DllImport("advapi32.dll")] static extern bool LookupAccountName(string sys, string name, IntPtr sid, ref int sidLen
     [DllImport("kernel32.dll")] static extern IntPtr LocalAlloc(uint flags, int size);
 
     public static string Grant(string account) {

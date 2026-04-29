@@ -1,4 +1,6 @@
-﻿BeforeAll {
+﻿#Requires -Version 5.1
+
+BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Safely source the script
