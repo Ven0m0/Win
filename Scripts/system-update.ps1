@@ -104,11 +104,19 @@ $script:Config = @{
     # Custom hooks for winget upgrades
     WingetUpgradeHooks = @{
         'Spotify.Spotify'             = @{
-            Pre  = { $script:_spotifyWasRunning = [bool](Get-Process -Name Spotify -ErrorAction SilentlyContinue); Stop-
+            Pre  = {
+                $script:_spotifyWasRunning = [bool](Get-Process -Name Spotify -ErrorAction SilentlyContinue)
+                Stop-Process -Name Spotify -Force -ErrorAction SilentlyContinue
+            }
             Post = { if ($script:_spotifyWasRunning) { Start-Process "$env:APPDATA\Spotify\Spotify.exe" -ErrorAction Sil
         }
         'Google.Chrome'               = @{
-            Pre  = { $script:_chromeWasRunning = [bool](Get-Process -Name 'chrome' -ErrorAction SilentlyContinue); if ($
+            Pre  = {
+                $script:_chromeWasRunning = [bool](Get-Process -Name 'chrome' -ErrorAction SilentlyContinue)
+                if ($script:_chromeWasRunning) {
+                    Stop-Process -Name 'chrome' -Force -ErrorAction SilentlyContinue
+                }
+            }
             Post = { if ($script:_chromeWasRunning) { $p = Join-Path ${env:ProgramFiles(x86)} 'Google\Chrome\Application
         }
         'Microsoft.VisualStudioCode'  = @{
