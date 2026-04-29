@@ -20,3 +20,4 @@ export PATH="$HOME/.local/bin:$HOME/.local/opt/powershell:$PATH"
 pwsh -NoLogo -NoProfile -Command '
 Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force'
 
+prek install
