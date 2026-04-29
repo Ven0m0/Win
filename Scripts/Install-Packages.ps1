@@ -182,9 +182,11 @@ function Start-InstallPackages {
 
         $runtimes = @(
             'Microsoft.VCRedist.2015+.x64',
+            'Microsoft.DotNet.DesktopRuntime.10',
             'Microsoft.DotNet.DesktopRuntime.9',
             'Microsoft.DotNet.DesktopRuntime.8',
             'Microsoft.DotNet.DesktopRuntime.7',
+            'Microsoft.EdgeWebView2Runtime',
             'Oracle.JavaRuntimeEnvironment',
             'EclipseAdoptium.Temurin.25.JRE'
         )
@@ -216,7 +218,6 @@ function Start-InstallPackages {
             'BurntSushi.ripgrep.MSVC',
             'sharkdp.fd',
             'sharkdp.bat',
-            'Starship.Starship',
             'JanDeDobbeleer.OhMyPosh',
             '7zip.7zip',
             'VideoLAN.VLC',
