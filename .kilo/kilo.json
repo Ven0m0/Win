@@ -108,7 +108,7 @@
 				"ide",
 				"--project-from-cwd"
 			],
-			"enabled": true
+			"enabled": false
 		},
 		"octocode": {
 			"type": "local",
