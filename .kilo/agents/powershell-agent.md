@@ -1,8 +1,7 @@
 ---
-name: powershell-agent
 description: Specialized agent for PowerShell script authoring and maintenance in the Ven0m0/Win dotfiles repository.
-fallback: orchestrator
-tools: Explore, General
+mode: subagent
+temperature: 0.3
 ---
 
 # PowerShell Agent

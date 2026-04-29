@@ -1,8 +1,7 @@
 ---
-name: config-deployer
 description: Agent for dotfile/config deployment, tracked configuration management, and dotbot manifest maintenance in the Win dotfiles repository.
-fallback: orchestrator
-tools: Explore, General
+mode: subagent
+temperature: 0.1
 ---
 
 # Config Deployer Agent
