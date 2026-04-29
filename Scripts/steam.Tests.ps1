@@ -1,4 +1,4 @@
-﻿BeforeAll {
+BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
@@ -28,7 +28,7 @@ Describe "steam.ps1" {
                 Count = 1
             }
             Add-Member -InputObject $obj -MemberType ScriptMethod `
-                -Name Item -Value {  return $script:mockVdf }
+                -Name Item -Value { return $script:mockVdf }
             return $obj
         }
 
@@ -49,9 +49,6 @@ Describe "steam.ps1" {
         Mock -CommandName ConvertTo-VDF -MockWith { return 'fake vdf output' }
         Mock -CommandName Write-Output -MockWith { }
 
-        # In Linux, New-Object -ComObject fails with ParameterBindingException
-        # Pester 5 cannot mock New-Object with -ComObject if ComObject doesn't exist on the command in core!
-        # We need to mock New-Object safely.
         Mock -CommandName New-Object -MockWith {
             $lnk = [pscustomobject]@{
                 Description = ''
@@ -63,12 +60,15 @@ Describe "steam.ps1" {
             Add-Member -InputObject $lnk -MemberType ScriptMethod -Name Save -Value { }
             $wsh = [pscustomobject]@{ }
             Add-Member -InputObject $wsh -MemberType ScriptMethod `
-                -Name CreateShortcut -Value {  return $lnk }
+                -Name CreateShortcut -Value { return $lnk }
             return $wsh
         }
 
         Mock -CommandName Start-Process -MockWith { }
         Mock -CommandName Set-Content -MockWith { }
+
+        # Override the function globally to prevent IO operations
+        function global:sc-nonew($fn, $txt) { }
     }
 
     Context "Steam is not found" {
