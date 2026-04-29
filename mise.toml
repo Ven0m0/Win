@@ -45,5 +45,5 @@ description = "Deploy dotfiles (dotbot must be installed)"
 run = "dotbot -c install.conf.yaml"
 
 [task.dev]
-description = "Install powershell lint+format utils
-run = "curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/envman/PATH.env"
+description = "Install powershell lint+format utils"
+run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/envman/PATH.env"]
