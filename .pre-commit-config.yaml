@@ -59,10 +59,15 @@ repos:
       - id: gha-update
         stages: [manual]
 
-
   # =============================================================================
-  # PowerShell hooks (local hooks)
+  # PowerShell hooks
   # =============================================================================
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.1 # Use the latest version
+    hooks:
+      - id: py-psscriptanalyzer # Lint your PowerShell
+      - id: py-psscriptanalyzer-format # Format your PowerShell
+  
   - repo: local
     hooks:
       - id: psscriptanalyzer-lint
