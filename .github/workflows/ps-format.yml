@@ -45,7 +45,6 @@ jobs:
             $files = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
           }
           if ($files.Count -eq 0) {
-            # Safely fallback to empty instead of checking entire legacy repo
             Write-Host "No specific changed files detected. Skipping legacy full-repo check."
             $files = @()
           }

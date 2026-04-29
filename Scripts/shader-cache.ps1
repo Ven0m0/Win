@@ -1,4 +1,4 @@
- # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
+﻿ # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 #Requires -RunAsAdministrator
 # Import common functions
 . "$PSScriptRoot\Common.ps1"

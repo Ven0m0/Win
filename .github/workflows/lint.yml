@@ -24,7 +24,7 @@ jobs:
       - name: Run Lint
         run: |
           # Check module for errors
-          $Results = @(Get-ChildItem -Path src -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer)
+          $Results = @(Get-ChildItem -Path Scripts -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer)
           if ($Results | Where-Object -FilterScript {($_.Severity -eq "Error") -or ($_.Severity -eq "ParseError")})
           {
             Write-Verbose -Message "Found script issue" -Verbose
