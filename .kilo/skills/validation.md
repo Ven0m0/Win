@@ -1,6 +1,7 @@
 ---
 name: validation
 description: Run narrow, repo-specific validation for PowerShell scripts, config deployment, autounattend.xml, and guidance files in the Win dotfiles project.
+compatibility: opencode
 ---
 
 # Validation Skill for Win Dotfiles
