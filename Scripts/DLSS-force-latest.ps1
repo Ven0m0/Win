@@ -313,8 +313,8 @@ function Start-DLSSForceLatestMenu {
       }
       3 {
           Clear-Host
-          Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator" `
-            -Type REG_DWORD -Data 1
+          Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" `
+            -Name "ShowDlssIndicator" -Type REG_DWORD -Data 1
           Write-Info "DLSS Overlay: On . . ."
           Wait-ForKeyPress
       }
