@@ -1,6 +1,7 @@
 ---
 name: bootstrap-deployment
-description: Guidance for bootstrap and dotfile deployment workflows: dotbot config, Setup-Dotfiles.ps1, winget packages, and post-deploy verification.
+description: Guidance for bootstrap and dotfile deployment workflows
+compatibility: opencode
 ---
 
 # Bootstrap & Deployment Skill
