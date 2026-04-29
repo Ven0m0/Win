@@ -24,7 +24,7 @@ jobs:
       - name: Run Lint
         run: |
           # Check module for errors
-          $Results = @(Get-ChildItem -Path src -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer)
+          $Results = @(Get-ChildItem -Path Scripts, . -File -Recurse -Include *.ps1, *.psm1 -Exclude .git, .venv | Invoke-ScriptAnalyzer)
           if ($Results | Where-Object -FilterScript {($_.Severity -eq "Error") -or ($_.Severity -eq "ParseError")})
           {
             Write-Verbose -Message "Found script issue" -Verbose
@@ -44,7 +44,7 @@ jobs:
       - name: Check JSONs validity
         run: |
           # Check JSONs for errors
-          $JSONs = [Array]::TrueForAll((@(Get-ChildItem -Path Wrapper -File -Recurse -Filter *.json).FullName),
+          $JSONs = [Array]::TrueForAll((@(Get-ChildItem -Path . -Exclude .git, .venv, .kilo -File -Recurse -Filter *.json).FullName),
           [Predicate[string]]{
             param($JSON)
 
@@ -72,7 +72,7 @@ jobs:
             return $Path
           }
 
-          Get-ChildItem -Path src -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
+          Get-ChildItem -Path . -Exclude .git, .venv -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
               $File = $_.FullName
 
               try
