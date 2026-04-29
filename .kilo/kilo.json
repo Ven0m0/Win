@@ -14,7 +14,7 @@
 		]
 	},
 	"agents": {
-		"paths": [".kilo/agents"]
+		"paths": [".kilo/agents", ".claude/agents"]
 	},
 	"permission": {
 		"*": "allow",
