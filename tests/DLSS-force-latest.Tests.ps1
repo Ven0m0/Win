@@ -1,10 +1,10 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Load the script to test.
-    . "$PSScriptRoot/DLSS-force-latest.ps1"
+    . "$PSScriptRoot/../Scripts/DLSS-force-latest.ps1"
 }
 
 Describe "DLSS-force-latest.ps1 functions" {

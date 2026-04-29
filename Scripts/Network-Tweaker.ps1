@@ -2290,81 +2290,43 @@ $cb_ndisrssbasecpu.add_TextChanged({
 # ========================================================
 # Apply Button Global Settings
 function applyglobal {
-    #cls
-    if ($cb_osrss.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling))
-    {
-        #Write-Host " ReceiveSideScaling same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_osrss.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling)) {
         Write-Host "Applying ReceiveSideScaling to"$cb_osrss.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -ReceiveSideScaling $cb_osrss.text
         $cb_osrss.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSideScaling)
     }
 
-    if ($cb_osrsc.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing))
-    {
-        #Write-Host " ReceiveSegmentCoalescing same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_osrsc.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing)) {
         Write-Host "Applying ReceiveSegmentCoalescing to"$cb_osrsc.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -ReceiveSegmentCoalescing $cb_osrsc.text
         $cb_osrsc.text = (Get-NetOffloadGlobalSetting | Select-Object -expand ReceiveSegmentCoalescing)
     }
 
-    if ($cb_oschimney.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney))
-    {
-        #Write-Host " Chimney same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_oschimney.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney)) {
         Write-Host "Applying Chimney to"$cb_oschimney.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -Chimney $cb_oschimney.text
         $cb_oschimney.text = (Get-NetOffloadGlobalSetting | Select-Object -expand Chimney)
     }
 
-    if ($cb_ostaskoff.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload))
-    {
-        #Write-Host " TaskOffload same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_ostaskoff.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload)) {
         Write-Host "Applying TaskOffload to"$cb_ostaskoff.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -TaskOffload $cb_ostaskoff.text
         $cb_ostaskoff.text = (Get-NetOffloadGlobalSetting | Select-Object -expand TaskOffload)
     }
 
-    if ($cb_osntd.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect))
-    {
-        #Write-Host " NetworkDirect same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_osntd.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect)) {
         Write-Host "Applying NetworkDirect to"$cb_osntd.text -ForegroundColor Green
         Apply_NetworkDirect
         $cb_osntd.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirect)
     }
 
-    if ($cb_osntdais.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets))
-    {
-        #Write-Host " NetworkDirectAcrossIPSubnets same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_osntdais.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets)) {
         Write-Host "Applying NetworkDirectAcrossIPSubnets to"$cb_osntdais.text -ForegroundColor Green
-        ##Bypass
-        ##Set-NetOffloadGlobalSetting -NetworkDirectAcrossIPSubnets $cb_osntdais.text
         Apply_NetworkDirectGlobalFlags
         $cb_osntdais.text = (Get-NetOffloadGlobalSetting | Select-Object -expand NetworkDirectAcrossIPSubnets)
     }
 
-    if ($cb_ospcf.text -eq (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter))
-    {
-        #Write-Host " PacketCoalescingFilter same as Current, skipping." -ForegroundColor green
-    }
-    else
-    {
+    if ($cb_ospcf.text -ne (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter)) {
         Write-Host "Applying PacketCoalescingFilter to"$cb_ospcf.text -ForegroundColor Green
         Set-NetOffloadGlobalSetting -PacketCoalescingFilter $cb_ospcf.text
         $cb_ospcf.text = (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoalescingFilter)
@@ -2487,16 +2449,13 @@ function Initialize-AdapterUI {
         }
 
     #RSS Queues
-    #Query Available RSSQueues
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
     if($null -eq $rssstatus -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
-        #Write-Host "Powershell"
         $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfRecei
         $Global:AdapterQueues = $AdapterQueues
         [void] $cb_rssqueues.Items.Add($AdapterQueues)
         $cb_rssqueues.Text = $AdapterQueues
         }else{
-        #Write-Host "Registry"
         $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Propert
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
         $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -exp
@@ -2777,20 +2736,11 @@ function Initialize-AdapterUI {
             $cb_DynamicSendBufferDisable.Text='1'
         }
 
+        $AFDFastSendDatagramThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -ErrorAction SilentlyContinue)
+        $cb_FastSendDatagramThreshold.Text = $AFDFastSendDatagramThreshold
 
-        #FastSendDatagramThreshold(1803 = 0 21H2 = 65536)
-        $AFDFastSendDatagramThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\A
-        $cb_FastSendDatagramThreshold.Text=$AFDFastSendDatagramThreshold
-    #if ($null -eq $cb_FastSendDatagramThreshold.Text -or $cb_FastSendDatagramThreshold.Text -eq '' ){
-        #    $cb_FastSendDatagramThreshold.Text='65536'
-
-
-    #FastCopyReceiveThreshold /Check Value
-        $AFDFastCopyReceiveThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AF
-        $cb_FastCopyReceiveThreshold.Text=$AFDFastCopyReceiveThreshold
-        #if ($null -eq $cb_FastCopyReceiveThreshold.Text -or $cb_FastCopyReceiveThreshold.Text -eq '' ){
-        #    $cb_FastCopyReceiveThreshold.Text='0'
-
+        $AFDFastCopyReceiveThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -ErrorAction SilentlyContinue)
+        $cb_FastCopyReceiveThreshold.Text = $AFDFastCopyReceiveThreshold
 
         #IgnorePushBitOnReceives /Check Value
         $AFDIgnorePushBitOnReceives = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD
@@ -3259,36 +3209,19 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*InterruptModeration" -Value "1" -Force}
 
         #InterruptModerationRate
-        #$RegITR = (Get-ItemPropertyValue -Path "$KeyPath" -Name "ITR")
-        #if ($cb_InterruptModerationRate.Text -eq $RegITR -xor $cb_InterruptModerationRate.SelectedIndex >0){
-            #Write-Host "InterruptModerationRate is same then Registry, skipping."  -ForegroundColor green}
-
             if ($cb_InterruptModerationRate.Text -match 'Disabled'){
-            #Write-Host "Disabling InterruptModeration"  -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "0" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'Minimal'){
-            #Write-Host "Setting InterruptModerationRate to 200 - Minimal" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "200" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'Low'){
-            #Write-Host "Setting InterruptModerationRate to 400 - Low" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "400" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'Medium'){
-            #Write-Host "Setting InterruptModerationRate to 950 - Medium" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "950" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'High'){
-            #Write-Host "Setting InterruptModerationRate to 2000 - High" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "2000" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'Extreme'){
-            #Write-Host "Setting InterruptModerationRate to 3600 - Extreme" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "3600" -Force}
-
             elseif ($cb_InterruptModerationRate.Text -match 'Adaptive'){
-            #Write-Host "Setting InterruptModerationRate to 65535 - Adaptive" -ForegroundColor Green
             Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "65535" -Force}
             #For applications where low latency is critical, this setting should be approximately 8000 interrupts per second.
 
@@ -3307,10 +3240,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "TxIntDelay" -Value $tb_TxIntDelay.Text -Force
             }
             #PacketDirect
-            #Unsure Default Enabled or Disabled
-            #Ref:https://docs.microsoft.com/en-us/windows-hardware/drivers/network/introduction-to-ndis-pdpi
             if ($cb_PacketDirect.Text -match 'Undefined'){
-                #Write-Host "PacketDirect to"$cb_PacketDirect.Text  -ForegroundColor Green
                 Remove-ItemProperty -Path "$KeyPath" -Name "*PacketDirect" -Force}
             if ($cb_PacketDirect.Text -match 'Enabled'){
                 Write-Host "PacketDirect to"$cb_PacketDirect.Text  -ForegroundColor Green
@@ -3321,7 +3251,6 @@ function RSSEnable{
 
             #EnableCoalesce
             if ($cb_EnableCoalesce.Text -match 'Undefined'){
-                #Write-Host "EnableCoalesce to"$cb_EnableCoalesce.Text  -ForegroundColor Green
                 Remove-ItemProperty -Path "$KeyPath" -Name "EnableCoalesce" -Force}
             if ($cb_EnableCoalesce.Text -match 'Enabled'){
                 Write-Host "EnableCoalesce to"$cb_EnableCoalesce.Text  -ForegroundColor Green
@@ -3345,7 +3274,6 @@ function RSSEnable{
 
             #EnableUdpTxScaling
             if ($cb_EnableUdpTxScaling.Text -match 'Undefined'){
-                #Write-Host "EnableUdpTxScaling to"$cb_EnableUdpTxScaling.Text  -ForegroundColor Green
                 Remove-ItemProperty -Path "$KeyPath" -Name "EnableUdpTxScaling" -Force}
             if ($cb_EnableUdpTxScaling.Text -match 'Enabled'){
                 Write-Host "EnableUdpTxScaling to"$cb_EnableUdpTxScaling.Text  -ForegroundColor Green

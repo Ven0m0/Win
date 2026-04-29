@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -8,7 +8,7 @@ Describe "shell-setup.ps1" {
     Context "Script execution guard" {
         It "Should not execute main logic when dot-sourced" {
             # Dot-source the script, passing switches to prevent it from prompting
-            . "$PSScriptRoot/shell-setup.ps1" -HomeWorkstation
+            . "$PSScriptRoot/../Scripts/shell-setup.ps1" -HomeWorkstation
             # If the script dot-sourced correctly without hanging, it passes
             $true | Should -Be $true
         }
@@ -16,7 +16,7 @@ Describe "shell-setup.ps1" {
 
     Context "Function Definitions" {
         BeforeAll {
-            . "$PSScriptRoot/shell-setup.ps1" -HomeWorkstation
+            . "$PSScriptRoot/../Scripts/shell-setup.ps1" -HomeWorkstation
         }
 
         It "Should define required functions" {

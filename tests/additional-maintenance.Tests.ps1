@@ -1,9 +1,9 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    . "$PSScriptRoot/Common.ps1"
-    . "$PSScriptRoot/additional-maintenance.ps1"
+    . "$PSScriptRoot/../Scripts/Common.ps1"
+    . "$PSScriptRoot/../Scripts/additional-maintenance.ps1"
 }
 
 Describe "additional-maintenance.ps1" {

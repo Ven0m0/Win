@@ -1,10 +1,10 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Dot source Common.ps1 first so we get the real commands, then we mock them
-    . "$PSScriptRoot/Common.ps1"
+    . "$PSScriptRoot/../Scripts/Common.ps1"
 
     # Mock Common.ps1 functions that might get executed during dot sourcing or function calls
     Mock Set-RegistryValue { }
@@ -28,7 +28,7 @@ BeforeAll {
     Mock powercfg { }
 
     # Safely dot source the script now that we use the execution guard pattern
-    . "$PSScriptRoot/system-settings-manager.ps1"
+    . "$PSScriptRoot/../Scripts/system-settings-manager.ps1"
 }
 
 Describe "System Settings Manager" {

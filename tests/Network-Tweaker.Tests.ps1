@@ -1,13 +1,14 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 # Setup logic outside of BeforeAll for Pester 5 Discovery phase
-$scriptPath = "$PSScriptRoot/Network-Tweaker.ps1"
+$scriptPath = "$PSScriptRoot/../Scripts/Network-Tweaker.ps1"
 $canLoadForms = $false
 
 try {
     Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
     $canLoadForms = $true
-} catch {
+}
+catch {
     $canLoadForms = $false
 }
 

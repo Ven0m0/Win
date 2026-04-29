@@ -1,4 +1,4 @@
-﻿﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -59,7 +59,7 @@ Describe "fix-system.ps1" {
 
     Context "Script functions" {
         BeforeAll {
-            . "$PSScriptRoot/fix-system.ps1"
+            . "$PSScriptRoot/../Scripts/fix-system.ps1"
         }
 
         It "Should run Start-SystemFix in DryRun mode without errors" {

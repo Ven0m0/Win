@@ -1,10 +1,10 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Safely source the script
-    . "$PSScriptRoot/debloat-windows.ps1"
+    . "$PSScriptRoot/../Scripts/debloat-windows.ps1"
 }
 
 Describe "Debloat-Windows Script Initialization" {

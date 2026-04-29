@@ -1,4 +1,4 @@
-﻿BeforeAll {
+BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Create a dummy function with CmdletBinding to export PSCmdlet
@@ -12,7 +12,7 @@
     $global:script:ConfigRoot = "dummy"
     $global:script:Results = @{}
 
-    . "$PSScriptRoot/Deploy-Config.ps1"
+    . "$PSScriptRoot/../Scripts/Deploy-Config.ps1"
 
     $script:Results = @{}
 }
