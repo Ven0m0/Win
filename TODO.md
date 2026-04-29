@@ -39,3 +39,8 @@ while( $true ) {
     Start-Sleep -Seconds 1;
 }
 ```
+
+### 4 fix broken autounattend scripts
+
+- [win11](Scripts/auto/autounattend.xml)
+- [win10](Scripts/auto/autounattend-windows10.xml)
