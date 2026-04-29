@@ -25,15 +25,19 @@ space_redirects = false
 switch_case_indent = false
 function_next_line = false
 binary_next_line = true
+end_of_line = lf
 
 [.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
 shell_variant = bash
+end_of_line = lf
 
 [.profile]
 shell_variant = posix
+end_of_line = lf
 
 [**.{fish,fish_*},fishd.*,fish_*]
 indent_size = 4
+end_of_line = lf
 
 # Windows Scripts
 [**.{bat,cmd,ps1,psm1,psd1}]
