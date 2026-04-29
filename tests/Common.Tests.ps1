@@ -2,7 +2,7 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    . "$PSScriptRoot/Common.ps1"
+    . "$PSScriptRoot/../Scripts/Common.ps1"
 }
 
 Describe "ConvertFrom-VDF" {

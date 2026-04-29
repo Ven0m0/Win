@@ -3,7 +3,7 @@
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
     # Dot-source with skip flags so it doesn't execute maintenance during import
-    . "$PSScriptRoot/system-maintenance.ps1" -NoDefrag -NoMsi
+    . "$PSScriptRoot/../Scripts/system-maintenance.ps1" -NoDefrag -NoMsi
 }
 
 Describe "Invoke-Defrag" {

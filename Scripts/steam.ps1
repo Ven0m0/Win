@@ -1,18 +1,31 @@
-﻿# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
+﻿# steam.ps1 - Steam optimization: restarts Steam with reduced RAM/CPU usage
+# Supports two modes: Default (SmallMode=1, NoGPU=1) and Arc Raiders (SmallMode=0, NoGPU=0)
 
-# Options
+[CmdletBinding()]
+param(
+    [Parameter()]
+    [ValidateSet('Default', 'ArcRaiders')]
+    [string]$Mode = 'Default'
+)
+
+# Options - Default: gaming-focused; ArcRaiders: FPS-focused
 $FriendsSignIn = 0
 $FriendsAnimed = 0
 $ShowGameIcons = 0
 $NoJoystick    = 1
 $NoShaders     = 1
-$NoGPU         = 1
+$NoGPU         = if ($Mode -eq 'ArcRaiders') { 0 } else { 1 }
+$SmallMode     = if ($Mode -eq 'ArcRaiders') { '0' } else { '1' }
 
 # Import shared helpers
 . "$PSScriptRoot\Common.ps1"
 
 function Invoke-SteamOptimization {
-  param()
+  param(
+      [string]$SteamMode = $Mode
+  )
+
+  $isArcRaiders = $SteamMode -eq 'ArcRaiders'
   # Steam quick launch arguments
   $QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite " `
     + $(if ($NoJoystick) { "-nojoy " } else { "" })
@@ -85,7 +98,8 @@ function Invoke-SteamOptimization {
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"','{','}') }
     vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam'; vdf_mkdir $vdf.Item(0) 'friends'
     $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
-    if ($key["SmallMode"] -ne '"1"') { $key["SmallMode"] = '"1"'; $write = $true }
+    $smallModeVal = if ($isArcRaiders) { '0' } else { '1' }
+    if ($key["SmallMode"] -ne "`"$smallModeVal`"") { $key["SmallMode"] = "`"$smallModeVal`""; $write = $true }
     foreach ($o in $opt.Keys) { if ($vdf.Item(0)["$o"] -ne """$($opt[$o])""") {
       $vdf.Item(0)["$o"] = """$($opt[$o])"""; $write = $true
     }}

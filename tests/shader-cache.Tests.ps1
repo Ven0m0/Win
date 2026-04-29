@@ -9,7 +9,7 @@ BeforeAll {
 Describe "Invoke-ShaderCacheCleanup" {
     BeforeAll {
         $global:PSScriptRoot = $TestDrive
-        . "$PSScriptRoot/shader-cache.ps1" -ErrorAction SilentlyContinue
+        . "$PSScriptRoot/../Scripts/shader-cache.ps1" -ErrorAction SilentlyContinue
     }
 
     Context "Steam Detection" {

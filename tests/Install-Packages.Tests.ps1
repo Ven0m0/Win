@@ -12,7 +12,7 @@ Describe "Install-Packages" {
         function tzutil.exe {}
         function Set-TimeZone {}
         function Set-Culture {}
-        . "$PSScriptRoot/Install-Packages.ps1"
+        . "$PSScriptRoot/../Scripts/Install-Packages.ps1"
     }
 
     Context "Initialization" {

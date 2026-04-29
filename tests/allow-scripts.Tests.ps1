@@ -22,7 +22,7 @@ Describe "allow-scripts.ps1" {
 
     Context "Script functions" {
         BeforeAll {
-            . "$PSScriptRoot/allow-scripts.ps1"
+            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
         }
 
         It "Should run Enable-ScriptExecution without errors and configure correctly" {

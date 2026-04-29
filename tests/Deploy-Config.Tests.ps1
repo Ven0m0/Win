@@ -12,7 +12,7 @@
     $global:script:ConfigRoot = "dummy"
     $global:script:Results = @{}
 
-    . "$PSScriptRoot/Deploy-Config.ps1"
+    . "$PSScriptRoot/../Scripts/Deploy-Config.ps1"
 
     $script:Results = @{}
 }

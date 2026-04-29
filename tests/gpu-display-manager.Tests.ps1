@@ -4,7 +4,7 @@ BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Load the script to test
-    . "$PSScriptRoot/gpu-display-manager.ps1"
+    . "$PSScriptRoot/../Scripts/gpu-display-manager.ps1"
 }
 
 Describe "gpu-display-manager.ps1 functions" {

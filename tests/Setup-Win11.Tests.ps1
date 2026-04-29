@@ -2,7 +2,7 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    . "$PSScriptRoot/Setup-Win11.ps1"
+    . "$PSScriptRoot/../Scripts/Setup-Win11.ps1"
 }
 
 Describe "Start-SetupWin11" {

@@ -5,7 +5,7 @@ BeforeAll {
 Describe "steam.ps1" {
     BeforeAll {
         function Close-SteamGracefully { }
-        . "$PSScriptRoot/steam.ps1"
+        . "$PSScriptRoot/../Scripts/steam.ps1"
     }
 
     BeforeEach {

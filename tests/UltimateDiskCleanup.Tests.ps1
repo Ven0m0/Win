@@ -9,7 +9,7 @@ Describe "UltimateDiskCleanup" {
         function Request-AdminElevation {}
 
         # Safe dot-source because of the MyInvocation guard we added
-        . "$PSScriptRoot/UltimateDiskCleanup.ps1"
+        . "$PSScriptRoot/../Scripts/UltimateDiskCleanup.ps1"
     }
 
     It "Should have Start-UltimateDiskCleanup function defined" {
