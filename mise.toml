@@ -56,29 +56,23 @@ pwsh -NoLogo -NoProfile -Command "Set-PSRepository PSGallery -InstallationPolicy
 [tasks.lint]
 description = "Run PSScriptAnalyzer on all PowerShell scripts"
 run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Lint-PowerShell.ps1"
-aliases = ["lint"]
 
 [tasks.format]
 description = "Validate PowerShell formatting standards (BOM, indentation, trailing whitespace)"
 run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Format-PowerShell.ps1"
-aliases = ["fmt"]
 
 [tasks.test]
 description = "Run Pester tests for PowerShell scripts"
 run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Test-PowerShell.ps1"
-aliases = ["test"]
 
 [tasks.validate]
 description = "Run all PowerShell validation: lint, format, and tests"
 run = ["mise run lint", "mise run format", "mise run test"]
-aliases = ["check", "validate"]
 
 [tasks.reg-validate]
 description = "Validate registry (.reg) files for correct headers and safety"
 run = "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Validate-Changes.ps1"
-aliases = ["reg-check"]
 
 [tasks.ci]
 description = "Run full CI pipeline (equivalent to GitHub Actions workflows)"
 run = ["mise run validate", "mise run reg-validate"]
-aliases = ["ci"]
