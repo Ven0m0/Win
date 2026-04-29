@@ -24,9 +24,9 @@ prek = "latest"
 "pipx:basedpyright" = "latest"
 "pipx:dotbot" = "latest"
 "pipx:py-psscriptanalyzer" = "latest"
-"pipx:pwsh" = "latest"
+#"pipx:pwsh" = "latest"
 #"pipx:WMI" = "latest"
-"pipx:psutil" = "latest"
+#"pipx:psutil" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
