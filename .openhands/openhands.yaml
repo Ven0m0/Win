@@ -35,12 +35,12 @@ hooks:
   pre_commit:
     script: .openhands/pre-commit.sh
     enabled: true
-    fail_fast: true
+    fail_fast: false
 
   post_commit:
     script: .openhands/post-commit.sh
     enabled: true
-    fail_fast: true
+    fail_fast: false
 
 # Task definitions
 tasks:
