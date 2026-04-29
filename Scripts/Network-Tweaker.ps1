@@ -608,7 +608,12 @@ $cb_PMARPOffload.BackColor       = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_PriorityVLANTag              = New-Object system.Windows.Forms.ComboBox
 $cb_PriorityVLANTag.width        = 190
 $cb_PriorityVLANTag.height       = 20
-[void] $cb_PriorityVLANTag.Items.AddRange([object[]]@('0 - Paketpriorität and VLAN disabled', '1 - Paketpriorität enabled', '2 - VLAN enabled', '3 - Paketpriorität and VLAN enabled'))
+[void] $cb_PriorityVLANTag.Items.AddRange([object[]]@(
+    '0 - Paketpriorität and VLAN disabled',
+    '1 - Paketpriorität enabled',
+    '2 - VLAN enabled',
+    '3 - Paketpriorität and VLAN enabled'
+))
 $cb_PriorityVLANTag.location     = New-Object System.Drawing.Point(193,256)
 $cb_PriorityVLANTag.Font         = New-Object System.Drawing.Font('Calibri',9)
 $cb_PriorityVLANTag.ForeColor    = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -1358,7 +1363,8 @@ $lb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_DevicePolicy                 = New-Object system.Windows.Forms.ComboBox
 $cb_DevicePolicy.width           = 214
 $cb_DevicePolicy.height          = 20
-[void] $cb_DevicePolicy.Items.AddRange([object[]]@('MachineDefault', 'AllCloseProcessors', 'OneCloseProcessor', 'Processors'))
+[void] $cb_DevicePolicy.Items.AddRange([object[]]@('MachineDefault', 'AllCloseProcessors',
+'OneCloseProcessor', 'Processors'))
 $cb_DevicePolicy.location        = New-Object System.Drawing.Point(7,81)
 $cb_DevicePolicy.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_DevicePolicy.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
