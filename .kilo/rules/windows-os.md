@@ -1,4 +1,3 @@
----
 # Windows 10 / Windows 11 Rules
 
 These rules apply to all Windows system-modifying scripts in the repository. They govern OS version detection, feature availability branching, and compatibility guarantees.
