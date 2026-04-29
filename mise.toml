@@ -15,6 +15,7 @@ uvx = true
 cli_telemetry_optout = true
 
 [tools]
+powershell = "latest"
 python = "3.14"
 uv = "latest"
 ruff = "latest"
@@ -34,6 +35,9 @@ PROJECT_ROOT = "{{config_root}}"
 UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 UV_LINK_MODE = "symlink"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
+
+[hooks]
+enter = "mise i -yq"
 
 [tasks.bootstrap]
 description = "Install dotbot and deploy dotfiles"
