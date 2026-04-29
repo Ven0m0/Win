@@ -57,10 +57,18 @@ pwsh -NoLogo -NoProfile -Command "Set-PSRepository PSGallery -InstallationPolicy
 '''
 
 [tasks.lint]
-description = "Run PSScriptAnalyzer on all PowerShell scripts"
-run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Lint-PowerShell.ps1"
+description = "Lint PowerShell files with py-psscriptanalyzer"
+run = "py-psscriptanalyzer --recursive --severity Warning"
 
 [tasks.format]
+description = "Format a PowerShell file with py-psscriptanalyzer"
+run = "py-psscriptanalyzer --format {{arg(name='file')}}"
+
+[tasks.lint-legacy]
+description = "Run PSScriptAnalyzer on all PowerShell scripts (legacy pwsh module)"
+run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Lint-PowerShell.ps1"
+
+[tasks.format-legacy]
 description = "Validate PowerShell formatting standards (BOM, indentation, trailing whitespace)"
 run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Format-PowerShell.ps1"
 

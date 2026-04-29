@@ -852,7 +852,7 @@ $selectors = @(
 	'Microsoft.MicrosoftStickyNotes';
 	'MicrosoftTeams';
 	'MSTeams';
-	'Microsoft.Todos';
+
 	'Microsoft.WindowsSoundRecorder';
 	'Microsoft.Wallet';
 	'Microsoft.BingWeather';
@@ -1063,14 +1063,31 @@ function Test-InternetConnectivity {
     return $false
 }
 
+function Wait-ForWinget {
+    param(
+        [string]$ExePath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        [int]$TimeoutMinutes = 5
+    )
+    $deadline = [datetime]::Now.AddMinutes($TimeoutMinutes)
+    while (-not (Test-Path $ExePath)) {
+        if ([datetime]::Now -gt $deadline) { throw "winget not found within ${TimeoutMinutes}m" }
+        Start-Sleep -Seconds 1
+    }
+    return $ExePath
+}
+
 function Install-WingetPackage {
     param([string[]]$Packages, [string[]]$ExtraArgs = @(), [int]$MaxRetries = 3)
     if (-not (Test-InternetConnectivity)) {
         Write-Host "[WARN] No internet connectivity, skipping: $($Packages -join ', ')" -ForegroundColor Yellow
         return
     }
+    $winget = Wait-ForWinget
+    $scopeArg = ''
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if ($isAdmin) { $scopeArg = '--scope machine' }
     for ($i = 1; $i -le $MaxRetries; $i++) {
-        $result = winget install @W @Packages @ExtraArgs 2>&amp;1
+        $result = &amp; $winget install @W @Packages @ExtraArgs $scopeArg 2>&amp;1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "[OK] Installed: $($Packages[0])" -ForegroundColor Green
             return
@@ -1089,7 +1106,8 @@ if (-not (Test-InternetConnectivity)) {
     Write-Host '  powershell -ExecutionPolicy Bypass -File C:\Windows\Setup\Scripts\install.ps1' -ForegroundColor Cyan
 } else {
     Write-Host '[INFO] Internet connectivity confirmed. Proceeding with installations...' -ForegroundColor Green
-    winget upgrade -r -u @W --disable-interactivity
+    $wingetExe = Wait-ForWinget
+    &amp; $wingetExe upgrade -r -u @W --disable-interactivity
 
     Install-WingetPackage -Packages @('Microsoft.VCRedist.2015+.x64', 'Microsoft.VCRedist.2013.x64', 'Microsoft.VCLibs.14', 'Microsoft.VCLibs.Desktop.14', 'Microsoft.WindowsAppRuntime.1.8', 'Microsoft.DotNet.Framework.DeveloperPack_4', 'Microsoft.DotNet.Runtime.6', 'Microsoft.DotNet.DesktopRuntime.5', 'Microsoft.DotNet.DesktopRuntime.6', 'Microsoft.DotNet.DesktopRuntime.7', 'Microsoft.DotNet.DesktopRuntime.8', 'Microsoft.DotNet.DesktopRuntime.9', 'Microsoft.DotNet.DesktopRuntime.10', 'Microsoft.DirectX', 'Microsoft.XNARedist', 'KhronosGroup.VulkanRT', 'KhronosGroup.VulkanSDK', 'Microsoft.OpenCLGLVulkanCompatibilityPack', 'Oracle.JavaRuntimeEnvironment', 'EclipseAdoptium.Temurin.21.JRE', 'EclipseAdoptium.Temurin.25.JRE', 'OpenAL.OpenAL', 'Gyan.FFmpeg')
 
@@ -1159,7 +1177,8 @@ Start-Transcript -Path 'C:\Windows\Setup\Scripts\stage2.log' -Append
 
 wsl --install -d Ubuntu --web-download
 wsl --set-default-version 2
-winget install -h Microsoft.WSL Canonical.Ubuntu Bostrot.WSLManager
+$wg = Wait-ForWinget
+&amp; $wg install -h Microsoft.WSL Canonical.Ubuntu Bostrot.WSLManager
 
 # Chris Titus WinUtil — opens on next logon
 New-Item -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1410,6 +1429,5 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
 "EnableGR535"=dword:00000001
 		</File>
-		
 	</Extensions>
 </unattend>

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -83,10 +83,13 @@ function Start-InstallPackages {
     function Install-WingetTool {
         param([string]$Id, [string]$Name)
         if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+            $winget = Wait-ForWinget
             Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
             try {
-                winget install --id $Id --silent --accept-source-agreements `
-                --accept-package-agreements 2>&1 | Out-Null
+                $scopeArg = ''
+                if ($isAdmin) { $scopeArg = '--scope machine' }
+                & $winget install --id $Id --silent --accept-source-agreements `
+                    --accept-package-agreements $scopeArg 2>&1 | Out-Null
                 $ec = $LASTEXITCODE
                 if ($ec -eq 0 -or $ec -eq -1978335189) {
                     Write-Host " [OK]" -ForegroundColor Green
@@ -142,12 +145,14 @@ function Start-InstallPackages {
         Write-Warning "  Could not set execution policy: $_"
     }
 
-    # Check winget availability
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Status 'winget not found. Install from https://aka.ms/getwinget' -Status 'FAIL'
+    # Ensure winget is available (wait-loop for fresh installs)
+    try {
+        $null = Wait-ForWinget
+        Write-Status 'winget is available' -Status 'OK'
+    } catch {
+        Write-Status "winget not available: $_. Install from https://aka.ms/getwinget" -Status 'FAIL'
         exit 1
     }
-    Write-Status 'winget is available' -Status 'OK'
 
     # ============================================================================
     # Phase 2: Install core tools via winget
@@ -181,7 +186,6 @@ function Start-InstallPackages {
             'Microsoft.DotNet.DesktopRuntime.8',
             'Microsoft.DotNet.DesktopRuntime.7',
             'Oracle.JavaRuntimeEnvironment',
-            'Microsoft.EdgeWebView2Runtime',
             'EclipseAdoptium.Temurin.25.JRE'
         )
 

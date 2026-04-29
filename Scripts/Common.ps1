@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -1565,6 +1565,104 @@ function Show-Summary {
     Write-Host "`n  Duration: $($durationInfo.Duration)" -ForegroundColor Cyan
     Write-Host "  End Time: $($durationInfo.EndTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Cyan
     Write-Host ""
+}
+#endregion
+
+#region Winget Helpers
+function Wait-ForWinget {
+    <#
+    .SYNOPSIS
+        Waits for the winget executable to become available.
+    .DESCRIPTION
+        On fresh Windows 11 24H2+ installs the winget.exe UWP stub may not be
+        registered immediately after first logon.  This helper polls until the
+        file exists or a timeout is reached.
+    .PARAMETER ExePath
+        Full path to the expected winget executable.
+        Default: %LOCALAPPDATA%\Microsoft\WindowsApps\winget.exe
+    .PARAMETER TimeoutMinutes
+        Maximum minutes to wait.  Default: 5
+    .OUTPUTS
+        The resolved executable path.
+    .EXAMPLE
+        $wg = Wait-ForWinget
+        & $wg install --id Git.Git --silent --accept-source-agreements
+    #>
+    [CmdletBinding()]
+    param(
+        [string]$ExePath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        [int]$TimeoutMinutes = 5
+    )
+
+    $deadline = [datetime]::Now.AddMinutes($TimeoutMinutes)
+
+    while (-not (Test-Path $ExePath)) {
+        if ([datetime]::Now -gt $deadline) {
+            throw "winget not found within ${TimeoutMinutes} minute(s) at '$ExePath'"
+        }
+        Write-Verbose "Waiting for winget..."
+        Start-Sleep -Seconds 1
+    }
+
+    return $ExePath
+}
+
+function Install-WingetPackage {
+    <#
+    .SYNOPSIS
+        Installs a package via winget with safe defaults and exit-code handling.
+    .DESCRIPTION
+        Wraps winget install, automatically waits for the executable if needed,
+        and treats exit codes 0 and -1978335189 (already installed) as success.
+        Uses --scope machine only when running as administrator.
+    .PARAMETER Id
+        Winget package identifier.
+    .PARAMETER Name
+        Human-readable name for status output.
+    .PARAMETER ExePath
+        Optional explicit path to winget.exe.
+    .PARAMETER NoWait
+        Skip Wait-ForWinget (use only when you are certain winget is ready).
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Id,
+
+        [string]$Name,
+        [string]$ExePath,
+        [switch]$NoWait
+    )
+
+    if (-not $Name) { $Name = $Id }
+
+    $winget = if ($ExePath) { $ExePath } else { Wait-ForWinget }
+
+    $scopeArg = ''
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+    if ($isAdmin) {
+        $scopeArg = '--scope machine'
+    }
+
+    if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        try {
+            $argList = "install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg"
+            $proc = Start-Process -FilePath $winget -ArgumentList $argList -NoNewWindow -Wait -PassThru
+            $ec = $proc.ExitCode
+            if ($ec -eq 0 -or $ec -eq -1978335189) {
+                Write-Host " [OK]" -ForegroundColor Green
+            } else {
+                Write-Host ""
+                Write-Warning "  [WARN] $Name - winget exit code: $ec"
+            }
+        } catch {
+            Write-Host ""
+            Write-Warning "  [WARN] $Name - $_"
+        }
+    }
 }
 #endregion
 

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 
 #Requires -Version 5.1
 
@@ -388,6 +388,8 @@ function Install-WingetTool {
   <#
   .SYNOPSIS
       Installs a package via winget. Treats exit codes 0 and -1978335189 (already installed) as success.
+  .DESCRIPTION
+      Uses Wait-ForWinget from Common.ps1 to ensure winget is available before invoking.
   .PARAMETER Id
       Winget package identifier.
   .PARAMETER Name
@@ -399,10 +401,14 @@ function Install-WingetTool {
     [string]$Name
   )
 
+  $winget = Wait-ForWinget
+
   if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
     Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
     try {
-      winget install --id $Id --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+      $scopeArg = ''
+      if ($isAdmin) { $scopeArg = '--scope machine' }
+      & $winget install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg 2>&1 | Out-Null
       $ec = $LASTEXITCODE
       # 0 = success, -1978335189 (0x8A150021) = already installed at required version
       if ($ec -eq 0 -or $ec -eq -1978335189) {
@@ -442,6 +448,12 @@ if ($SkipWingetTools) {
 } else {
     Write-Host '[2/5] Installing tools...' -ForegroundColor Cyan
 
+    try {
+        $null = Wait-ForWinget
+    } catch {
+        Write-Warning "  winget not available: $_. Install from: https://aka.ms/getwinget"
+        $_ | Out-Null
+    }
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Warning '  winget not found. Install from: https://aka.ms/getwinget'
     } else {
