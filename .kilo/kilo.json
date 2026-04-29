@@ -129,6 +129,13 @@
     "tombi": {
       "command": ["uvx", "tombi", "lsp"],
       "extensions": [".toml"]
+    },
+		"powershell": {
+			"command": [
+				"pwsh", "-NoLogo", "-NoProfile", "-Command",
+				"$module = Get-Module -ListAvailable PowerShellEditorServices | Sort-Object Version -Descending | Select-Object -First 1; if (-not $module) { throw 'PowerShellEditorServices is not installed. Run: Install-Module -Name PowerShellEditorServices -Scope CurrentUser' }; Import-Module $module.Path; Start-EditorServices -HostName 'Claude Code' -HostProfileId 'ClaudeCode' -HostVersion '1.0.0' -Stdio -BundledModulesPath (Split-Path $module.Path) -LogPath '/dev/null' -LogLevel 'None' -EnableConsoleRepl"
+			],
+			"extensions": [".ps1", ".psm1", ".psd1"]
     }
   },
   "compaction": { "auto": true, "prune": true },
