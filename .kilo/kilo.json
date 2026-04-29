@@ -2,7 +2,7 @@
   "$schema": "https://app.kilo.ai/config.json",
   "instructions": [".kilo/rules/*.md", "AGENTS.md", ".github/instructions/*.md"],
   "skills": {
-    "paths": [".kilo/skills", ".opencode/skills", ".claude/skills"]
+    "paths": [".kilo/skills", ".kilo/skill", ".opencode/skills", ".claude/skills"]
   },
   "permission": {
     "*": "allow",
@@ -16,17 +16,22 @@
     ":(){:|:&};:": "deny",
     "doom_loop": "deny"
   },
+  "provider": {
+    "openai": {
+      "options": { "apiKey": "{env:OPENAI_API_KEY}" }
+    },
+    "anthropic": {
+      "options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
+    }
+  },
   "disabled_providers": ["openai", "google"],
   "plugin": [
     "opencode-ignore@1.1.0",
-    "opencode-agent-skills@0.6.5",
-    "opencode-websearch@0.5.0",
-    "openslimedit@1.0.4",
-    "opencode-agent-skills",
     "@gotgenes/opencode-agent-identity@3.0.1",
-    "github:joshuadavidthomas/opencode-agent-memory",
     "github:kdcokenny/opencode-background-agents",
     "github:spoons-and-mirrors/subtask2",
+    "openslimedit@1.0.4",
+    "opencode-agent-skills@0.6.5",
     "opencode-betterglob",
     "opencode-bettergrep",
     "opencode-betterread"
@@ -52,7 +57,7 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "headers": { "Authorization": "Bearer {env:CONTEXT7_API_KEY}" },
-      "enabled": false
+      "enabled": true
     },
     "github": {
       "type": "remote",
@@ -87,7 +92,7 @@
         "ide",
         "--project-from-cwd"
       ],
-      "enabled": false
+      "enabled": true
     },
     "octocode": {
       "type": "local",
@@ -98,20 +103,11 @@
       "type": "local",
       "command": ["npx", "-y", "@playwright/mcp@latest", "--headless"],
       "enabled": false
-    },
-    "gitnexus": {
-      "type": "local",
-      "command": ["npx", "-y", "gitnexus@latest", "mcp"],
-      "enabled": true
     }
   },
   "lsp": {
     "basedpyright": {
-      "command": ["basedpyright-langserver", "--stdio"],
-      "extensions": [".py", ".pyw", ".pyi"]
-    },
-    "ty": {
-      "command": ["ty", "check"],
+      "command": ["uvx", "basedpyright-langserver", "--stdio"],
       "extensions": [".py", ".pyw", ".pyi"]
     },
     "bash": {
@@ -131,7 +127,7 @@
       "extensions": [".json", ".jsonc"]
     },
     "tombi": {
-      "command": ["tombi", "lsp"],
+      "command": ["uvx", "tombi", "lsp"],
       "extensions": [".toml"]
     }
   },
