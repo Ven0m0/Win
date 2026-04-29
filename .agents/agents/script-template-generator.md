@@ -4,8 +4,6 @@ description: >
   Generates PowerShell script scaffolds with matching Pester test files.
   <example>Generate a new script called Invoke-SystemOptimizer with -OptimizeNetwork parameter</example>
   <example>Create a network tuning script with -Apply and -Restore switches</example>
-tools:
-  - file_editor
 ---
 
 # Script Template Generator
