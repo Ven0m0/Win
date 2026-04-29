@@ -24,6 +24,8 @@ prek = "latest"
 "pipx:basedpyright" = "latest"
 "pipx:dotbot" = "latest"
 "pipx:py-psscriptanalyzer" = "latest"
+ripgrep = "latest"
+ast-grep = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
