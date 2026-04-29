@@ -50,5 +50,6 @@ run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/en
 
 [task.pwsh-install]
 description = "Install pwsh lint"
-run = ["pwsh -NoLogo -NoProfile -Command '
-Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber'"]
+run = [
+  "pwsh -NoLogo -NoProfile -Command 'Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber'"
+]
