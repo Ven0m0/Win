@@ -110,7 +110,8 @@ function Start-InstallPackages {
     if ($null -eq $script:isAdminOverride) {
         $isAdmin = $false
         try {
-            $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+            $isAdmin = ([Security.Principal.WindowsPrincipal]`
+                [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
                 [Security.Principal.WindowsBuiltInRole]::Administrator
             )
         } catch {}
@@ -236,7 +237,8 @@ function Start-InstallPackages {
             Write-Status 'Installing Scoop...' -Status 'RUNNING'
             try {
                 $scoopInstaller = Join-Path $env:TEMP ("install-scoop-{0}.ps1" -f [System.Guid]::NewGuid().ToString('N'))
-                Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
+                Invoke-RestMethod -Uri 'https://get.scoop.sh' `
+                -OutFile $scoopInstaller
                 & $scoopInstaller
                 Remove-Item $scoopInstaller -Force -ErrorAction SilentlyContinue
                 Write-Status 'Scoop installed' -Status 'OK'
@@ -279,7 +281,8 @@ function Start-InstallPackages {
             Write-Status 'Installing Chocolatey...' -Status 'RUNNING'
             try {
                 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-                Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' -OutFile "$env:TEMP\choco-install.ps1"
+                Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
+                -OutFile "$env:TEMP\choco-install.ps1"
                 & "$env:TEMP\choco-install.ps1"
                 Remove-Item "$env:TEMP\choco-install.ps1" -Force -ErrorAction SilentlyContinue
                 Write-Status 'Chocolatey installed' -Status 'OK'
@@ -366,7 +369,8 @@ function Start-InstallPackages {
                 New-Item -Path $labConfig -Force | Out-Null
             }
             Set-ItemProperty -Path $labConfig -Name 'BypassTPMCheck' -Value 1 -Type DWord -Force
-            Set-ItemProperty -Path $labConfig -Name 'BypassSecureBootCheck' -Value 1 -Type DWord -Force
+            Set-ItemProperty -Path $labConfig -Name 'BypassSecureBootCheck' `
+                -Value 1 -Type DWord -Force
             Set-ItemProperty -Path $labConfig -Name 'BypassRAMCheck' -Value 1 -Type DWord -Force
             Write-Status 'Setup bypass flags configured' -Status 'OK'
         } catch {
