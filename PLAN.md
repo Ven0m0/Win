@@ -4,6 +4,32 @@ _Generated: 2026-04-29T12:08:26Z · 4 tasks · Est. M–L_
 ## Summary
 This plan captures four work items from `TODO.md`: integrating `py-psscriptanalyzer` into the build pipeline, adding a Windows Update repair source, implementing a robust winget wait-and-install pattern, and fixing broken autounattend XML scripts for both Windows 10 and Windows 11.
 
+## Research Notes
+
+### T001 — py-psscriptanalyzer
+Context7 returned no documentation for `py-psscriptanalyzer`; the package appears to be a thin Python wrapper around PSScriptAnalyzer. Since no canonical docs were found, treat it as a CLI tool with `--recursive` and `--format` flags. Verify availability via `pip install py-psscriptanalyzer` or `pipx` before adding to `mise.toml`.
+
+### T002 — ShadowWhisperer Fix-WinUpdates
+Exa search did not surface the exact `ShadowWhisperer/Fix-WinUpdates` repository; instead it returned several similar Windows Update repair scripts (e.g., `SysAdminDoc/WURepair`, `taylornrolyat/Repair-WindowsUpdates`). This suggests the upstream repo may be niche or renamed. Before implementation, confirm the repository still exists at `https://github.com/ShadowWhisperer/Fix-WinUpdates`. If unavailable, evaluate `SysAdminDoc/WURepair` as a fallback because it supports granular repair switches (`-RepairServices`, `-RepairDLLs`, `-Quick`) and is actively maintained.
+
+### T003 — winget wait-loop
+Exa retrieved the exact schneegans sample (see https://schneegans.de/windows/unattend-generator/samples/). Key findings:
+- The wait-loop is required because on Windows 11 24H2+ the `winget.exe` stub is not immediately present after first logon; Windows needs time to finish UWP app registration.
+- The sample uses `--scope machine`, which requires admin elevation. In non-admin contexts this will fail silently.
+- Timeout is 5 minutes with 1-second polling; this is acceptable but should be parameterized.
+- The build guard (`-lt 26100`) restricts the script to Windows 11 24H2+. For Windows 10 autounattend, omit the guard or adjust the build number.
+
+### T004 — autounattend.xml fixes
+Exa surfaced multiple common failure modes for embedded-script autounattend files:
+1. **ExtractScript mechanism** — The `ExtractScript` entity must be correctly encoded (`&#xA;` for newlines) and the extraction command must reference `C:\Windows\Panther\unattend.xml` (not `autounattend.xml`). See memstechtips/UnattendedWinstall commit `cfc62e2` for a working pattern.
+2. **FirstLogonCommands vs RunSynchronous** — `FirstLogonCommands` belongs in the `oobeSystem` pass; `RunSynchronousCommand` belongs in `specialize`. Mixing them causes Windows Setup to skip commands. See SuperUser #1342587.
+3. **Log locations** — If scripts fail, inspect:
+   - `C:\Windows\Panther\setupact.log` (PE stage)
+   - `C:\Windows\Setup\Scripts\*.log` (post-install)
+   - `%TEMP%\UserOnce.log` (user-once scripts)
+4. **Script extraction failures** — Ensure the SYSTEM account has write access to `C:\Windows\Setup\Scripts\` and that PowerShell 5.1+ is available.
+5. **Validation** — Always validate with `[xml]::new().Load(path)` before committing changes.
+
 ## Task Index (topological order)
 | # | ID | Title | Sev | Cat | Size | Blocks |
 |---|-----|-------|-----|-----|------|--------|
