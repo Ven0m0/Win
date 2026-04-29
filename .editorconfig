@@ -109,6 +109,7 @@ indent_size = 4
 # =============================================================================
 [**.{md,markdown}]
 trim_trailing_whitespace = false
+max_line_length = unset
 
 [**.{patch,diff}]
 trim_trailing_whitespace = false
