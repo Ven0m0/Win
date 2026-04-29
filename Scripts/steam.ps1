@@ -120,7 +120,7 @@ function Invoke-SteamOptimization {
                 Add-Member -MemberType ScriptMethod -Name CreateShortcut -Value { param() `
                     $x = [pscustomobject]@{ Description = ""; IconLocation = ""; WindowStyle = 7; TargetPath = ""; Arguments = "" }; `
                     Add-Member -InputObject $x -MemberType ScriptMethod -Name Save -Value {}; return $x `
-            } -PassThru 
+            } -PassThru
     }
     else { & { New-Object -ComObject WScript.Shell } }
     $shortcutPath = "$([Environment]::GetFolderPath('Desktop'))\Steam_min.lnk"

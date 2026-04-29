@@ -1,180 +1,180 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
-<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="70" errors="0" failures="3" not-run="0" inconclusive="0" ignored="0" skipped="2" invalid="0" date="2026-04-29" time="09:12:08">
-  <environment nunit-version="2.5.8.0" user="root" user-domain="" clr-version="10.0.6" platform="Linux" machine-name="cloudchamber" cwd="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e" os-version="6.12.81-cloudflare-firecracker-2026.4.25" />
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="70" errors="0" failures="3" not-run="0" inconclusive="0" ignored="0" skipped="2" invalid="0" date="2026-04-29" time="09:17:50">
+  <environment nunit-version="2.5.8.0" machine-name="cloudchamber" cwd="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e" user="root" clr-version="10.0.6" platform="Linux" os-version="6.12.81-cloudflare-firecracker-2026.4.25" user-domain="" />
   <culture-info current-culture="" current-uiculture="" />
-  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="8.3091" asserts="0" description="Pester">
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Failure" success="False" time="9.0846" asserts="0" description="Pester">
     <results>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/additional-maintenance.Tests.ps1" executed="True" result="Success" success="True" time="1.3086" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/additional-maintenance.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/additional-maintenance.Tests.ps1" executed="True" result="Success" success="True" time="1.452" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/additional-maintenance.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="additional-maintenance.ps1" executed="True" result="Success" success="True" time="0.9755" asserts="0" description="additional-maintenance.ps1">
+          <test-suite type="TestFixture" name="additional-maintenance.ps1" executed="True" result="Success" success="True" time="1.1283" asserts="0" description="additional-maintenance.ps1">
             <results>
-              <test-suite type="TestFixture" name="additional-maintenance.ps1.DryRun Mode" executed="True" result="Success" success="True" time="0.7571" asserts="0" description="additional-maintenance.ps1.DryRun Mode">
+              <test-suite type="TestFixture" name="additional-maintenance.ps1.DryRun Mode" executed="True" result="Success" success="True" time="0.8572" asserts="0" description="additional-maintenance.ps1.DryRun Mode">
                 <results>
-                  <test-case description="Should execute operations with DryRun" name="additional-maintenance.ps1.DryRun Mode.Should execute operations with DryRun" time="0.7334" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should execute operations with DryRun" name="additional-maintenance.ps1.DryRun Mode.Should execute operations with DryRun" time="0.8319" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="additional-maintenance.ps1.NoRestorePoint flag" executed="True" result="Success" success="True" time="0.9668" asserts="0" description="additional-maintenance.ps1.NoRestorePoint flag">
+              <test-suite type="TestFixture" name="additional-maintenance.ps1.NoRestorePoint flag" executed="True" result="Success" success="True" time="1.1191" asserts="0" description="additional-maintenance.ps1.NoRestorePoint flag">
                 <results>
-                  <test-case description="Should skip restore point creation" name="additional-maintenance.ps1.NoRestorePoint flag.Should skip restore point creation" time="0.2013" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should skip restore point creation" name="additional-maintenance.ps1.NoRestorePoint flag.Should skip restore point creation" time="0.2502" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/allow-scripts.Tests.ps1" executed="True" result="Success" success="True" time="0.2919" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/allow-scripts.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/allow-scripts.Tests.ps1" executed="True" result="Success" success="True" time="0.3279" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/allow-scripts.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="allow-scripts.ps1" executed="True" result="Success" success="True" time="0.2721" asserts="0" description="allow-scripts.ps1">
+          <test-suite type="TestFixture" name="allow-scripts.ps1" executed="True" result="Success" success="True" time="0.3001" asserts="0" description="allow-scripts.ps1">
             <results>
-              <test-suite type="TestFixture" name="allow-scripts.ps1.Script functions" executed="True" result="Success" success="True" time="0.2679" asserts="0" description="allow-scripts.ps1.Script functions">
+              <test-suite type="TestFixture" name="allow-scripts.ps1.Script functions" executed="True" result="Success" success="True" time="0.2948" asserts="0" description="allow-scripts.ps1.Script functions">
                 <results>
-                  <test-case description="Should run Enable-ScriptExecution without errors and configure correctly" name="allow-scripts.ps1.Script functions.Should run Enable-ScriptExecution without errors and configure correctly" time="0.1912" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should run Disable-ScriptExecution without errors and configure correctly" name="allow-scripts.ps1.Script functions.Should run Disable-ScriptExecution without errors and configure correctly" time="0.0701" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should run Enable-ScriptExecution without errors and configure correctly" name="allow-scripts.ps1.Script functions.Should run Enable-ScriptExecution without errors and configure correctly" time="0.2059" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should run Disable-ScriptExecution without errors and configure correctly" name="allow-scripts.ps1.Script functions.Should run Disable-ScriptExecution without errors and configure correctly" time="0.0799" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/debloat-windows.Tests.ps1" executed="True" result="Success" success="True" time="0.5942" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/debloat-windows.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/debloat-windows.Tests.ps1" executed="True" result="Success" success="True" time="0.6445" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/debloat-windows.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Debloat-Windows Script Initialization" executed="True" result="Success" success="True" time="0.0631" asserts="0" description="Debloat-Windows Script Initialization">
+          <test-suite type="TestFixture" name="Debloat-Windows Script Initialization" executed="True" result="Success" success="True" time="0.0767" asserts="0" description="Debloat-Windows Script Initialization">
             <results>
-              <test-case description="Should safely source the script without executing the main loop" name="Debloat-Windows Script Initialization.Should safely source the script without executing the main loop" time="0.0277" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should export the expected phase functions" name="Debloat-Windows Script Initialization.Should export the expected phase functions" time="0.0318" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should safely source the script without executing the main loop" name="Debloat-Windows Script Initialization.Should safely source the script without executing the main loop" time="0.0293" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should export the expected phase functions" name="Debloat-Windows Script Initialization.Should export the expected phase functions" time="0.0415" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Phase Functions Execution" executed="True" result="Success" success="True" time="0.5678" asserts="0" description="Phase Functions Execution">
+          <test-suite type="TestFixture" name="Phase Functions Execution" executed="True" result="Success" success="True" time="0.6163" asserts="0" description="Phase Functions Execution">
             <results>
-              <test-case description="Should run Remove-BloatwareApps without errors" name="Phase Functions Execution.Should run Remove-BloatwareApps without errors" time="0.05" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run Disable-UnnecessaryServices without errors" name="Phase Functions Execution.Should run Disable-UnnecessaryServices without errors" time="0.0495" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run Disable-WindowsFeatures without errors" name="Phase Functions Execution.Should run Disable-WindowsFeatures without errors" time="0.0172" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run Disable-ScheduledTasks without errors" name="Phase Functions Execution.Should run Disable-ScheduledTasks without errors" time="0.1445" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run Apply-RegistryTweaks without errors" name="Phase Functions Execution.Should run Apply-RegistryTweaks without errors" time="0.0383" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run Run-SystemCleanup without errors" name="Phase Functions Execution.Should run Run-SystemCleanup without errors" time="0.0826" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Remove-BloatwareApps without errors" name="Phase Functions Execution.Should run Remove-BloatwareApps without errors" time="0.0797" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Disable-UnnecessaryServices without errors" name="Phase Functions Execution.Should run Disable-UnnecessaryServices without errors" time="0.0691" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Disable-WindowsFeatures without errors" name="Phase Functions Execution.Should run Disable-WindowsFeatures without errors" time="0.022" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Disable-ScheduledTasks without errors" name="Phase Functions Execution.Should run Disable-ScheduledTasks without errors" time="0.1137" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Apply-RegistryTweaks without errors" name="Phase Functions Execution.Should run Apply-RegistryTweaks without errors" time="0.0351" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run Run-SystemCleanup without errors" name="Phase Functions Execution.Should run Run-SystemCleanup without errors" time="0.0796" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Deploy-Config.Tests.ps1" executed="True" result="Success" success="True" time="0.2704" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Deploy-Config.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Deploy-Config.Tests.ps1" executed="True" result="Success" success="True" time="0.2771" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Deploy-Config.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Write-Status" executed="True" result="Success" success="True" time="0.0523" asserts="0" description="Write-Status">
+          <test-suite type="TestFixture" name="Write-Status" executed="True" result="Success" success="True" time="0.0515" asserts="0" description="Write-Status">
             <results>
-              <test-case description="Should add to script:Results with default INFO status" name="Write-Status.Should add to script:Results with default INFO status" time="0.037" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should add to script:Results with provided status" name="Write-Status.Should add to script:Results with provided status" time="0.0084" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should add to script:Results with default INFO status" name="Write-Status.Should add to script:Results with default INFO status" time="0.0389" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should add to script:Results with provided status" name="Write-Status.Should add to script:Results with provided status" time="0.0072" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Deploy-ConfigFile" executed="True" result="Success" success="True" time="0.1376" asserts="0" description="Deploy-ConfigFile">
+          <test-suite type="TestFixture" name="Deploy-ConfigFile" executed="True" result="Success" success="True" time="0.1397" asserts="0" description="Deploy-ConfigFile">
             <results>
-              <test-case description="Should skip if source does not exist" name="Deploy-ConfigFile.Should skip if source does not exist" time="0.0208" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should copy if destination does not exist" name="Deploy-ConfigFile.Should copy if destination does not exist" time="0.0293" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should skip if destination exists and hashes match" name="Deploy-ConfigFile.Should skip if destination exists and hashes match" time="0.012" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should overwrite if hashes differ" name="Deploy-ConfigFile.Should overwrite if hashes differ" time="0.0184" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should skip if source does not exist" name="Deploy-ConfigFile.Should skip if source does not exist" time="0.021" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should copy if destination does not exist" name="Deploy-ConfigFile.Should copy if destination does not exist" time="0.0312" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should skip if destination exists and hashes match" name="Deploy-ConfigFile.Should skip if destination exists and hashes match" time="0.0142" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should overwrite if hashes differ" name="Deploy-ConfigFile.Should overwrite if hashes differ" time="0.0172" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Deploy-ConfigDirectory" executed="True" result="Success" success="True" time="0.1866" asserts="0" description="Deploy-ConfigDirectory">
+          <test-suite type="TestFixture" name="Deploy-ConfigDirectory" executed="True" result="Success" success="True" time="0.1883" asserts="0" description="Deploy-ConfigDirectory">
             <results>
-              <test-case description="Should skip if source directory does not exist" name="Deploy-ConfigDirectory.Should skip if source directory does not exist" time="0.0203" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should deploy multiple files" name="Deploy-ConfigDirectory.Should deploy multiple files" time="0.025" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should skip if source directory does not exist" name="Deploy-ConfigDirectory.Should skip if source directory does not exist" time="0.0177" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should deploy multiple files" name="Deploy-ConfigDirectory.Should deploy multiple files" time="0.0268" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Get-CallOfDutyPlayersPath" executed="True" result="Success" success="True" time="0.2321" asserts="0" description="Get-CallOfDutyPlayersPath">
+          <test-suite type="TestFixture" name="Get-CallOfDutyPlayersPath" executed="True" result="Success" success="True" time="0.2422" asserts="0" description="Get-CallOfDutyPlayersPath">
             <results>
-              <test-case description="Should return path if it exists" name="Get-CallOfDutyPlayersPath.Should return path if it exists" time="0.0249" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should return null if path does not exist" name="Get-CallOfDutyPlayersPath.Should return null if path does not exist" time="0.0142" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should return path if it exists" name="Get-CallOfDutyPlayersPath.Should return path if it exists" time="0.0293" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should return null if path does not exist" name="Get-CallOfDutyPlayersPath.Should return null if path does not exist" time="0.0168" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/DLSS-force-latest.Tests.ps1" executed="True" result="Success" success="True" time="0.7088" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/DLSS-force-latest.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/DLSS-force-latest.Tests.ps1" executed="True" result="Success" success="True" time="0.7504" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/DLSS-force-latest.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions" executed="True" result="Success" success="True" time="0.687" asserts="0" description="DLSS-force-latest.ps1 functions">
+          <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions" executed="True" result="Success" success="True" time="0.7294" asserts="0" description="DLSS-force-latest.ps1 functions">
             <results>
-              <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig" executed="True" result="Success" success="True" time="0.0233" asserts="0" description="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig">
+              <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig" executed="True" result="Success" success="True" time="0.024" asserts="0" description="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig">
                 <results>
-                  <test-case description="Generates XML configuration with DLSS override enabled" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig.Generates XML configuration with DLSS override enabled" time="0.0142" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Generates XML configuration with DLSS override disabled" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig.Generates XML configuration with DLSS override disabled" time="0.0052" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Generates XML configuration with DLSS override enabled" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig.Generates XML configuration with DLSS override enabled" time="0.0148" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Generates XML configuration with DLSS override disabled" name="DLSS-force-latest.ps1 functions.New-DLSSInspectorConfig.Generates XML configuration with DLSS override disabled" time="0.0048" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu" executed="True" result="Success" success="True" time="0.6833" asserts="0" description="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu">
+              <test-suite type="TestFixture" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu" executed="True" result="Success" success="True" time="0.7247" asserts="0" description="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu">
                 <results>
-                  <test-case description="Initializes UI and downloads Inspector.exe if it doesn't exist" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Initializes UI and downloads Inspector.exe if it doesn't exist" time="0.244" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Initializes UI and skips downloading Inspector.exe if it exists" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Initializes UI and skips downloading Inspector.exe if it exists" time="0.0887" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Executes choice 1 (DLSS Force Latest: On)" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Executes choice 1 (DLSS Force Latest: On)" time="0.2271" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Executes choice 3 (DLSS Overlay: On)" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Executes choice 3 (DLSS Overlay: On)" time="0.0965" asserts="0" success="True" result="Success" executed="True" />
-                </results>
-              </test-suite>
-            </results>
-          </test-suite>
-        </results>
-      </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/fix-system.Tests.ps1" executed="True" result="Success" success="True" time="0.4583" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/fix-system.Tests.ps1">
-        <results>
-          <test-suite type="TestFixture" name="fix-system.ps1" executed="True" result="Success" success="True" time="0.4427" asserts="0" description="fix-system.ps1">
-            <results>
-              <test-suite type="TestFixture" name="fix-system.ps1.Script functions" executed="True" result="Success" success="True" time="0.4393" asserts="0" description="fix-system.ps1.Script functions">
-                <results>
-                  <test-case description="Should run Start-SystemFix in DryRun mode without errors" name="fix-system.ps1.Script functions.Should run Start-SystemFix in DryRun mode without errors" time="0.193" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should run Start-SystemFix in QuickScan mode without errors" name="fix-system.ps1.Script functions.Should run Start-SystemFix in QuickScan mode without errors" time="0.095" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should skip CHKDSK when SkipDiskCheck is provided" name="fix-system.ps1.Script functions.Should skip CHKDSK when SkipDiskCheck is provided" time="0.145" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Initializes UI and downloads Inspector.exe if it doesn't exist" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Initializes UI and downloads Inspector.exe if it doesn't exist" time="0.2518" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Initializes UI and skips downloading Inspector.exe if it exists" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Initializes UI and skips downloading Inspector.exe if it exists" time="0.0923" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Executes choice 1 (DLSS Force Latest: On)" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Executes choice 1 (DLSS Force Latest: On)" time="0.2296" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Executes choice 3 (DLSS Overlay: On)" name="DLSS-force-latest.ps1 functions.Start-DLSSForceLatestMenu.Executes choice 3 (DLSS Overlay: On)" time="0.1228" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/gpu-display-manager.Tests.ps1" executed="True" result="Success" success="True" time="0.1624" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/gpu-display-manager.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/fix-system.Tests.ps1" executed="True" result="Success" success="True" time="0.5615" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/fix-system.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions" executed="True" result="Success" success="True" time="0.1386" asserts="0" description="gpu-display-manager.ps1 functions">
+          <test-suite type="TestFixture" name="fix-system.ps1" executed="True" result="Success" success="True" time="0.5453" asserts="0" description="fix-system.ps1">
             <results>
-              <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions.Set-P0State" executed="True" result="Success" success="True" time="0.0513" asserts="0" description="gpu-display-manager.ps1 functions.Set-P0State">
+              <test-suite type="TestFixture" name="fix-system.ps1.Script functions" executed="True" result="Success" success="True" time="0.541" asserts="0" description="fix-system.ps1.Script functions">
                 <results>
-                  <test-case description="Calls Set-NvidiaGpuRegistryValue with correct parameters" name="gpu-display-manager.ps1 functions.Set-P0State.Calls Set-NvidiaGpuRegistryValue with correct parameters" time="0.0489" asserts="0" success="True" result="Success" executed="True" />
-                </results>
-              </test-suite>
-              <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions.Set-HDCP" executed="True" result="Success" success="True" time="0.1063" asserts="0" description="gpu-display-manager.ps1 functions.Set-HDCP">
-                <results>
-                  <test-case description="Calls Set-NvidiaGpuRegistryValue with correct parameters" name="gpu-display-manager.ps1 functions.Set-HDCP.Calls Set-NvidiaGpuRegistryValue with correct parameters" time="0.0514" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should run Start-SystemFix in DryRun mode without errors" name="fix-system.ps1.Script functions.Should run Start-SystemFix in DryRun mode without errors" time="0.2168" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should run Start-SystemFix in QuickScan mode without errors" name="fix-system.ps1.Script functions.Should run Start-SystemFix in QuickScan mode without errors" time="0.1241" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should skip CHKDSK when SkipDiskCheck is provided" name="fix-system.ps1.Script functions.Should skip CHKDSK when SkipDiskCheck is provided" time="0.1929" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Install-Packages.Tests.ps1" executed="True" result="Success" success="True" time="2.1748" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Install-Packages.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/gpu-display-manager.Tests.ps1" executed="True" result="Success" success="True" time="0.2247" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/gpu-display-manager.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Install-Packages" executed="True" result="Success" success="True" time="2.1462" asserts="0" description="Install-Packages">
+          <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions" executed="True" result="Success" success="True" time="0.1991" asserts="0" description="gpu-display-manager.ps1 functions">
             <results>
-              <test-suite type="TestFixture" name="Install-Packages.Initialization" executed="True" result="Success" success="True" time="0.0269" asserts="0" description="Install-Packages.Initialization">
+              <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions.Set-P0State" executed="True" result="Success" success="True" time="0.068" asserts="0" description="gpu-display-manager.ps1 functions.Set-P0State">
                 <results>
-                  <test-case description="Should load the module and functions without execution" name="Install-Packages.Initialization.Should load the module and functions without execution" time="0.0193" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Calls Set-NvidiaGpuRegistryValue with correct parameters" name="gpu-display-manager.ps1 functions.Set-P0State.Calls Set-NvidiaGpuRegistryValue with correct parameters" time="0.064" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="Install-Packages.Parameters functionality" executed="True" result="Success" success="True" time="2.1335" asserts="0" description="Install-Packages.Parameters functionality">
+              <test-suite type="TestFixture" name="gpu-display-manager.ps1 functions.Set-HDCP" executed="True" result="Success" success="True" time="0.1552" asserts="0" description="gpu-display-manager.ps1 functions.Set-HDCP">
                 <results>
-                  <test-case description="Should bypass winget when SkipWinget is provided" name="Install-Packages.Parameters functionality.Should bypass winget when SkipWinget is provided" time="0.1841" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should bypass scoop when SkipScoop is provided" name="Install-Packages.Parameters functionality.Should bypass scoop when SkipScoop is provided" time="0.57" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should bypass choco when SkipChoco is provided" name="Install-Packages.Parameters functionality.Should bypass choco when SkipChoco is provided" time="0.5322" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should bypass system features when SkipSystemFeatures is provided" name="Install-Packages.Parameters functionality.Should bypass system features when SkipSystemFeatures is provided" time="0.4905" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should not apply post-install when ApplyPostInstall is missing" name="Install-Packages.Parameters functionality.Should not apply post-install when ApplyPostInstall is missing" time="0.1237" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should apply post-install when ApplyPostInstall is provided" name="Install-Packages.Parameters functionality.Should apply post-install when ApplyPostInstall is provided" time="0.1951" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Calls Set-NvidiaGpuRegistryValue with correct parameters" name="gpu-display-manager.ps1 functions.Set-HDCP.Calls Set-NvidiaGpuRegistryValue with correct parameters" time="0.0807" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Network-Tweaker.Tests.ps1" executed="True" result="Ignored" success="True" time="0.0317" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Network-Tweaker.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Install-Packages.Tests.ps1" executed="True" result="Success" success="True" time="2.3369" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Install-Packages.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Network-Tweaker.ps1" executed="True" result="Ignored" success="True" time="0.01" asserts="0" description="Network-Tweaker.ps1">
+          <test-suite type="TestFixture" name="Install-Packages" executed="True" result="Success" success="True" time="2.3116" asserts="0" description="Install-Packages">
             <results>
-              <test-case description="Should bypass ShowDialog when dot-sourced" name="Network-Tweaker.ps1.Should bypass ShowDialog when dot-sourced" time="0.0052" asserts="0" success="False" result="Ignored" executed="False" />
-              <test-case description="Should define expected UI manipulation functions" name="Network-Tweaker.ps1.Should define expected UI manipulation functions" time="0.0019" asserts="0" success="False" result="Ignored" executed="False" />
+              <test-suite type="TestFixture" name="Install-Packages.Initialization" executed="True" result="Success" success="True" time="0.013" asserts="0" description="Install-Packages.Initialization">
+                <results>
+                  <test-case description="Should load the module and functions without execution" name="Install-Packages.Initialization.Should load the module and functions without execution" time="0.0091" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="Install-Packages.Parameters functionality" executed="True" result="Success" success="True" time="2.3018" asserts="0" description="Install-Packages.Parameters functionality">
+                <results>
+                  <test-case description="Should bypass winget when SkipWinget is provided" name="Install-Packages.Parameters functionality.Should bypass winget when SkipWinget is provided" time="0.205" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should bypass scoop when SkipScoop is provided" name="Install-Packages.Parameters functionality.Should bypass scoop when SkipScoop is provided" time="0.6226" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should bypass choco when SkipChoco is provided" name="Install-Packages.Parameters functionality.Should bypass choco when SkipChoco is provided" time="0.553" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should bypass system features when SkipSystemFeatures is provided" name="Install-Packages.Parameters functionality.Should bypass system features when SkipSystemFeatures is provided" time="0.5281" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should not apply post-install when ApplyPostInstall is missing" name="Install-Packages.Parameters functionality.Should not apply post-install when ApplyPostInstall is missing" time="0.1391" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should apply post-install when ApplyPostInstall is provided" name="Install-Packages.Parameters functionality.Should apply post-install when ApplyPostInstall is provided" time="0.2341" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Setup-Win11.Tests.ps1" executed="True" result="Failure" success="False" time="0.0559" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Setup-Win11.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Network-Tweaker.Tests.ps1" executed="True" result="Ignored" success="True" time="0.0305" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Network-Tweaker.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Network-Tweaker.ps1" executed="True" result="Ignored" success="True" time="0.0135" asserts="0" description="Network-Tweaker.ps1">
+            <results>
+              <test-case description="Should bypass ShowDialog when dot-sourced" name="Network-Tweaker.ps1.Should bypass ShowDialog when dot-sourced" time="0.0076" asserts="0" success="False" result="Ignored" executed="False" />
+              <test-case description="Should define expected UI manipulation functions" name="Network-Tweaker.ps1.Should define expected UI manipulation functions" time="0.0021" asserts="0" success="False" result="Ignored" executed="False" />
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Setup-Win11.Tests.ps1" executed="True" result="Failure" success="False" time="0.0587" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/Setup-Win11.Tests.ps1">
         <results>
           <test-suite type="TestFixture" name="Start-SetupWin11" executed="True" result="Failure" success="False" time="0" asserts="0" description="Start-SetupWin11">
             <results>
@@ -202,75 +202,75 @@
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shader-cache.Tests.ps1" executed="True" result="Success" success="True" time="0.4023" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shader-cache.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shader-cache.Tests.ps1" executed="True" result="Success" success="True" time="0.4381" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shader-cache.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup" executed="True" result="Success" success="True" time="0.3814" asserts="0" description="Invoke-ShaderCacheCleanup">
+          <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup" executed="True" result="Success" success="True" time="0.4219" asserts="0" description="Invoke-ShaderCacheCleanup">
             <results>
-              <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup.Steam Detection" executed="True" result="Success" success="True" time="0.1015" asserts="0" description="Invoke-ShaderCacheCleanup.Steam Detection">
+              <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup.Steam Detection" executed="True" result="Success" success="True" time="0.1177" asserts="0" description="Invoke-ShaderCacheCleanup.Steam Detection">
                 <results>
-                  <test-case description="Should return if Steam is not found in registry" name="Invoke-ShaderCacheCleanup.Steam Detection.Should return if Steam is not found in registry" time="0.0533" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should return if Steam executable is missing" name="Invoke-ShaderCacheCleanup.Steam Detection.Should return if Steam executable is missing" time="0.0448" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should return if Steam is not found in registry" name="Invoke-ShaderCacheCleanup.Steam Detection.Should return if Steam is not found in registry" time="0.0655" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should return if Steam executable is missing" name="Invoke-ShaderCacheCleanup.Steam Detection.Should return if Steam executable is missing" time="0.0487" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup.Cache Clearing Execution" executed="True" result="Success" success="True" time="0.3764" asserts="0" description="Invoke-ShaderCacheCleanup.Cache Clearing Execution">
+              <test-suite type="TestFixture" name="Invoke-ShaderCacheCleanup.Cache Clearing Execution" executed="True" result="Success" success="True" time="0.4164" asserts="0" description="Invoke-ShaderCacheCleanup.Cache Clearing Execution">
                 <results>
-                  <test-case description="Should correctly resolve Steam directories and clear caches" name="Invoke-ShaderCacheCleanup.Cache Clearing Execution.Should correctly resolve Steam directories and clear caches" time="0.2719" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should correctly resolve Steam directories and clear caches" name="Invoke-ShaderCacheCleanup.Cache Clearing Execution.Should correctly resolve Steam directories and clear caches" time="0.2953" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shell-setup.Tests.ps1" executed="True" result="Success" success="True" time="0.047" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shell-setup.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shell-setup.Tests.ps1" executed="True" result="Success" success="True" time="0.0548" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/shell-setup.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="shell-setup.ps1" executed="True" result="Success" success="True" time="0.0323" asserts="0" description="shell-setup.ps1">
+          <test-suite type="TestFixture" name="shell-setup.ps1" executed="True" result="Success" success="True" time="0.039" asserts="0" description="shell-setup.ps1">
             <results>
-              <test-suite type="TestFixture" name="shell-setup.ps1.Script execution guard" executed="True" result="Success" success="True" time="0.0142" asserts="0" description="shell-setup.ps1.Script execution guard">
+              <test-suite type="TestFixture" name="shell-setup.ps1.Script execution guard" executed="True" result="Success" success="True" time="0.0175" asserts="0" description="shell-setup.ps1.Script execution guard">
                 <results>
-                  <test-case description="Should not execute main logic when dot-sourced" name="shell-setup.ps1.Script execution guard.Should not execute main logic when dot-sourced" time="0.0115" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should not execute main logic when dot-sourced" name="shell-setup.ps1.Script execution guard.Should not execute main logic when dot-sourced" time="0.014" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="shell-setup.ps1.Function Definitions" executed="True" result="Success" success="True" time="0.0295" asserts="0" description="shell-setup.ps1.Function Definitions">
+              <test-suite type="TestFixture" name="shell-setup.ps1.Function Definitions" executed="True" result="Success" success="True" time="0.0357" asserts="0" description="shell-setup.ps1.Function Definitions">
                 <results>
-                  <test-case description="Should define required functions" name="shell-setup.ps1.Function Definitions.Should define required functions" time="0.0119" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should define required functions" name="shell-setup.ps1.Function Definitions.Should define required functions" time="0.014" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/steam.Tests.ps1" executed="True" result="Success" success="True" time="0.6028" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/steam.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/steam.Tests.ps1" executed="True" result="Success" success="True" time="0.6654" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/steam.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="steam.ps1" executed="True" result="Success" success="True" time="0.5857" asserts="0" description="steam.ps1">
+          <test-suite type="TestFixture" name="steam.ps1" executed="True" result="Success" success="True" time="0.6451" asserts="0" description="steam.ps1">
             <results>
-              <test-suite type="TestFixture" name="steam.ps1.Steam is not found" executed="True" result="Success" success="True" time="0.2384" asserts="0" description="steam.ps1.Steam is not found">
+              <test-suite type="TestFixture" name="steam.ps1.Steam is not found" executed="True" result="Success" success="True" time="0.2434" asserts="0" description="steam.ps1.Steam is not found">
                 <results>
-                  <test-case description="Should log an error and return if Test-Path fails" name="steam.ps1.Steam is not found.Should log an error and return if Test-Path fails" time="0.1218" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should log an error and return if Get-ItemProperty throws" name="steam.ps1.Steam is not found.Should log an error and return if Get-ItemProperty throws" time="0.1127" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should log an error and return if Test-Path fails" name="steam.ps1.Steam is not found.Should log an error and return if Test-Path fails" time="0.1163" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should log an error and return if Get-ItemProperty throws" name="steam.ps1.Steam is not found.Should log an error and return if Get-ItemProperty throws" time="0.1232" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="steam.ps1.Steam is found and running" executed="True" result="Success" success="True" time="0.579" asserts="0" description="steam.ps1.Steam is found and running">
+              <test-suite type="TestFixture" name="steam.ps1.Steam is found and running" executed="True" result="Success" success="True" time="0.635" asserts="0" description="steam.ps1.Steam is found and running">
                 <results>
-                  <test-case description="Should execute the full optimization flow and start Steam" name="steam.ps1.Steam is found and running.Should execute the full optimization flow and start Steam" time="0.2282" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should execute the optimization flow and start Steam if not running" name="steam.ps1.Steam is found and running.Should execute the optimization flow and start Steam if not running" time="0.1089" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should execute the full optimization flow and start Steam" name="steam.ps1.Steam is found and running.Should execute the full optimization flow and start Steam" time="0.2487" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should execute the optimization flow and start Steam if not running" name="steam.ps1.Steam is found and running.Should execute the optimization flow and start Steam if not running" time="0.1386" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-maintenance.Tests.ps1" executed="True" result="Failure" success="False" time="0.1913" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-maintenance.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-maintenance.Tests.ps1" executed="True" result="Failure" success="False" time="0.2486" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-maintenance.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Invoke-Defrag" executed="True" result="Success" success="True" time="0.1139" asserts="0" description="Invoke-Defrag">
+          <test-suite type="TestFixture" name="Invoke-Defrag" executed="True" result="Success" success="True" time="0.1506" asserts="0" description="Invoke-Defrag">
             <results>
-              <test-case description="Should run correct commands for target volume" name="Invoke-Defrag.Should run correct commands for target volume" time="0.0697" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should run correct commands for all volumes" name="Invoke-Defrag.Should run correct commands for all volumes" time="0.0411" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run correct commands for target volume" name="Invoke-Defrag.Should run correct commands for target volume" time="0.0952" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should run correct commands for all volumes" name="Invoke-Defrag.Should run correct commands for all volumes" time="0.0522" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Invoke-MsiCleanup" executed="True" result="Failure" success="False" time="0.1717" asserts="0" description="Invoke-MsiCleanup">
+          <test-suite type="TestFixture" name="Invoke-MsiCleanup" executed="True" result="Failure" success="False" time="0.2306" asserts="0" description="Invoke-MsiCleanup">
             <results>
-              <test-case description="Should throw error if directory is missing" name="Invoke-MsiCleanup.Should throw error if directory is missing" time="0.0263" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should perform cleanup commands if directory exists" name="Invoke-MsiCleanup.Should perform cleanup commands if directory exists" time="0.0281" asserts="0" success="False" result="Failure" executed="True">
+              <test-case description="Should throw error if directory is missing" name="Invoke-MsiCleanup.Should throw error if directory is missing" time="0.0359" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should perform cleanup commands if directory exists" name="Invoke-MsiCleanup.Should perform cleanup commands if directory exists" time="0.0398" asserts="0" success="False" result="Failure" executed="True">
                 <failure>
                   <message>DriveNotFoundException: Cannot find drive. A drive with the name 'C' does not exist.</message>
                   <stack-trace>at Invoke-MsiCleanup, /workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/Scripts/system-maintenance.ps1:90
@@ -281,71 +281,71 @@ at &lt;ScriptBlock&gt;, /workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-settings-manager.Tests.ps1" executed="True" result="Success" success="True" time="0.3549" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-settings-manager.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-settings-manager.Tests.ps1" executed="True" result="Success" success="True" time="0.3774" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-settings-manager.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="System Settings Manager" executed="True" result="Success" success="True" time="0.2841" asserts="0" description="System Settings Manager">
+          <test-suite type="TestFixture" name="System Settings Manager" executed="True" result="Success" success="True" time="0.3024" asserts="0" description="System Settings Manager">
             <results>
-              <test-suite type="TestFixture" name="System Settings Manager.Performance Settings" executed="True" result="Success" success="True" time="0.1939" asserts="0" description="System Settings Manager.Performance Settings">
+              <test-suite type="TestFixture" name="System Settings Manager.Performance Settings" executed="True" result="Success" success="True" time="0.2034" asserts="0" description="System Settings Manager.Performance Settings">
                 <results>
-                  <test-case description="Should call Set-RegistryValue multiple times for gaming optimization" name="System Settings Manager.Performance Settings.Should call Set-RegistryValue multiple times for gaming optimization" time="0.115" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should call Set-RegistryValue to restore defaults" name="System Settings Manager.Performance Settings.Should call Set-RegistryValue to restore defaults" time="0.0758" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should call Set-RegistryValue multiple times for gaming optimization" name="System Settings Manager.Performance Settings.Should call Set-RegistryValue multiple times for gaming optimization" time="0.1177" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should call Set-RegistryValue to restore defaults" name="System Settings Manager.Performance Settings.Should call Set-RegistryValue to restore defaults" time="0.0825" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
-              <test-suite type="TestFixture" name="System Settings Manager.Keyboard Shortcuts" executed="True" result="Success" success="True" time="0.2814" asserts="0" description="System Settings Manager.Keyboard Shortcuts">
+              <test-suite type="TestFixture" name="System Settings Manager.Keyboard Shortcuts" executed="True" result="Success" success="True" time="0.2995" asserts="0" description="System Settings Manager.Keyboard Shortcuts">
                 <results>
-                  <test-case description="Should disable keyboard shortcuts" name="System Settings Manager.Keyboard Shortcuts.Should disable keyboard shortcuts" time="0.0573" asserts="0" success="True" result="Success" executed="True" />
-                  <test-case description="Should enable keyboard shortcuts" name="System Settings Manager.Keyboard Shortcuts.Should enable keyboard shortcuts" time="0.0273" asserts="0" success="True" result="Success" executed="True" />
-                </results>
-              </test-suite>
-            </results>
-          </test-suite>
-        </results>
-      </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-update.Tests.ps1" executed="True" result="Success" success="True" time="0.0309" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-update.Tests.ps1">
-        <results>
-          <test-suite type="TestFixture" name="system-update.ps1" executed="True" result="Success" success="True" time="0.0146" asserts="0" description="system-update.ps1">
-            <results>
-              <test-suite type="TestFixture" name="system-update.ps1.Syntax and Basic Execution" executed="True" result="Success" success="True" time="0.012" asserts="0" description="system-update.ps1.Syntax and Basic Execution">
-                <results>
-                  <test-case description="Should skip executing commands but parse successfully" name="system-update.ps1.Syntax and Basic Execution.Should skip executing commands but parse successfully" time="0.0094" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should disable keyboard shortcuts" name="System Settings Manager.Keyboard Shortcuts.Should disable keyboard shortcuts" time="0.0612" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should enable keyboard shortcuts" name="System Settings Manager.Keyboard Shortcuts.Should enable keyboard shortcuts" time="0.0318" asserts="0" success="True" result="Success" executed="True" />
                 </results>
               </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/UltimateDiskCleanup.Tests.ps1" executed="True" result="Success" success="True" time="0.0305" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/UltimateDiskCleanup.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-update.Tests.ps1" executed="True" result="Success" success="True" time="0.0395" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/system-update.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="UltimateDiskCleanup" executed="True" result="Success" success="True" time="0.0184" asserts="0" description="UltimateDiskCleanup">
+          <test-suite type="TestFixture" name="system-update.ps1" executed="True" result="Success" success="True" time="0.0192" asserts="0" description="system-update.ps1">
             <results>
-              <test-case description="Should have Start-UltimateDiskCleanup function defined" name="UltimateDiskCleanup.Should have Start-UltimateDiskCleanup function defined" time="0.0054" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Should declare CmdletBinding with SupportsShouldProcess" name="UltimateDiskCleanup.Should declare CmdletBinding with SupportsShouldProcess" time="0.0055" asserts="0" success="True" result="Success" executed="True" />
+              <test-suite type="TestFixture" name="system-update.ps1.Syntax and Basic Execution" executed="True" result="Success" success="True" time="0.0159" asserts="0" description="system-update.ps1.Syntax and Basic Execution">
+                <results>
+                  <test-case description="Should skip executing commands but parse successfully" name="system-update.ps1.Syntax and Basic Execution.Should skip executing commands but parse successfully" time="0.0126" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
             </results>
           </test-suite>
         </results>
       </test-suite>
-      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/setup.Tests.ps1" executed="True" result="Success" success="True" time="0.56" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/setup.Tests.ps1">
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/UltimateDiskCleanup.Tests.ps1" executed="True" result="Success" success="True" time="0.0384" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/tests/UltimateDiskCleanup.Tests.ps1">
         <results>
-          <test-suite type="TestFixture" name="Set-SetupStep" executed="True" result="Success" success="True" time="0.0081" asserts="0" description="Set-SetupStep">
+          <test-suite type="TestFixture" name="UltimateDiskCleanup" executed="True" result="Success" success="True" time="0.0231" asserts="0" description="UltimateDiskCleanup">
             <results>
-              <test-case description="Updates the global step variable" name="Set-SetupStep.Updates the global step variable" time="0.005" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should have Start-UltimateDiskCleanup function defined" name="UltimateDiskCleanup.Should have Start-UltimateDiskCleanup function defined" time="0.0071" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Should declare CmdletBinding with SupportsShouldProcess" name="UltimateDiskCleanup.Should declare CmdletBinding with SupportsShouldProcess" time="0.0068" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Invoke-NativeCommand" executed="True" result="Success" success="True" time="0.48" asserts="0" description="Invoke-NativeCommand">
+        </results>
+      </test-suite>
+      <test-suite type="TestFixture" name="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/setup.Tests.ps1" executed="True" result="Success" success="True" time="0.5272" asserts="0" description="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e/setup.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Set-SetupStep" executed="True" result="Success" success="True" time="0.0086" asserts="0" description="Set-SetupStep">
             <results>
-              <test-case description="Executes a command and returns successfully if exit code is allowed" name="Invoke-NativeCommand.Executes a command and returns successfully if exit code is allowed" time="0.2593" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Throws an error if the exit code is not allowed" name="Invoke-NativeCommand.Throws an error if the exit code is not allowed" time="0.2092" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Updates the global step variable" name="Set-SetupStep.Updates the global step variable" time="0.0052" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Get-ActivePhysicalAdapterAlias" executed="True" result="Success" success="True" time="0.528" asserts="0" description="Get-ActivePhysicalAdapterAlias">
+          <test-suite type="TestFixture" name="Invoke-NativeCommand" executed="True" result="Success" success="True" time="0.4503" asserts="0" description="Invoke-NativeCommand">
             <results>
-              <test-case description="Returns empty array when Get-NetAdapter fails or is not available" name="Get-ActivePhysicalAdapterAlias.Returns empty array when Get-NetAdapter fails or is not available" time="0.0274" asserts="0" success="True" result="Success" executed="True" />
-              <test-case description="Returns adapter names when Get-NetAdapter succeeds" name="Get-ActivePhysicalAdapterAlias.Returns adapter names when Get-NetAdapter succeeds" time="0.017" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Executes a command and returns successfully if exit code is allowed" name="Invoke-NativeCommand.Executes a command and returns successfully if exit code is allowed" time="0.2426" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Throws an error if the exit code is not allowed" name="Invoke-NativeCommand.Throws an error if the exit code is not allowed" time="0.1961" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
-          <test-suite type="TestFixture" name="Remove-ItemBestEffort" executed="True" result="Success" success="True" time="0.5386" asserts="0" description="Remove-ItemBestEffort">
+          <test-suite type="TestFixture" name="Get-ActivePhysicalAdapterAlias" executed="True" result="Success" success="True" time="0.4935" asserts="0" description="Get-ActivePhysicalAdapterAlias">
             <results>
-              <test-case description="Removes an item without throwing if it doesn't exist" name="Remove-ItemBestEffort.Removes an item without throwing if it doesn't exist" time="0.0075" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Returns empty array when Get-NetAdapter fails or is not available" name="Get-ActivePhysicalAdapterAlias.Returns empty array when Get-NetAdapter fails or is not available" time="0.0233" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Returns adapter names when Get-NetAdapter succeeds" name="Get-ActivePhysicalAdapterAlias.Returns adapter names when Get-NetAdapter succeeds" time="0.0165" asserts="0" success="True" result="Success" executed="True" />
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Remove-ItemBestEffort" executed="True" result="Success" success="True" time="0.503" asserts="0" description="Remove-ItemBestEffort">
+            <results>
+              <test-case description="Removes an item without throwing if it doesn't exist" name="Remove-ItemBestEffort.Removes an item without throwing if it doesn't exist" time="0.0064" asserts="0" success="True" result="Success" executed="True" />
             </results>
           </test-suite>
         </results>
