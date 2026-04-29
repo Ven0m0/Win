@@ -1,6 +1,7 @@
 ---
 description: Agent for dotfile/config deployment, tracked configuration management, and dotbot manifest maintenance in the Win dotfiles repository.
 mode: subagent
+temperature: 0.1
 ---
 
 # Config Deployer Agent
