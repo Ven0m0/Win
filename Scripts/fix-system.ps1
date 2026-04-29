@@ -84,13 +84,13 @@ param(
 
     Write-Header "Windows System Repair"
     Write-Info "Start Time: $($StartTime.ToString('yyyy-MM-dd HH:mm:ss'))"
-    Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=
+    Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck"
 
     if ($DryRun) {
         Write-Warn "DRY RUN MODE - No commands will be executed"
     }
 
-    Add-Log "Repair started with parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetwork
+    Add-Log "Repair started with parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck"
 
     # Step 1: DISM Health Check
     Write-Info "=== Step 1: DISM Health Check ==="
@@ -304,13 +304,13 @@ param(
                         if (Test-Path $swDistribPath) {
                             $backupName = "$swDistribPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                             Write-Info "Renaming SoftwareDistribution to $backupName"
-                            Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Sil
+                            Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force
                         }
 
                         if (Test-Path $catRootPath) {
                             $backupName = "$catRootPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                             Write-Info "Renaming CatRoot2 to $backupName"
-                            Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Silen
+                            Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force
                         }
 
                         Write-Info "Triggering Windows Update scan..."
