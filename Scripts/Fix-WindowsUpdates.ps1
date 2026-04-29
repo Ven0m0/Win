@@ -296,3 +296,4 @@ if ($PSCmdlet.ShouldProcess('Group Policy', 'Update')) {
 Write-Host ''
 Write-Host 'Windows Update repair complete. A reboot is recommended.' -ForegroundColor Green
 Write-Host 'Run this script with -WhatIf to preview changes.' -ForegroundColor Gray
+

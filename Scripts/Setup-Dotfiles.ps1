@@ -623,3 +623,4 @@ foreach ($check in $checks) {
 Write-Host ''
 Write-Host 'Bootstrap complete. Restart your terminal to apply the new profile.' -ForegroundColor Cyan
 Write-Host ''
+

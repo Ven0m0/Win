@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 # gpu-display-manager.ps1 - Unified GPU and Display Settings Manager
 # Combines NVIDIA GPU settings, EDID overrides, gaming display optimizations, and MSI mode

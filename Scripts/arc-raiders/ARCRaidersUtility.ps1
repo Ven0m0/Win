@@ -436,8 +436,10 @@ while ($true) {
 
     # 1) File selection
     Write-Host "  1) Select files" -ForegroundColor White
-    Write-Host "     C. [📂 Select Config]  Config: $(ConfigLabel)" -ForegroundColor $(if ($iniPath) {'Green'} else {'Gra
-    Write-Host "     B. [💾 Select Backup]  Backup: $(BackupLabel)" -ForegroundColor $(if ($backupPath) {'Green'} else {'
+    Write-Host "     C. [📂 Select Config]  Config: $(ConfigLabel)" `
+        -ForegroundColor $(if ($iniPath) {'Green'} else {'Gray'})
+    Write-Host "     B. [💾 Select Backup]  Backup: $(BackupLabel)" `
+        -ForegroundColor $(if ($backupPath) {'Green'} else {'Gray'})
     Write-Host ""
 
     # 2) Options

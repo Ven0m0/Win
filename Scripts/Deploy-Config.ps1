@@ -34,7 +34,13 @@ $ProgressPreference = 'SilentlyContinue'
 
 function Write-Status {
     param([string]$Message, [string]$Status = 'INFO')
-    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
+    $color = switch ($Status) {
+        'OK' { 'Green' }
+        'FAIL' { 'Red' }
+        'SKIP' { 'Yellow' }
+        'UP-TO-DATE' { 'Gray' }
+        default { 'White' }
+    }
     Write-Host "  [$Status] $Message" -ForegroundColor $color
     $script:Results[$Message] = $Status
 }
@@ -284,7 +290,8 @@ function Deploy-StarWarsBattlefrontIIConfig {
     foreach ($fileName in $rootFiles) {
         $sourcePath = Join-Path $SourceDir $fileName
         if (Test-Path $sourcePath) {
-            Deploy-ConfigFile -Source $sourcePath -Destination (Join-Path $bf2Root $fileName) -Label "$Label/$fileName"
+            Deploy-ConfigFile -Source $sourcePath `
+                -Destination (Join-Path $bf2Root $fileName) -Label "$Label/$fileName"
         }
     }
 

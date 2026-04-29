@@ -1670,3 +1670,4 @@ function Install-WingetPackage {
 
 # Export functions
 try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }
+
