@@ -1,6 +1,7 @@
 ---
 description: Specialized agent for PowerShell script authoring and maintenance in the Ven0m0/Win dotfiles repository.
 mode: subagent
+temperature: 0.3
 ---
 
 # PowerShell Agent
