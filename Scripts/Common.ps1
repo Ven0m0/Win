@@ -1066,16 +1066,22 @@ function Set-MSIMode {
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
-        $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+        $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\" + `
+                   "Interrupt Management\MessageSignaledInterruptProperties"
+                   "Interrupt Management\MessageSignaledInterruptProperties"
+            "Interrupt Management\MessageSignaledInterruptProperties")
         Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
     }
 
     Write-Host "MSI Mode Status:" -ForegroundColor Cyan
-    Write-Host ""
+        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\" + `
+                   "Interrupt Management\MessageSignaledInterruptProperties"
 
-    foreach ($gpu in $gpuDevices) {
+        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\" + `
+                   "Interrupt Management\MessageSignaledInterruptProperties"
         $instanceID = $gpu.InstanceId
-        $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties"
+        $regPath = ("Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\" +
+            "Interrupt Management\MessageSignaledInterruptProperties")
 
         Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
         Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
