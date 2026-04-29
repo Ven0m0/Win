@@ -7,7 +7,8 @@ $canLoadForms = $false
 try {
     Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
     $canLoadForms = $true
-} catch {
+}
+catch {
     $canLoadForms = $false
 }
 

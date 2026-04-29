@@ -55,7 +55,7 @@ Describe "ConvertTo-VDF" {
         $data = [ordered]@{
             "AppState" = [ordered]@{
                 "appid" = "`"730`""
-                "name" = "`"Counter-Strike 2`""
+                "name"  = "`"Counter-Strike 2`""
             }
         }
 
@@ -125,14 +125,14 @@ Describe "ConvertFrom-VDF edge cases" {
     It "Should ignore empty lines" {
         $vdf = @"
 
-"AppState"
-{
+        "AppState"
+        {
 
-    "appid" "730"
+            "appid" "730"
 
 
-}
-"@
+        }
+        "@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.appid | Should -Be '"730"'
@@ -152,14 +152,14 @@ Describe "ConvertFrom-VDF edge cases" {
 Describe "ConvertFrom-VDF values with spaces" {
     It "Should parse values containing spaces correctly" {
         $vdf = @"
-"AppState"
-{
-    "name" "Counter-Strike Global Offensive"
+        "AppState"
+        {
+            "name" "Counter-Strike Global Offensive"
 
-    "path" "C:\Program Files (x86)\Steam"
+            "path" "C:\Program Files (x86)\Steam"
 
-}
-"@
+        }
+        "@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
