@@ -1,16 +1,16 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
 Describe "steam.ps1" {
     BeforeAll {
-        function Stop-SteamGracefully { }
+        function Close-SteamGracefully { }
         . "$PSScriptRoot/steam.ps1"
     }
 
     BeforeEach {
         Mock -CommandName ConvertFrom-VDF -MockWith {
-            $global:mockVdf = [ordered]@{
+            $script:mockVdf = [ordered]@{
                 Software = [ordered]@{
                     Valve = [ordered]@{
                         Steam = [ordered]@{
@@ -27,7 +27,8 @@ Describe "steam.ps1" {
             $obj = [pscustomobject]@{
                 Count = 1
             }
-            Add-Member -InputObject $obj -MemberType ScriptMethod -Name Item -Value { param($i) return $global:mockVdf }
+            Add-Member -InputObject $obj -MemberType ScriptMethod `
+                -Name Item -Value {  return $script:mockVdf }
             return $obj
         }
 
@@ -39,7 +40,7 @@ Describe "steam.ps1" {
         Mock -CommandName Write-Error -MockWith { }
         Mock -CommandName Start-Sleep -MockWith { }
         Mock -CommandName Get-Process -MockWith { return $null }
-        Mock -CommandName Stop-SteamGracefully -MockWith { }
+        Mock -CommandName Close-SteamGracefully -MockWith { }
         Mock -CommandName Remove-Item -MockWith { }
         Mock -CommandName Get-ChildItem -MockWith {
             return [pscustomobject]@{ FullName = 'C:\Fake\Steam\file.vdf' }
@@ -61,7 +62,8 @@ Describe "steam.ps1" {
             }
             Add-Member -InputObject $lnk -MemberType ScriptMethod -Name Save -Value { }
             $wsh = [pscustomobject]@{ }
-            Add-Member -InputObject $wsh -MemberType ScriptMethod -Name CreateShortcut -Value { param($path) return $lnk }
+            Add-Member -InputObject $wsh -MemberType ScriptMethod `
+                -Name CreateShortcut -Value {  return $lnk }
             return $wsh
         }
 
@@ -92,7 +94,7 @@ Describe "steam.ps1" {
 
             Invoke-SteamOptimization
 
-            Assert-MockCalled -CommandName Stop-SteamGracefully -Times 1 -Exactly
+            Assert-MockCalled -CommandName Close-SteamGracefully -Times 1 -Exactly
             Assert-MockCalled -CommandName Remove-Item -Times 1 -Exactly
             Assert-MockCalled -CommandName Get-ChildItem -Times 2 -Exactly
             Assert-MockCalled -CommandName Start-Process -Times 1 -Exactly
@@ -103,7 +105,7 @@ Describe "steam.ps1" {
 
             Invoke-SteamOptimization
 
-            Assert-MockCalled -CommandName Stop-SteamGracefully -Times 0 -Exactly
+            Assert-MockCalled -CommandName Close-SteamGracefully -Times 0 -Exactly
             Assert-MockCalled -CommandName Remove-Item -Times 0 -Exactly
             Assert-MockCalled -CommandName Start-Process -Times 1 -Exactly
         }
