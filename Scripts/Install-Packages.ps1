@@ -192,6 +192,11 @@ function Start-InstallPackages {
             'Microsoft.DotNet.DesktopRuntime.9',
             'Microsoft.DotNet.DesktopRuntime.8',
             'Microsoft.DotNet.DesktopRuntime.7',
+            'Microsoft.DotNet.DesktopRuntime.6',
+            'Microsoft.DotNet.DesktopRuntime.5',
+            'Microsoft.DirectX', 
+            'Microsoft.XNARedist',
+            'Microsoft.OpenCLGLVulkanCompatibilityPack',
             'Microsoft.EdgeWebView2Runtime',
             'Oracle.JavaRuntimeEnvironment',
             'EclipseAdoptium.Temurin.25.JRE'
@@ -228,8 +233,7 @@ function Start-InstallPackages {
             '7zip.7zip',
             'VideoLAN.VLC',
             'OBSProject.OBSStudio',
-            'MartiCliment.UniGetUI',
-            'Chocolatey.Chocolatey'
+            'MartiCliment.UniGetUI'
         )
 
         foreach ($pkg in $devTools) {
