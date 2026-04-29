@@ -42,13 +42,13 @@ Load this skill when removing commented-out code, unused variables, unreachable 
 if ($cb_osrss.text -eq $current) {
     #Write-Host " same as Current, skipping."
 } else {
-    Write-Host "Applying..." 
+    Write-Host "Applying..."
     Set-NetOffloadGlobalSetting -ReceiveSideScaling $cb_osrss.text
 }
 
 # After: Simplified
 if ($cb_osrss.text -ne $current) {
-    Write-Host "Applying..." 
+    Write-Host "Applying..."
     Set-NetOffloadGlobalSetting -ReceiveSideScaling $cb_osrss.text
 }
 ```
@@ -84,7 +84,7 @@ if ($cb_osrss.text -ne $current) {
 # Find commented function calls
 rg "^\s*#\s*(Write-Host|Write-Verbose|Set-|Get-|Invoke-|Remove-)" --type ps1
 
-# Find commented conditionals  
+# Find commented conditionals
 rg "^\s*#if\s*\(" --type ps1
 
 # Find double-commented lines (likely abandoned code)

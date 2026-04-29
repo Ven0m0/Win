@@ -24,7 +24,7 @@ Compare scripts to find what changes:
 # Example: steam.ps1 vs arc-raiders/steam.ps1
 # Differences found:
 # - $NoGPU: 1 (default) vs 0 (ArcRaiders)
-# - SmallMode: '1' (default) vs '0' (ArcRaiders)  
+# - SmallMode: '1' (default) vs '0' (ArcRaiders)
 # - Launch args: -quicklogin present vs absent
 # - Output formatting: Write-Output vs Write-Host
 ```
