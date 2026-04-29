@@ -31,6 +31,12 @@ Use this agent for any task involving PowerShell 5.1+/7+ scripts in the Win dotf
 - **CI compliance** — output must pass `Invoke-ScriptAnalyzer` (no `PSAvoidGlobalAliases`, no `ConvertToSecureString` with plaintext)
 - **Windows compatibility** — support both PowerShell 5.1 and 7+
 - **Avoid** `Invoke-Expression` with untrusted input
+- **Output suppression** — prefer `$null = <expr>` over `<expr> | Out-Null`; the latter is significantly slower
+- **Pipeline model** — `Return` only exits early; it does not return values. All unassigned expression results enter the pipeline stream. Use `Write-Verbose`/`Write-Warning`/`Write-Error` to route to named streams
+- **String comparisons** — `.NET` string methods (`.StartsWith()`, `.Contains()`, etc.) are case-sensitive by default; pass `'CurrentCultureIgnoreCase'` when case-insensitive matching is needed
+- **Call operator** — use `&` when invoking scripts that modify parent variables, commands by full path not in `$Env:Path`, or paths containing spaces; build argument arrays with leading comma: `$Args = , '--flag', 'value'`
+- **Web requests** — always use `curl.exe`, never `curl` (PowerShell aliases `curl` to `Invoke-WebRequest`)
+- **Download performance** — set `$ProgressPreference = 'SilentlyContinue'` before any `Invoke-WebRequest` call; progress rendering can reduce throughput to unusable speeds on large files
 
 ## Guidance Loading
 
@@ -53,6 +59,16 @@ Use this agent for any task involving PowerShell 5.1+/7+ scripts in the Win dotf
 4. Parameters validated (`[ValidateNotNullOrEmpty()]`, `[ValidateSet()]` where appropriate)
 5. Exit codes checked on external commands (`reg.exe`, `winget`, etc.)
 6. `Write-Verbose`/`Write-Warning` used instead of `Write-Host` for non-UI output
+7. No bare `curl` — always `curl.exe`
+8. `$ProgressPreference = 'SilentlyContinue'` set before any web download
+
+## Debugging
+
+```powershell
+Set-PSDebug -Trace 2          # trace every statement (like bash set -x)
+$VerbosePreference = 'Continue'   # enable Write-Verbose output
+Write-Verbose "Debug: $Var"
+```
 
 ## Related
 

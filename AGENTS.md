@@ -105,6 +105,10 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 - Use comment-based help; `[CmdletBinding(SupportsShouldProcess)]` for system modifications.
 - **Never** use global `$ErrorActionPreference = 'SilentlyContinue'` or `Invoke-Expression` with untrusted input.
 - CI enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
+- **Pipeline model** — `Return` only exits early; all unassigned expression results enter the pipeline stream. Suppress with `$null = <expr>` (faster than `| Out-Null`).
+- **String comparisons** — `.NET` string methods (`.StartsWith()`, `.Contains()`, etc.) are case-sensitive; pass `'CurrentCultureIgnoreCase'` when case-insensitive matching is needed.
+- **External commands** — use `&` operator for full-path executables or paths with spaces; never use bare `curl` (PowerShell alias for `Invoke-WebRequest`) — always `curl.exe`.
+- **Download performance** — set `$ProgressPreference = 'SilentlyContinue'` before `Invoke-WebRequest`; default progress rendering severely throttles throughput.
 
 ### Registry & System Tweaks
 
