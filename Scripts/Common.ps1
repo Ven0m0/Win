@@ -178,7 +178,7 @@ function Remove-RegistryValue {
     }
 }
 
-function Get-NvidiaGpuRegistryPaths {
+function Get-NvidiaGpuRegistryPath {
     <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
@@ -192,7 +192,7 @@ function Get-NvidiaGpuRegistryPaths {
 
 $script:CachedNvidiaGpuPaths = $null
 
-function Get-NvidiaGpuPaths {
+function Get-NvidiaGpuPath {
     <#
     .SYNOPSIS
         Returns cached NVIDIA GPU registry paths
@@ -202,7 +202,7 @@ function Get-NvidiaGpuPaths {
     param([switch]$ForceRefresh)
 
     if ($ForceRefresh -or -not $script:CachedNvidiaGpuPaths) {
-        $script:CachedNvidiaGpuPaths = Get-NvidiaGpuRegistryPaths
+        $script:CachedNvidiaGpuPaths = Get-NvidiaGpuRegistryPath
     }
 
     return $script:CachedNvidiaGpuPaths
@@ -232,7 +232,7 @@ function Set-NvidiaGpuRegistryValue {
     )
 
     if (!$GpuPaths) {
-        $GpuPaths = Get-NvidiaGpuPaths
+        $GpuPaths = Get-NvidiaGpuPath
     }
 
     foreach ($path in $GpuPaths) {
@@ -242,7 +242,7 @@ function Set-NvidiaGpuRegistryValue {
     return $GpuPaths
 }
 
-function Get-NvidiaGpuSettings {
+function Get-NvidiaGpuSetting {
     <#
     .SYNOPSIS
         Retrieves NVIDIA GPU registry settings for display
@@ -257,7 +257,7 @@ function Get-NvidiaGpuSettings {
     )
 
     if (!$GpuPaths) {
-        $GpuPaths = Get-NvidiaGpuPaths
+        $GpuPaths = Get-NvidiaGpuPath
     }
 
     $results = [System.Collections.Generic.List[psobject]]::new()
@@ -295,7 +295,7 @@ function Get-NvidiaGpuSettings {
     return $results
 }
 
-function Show-NvidiaGpuSettings {
+function Show-NvidiaGpuSetting {
     <#
     .SYNOPSIS
         Displays NVIDIA GPU settings for all detected GPUs
@@ -312,7 +312,7 @@ function Show-NvidiaGpuSettings {
         [string[]]$GpuPaths
     )
 
-    $settings = Get-NvidiaGpuSettings -Setting $Setting -GpuPaths $GpuPaths
+    $settings = Get-NvidiaGpuSetting -Setting $Setting -GpuPaths $GpuPaths
 
     Write-Host ""
     Write-Host $Title -ForegroundColor Yellow
@@ -609,7 +609,7 @@ function New-QueryString {
 #region Monitor Management
 $script:CachedMonitorInstances = $null
 
-function Get-MonitorInstances {
+function Get-MonitorInstance {
     <#
     .SYNOPSIS
         Retrieves all monitor instance paths from WMI
@@ -618,7 +618,7 @@ function Get-MonitorInstances {
     .PARAMETER ForceRefresh
         Forces refresh of cached monitor instances
     .EXAMPLE
-        $monitors = Get-MonitorInstances
+        $monitors = Get-MonitorInstance
     #>
     param([switch]$ForceRefresh)
 

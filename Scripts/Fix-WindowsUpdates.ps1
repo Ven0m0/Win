@@ -136,9 +136,9 @@ function Reset-Catroot2 {
 }
 
 # ---------------------------------------------------------------------------
-# Re-register WU DLLs
+# Re-register WU DLL
 # ---------------------------------------------------------------------------
-function Register-WuDlls {
+function Register-WuDll {
     [CmdletBinding(SupportsShouldProcess)]
     param()
 
@@ -166,9 +166,9 @@ function Register-WuDlls {
 }
 
 # ---------------------------------------------------------------------------
-# Registry tweaks
+# Registry tweak
 # ---------------------------------------------------------------------------
-function Set-WURegistryTweaks {
+function Set-WURegistryTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
 
@@ -201,7 +201,7 @@ function Set-WURegistryTweaks {
     }
 }
 
-function Remove-WURegistryTweaks {
+function Remove-WURegistryTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
 
@@ -219,9 +219,9 @@ function Remove-WURegistryTweaks {
 }
 
 # ---------------------------------------------------------------------------
-# Remove target-release constraints
+# Remove target-release constraint
 # ---------------------------------------------------------------------------
-function Remove-TargetReleaseConstraints {
+function Remove-TargetReleaseConstraint {
     [CmdletBinding(SupportsShouldProcess)]
     param()
 
@@ -254,7 +254,7 @@ function Remove-TargetReleaseConstraints {
 # ---------------------------------------------------------------------------
 if ($Restore) {
     Write-Host 'Restoring Windows Update registry tweaks...' -ForegroundColor Cyan
-    Remove-WURegistryTweaks
+    Remove-WURegistryTweak
     Write-Host 'Restore complete.' -ForegroundColor Green
     return
 }
@@ -274,7 +274,7 @@ Clear-UpdateCache
 Reset-Catroot2
 
 # 4. Re-register DLLs
-Register-WuDlls
+Register-WuDll
 
 # 5. Reset BITS & winsock
 if ($PSCmdlet.ShouldProcess('BITS', 'Reset')) {
@@ -285,8 +285,8 @@ if ($PSCmdlet.ShouldProcess('winsock', 'Reset')) {
 }
 
 # 6. Registry tweaks
-Set-WURegistryTweaks
-Remove-TargetReleaseConstraints
+Set-WURegistryTweak
+Remove-TargetReleaseConstraint
 
 # 7. gpupdate
 if ($PSCmdlet.ShouldProcess('Group Policy', 'Update')) {
