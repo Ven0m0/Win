@@ -1,6 +1,7 @@
 ---
 description: Agent specialized in Windows system optimization, registry tweaks, debloating, and gaming performance tuning for the Win dotfiles suite.
 mode: subagent
+temperature: 0.3
 ---
 
 # Windows Optimizer Agent
