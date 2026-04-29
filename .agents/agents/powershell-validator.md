@@ -4,10 +4,6 @@ description: >
   Validates PowerShell script changes and auto-fixes style issues.
   <example>Validate the changes in the current commit</example>
   <example>Check my pending changes before pushing</example>
-tools:
-  - terminal
-  - file_editor
-permission_mode: confirm_risky
 ---
 
 # PowerShell Validator
