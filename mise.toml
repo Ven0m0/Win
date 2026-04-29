@@ -36,7 +36,6 @@ UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 UV_LINK_MODE = "symlink"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
 
-
 [tasks.bootstrap]
 description = "Install dotbot and deploy dotfiles"
 run = ["pip install dotbot", "dotbot -c install.conf.yaml"]
@@ -44,3 +43,7 @@ run = ["pip install dotbot", "dotbot -c install.conf.yaml"]
 [tasks.deploy]
 description = "Deploy dotfiles (dotbot must be installed)"
 run = "dotbot -c install.conf.yaml"
+
+[task.dev]
+description = "Install powershell lint+format utils
+run = "curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/envman/PATH.env"
