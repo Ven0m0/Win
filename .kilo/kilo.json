@@ -1,21 +1,7 @@
 {
 	"$schema": "https://app.kilo.ai/config.json",
-	"instructions": [
-		".kilo/rules/*.md",
-		"AGENTS.md",
-		".github/instructions/*.md"
-	],
-	"skills": {
-		"paths": [
-			".kilo/skills",
-			".kilo/skill",
-			".opencode/skills",
-			".claude/skills"
-		]
-	},
-	"agents": {
-		"paths": [".kilo/agents", ".claude/agents"]
-	},
+	"instructions": [".kilo/rules/*.md", "AGENTS.md", ".github/instructions/*.md"],
+	"skills": { "paths": [".kilo/skills", ".opencode/skills", ".claude/skills"] },
 	"permission": {
 		"*": "allow",
 		"read": { "*.env": "deny", "*.lock": "deny", "*": "allow" },
@@ -62,19 +48,12 @@
 			"extensions": [".json", ".js"]
 		},
 		"ruff": {
-			"command": ["uv", "run", "ruff", "format", "$FILE"],
+			"command": ["uvx", "ruff", "format", "$FILE"],
 			"extensions": [".py", ".pyi"]
 		}
 	},
 	"watcher": {
-		"ignore": [
-			"node_modules/**",
-			"dist/**",
-			".git/**",
-			".venv/**",
-			"__pycache__/**",
-			".ruff_cache/**"
-		]
+		"ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
 	},
 	"mcp": {
 		"ref-tools": {
@@ -158,16 +137,6 @@
 		"tombi": {
 			"command": ["uvx", "tombi", "lsp"],
 			"extensions": [".toml"]
-		},
-		"powershell": {
-			"command": [
-				"pwsh",
-				"-NoLogo",
-				"-NoProfile",
-				"-Command",
-				"$module = Get-Module -ListAvailable PowerShellEditorServices | Sort-Object Version -Descending | Select-Object -First 1; if (-not $module) { throw 'PowerShellEditorServices is not installed. Run: Install-Module -Name PowerShellEditorServices -Scope CurrentUser' }; Import-Module $module.Path; Start-EditorServices -HostName 'Claude Code' -HostProfileId 'ClaudeCode' -HostVersion '1.0.0' -Stdio -BundledModulesPath (Split-Path $module.Path) -LogPath '/dev/null' -LogLevel 'None' -EnableConsoleRepl"
-			],
-			"extensions": [".ps1", ".psm1", ".psd1"]
 		}
 	},
 	"compaction": { "auto": true, "prune": true },
