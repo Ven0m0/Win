@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -68,7 +68,13 @@ function Start-InstallPackages {
 
     function Write-Status {
         param([string]$Message, [string]$Status = 'INFO')
-        $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+        $color = switch ($Status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'RUNNING' { 'Cyan' }
+            default { 'White' }
+        }
         Write-Host "  [$Status] $Message" -ForegroundColor $color
         $script:Results[$Message] = $Status
     }

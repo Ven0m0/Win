@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -174,9 +174,24 @@ function Set-WURegistryTweaks {
 
     $tweaks = @(
         # Disable "Get updates ASAP"
-        @{ Path = 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'; Name = 'IsContinuousInnovationOptedIn'; Type = 'REG_DWORD'; Data = '0' }
-        @{ Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'; Name = 'AllowOptionalContent'; Type = 'REG_DWORD'; Data = '0' }
-        @{ Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'; Name = 'SetAllowOptionalContent'; Type = 'REG_DWORD'; Data = '0' }
+        @{
+            Path = 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
+            Name = 'IsContinuousInnovationOptedIn'
+            Type = 'REG_DWORD'
+            Data = '0'
+        }
+        @{
+            Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+            Name = 'AllowOptionalContent'
+            Type = 'REG_DWORD'
+            Data = '0'
+        }
+        @{
+            Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+            Name = 'SetAllowOptionalContent'
+            Type = 'REG_DWORD'
+            Data = '0'
+        }
     )
 
     foreach ($tweak in $tweaks) {
