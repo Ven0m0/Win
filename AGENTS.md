@@ -2,21 +2,39 @@
 
 > `CLAUDE.md` must remain a symlink to this file. Update `AGENTS.md`, not `CLAUDE.md`.
 
+---
+
+## Quick Start
+
+| Task | Command or Reference |
+|------|---------------------|
+| Fresh Windows 11 install | `.\Scripts\Setup-Win11.ps1` or one-command: `iwr ...bootstrap.ps1 \| iex` |
+| Deploy dotfiles | `mise run deploy` or `dotbot -c install.conf.yaml` |
+| Deploy single config | `pwsh -File Scripts\Setup-Dotfiles.ps1 -Target 'PowerShell profile'` |
+| Debloat Windows | `.\Scripts\Debloat-Windows.ps1` or Kilo: `.\Debloat-Windows.md` |
+| Gaming optimization | `.\Scripts\Optimize-Gaming.ps1` or Kilo: `.\Optimize-Gaming.md` |
+| Validate changes | `.\Scripts\Validate-Changes.ps1` or `.\Invoke-ScriptAnalyzer.ps1` |
+| Create restore point | `.\Scripts\New-RestorePointSafe.ps1` |
+
+See `.kilo/commands/` for documented workflows (Kilo agents use these references).
+
+---
+
 ## Repository Identity
 
-Ven0m0/Win is a Windows dotfiles and optimization suite. It centers on PowerShell automation, tracked application config, registry tweaks, and game-specific tuning assets.
+**Ven0m0/Win** — Windows dotfiles and optimization suite. Centered on PowerShell automation, tracked application config, registry tweaks, and game-specific tuning assets.
 
 **Primary stack:** PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget, dotbot.
 
-## Architecture
+**Bootstrap layers:**
 
-Three-layer bootstrap:
+1. **Internet bootstrap** (`.github/scripts/bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo, then delegates.
+2. **Repo bootstrap** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs winget packages, deploys configs via SHA256 hash comparison (copies only when content differs), configures PATH, creates directories.
+3. **Unattended USB install** (`Scripts/auto/autounattend.xml`) — fully self-contained XML; copy to USB root and Windows Setup auto-detects. Scripts are embedded via `ExtractScript` and extracted to `C:\Windows\Setup\Scripts\` at runtime; **no companion flat files** alongside the XML.
 
-1. **Internet bootstrap** (`.github/scripts/bootstrap.ps1`) — one-command entry point; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo, then delegates to the repo bootstrap.
-2. **Repo bootstrap** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs winget packages, deploys config files using SHA256 hash comparison (copies only when content differs), configures PATH, creates directories.
-3. **Unattended USB install** (`Scripts/auto/autounattend.xml`) — fully self-contained XML; copy to USB root and Windows Setup auto-detects it. Scripts are embedded via `ExtractScript` and extracted to `C:\Windows\Setup\Scripts\` at runtime; no companion flat files belong alongside the XML.
+Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks), preserving Windows compatibility without admin rights.
 
-Config files live in `user/.dotfiles/config/` and are deployed by hash (no symlinks), which preserves Windows compatibility without admin rights.
+---
 
 ## Commands
 
@@ -24,10 +42,10 @@ Config files live in `user/.dotfiles/config/` and are deployed by hash (no symli
 # Lint a changed PowerShell file
 Invoke-ScriptAnalyzer -Path Scripts\<changed>.ps1 -Settings PSScriptAnalyzerSettings.psd1
 
-# Validate autounattend.xml (PowerShell)
+# Validate autounattend.xml
 $xml = [xml]::new(); $xml.Load("$PWD\Scripts\auto\autounattend.xml")
 
-# Deploy all dotfiles to their real Windows paths (dotbot must be installed)
+# Deploy all dotfiles (dotbot must be installed)
 mise run deploy          # or: dotbot -c install.conf.yaml
 
 # Deploy a single config group (no dotbot needed)
@@ -44,89 +62,170 @@ mise run bootstrap       # or: pip install dotbot && dotbot -c install.conf.yaml
 iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
-CI runs `PSScriptAnalyzer` on all PowerShell changes (`.github/workflows/powershell.yml`), enforcing `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
+---
 
-## High-signal rules
+## High-Signal Rules
 
-- Reuse `Scripts/Common.ps1` for shared PowerShell behavior.
-- Keep tracked configuration under `user/.dotfiles/config/`.
-- Preserve Windows compatibility and existing PowerShell 5.1+/7+ support.
-- Use environment-based paths such as `$PSScriptRoot`, `$HOME`, `$env:*`, and `A_ScriptDir`.
-- Prefer reversible registry and system changes.
-- Keep startup guidance short in `.github/copilot-instructions.md`, repo-wide guidance here, and narrow task flows in `.github/skills/`.
+- **Reuse `Scripts/Common.ps1`** for shared PowerShell behavior (registry, restore points, UI, GPU discovery).
+- **Tracked config** → always under `user/.dotfiles/config/`.
+- **Windows compatibility** → preserve PowerShell 5.1+/7+ support; use environment-based paths (`$PSScriptRoot`, `$HOME`, `$env:*`, `A_ScriptDir`).
+- **Reversible changes** → prefer `-Restore` / `-Undo` parameters for system modifications.
+- **Guidance splits**:
+  - `.github/copilot-instructions.md` — short startup bootstrap only
+  - `AGENTS.md` — canonical repo-wide guide (this file)
+  - `.github/instructions/` — narrow language or topic rules
+  - `.github/skills/` — reusable repo workflows
+  - `.kilo/skills/` — agent-facing workflow knowledge
+  - `.kilo/agents/` — agent identity and handoff rules
+  - `.kilo/rules/` — enforce coding and system standards
+  - `.kilo/commands/` — documented command workflows (markdown reference)
 
-## Main repo areas
+---
 
-- `Scripts/` contains the main PowerShell automation surface.
-- `Scripts/Common.ps1` is the shared helper library.
-- `Scripts/auto/autounattend.xml` is the self-contained unattended Windows 11 USB installer. All setup scripts are embedded inside the XML via `ExtractScript`; no companion flat files belong alongside it.
-- `user/.dotfiles/config/` contains tracked dotfile content.
-- `install.conf.yaml` is the dotbot configuration; it delegates to `Scripts/Setup-Dotfiles.ps1`.
-- `.github/instructions/` and `.github/skills/` hold Copilot-facing guidance.
+## Main Repo Areas
 
-## Change guidance
+| Path | Purpose |
+|------|---------|
+| `Scripts/` | PowerShell automation surface (executable scripts) |
+| `Scripts/Common.ps1` | Shared helper library (reuse first) |
+| `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer (fully self-contained; embedded `ExtractScript`) |
+| `user/.dotfiles/config/` | Tracked dotfile content (deployed by hash, no symlinks) |
+| `install.conf.yaml` | Dotbot configuration → delegates to `Scripts/Setup-Dotfiles.ps1` |
+| `.github/scripts/bootstrap.ps1` | Internet bootstrap entry point |
+| `.kilo/` | Kilo AI configuration (skills, agents, rules, command reference) |
 
-### PowerShell
+---
 
-- Follow the existing admin elevation and console setup patterns already used in `Scripts/`.
-- Prefer helpers in `Scripts/Common.ps1` before adding new utilities.
-- Use comment-based help for public functions.
-- Avoid global `$ErrorActionPreference = 'SilentlyContinue'` and avoid `Invoke-Expression` with untrusted input.
+## Change Guidance
 
-### Registry and system tweaks
+### PowerShell Scripts
 
-- Use shared helpers such as `Set-RegistryValue`, `Remove-RegistryValue`, `Get-NvidiaGpuRegistryPaths`, and `New-RestorePoint` when they fit.
-- Support both apply and restore behavior when changing user-visible settings.
-- Keep GPU-specific registry work scoped to discovered device paths rather than hardcoded instances.
+- Follow existing admin elevation patterns (`Request-AdminElevation` from `Common.ps1`).
+- Prefer helpers in `Scripts/Common.ps1` over new one-off functions.
+- Use comment-based help; `[CmdletBinding(SupportsShouldProcess)]` for system modifications.
+- **Never** use global `$ErrorActionPreference = 'SilentlyContinue'` or `Invoke-Expression` with untrusted input.
+- CI enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
 
-### Config updates
+### Registry & System Tweaks
 
-- Preserve each application's native file format and existing directory layout under `user/.dotfiles/config/`.
-- Machine-local PowerShell overrides belong in the untracked local profile that `user/.dotfiles/config/powershell/profile.ps1` loads from the user's home dotfiles directory.
+- Use `Set-RegistryValue`, `Remove-RegistryValue`, `Get-NvidiaGpuRegistryPaths`, `New-RestorePoint` from `Common.ps1`.
+- Always create a restore point before HKLM changes (unless `-NoRestorePoint`).
+- Support both apply (`-Action Enable`) and restore (`-Restore`) behavior.
+- **Never** hardcode GPU PCI IDs; use `Get-NvidiaGpuRegistryPaths` for device discovery.
+- Avoid sensitive registry keys: `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa` (security policies), `HKCU\...\Start_TrackProgs` (Start menu pinning; use cautiously).
 
-### Bootstrap changes
+### Config Deployment
 
-Review these files together whenever one changes:
+- Preserve native file formats; do not reformat (JSON, YAML, REG, etc.).
+- Hash-based deployment (SHA256) — copies only when source differs.
+- Template files use `##template` suffix; dotbot handles substitution.
+- Machine-local overrides go in untracked local profile (`$HOME\.config\powershell\local.ps1`).
 
+### Bootstrap Changes
+
+Review together:
 - `install.conf.yaml`
 - `Scripts/Setup-Dotfiles.ps1`
-- `README.md`
-- guidance files that describe bootstrap behavior
+- `README.md` (setup sections)
+- `.kilo/skills/bootstrap-deployment.md`
 
-### AI guidance changes
+### AI Guidance Changes
 
-- Keep `.github/copilot-instructions.md` short and startup-focused.
-- Put reusable repo workflows in `.github/skills/`.
-- Put language or topic rules in `.github/instructions/`.
-- For deeper repo conventions, load `.github/skills/win-patterns/SKILL.md`.
+- Keep `.github/copilot-instructions.md` minimal (startup only).
+- Broader repo rules → `AGENTS.md`.
+- Narrow rules → `.github/instructions/`.
+- Reusable workflows → `.github/skills/` **and** `.kilo/skills/`.
+- Agent definitions → `.kilo/agents/`.
+- Coding and system standards → `.kilo/rules/`.
+- After editing any `.github/` guidance: run `ctxlint --depth 3 --mcp --strict --fix --yes`. Install with: [npm i -g @yawlabs/ctxlint](https://www.npmjs.com/package/@yawlabs/ctxlint).
+
+---
 
 ## Validation
 
-Use the smallest relevant checks:
+Apply the narrowest checks for what changed:
 
-- Changed PowerShell files: `Invoke-ScriptAnalyzer -Path <changed-script>`
-- Guidance and workflow changes under `.github/`: verify every referenced path and command exists, then run the repository context lint check
-- Use Pester only when the affected area already has tests or when you add new testable PowerShell logic.
+| Changed Area | Primary Check | Secondary |
+|-------------|---------------|-----------|
+| Any `Scripts/**/*.ps1` | `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` | — |
+| `install.conf.yaml` | Path resolution, hash logic integrity | `README.md` consistency |
+| `Scripts/Setup-Dotfiles.ps1` | ScriptAnalyzer + deployment manifest review | Config paths verification |
+| `user/.dotfiles/config/*` | Format preservation (no cosmetic re-serialization) | Deployment manifest still points correctly |
+| `Scripts/auto/autounattend.xml` | `$xml = [xml]::new(); $xml.Load(path)`; check `ExtractScript` entity encoding | Embedded script paths valid |
+| `.github/instructions/*` | Verify all referenced paths and commands exist | `ctxlint --fix-safe` |
+| `.github/skills/*` | Skill references valid? Load `validate` skill | — |
+| `.github/workflows/*` | YAML syntax, tool availability check | — |
+| `.kilo/` config changes | Validate JSON or YAML syntax; ensure paths correct | Run `ctxlint` on guidance if touched |
 
-Current CI:
+**Current CI:**
+- `.github/workflows/powershell.yml` runs `PSScriptAnalyzer`.
+- Enforced: `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`.
 
-- `.github/workflows/powershell.yml` runs PSScriptAnalyzer.
-- CI currently enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
+**Pester:** run only when tests already exist for the area or when adding new testable logic.
 
-## Git
+---
 
-- Use git for repo changes and dotbot for dotfile deployment.
-- Commit messages follow `<type>: <subject>`.
-- Common types: `feat`, `fix`, `docs`, `refactor`, `style`, `chore`, and `perf`.
+## Agent Delegation
 
-## Sensitive content
+Kilo agents are specialized; delegate by scope:
 
-Never commit credentials, tokens, private keys, or machine-specific local overrides.
-Avoid hardcoded local machine paths and avoid silently swallowing system-command failures that should be surfaced.
+| Agent | Specialization | When to Delegate |
+|-------|----------------|------------------|
+| `powershell-expert` | PowerShell script authoring, refactoring, commenting, CI compliance | New or modified `.ps1` files, function extraction, script review |
+| `windows-system-agent` | Registry tweaks, debloating, gaming optimizations, network tuning, NVIDIA GPU handling | System modifications, service and task management, registry changes |
+| `config-deployer-agent` | Dotbot YAML, tracked config management, deployment path mapping, templates | `install.conf.yaml` edits, new tracked configs, deployment logic |
 
-## Reference
+Always load relevant skills first: `windows-dotfiles`, `bootstrap-deployment`, `validation`.
 
-- `README.md` covers user-facing setup and usage.
-- `.github/copilot-instructions.md` is the short startup guide.
-- `.github/skills/win-patterns/SKILL.md` captures recurring repo workflows.
-- `.github/instructions/` contains path- and language-specific rules.
+---
+
+## Git & Commits
+
+- Use `git` for repo changes; `dotbot` for dotfile deployment.
+- Commit messages: `<type>: <subject>`
+  - Types: `feat`, `fix`, `docs`, `refactor`, `style`, `chore`, `perf`
+- **Never** commit credentials, tokens, private keys, machine-specific overrides.
+- Avoid hardcoded local paths; never silently swallow system-command failures.
+
+---
+
+## Sensitive Content
+
+- ❌ Credentials, tokens, private keys
+- ❌ Machine-specific local overrides (keep in untracked files)
+- ❌ Exported hive files (full `.reg` of HKCU/HKLM)
+- ❌ Hardcoded user paths (`C:\Users\...`) — use `$HOME`, `$env:USERPROFILE`
+
+---
+
+## Kilo Reference
+
+**Skills** (`.kilo/skills/`):
+- `windows-dotfiles.md` — repo conventions, Common.ps1 helpers, path rules
+- `bootstrap-deployment.md` — three-layer bootstrap, dotbot patterns, deployment order
+- `validation.md` — per-change-type validation matrix with decision table
+
+**Agents** (`.kilo/agents/`):
+- `powershell-expert.agent.md` — PowerShell script specialist
+- `windows-system-agent.agent.md` — Windows optimization & registry specialist
+- `config-deployer-agent.agent.md` — dotfile deployment & dotbot specialist
+
+**Rules** (`.kilo/rules/`):
+- `powershell.md` — PowerShell 5.1+/7+, required and prohibited patterns, elevation, CI
+- `windows-os.md` — Win10/Win11 detection, feature guarding, telemetry differences
+- `registry-security.md` — safe registry ops, restore points, GPU discovery
+
+**Commands** (`.kilo/commands/` — markdown reference only):
+- `Setup-Win11.md`, `Deploy-Configs.md`, `Validate-Changes.md`, `Invoke-ScriptAnalyzer.md`
+- `Update-WingetPackages.md`, `New-RestorePointSafe.md`, `Optimize-Gaming.md`
+- `Debloat-Windows.md`, `Sync-Configs.md`, `Backup-CurrentConfigs.md`, `Test-Environment.md`
+
+---
+
+## Related
+
+- `README.md` — user-facing setup and usage
+- `.github/copilot-instructions.md` — short startup guide
+- `.github/skills/win-patterns/SKILL.md` — recurring repo workflows
+- `.github/instructions/powershell.instructions.md` — PowerShell-specific rules
+- `.github/instructions/windows-11-setup.instructions.md` — Win11 setup rules
