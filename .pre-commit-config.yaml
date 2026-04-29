@@ -63,10 +63,15 @@ repos:
   # PowerShell hooks
   # =============================================================================
   - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    rev: v0.3.1 # Use the latest version
+    rev: v0.3.1
     hooks:
-      - id: py-psscriptanalyzer # Lint your PowerShell
-      - id: py-psscriptanalyzer-format # Format your PowerShell
+      - id: py-psscriptanalyzer
+        args: ["--severity", "Warning"]
+        files: \.(ps1|psm1|psd1)$
+        stages: [pre-commit]
+      - id: py-psscriptanalyzer-format
+        files: \.(ps1|psm1|psd1)$
+        stages: [pre-commit]
   
   - repo: local
     hooks:

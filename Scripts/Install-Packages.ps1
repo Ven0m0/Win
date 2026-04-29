@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -68,7 +68,13 @@ function Start-InstallPackages {
 
     function Write-Status {
         param([string]$Message, [string]$Status = 'INFO')
-        $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+        $color = switch ($Status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'RUNNING' { 'Cyan' }
+            default { 'White' }
+        }
         Write-Host "  [$Status] $Message" -ForegroundColor $color
         $script:Results[$Message] = $Status
     }
@@ -83,10 +89,13 @@ function Start-InstallPackages {
     function Install-WingetTool {
         param([string]$Id, [string]$Name)
         if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+            $winget = Wait-ForWinget
             Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
             try {
-                winget install --id $Id --silent --accept-source-agreements `
-                --accept-package-agreements 2>&1 | Out-Null
+                $scopeArg = ''
+                if ($isAdmin) { $scopeArg = '--scope machine' }
+                & $winget install --id $Id --silent --accept-source-agreements `
+                    --accept-package-agreements $scopeArg *>$null
                 $ec = $LASTEXITCODE
                 if ($ec -eq 0 -or $ec -eq -1978335189) {
                     Write-Host " [OK]" -ForegroundColor Green
@@ -142,12 +151,14 @@ function Start-InstallPackages {
         Write-Warning "  Could not set execution policy: $_"
     }
 
-    # Check winget availability
-    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Status 'winget not found. Install from https://aka.ms/getwinget' -Status 'FAIL'
+    # Ensure winget is available (wait-loop for fresh installs)
+    try {
+        $null = Wait-ForWinget
+        Write-Status 'winget is available' -Status 'OK'
+    } catch {
+        Write-Status "winget not available: $_. Install from https://aka.ms/getwinget" -Status 'FAIL'
         exit 1
     }
-    Write-Status 'winget is available' -Status 'OK'
 
     # ============================================================================
     # Phase 2: Install core tools via winget
@@ -177,11 +188,12 @@ function Start-InstallPackages {
 
         $runtimes = @(
             'Microsoft.VCRedist.2015+.x64',
+            'Microsoft.DotNet.DesktopRuntime.10',
             'Microsoft.DotNet.DesktopRuntime.9',
             'Microsoft.DotNet.DesktopRuntime.8',
             'Microsoft.DotNet.DesktopRuntime.7',
-            'Oracle.JavaRuntimeEnvironment',
             'Microsoft.EdgeWebView2Runtime',
+            'Oracle.JavaRuntimeEnvironment',
             'EclipseAdoptium.Temurin.25.JRE'
         )
 
@@ -212,7 +224,6 @@ function Start-InstallPackages {
             'BurntSushi.ripgrep.MSVC',
             'sharkdp.fd',
             'sharkdp.bat',
-            'Starship.Starship',
             'JanDeDobbeleer.OhMyPosh',
             '7zip.7zip',
             'VideoLAN.VLC',
@@ -237,7 +248,8 @@ function Start-InstallPackages {
         if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Scoop...' -Status 'RUNNING'
             try {
-                $scoopInstaller = Join-Path $env:TEMP ("install-scoop-{0}.ps1" -f [System.Guid]::NewGuid().ToString('N'))
+                $guid = [System.Guid]::NewGuid().ToString('N')
+                $scoopInstaller = Join-Path $env:TEMP "install-scoop-$guid.ps1"
                 Invoke-RestMethod -Uri 'https://get.scoop.sh' `
                 -OutFile $scoopInstaller
                 & $scoopInstaller
@@ -311,7 +323,7 @@ function Start-InstallPackages {
 
         foreach ($feature in $features) {
             try {
-                DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet 2>&1 | Out-Null
+                DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet *>$null
                 Write-Status "Feature '$feature' enabled" -Status 'OK'
             } catch {
                 Write-Status "Feature '$feature' (may already be enabled)" -Status 'SKIP'
@@ -332,7 +344,7 @@ function Start-InstallPackages {
             Write-Status "Timezone set to '$PostInstallTimeZone'" -Status 'OK'
         } catch {
             try {
-                tzutil.exe /s $PostInstallTimeZone 2>&1 | Out-Null
+                tzutil.exe /s $PostInstallTimeZone *>$null
                 Write-Status "Timezone set to '$PostInstallTimeZone' (tzutil)" -Status 'OK'
             } catch {
                 Write-Status "Timezone '$PostInstallTimeZone' - $($_.Exception.Message)" -Status 'SKIP'
@@ -389,8 +401,8 @@ function Start-InstallPackages {
         # Strip 8.3 names (reduces disk usage, improves performance)
         try {
             $systemDrive = $env:SystemDrive.TrimEnd('\')
-            fsutil.exe 8dot3name set $systemDrive 1 2>&1 | Out-Null
-            fsutil.exe 8dot3name strip /s /f $systemDrive 2>&1 | Out-Null
+            fsutil.exe 8dot3name set $systemDrive 1 *>$null
+            fsutil.exe 8dot3name strip /s /f $systemDrive *>$null
             Write-Status '8.3 file name stripping scheduled' -Status 'OK'
         } catch {
             Write-Status "8.3 stripping: $($_.Exception.Message)" -Status 'SKIP'
@@ -409,7 +421,13 @@ function Start-InstallPackages {
 
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
-        $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+        $color = switch ($status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'RUNNING' { 'Cyan' }
+            default { 'White' }
+        }
         Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
     }
 
@@ -426,3 +444,4 @@ if ($MyInvocation.InvocationName -ne '.') {
     $exitCode = $LASTEXITCODE
     if ($null -ne $exitCode) { exit $exitCode }
 }
+

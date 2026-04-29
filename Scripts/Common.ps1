@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -178,7 +178,7 @@ function Remove-RegistryValue {
     }
 }
 
-function Get-NvidiaGpuRegistryPaths {
+function Get-NvidiaGpuRegistryPath {
     <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
@@ -192,7 +192,7 @@ function Get-NvidiaGpuRegistryPaths {
 
 $script:CachedNvidiaGpuPaths = $null
 
-function Get-NvidiaGpuPaths {
+function Get-NvidiaGpuPath {
     <#
     .SYNOPSIS
         Returns cached NVIDIA GPU registry paths
@@ -202,7 +202,7 @@ function Get-NvidiaGpuPaths {
     param([switch]$ForceRefresh)
 
     if ($ForceRefresh -or -not $script:CachedNvidiaGpuPaths) {
-        $script:CachedNvidiaGpuPaths = Get-NvidiaGpuRegistryPaths
+        $script:CachedNvidiaGpuPaths = Get-NvidiaGpuRegistryPath
     }
 
     return $script:CachedNvidiaGpuPaths
@@ -232,7 +232,7 @@ function Set-NvidiaGpuRegistryValue {
     )
 
     if (!$GpuPaths) {
-        $GpuPaths = Get-NvidiaGpuPaths
+        $GpuPaths = Get-NvidiaGpuPath
     }
 
     foreach ($path in $GpuPaths) {
@@ -242,7 +242,7 @@ function Set-NvidiaGpuRegistryValue {
     return $GpuPaths
 }
 
-function Get-NvidiaGpuSettings {
+function Get-NvidiaGpuSetting {
     <#
     .SYNOPSIS
         Retrieves NVIDIA GPU registry settings for display
@@ -257,7 +257,7 @@ function Get-NvidiaGpuSettings {
     )
 
     if (!$GpuPaths) {
-        $GpuPaths = Get-NvidiaGpuPaths
+        $GpuPaths = Get-NvidiaGpuPath
     }
 
     $results = [System.Collections.Generic.List[psobject]]::new()
@@ -295,7 +295,7 @@ function Get-NvidiaGpuSettings {
     return $results
 }
 
-function Show-NvidiaGpuSettings {
+function Show-NvidiaGpuSetting {
     <#
     .SYNOPSIS
         Displays NVIDIA GPU settings for all detected GPUs
@@ -312,7 +312,7 @@ function Show-NvidiaGpuSettings {
         [string[]]$GpuPaths
     )
 
-    $settings = Get-NvidiaGpuSettings -Setting $Setting -GpuPaths $GpuPaths
+    $settings = Get-NvidiaGpuSetting -Setting $Setting -GpuPaths $GpuPaths
 
     Write-Host ""
     Write-Host $Title -ForegroundColor Yellow
@@ -609,7 +609,7 @@ function New-QueryString {
 #region Monitor Management
 $script:CachedMonitorInstances = $null
 
-function Get-MonitorInstances {
+function Get-MonitorInstance {
     <#
     .SYNOPSIS
         Retrieves all monitor instance paths from WMI
@@ -618,7 +618,7 @@ function Get-MonitorInstances {
     .PARAMETER ForceRefresh
         Forces refresh of cached monitor instances
     .EXAMPLE
-        $monitors = Get-MonitorInstances
+        $monitors = Get-MonitorInstance
     #>
     param([switch]$ForceRefresh)
 
@@ -1568,7 +1568,106 @@ function Show-Summary {
 }
 #endregion
 
+#region Winget Helpers
+function Wait-ForWinget {
+    <#
+    .SYNOPSIS
+        Waits for the winget executable to become available.
+    .DESCRIPTION
+        On fresh Windows 11 24H2+ installs the winget.exe UWP stub may not be
+        registered immediately after first logon.  This helper polls until the
+        file exists or a timeout is reached.
+    .PARAMETER ExePath
+        Full path to the expected winget executable.
+        Default: %LOCALAPPDATA%\Microsoft\WindowsApps\winget.exe
+    .PARAMETER TimeoutMinutes
+        Maximum minutes to wait.  Default: 5
+    .OUTPUTS
+        The resolved executable path.
+    .EXAMPLE
+        $wg = Wait-ForWinget
+        & $wg install --id Git.Git --silent --accept-source-agreements
+    #>
+    [CmdletBinding()]
+    param(
+        [string]$ExePath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        [int]$TimeoutMinutes = 5
+    )
+
+    $deadline = [datetime]::Now.AddMinutes($TimeoutMinutes)
+
+    while (-not (Test-Path $ExePath)) {
+        if ([datetime]::Now -gt $deadline) {
+            throw "winget not found within $TimeoutMinutes minute(s) at '$ExePath'"
+        }
+        Write-Verbose "Waiting for winget..."
+        Start-Sleep -Seconds 1
+    }
+
+    return $ExePath
+}
+
+function Install-WingetPackage {
+    <#
+    .SYNOPSIS
+        Installs a package via winget with safe defaults and exit-code handling.
+    .DESCRIPTION
+        Wraps winget install, automatically waits for the executable if needed,
+        and treats exit codes 0 and -1978335189 (already installed) as success.
+        Uses --scope machine only when running as administrator.
+    .PARAMETER Id
+        Winget package identifier.
+    .PARAMETER Name
+        Human-readable name for status output.
+    .PARAMETER ExePath
+        Optional explicit path to winget.exe.
+    .PARAMETER NoWait
+        Skip Wait-ForWinget (use only when you are certain winget is ready).
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Id,
+
+        [string]$Name,
+        [string]$ExePath,
+        [switch]$NoWait
+    )
+
+    if (-not $Name) { $Name = $Id }
+
+    $winget = if ($ExePath) { $ExePath } else { Wait-ForWinget }
+
+    $scopeArg = ''
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+    if ($isAdmin) {
+        $scopeArg = '--scope machine'
+    }
+
+    if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        try {
+            $argList = "install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg"
+            $proc = Start-Process -FilePath $winget -ArgumentList $argList -NoNewWindow -Wait -PassThru
+            $ec = $proc.ExitCode
+            if ($ec -eq 0 -or $ec -eq -1978335189) {
+                Write-Host " [OK]" -ForegroundColor Green
+            } else {
+                Write-Host ""
+                Write-Warning "  [WARN] $Name - winget exit code: $ec"
+            }
+        } catch {
+            Write-Host ""
+            Write-Warning "  [WARN] $Name - $_"
+        }
+    }
+}
+#endregion
+
 #pragma warning restore PSAvoidUsingWriteHost
 
 # Export functions
 try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }
+

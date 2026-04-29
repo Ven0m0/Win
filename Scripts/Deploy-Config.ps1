@@ -1,4 +1,4 @@
-﻿## Deploy-Config.ps1
+## Deploy-Config.ps1
 # Suppress Write-Host warnings
 #pragma warning disable PSAvoidUsingWriteHost
 ## Deploy-Config.ps1
@@ -34,7 +34,13 @@ $ProgressPreference = 'SilentlyContinue'
 
 function Write-Status {
     param([string]$Message, [string]$Status = 'INFO')
-    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
+    $color = switch ($Status) {
+        'OK' { 'Green' }
+        'FAIL' { 'Red' }
+        'SKIP' { 'Yellow' }
+        'UP-TO-DATE' { 'Gray' }
+        default { 'White' }
+    }
     Write-Host "  [$Status] $Message" -ForegroundColor $color
     $script:Results[$Message] = $Status
 }
@@ -103,7 +109,8 @@ function Deploy-ConfigDirectory {
     }
 
     foreach ($file in $files) {
-        Deploy-ConfigFile -Source $file.FullName -Destination (Join-Path $DestDir $file.Name) -Label "$Label/$($file.Name)"
+        Deploy-ConfigFile -Source $file.FullName `
+            -Destination (Join-Path $DestDir $file.Name) -Label "$Label/$($file.Name)"
     }
 }
 
@@ -252,7 +259,8 @@ function Set-CmdAliasAutoRun {
         if (-not (Test-Path $commandProcessorKey)) {
             New-Item -Path $commandProcessorKey -Force | Out-Null
         }
-        New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force | Out-Null
+        New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun `
+            -PropertyType String -Force | Out-Null
         Write-Status "$Label configured" -Status 'OK'
     }
 }
@@ -284,13 +292,15 @@ function Deploy-StarWarsBattlefrontIIConfig {
     foreach ($fileName in $rootFiles) {
         $sourcePath = Join-Path $SourceDir $fileName
         if (Test-Path $sourcePath) {
-            Deploy-ConfigFile -Source $sourcePath -Destination (Join-Path $bf2Root $fileName) -Label "$Label/$fileName"
+            Deploy-ConfigFile -Source $sourcePath `
+                -Destination (Join-Path $bf2Root $fileName) -Label "$Label/$fileName"
         }
     }
 
     $profileOptionsPath = Join-Path $SourceDir 'ProfileOptions_profile'
     if (Test-Path $profileOptionsPath) {
-        Deploy-ConfigFile -Source $profileOptionsPath -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') -Label "$Label/ProfileOptions_profile"
+        Deploy-ConfigFile -Source $profileOptionsPath `
+            -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') -Label "$Label/ProfileOptions_profile"
     }
 }
 
@@ -345,7 +355,8 @@ function Start-DeployConfig {
     Write-Host '[3/5] Deploying Windows Terminal settings...' -ForegroundColor Cyan
 
     $wtSettingsSource = Join-Path $script:ConfigRoot 'windows-terminal\settings.json'
-    $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+    $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" `
+        -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
 
     if ($wtPackageDir -and (Test-Path $wtSettingsSource)) {
         $wtTarget = Join-Path $wtPackageDir.FullName 'LocalState\settings.json'
@@ -366,7 +377,8 @@ function Start-DeployConfig {
     $firefoxSource = Join-Path $script:ConfigRoot 'firefox\user.js'
     $firefoxProfile = Get-FirefoxDefaultProfilePath
     if ($firefoxProfile -and (Test-Path $firefoxSource)) {
-        Deploy-ConfigFile -Source $firefoxSource -Destination (Join-Path $firefoxProfile 'user.js') -Label 'Firefox user.js'
+        Deploy-ConfigFile -Source $firefoxSource `
+            -Destination (Join-Path $firefoxProfile 'user.js') -Label 'Firefox user.js'
     } elseif (-not $firefoxProfile) {
         Write-Status 'Firefox profile not found' -Status 'SKIP'
     }
@@ -375,7 +387,8 @@ function Start-DeployConfig {
     $bleachbitSource = Join-Path $script:ConfigRoot 'bleachbit\cleaners'
     $bleachbitDest = "$env:APPDATA\BleachBit\cleaners"
     if (Test-Path $bleachbitSource) {
-        Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' -Label 'BleachBit cleaners'
+        Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' `
+            -Label 'BleachBit cleaners'
     }
 
     # Brave debloater registry
@@ -406,7 +419,8 @@ function Start-DeployConfig {
     $bo6Source = Join-Path $script:ConfigRoot 'games\bo6'
     $codPlayersPath = Get-CallOfDutyPlayersPath
     if ($codPlayersPath -and (Test-Path $bo6Source)) {
-        Deploy-ConfigDirectory -SourceDir $bo6Source -DestDir $codPlayersPath -Filter '*' -Label 'Call of Duty Black Ops 6'
+        Deploy-ConfigDirectory -SourceDir $bo6Source -DestDir $codPlayersPath -Filter '*' `
+            -Label 'Call of Duty Black Ops 6'
     } elseif (-not $codPlayersPath) {
         Write-Status 'Call of Duty players directory not found' -Status 'SKIP'
     }
@@ -414,7 +428,8 @@ function Start-DeployConfig {
     # Call of Duty Black Ops 7
     $bo7Source = Join-Path $script:ConfigRoot 'games\bo7'
     if ($codPlayersPath -and (Test-Path $bo7Source)) {
-        Deploy-ConfigDirectory -SourceDir $bo7Source -DestDir $codPlayersPath -Filter '*' -Label 'Call of Duty Black Ops 7'
+        Deploy-ConfigDirectory -SourceDir $bo7Source -DestDir $codPlayersPath -Filter '*' `
+            -Label 'Call of Duty Black Ops 7'
     }
 
     # Arc Raiders
@@ -479,7 +494,8 @@ function Start-DeployConfig {
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
         $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
-        Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
+        Write-Host "  $($key.PadRight(50)) : " -NoNewline
+        Write-Host "$status" -ForegroundColor $color
 
         switch ($status) {
             'OK' { $successCount++ }

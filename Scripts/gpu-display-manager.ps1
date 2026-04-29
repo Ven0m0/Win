@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 # gpu-display-manager.ps1 - Unified GPU and Display Settings Manager
 # Combines NVIDIA GPU settings, EDID overrides, gaming display optimizations, and MSI mode
@@ -26,7 +26,7 @@ function Set-P0State {
   Clear-Host
   $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
   Write-Host "P0 State: $(if ($Value -eq '1') { 'On' } else { 'Default' })" -ForegroundColor $color
-  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "P0State" -GpuPaths $gpuPaths
+  Show-NvidiaGpuSetting -Title "Current NVIDIA GPU Settings:" -Setting "P0State" -GpuPaths $gpuPaths
 }
 
 function Set-HDCP {
@@ -37,7 +37,7 @@ function Set-HDCP {
   Clear-Host
   $color = if ($Value -eq '1') { 'Green' } else { 'Cyan' }
   Write-Host "HDCP: $(if ($Value -eq '1') { 'Off' } else { 'Default' })" -ForegroundColor $color
-  Show-NvidiaGpuSettings -Title "Current NVIDIA GPU Settings:" -Setting "HDCP" -GpuPaths $gpuPaths
+  Show-NvidiaGpuSetting -Title "Current NVIDIA GPU Settings:" -Setting "HDCP" -GpuPaths $gpuPaths
 }
 #endregion
 
@@ -110,7 +110,7 @@ function Show-NvidiaMenu {
       }
       7 {
         Clear-Host
-        Show-NvidiaGpuSettings
+        Show-NvidiaGpuSetting
         Write-Host "Driver Signature Override Status:" -ForegroundColor Yellow
         $gColor = if ($sigStatus.GlobalOverride) { 'Green' } else { 'Gray' }
         $gStatus = if ($sigStatus.GlobalOverride) { 'Enabled' } else { 'Disabled' }
