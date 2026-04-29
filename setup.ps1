@@ -2,6 +2,9 @@
 # Windows Setup Script - Comprehensive automated installation and configuration
 # Combines software installation, system optimization, bloatware removal, and privacy tweaks
 
+# Enforce TLS 1.2+ (older PowerShell defaults to TLS 1.0 which GitHub rejects)
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+
 if (Test-Path "$PSScriptRoot\Scripts\Common.ps1") {
   . "$PSScriptRoot\Scripts\Common.ps1"
   Request-AdminElevation
