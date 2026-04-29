@@ -36,6 +36,9 @@ UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 UV_LINK_MODE = "symlink"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
 
+[hooks]
+enter = "mise i -yq"
+
 [tasks.bootstrap]
 description = "Install dotbot and deploy dotfiles"
 run = ["pip install dotbot", "dotbot -c install.conf.yaml"]
