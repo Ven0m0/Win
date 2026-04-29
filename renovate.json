@@ -27,6 +27,25 @@
   "prConcurrentLimit": 5,
   "prHourlyLimit": 0,
   "rangeStrategy": "bump",
+  "constraints": {
+    "python": ">=3.14 <3.15"
+  },
+  "pep621": {
+    "enabled": true
+  },
+  "pep723": {
+    "enabled": true
+  },
+  "pip_requirements": {
+    "enabled": false
+  },
+  "poetry": {
+    "enabled": false
+  },
+  "pipenv": {
+    "enabled": false
+  },
+  "postUpdateOptions": ["uvLockUpdate"],
   "packageRules": [
     {
       "description": "Disable GitHub Actions digest pinning",
@@ -63,6 +82,12 @@
       "matchManagers": ["mise"],
       "groupName": "mise tools",
       "groupSlug": "mise-tools"
+    },
+    {
+      "description": "Group Python package dependencies",
+      "matchDatasources": ["pypi"],
+      "groupName": "Python dependencies",
+      "groupSlug": "python-deps"
     },
     {
       "description": "Restrict mise Python to 3.14.x patch releases only",
