@@ -47,3 +47,8 @@ run = "dotbot -c install.conf.yaml"
 [task.dev]
 description = "Install powershell lint+format utils"
 run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/envman/PATH.env"]
+
+[task.pwsh-install]
+description = "Install pwsh lint"
+run = ["pwsh -NoLogo -NoProfile -Command '
+Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber'"]
