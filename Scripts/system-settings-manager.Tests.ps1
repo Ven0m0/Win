@@ -43,7 +43,7 @@ Describe "System Settings Manager" {
             Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "WHQLSettings" -and $Data -eq "1" }
 
             # Check network binding
-            Should -Invoke Disable-NetAdapterBinding \
+            Should -Invoke Disable-NetAdapterBinding `
                 -ParameterFilter { $Name -eq "*" -and $ComponentID -eq "ms_server" }
         }
 
