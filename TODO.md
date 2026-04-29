@@ -9,3 +9,7 @@ py-psscriptanalyzer --recursive
 ```
 also ensure the pre-commit hooks of py-psscriptanalyzer work correctly
 
+### 2
+
+add to system fix:
+- https://github.com/ShadowWhisperer/Fix-WinUpdates
