@@ -318,3 +318,4 @@ results.sarif
 .claude/settings.local.json
 
 ‎.agents_tmp/
+.agents_tmp/*
