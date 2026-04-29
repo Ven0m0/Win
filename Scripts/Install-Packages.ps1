@@ -85,7 +85,8 @@ function Start-InstallPackages {
         if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
             Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
             try {
-                winget install --id $Id --silent --accept-source-agreements --accept-package-agreements 2>&1 | Out-Null
+                winget install --id $Id --silent --accept-source-agreements `
+                --accept-package-agreements 2>&1 | Out-Null
                 $ec = $LASTEXITCODE
                 if ($ec -eq 0 -or $ec -eq -1978335189) {
                     Write-Host " [OK]" -ForegroundColor Green
