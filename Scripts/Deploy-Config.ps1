@@ -1,4 +1,4 @@
-## Deploy-Config.ps1
+﻿## Deploy-Config.ps1
 # Suppress Write-Host warnings
 #pragma warning disable PSAvoidUsingWriteHost
 ## Deploy-Config.ps1
@@ -387,7 +387,8 @@ function Start-DeployConfig {
     $bleachbitSource = Join-Path $script:ConfigRoot 'bleachbit\cleaners'
     $bleachbitDest = "$env:APPDATA\BleachBit\cleaners"
     if (Test-Path $bleachbitSource) {
-        Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' -Label 'BleachBit cleaners'
+        Deploy-ConfigDirectory -SourceDir $bleachbitSource -DestDir $bleachbitDest -Filter '*.xml' `
+            -Label 'BleachBit cleaners'
     }
 
     # Brave debloater registry
@@ -493,7 +494,8 @@ function Start-DeployConfig {
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
         $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
-        Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
+        Write-Host "  $($key.PadRight(50)) : " -NoNewline
+        Write-Host "$status" -ForegroundColor $color
 
         switch ($status) {
             'OK' { $successCount++ }
