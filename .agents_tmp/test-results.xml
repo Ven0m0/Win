@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="61" errors="0" failures="3" not-run="0" inconclusive="0" ignored="0" skipped="2" invalid="0" date="2026-04-29" time="09:02:43">
   <environment cwd="/workspace/3fa973b4-834e-4f9f-bb84-4461709c8875/sessions/agent_d7447074-a115-40be-8890-21b64114aa1e" os-version="6.12.81-cloudflare-firecracker-2026.4.25" clr-version="10.0.6" nunit-version="2.5.8.0" machine-name="cloudchamber" user="root" platform="Linux" user-domain="" />
   <culture-info current-culture="" current-uiculture="" />

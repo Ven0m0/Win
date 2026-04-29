@@ -69,4 +69,3 @@ Describe "Invoke-ShaderCacheCleanup" {
         }
     }
 }
-

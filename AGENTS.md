@@ -89,6 +89,8 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 | `Scripts/` | PowerShell automation surface (executable scripts) |
 | `Scripts/Common.ps1` | Shared helper library (reuse first) |
 | `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer (fully self-contained; embedded `ExtractScript`) |
+| `Scripts/arc-raiders/` | Game-specific optimization scripts (ARC Raiders, Steam boosters) |
+| `tests/` | Pester test files (*.Tests.ps1) - moved from Scripts/ |
 | `user/.dotfiles/config/` | Tracked dotfile content (deployed by hash, no symlinks) |
 | `install.conf.yaml` | Dotbot configuration → delegates to `Scripts/Setup-Dotfiles.ps1` |
 | `.github/scripts/bootstrap.ps1` | Internet bootstrap entry point |
