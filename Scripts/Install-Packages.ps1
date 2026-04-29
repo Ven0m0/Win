@@ -248,7 +248,8 @@ function Start-InstallPackages {
         if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Scoop...' -Status 'RUNNING'
             try {
-                $scoopInstaller = Join-Path $env:TEMP ("install-scoop-{0}.ps1" -f [System.Guid]::NewGuid().ToString('N'))
+                $guid = [System.Guid]::NewGuid().ToString('N')
+                $scoopInstaller = Join-Path $env:TEMP "install-scoop-$guid.ps1"
                 Invoke-RestMethod -Uri 'https://get.scoop.sh' `
                 -OutFile $scoopInstaller
                 & $scoopInstaller
@@ -420,7 +421,13 @@ function Start-InstallPackages {
 
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
-        $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+        $color = switch ($status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'RUNNING' { 'Cyan' }
+            default { 'White' }
+        }
         Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
     }
 
