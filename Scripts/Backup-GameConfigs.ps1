@@ -1,4 +1,6 @@
-﻿#Requires -RunAsAdministrator
+﻿#Requires -Version 5.1
+
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Backs up game configs for Arc Raiders and Black Ops 6 to dotfiles.

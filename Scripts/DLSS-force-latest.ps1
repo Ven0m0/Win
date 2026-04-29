@@ -1,4 +1,6 @@
-﻿#Requires -RunAsAdministrator
+﻿#Requires -Version 5.1
+
+#Requires -RunAsAdministrator
 
 # Import common functions
 . "$PSScriptRoot\Common.ps1"

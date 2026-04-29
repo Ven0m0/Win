@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Version 5.1
+
+<#
 .NAME
     Tweaking Adapter
 #>

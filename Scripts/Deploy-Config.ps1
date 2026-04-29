@@ -1,4 +1,7 @@
 ﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Deploys all tracked configuration files to their system locations.

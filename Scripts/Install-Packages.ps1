@@ -1,4 +1,7 @@
 ﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.

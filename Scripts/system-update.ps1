@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Version 5.1
+
+<#
 .SYNOPSIS
     Comprehensive system update script for Windows.
 .DESCRIPTION

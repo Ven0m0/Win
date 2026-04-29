@@ -1,4 +1,7 @@
 ﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Deploys dotfiles and sets up a Windows development environment.

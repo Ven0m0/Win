@@ -1,4 +1,7 @@
 ﻿#!/usr/bin/env pwsh
+
+#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Complete Windows 11 setup: installs prerequisites, clones dotfiles, runs bootstrap.

@@ -1,4 +1,6 @@
-﻿<#
+﻿#Requires -Version 5.1
+
+<#
 .SYNOPSIS
     Steam optimization: close steam, configure VDFs for max FPS, restart minimal.
 #>

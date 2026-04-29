@@ -1,4 +1,6 @@
-﻿# allow-scripts.ps1 - PowerShell Script Execution Policy Manager
+﻿#Requires -Version 5.1
+
+# allow-scripts.ps1 - PowerShell Script Execution Policy Manager
 # Enables or disables PowerShell script execution and file associations
 
 #Requires -RunAsAdministrator

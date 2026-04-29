@@ -1,4 +1,6 @@
 ﻿
+#Requires -Version 5.1
+
 
 NetTCPSetting | Select SettingName, CongestionProvider
 netsh int tcp set supplemental template=Internet congestionprovider=BBR2
