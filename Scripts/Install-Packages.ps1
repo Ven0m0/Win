@@ -181,6 +181,7 @@ function Start-InstallPackages {
             'Microsoft.DotNet.DesktopRuntime.8',
             'Microsoft.DotNet.DesktopRuntime.7',
             'Oracle.JavaRuntimeEnvironment',
+            'Microsoft.EdgeWebView2Runtime',
             'EclipseAdoptium.Temurin.25.JRE'
         )
 
