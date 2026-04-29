@@ -89,7 +89,7 @@ function Start-InstallPackages {
                 $scopeArg = ''
                 if ($isAdmin) { $scopeArg = '--scope machine' }
                 & $winget install --id $Id --silent --accept-source-agreements `
-                    --accept-package-agreements $scopeArg 2>&1 | Out-Null
+                    --accept-package-agreements $scopeArg *>$null
                 $ec = $LASTEXITCODE
                 if ($ec -eq 0 -or $ec -eq -1978335189) {
                     Write-Host " [OK]" -ForegroundColor Green
@@ -316,7 +316,7 @@ function Start-InstallPackages {
 
         foreach ($feature in $features) {
             try {
-                DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet 2>&1 | Out-Null
+                DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet *>$null
                 Write-Status "Feature '$feature' enabled" -Status 'OK'
             } catch {
                 Write-Status "Feature '$feature' (may already be enabled)" -Status 'SKIP'
@@ -337,7 +337,7 @@ function Start-InstallPackages {
             Write-Status "Timezone set to '$PostInstallTimeZone'" -Status 'OK'
         } catch {
             try {
-                tzutil.exe /s $PostInstallTimeZone 2>&1 | Out-Null
+                tzutil.exe /s $PostInstallTimeZone *>$null
                 Write-Status "Timezone set to '$PostInstallTimeZone' (tzutil)" -Status 'OK'
             } catch {
                 Write-Status "Timezone '$PostInstallTimeZone' - $($_.Exception.Message)" -Status 'SKIP'
@@ -394,8 +394,8 @@ function Start-InstallPackages {
         # Strip 8.3 names (reduces disk usage, improves performance)
         try {
             $systemDrive = $env:SystemDrive.TrimEnd('\')
-            fsutil.exe 8dot3name set $systemDrive 1 2>&1 | Out-Null
-            fsutil.exe 8dot3name strip /s /f $systemDrive 2>&1 | Out-Null
+            fsutil.exe 8dot3name set $systemDrive 1 *>$null
+            fsutil.exe 8dot3name strip /s /f $systemDrive *>$null
             Write-Status '8.3 file name stripping scheduled' -Status 'OK'
         } catch {
             Write-Status "8.3 stripping: $($_.Exception.Message)" -Status 'SKIP'

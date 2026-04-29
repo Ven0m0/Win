@@ -408,7 +408,7 @@ function Install-WingetTool {
     try {
       $scopeArg = ''
       if ($isAdmin) { $scopeArg = '--scope machine' }
-      & $winget install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg 2>&1 | Out-Null
+      & $winget install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg *>$null
       $ec = $LASTEXITCODE
       # 0 = success, -1978335189 (0x8A150021) = already installed at required version
       if ($ec -eq 0 -or $ec -eq -1978335189) {

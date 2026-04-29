@@ -1598,7 +1598,7 @@ function Wait-ForWinget {
 
     while (-not (Test-Path $ExePath)) {
         if ([datetime]::Now -gt $deadline) {
-            throw "winget not found within ${TimeoutMinutes} minute(s) at '$ExePath'"
+            throw "winget not found within $TimeoutMinutes minute(s) at '$ExePath'"
         }
         Write-Verbose "Waiting for winget..."
         Start-Sleep -Seconds 1

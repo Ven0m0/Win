@@ -181,7 +181,7 @@ function Set-WURegistryTweaks {
 
     foreach ($tweak in $tweaks) {
         if ($PSCmdlet.ShouldProcess("$($tweak.Path)\$($tweak.Name)", 'Set registry value')) {
-            $null = reg.exe add "`"$($tweak.Path)`"" /v $tweak.Name /t $tweak.Type /d $tweak.Data /f 2>&1
+            reg.exe add "`"$($tweak.Path)`"" /v $tweak.Name /t $tweak.Type /d $tweak.Data /f *>$null
         }
     }
 }
@@ -198,7 +198,7 @@ function Remove-WURegistryTweaks {
 
     foreach ($key in $keys) {
         if ($PSCmdlet.ShouldProcess("$($key.Path)\$($key.Name)", 'Remove registry value')) {
-            $null = reg.exe delete "`"$($key.Path)`"" /v $key.Name /f 2>&1
+            reg.exe delete "`"$($key.Path)`"" /v $key.Name /f *>$null
         }
     }
 }
@@ -221,16 +221,16 @@ function Remove-TargetReleaseConstraints {
 
     foreach ($value in $values) {
         if ($PSCmdlet.ShouldProcess("HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\$value", 'Delete')) {
-            $null = reg.exe delete '"HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"' /v $value /f 2>&1
+            reg.exe delete '"HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate"' /v $value /f *>$null
         }
     }
 
     if ($PSCmdlet.ShouldProcess('HKLM\SOFTWARE\Policies\Microsoft\WindowsStore\DisableOSUpgrade', 'Delete')) {
-        $null = reg.exe delete '"HKLM\SOFTWARE\Policies\Microsoft\WindowsStore"' /v DisableOSUpgrade /f 2>&1
+        reg.exe delete '"HKLM\SOFTWARE\Policies\Microsoft\WindowsStore"' /v DisableOSUpgrade /f *>$null
     }
 
     if ($PSCmdlet.ShouldProcess('HKLM\SYSTEM\Setup\UpgradeNotification\UpgradeAvailable', 'Delete')) {
-        $null = reg.exe delete '"HKLM\SYSTEM\Setup\UpgradeNotification"' /v UpgradeAvailable /f 2>&1
+        reg.exe delete '"HKLM\SYSTEM\Setup\UpgradeNotification"' /v UpgradeAvailable /f *>$null
     }
 }
 
