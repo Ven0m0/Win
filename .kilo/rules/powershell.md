@@ -1,4 +1,3 @@
----
 # PowerShell Rules for Ven0m0/Win
 
 These rules apply to all PowerShell files in this repository: `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, and setup scripts.
