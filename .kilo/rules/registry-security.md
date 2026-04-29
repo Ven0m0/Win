@@ -1,4 +1,3 @@
----
 # Registry and Security Rules
 
 These rules govern registry modification practices in the Ven0m0/Win repository. They apply to any script that reads or writes to the Windows Registry under HKLM or HKCU.
