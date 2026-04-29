@@ -51,7 +51,9 @@ function Set-RegistryValueChecked {
     [string]$Data
   )
 
-  Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', $Path, '/v', $Name, '/t', $Type, '/d', $Data, '/f') -Action "Set registry value '$Name' at '$Path'"
+  Invoke-NativeCommand -FilePath 'reg' `
+    -ArgumentList @('add', $Path, '/v', $Name, '/t', $Type, '/d', $Data, '/f') `
+    -Action "Set registry value '$Name' at '$Path'"
 }
 
 function Remove-RegistryValueChecked {
@@ -76,11 +78,17 @@ function Remove-RegistryValueChecked {
   }
 
   if ($Name) {
-    Invoke-NativeCommand -FilePath 'reg' -ArgumentList $argumentList -Action "Remove registry value '$Name' at '$Path'" -AllowedExitCodes $allowedExitCodes
+    Invoke-NativeCommand -FilePath 'reg' `
+    -ArgumentList $argumentList `
+    -Action "Remove registry value '$Name' at '$Path'" `
+    -AllowedExitCodes $allowedExitCodes
     return
   }
 
-  Invoke-NativeCommand -FilePath 'reg' -ArgumentList $argumentList -Action "Remove registry key '$Path'" -AllowedExitCodes $allowedExitCodes
+  Invoke-NativeCommand -FilePath 'reg' `
+    -ArgumentList $argumentList `
+    -Action "Remove registry key '$Path'" `
+    -AllowedExitCodes $allowedExitCodes
 }
 
 function Invoke-Winget {
@@ -148,8 +156,11 @@ function Start-Setup {
     Request-AdminElevation
     Initialize-ConsoleUI -Title "Windows Setup Script (Administrator)"
   } else {
-    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-      Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+    if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).
+      IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
+      Start-Process PowerShell.exe `
+      -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) `
+      -Verb RunAs
       Exit
     }
     $Host.UI.RawUI.WindowTitle = "Windows Setup Script (Administrator)"
@@ -171,11 +182,14 @@ function Start-Setup {
 
 
   if (-not (Get-Command Remove-AppxPackageSafe -ErrorAction SilentlyContinue)) {
-    throw 'Remove-AppxPackageSafe is unavailable. Ensure Common.ps1 is sourced from the Scripts directory before running setup.ps1.'
+    throw 'Remove-AppxPackageSafe is unavailable.' +
+      ' Ensure Common.ps1 is sourced from the Scripts directory before running setup.ps1.'
   }
 
   try {
-    Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', 'HKCU\CONSOLE', '/v', 'VirtualTerminalLevel', '/t', 'REG_DWORD', '/d', '1', '/f') -Action 'Enable virtual terminal support'
+    Invoke-NativeCommand -FilePath 'reg' `
+    -ArgumentList @('add', 'HKCU\CONSOLE', '/v', 'VirtualTerminalLevel', '/t', 'REG_DWORD', '/d', '1', '/f') `
+    -Action 'Enable virtual terminal support'
     Set-Location -Path $env:USERPROFILE -ErrorAction Stop
 
   Write-Host "============================================" -ForegroundColor Cyan
@@ -205,30 +219,56 @@ function Start-Setup {
     'TaskbarMn' = 0
   }
   foreach ($setting in $explorerSettings.GetEnumerator()) {
-    Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name $setting.Name -Type 'REG_DWORD' -Data ([string]$setting.Value)
+    Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' `
+    -Name $setting.Name `
+    -Type 'REG_DWORD' `
+    -Data ([string]$setting.Value)
   }
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState' -Name 'FullPath' -Type 'REG_DWORD' -Data '1'
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize' -Name 'StartupDelayInMSec' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' -Name 'VisualFXSetting' -Type 'REG_DWORD' -Data '2'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState' `
+    -Name 'FullPath' `
+    -Type 'REG_DWORD' `
+    -Data '1'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize' `
+    -Name 'StartupDelayInMSec' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects' `
+    -Name 'VisualFXSetting' `
+    -Type 'REG_DWORD' `
+    -Data '2'
 
   # Dark Mode
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'AppsUseLightTheme' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'SystemUsesLightTheme' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' -Name 'EnableTransparency' -Type 'REG_DWORD' -Data '0'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+    -Name 'AppsUseLightTheme' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+    -Name 'SystemUsesLightTheme' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize' `
+    -Name 'EnableTransparency' `
+    -Type 'REG_DWORD' `
+    -Data '0'
 
   # Classic Right-Click Menu (Win11)
-  Invoke-NativeCommand -FilePath 'reg' -ArgumentList @('add', 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', '/ve', '/f') -Action 'Enable classic context menu'
+  Invoke-NativeCommand -FilePath 'reg' `
+    -ArgumentList @('add', 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32', '/ve', `
+    '/f') `
+    -Action 'Enable classic context menu'
 
   # Privacy & Telemetry
   $privacySettings = @{
     'HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection' = @{'AllowTelemetry' = 0}
-    'HKLM\SOFTWARE\Policies\Microsoft\Windows\System' = @{'PublishUserActivities' = 0; 'UploadUserActivities' = 0; 'EnableActivityFeed' = 0}
+    'HKLM\SOFTWARE\Policies\Microsoft\Windows\System' = @{'PublishUserActivities' = 0; `
+      'UploadUserActivities' = 0; 'EnableActivityFeed' = 0}
     'HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors' = @{'DisableLocation' = 1}
     'HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo' = @{'Enabled' = 0}
     'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search' = @{'AllowCortana' = 0}
     'HKCU\Software\Microsoft\Siuf\Rules' = @{'NumberOfSIUFInPeriod' = 0}
     'HKCU\Software\Microsoft\Windows\CurrentVersion\Privacy' = @{'TailoredExperiencesWithDiagnosticDataEnabled' = 0}
-    'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' = @{'SubscribedContent-338388Enabled' = 0; 'SoftLandingEnabled' = 0}
+    'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager' = @{'SubscribedContent-338388Enabled' = 0; `
+      'SoftLandingEnabled' = 0}
     'HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting' = @{'Disabled' = 1}
     'HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows' = @{'CEIPEnable' = 0}
     'HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications' = @{'GlobalUserDisabled' = 1}
@@ -242,13 +282,22 @@ function Start-Setup {
   }
 
   # OneDrive Removal
-  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive' -Name 'DisableFileSyncNGSC' -Type 'REG_DWORD' -Data '1'
+  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive' `
+    -Name 'DisableFileSyncNGSC' `
+    -Type 'REG_DWORD' `
+    -Data '1'
   Remove-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'OneDrive' -IgnoreMissing
 
   # Gaming Optimizations
   Set-RegistryValueChecked -Path 'HKCU\System\GameConfigStore' -Name 'GameDVR_Enabled' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR' -Name 'AppCaptureEnabled' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' -Name 'HwSchMode' -Type 'REG_DWORD' -Data '2'
+  Set-RegistryValueChecked -Path 'HKCU\Software\Microsoft\Windows\CurrentVersion\GameDVR' `
+    -Name 'AppCaptureEnabled' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers' `
+    -Name 'HwSchMode' `
+    -Type 'REG_DWORD' `
+    -Data '2'
 
   # Mouse Settings - Disable Acceleration
   Set-RegistryValueChecked -Path 'HKCU\Control Panel\Mouse' -Name 'MouseSpeed' -Type 'REG_SZ' -Data '0'
@@ -257,22 +306,49 @@ function Start-Setup {
 
   # Disable Sticky/Filter/Toggle Keys
   Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\StickyKeys' -Name 'Flags' -Type 'REG_SZ' -Data '506'
-  Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\Keyboard Response' -Name 'Flags' -Type 'REG_SZ' -Data '122'
+  Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\Keyboard Response' `
+    -Name 'Flags' `
+    -Type 'REG_SZ' `
+    -Data '122'
   Set-RegistryValueChecked -Path 'HKCU\Control Panel\Accessibility\ToggleKeys' -Name 'Flags' -Type 'REG_SZ' -Data '58'
 
   # Network Optimizations - Reduce Latency
-  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -Name 'NetworkThrottlingIndex' -Type 'REG_DWORD' -Data '4294967295'
-  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' -Name 'SystemResponsiveness' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -Name 'TcpAckFrequency' -Type 'REG_DWORD' -Data '1'
-  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' -Name 'TCPNoDelay' -Type 'REG_DWORD' -Data '1'
+  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' `
+    -Name 'NetworkThrottlingIndex' `
+    -Type 'REG_DWORD' `
+    -Data '4294967295'
+  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile' `
+    -Name 'SystemResponsiveness' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' `
+    -Name 'TcpAckFrequency' `
+    -Type 'REG_DWORD' `
+    -Data '1'
+  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces' `
+    -Name 'TCPNoDelay' `
+    -Type 'REG_DWORD' `
+    -Data '1'
 
   # Windows Update Settings
-  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name 'NoAutoRebootWithLoggedOnUsers' -Type 'REG_DWORD' -Data '1'
+  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' `
+    -Name 'NoAutoRebootWithLoggedOnUsers' `
+    -Type 'REG_DWORD' `
+    -Data '1'
 
   # Compression Settings
-  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration' -Name 'DisableResetbase' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem' -Name 'NtfsDisableCompression' -Type 'REG_DWORD' -Data '0'
-  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Policies' -Name 'NtfsDisableCompression' -Type 'REG_DWORD' -Data '0'
+  Set-RegistryValueChecked -Path 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\SideBySide\Configuration' `
+    -Name 'DisableResetbase' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Control\FileSystem' `
+    -Name 'NtfsDisableCompression' `
+    -Type 'REG_DWORD' `
+    -Data '0'
+  Set-RegistryValueChecked -Path 'HKLM\SYSTEM\CurrentControlSet\Policies' `
+    -Name 'NtfsDisableCompression' `
+    -Type 'REG_DWORD' `
+    -Data '0'
 
   # ============================================
   # POWER MANAGEMENT
@@ -280,11 +356,21 @@ function Start-Setup {
   Set-SetupStep -Name 'power management'
   Write-Host "[2/12] Configuring power settings..." -ForegroundColor Cyan
   Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-h', 'off') -Action 'Disable hibernation'
-  Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-duplicatescheme', 'e9a42b02-d5df-448d-aa00-03f14749eb61') -Action 'Duplicate ultimate performance plan'
-  Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('/S', 'e9a42b02-d5df-448d-aa00-03f14749eb61') -Action 'Select ultimate performance plan'
-  Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-setacvalueindex', 'SCHEME_CURRENT', 'SUB_PROCESSOR', 'PROCTHROTTLEMIN', '100') -Action 'Set minimum processor state'
-  Invoke-NativeCommand -FilePath 'powercfg' -ArgumentList @('-setactive', 'SCHEME_CURRENT') -Action 'Activate current power scheme'
-  Invoke-NativeCommand -FilePath 'fsutil' -ArgumentList @('behavior', 'set', 'disablecompression', '0') -Action 'Enable NTFS compression behavior'
+  Invoke-NativeCommand -FilePath 'powercfg' `
+    -ArgumentList @('-duplicatescheme', 'e9a42b02-d5df-448d-aa00-03f14749eb61') `
+    -Action 'Duplicate ultimate performance plan'
+  Invoke-NativeCommand -FilePath 'powercfg' `
+    -ArgumentList @('/S', 'e9a42b02-d5df-448d-aa00-03f14749eb61') `
+    -Action 'Select ultimate performance plan'
+  Invoke-NativeCommand -FilePath 'powercfg' `
+    -ArgumentList @('-setacvalueindex', 'SCHEME_CURRENT', 'SUB_PROCESSOR', 'PROCTHROTTLEMIN', '100') `
+    -Action 'Set minimum processor state'
+  Invoke-NativeCommand -FilePath 'powercfg' `
+    -ArgumentList @('-setactive', 'SCHEME_CURRENT') `
+    -Action 'Activate current power scheme'
+  Invoke-NativeCommand -FilePath 'fsutil' `
+    -ArgumentList @('behavior', 'set', 'disablecompression', '0') `
+    -Action 'Enable NTFS compression behavior'
 
   # ============================================
   # SERVICE MANAGEMENT
@@ -329,9 +415,13 @@ function Start-Setup {
   } else {
     Write-Host "  OneDrive is not running; skipping process stop" -ForegroundColor Yellow
   }
-  Invoke-NativeCommand -FilePath "$env:SystemRoot\System32\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (System32)'
+  Invoke-NativeCommand -FilePath "$env:SystemRoot\System32\OneDriveSetup.exe" `
+    -ArgumentList @('/uninstall') `
+    -Action 'Uninstall OneDrive (System32)'
   if (Test-Path "$env:SystemRoot\SysWOW64\OneDriveSetup.exe") {
-    Invoke-NativeCommand -FilePath "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" -ArgumentList @('/uninstall') -Action 'Uninstall OneDrive (SysWOW64)'
+    Invoke-NativeCommand -FilePath "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" `
+    -ArgumentList @('/uninstall') `
+    -Action 'Uninstall OneDrive (SysWOW64)'
   }
 
   $bloatwareApps = @(
@@ -355,7 +445,11 @@ function Start-Setup {
   # ============================================
   Set-SetupStep -Name 'package upgrades'
   Write-Host "[6/12] Updating existing packages..." -ForegroundColor Cyan
-  Invoke-Winget -ArgumentList @('upgrade', '-r', '-u', '-h', '--accept-package-agreements', '--accept-source-agreements', '--force', '--purge', '--disable-interactivity', '--nowarn', '--no-proxy', '--include-unknown') -Action 'Upgrade installed winget packages'
+  Invoke-Winget `
+    -ArgumentList @('upgrade', '-r', '-u', '-h', '--accept-package-agreements', `
+      '--accept-source-agreements', '--force', '--purge', `
+      '--disable-interactivity', '--nowarn', '--no-proxy', '--include-unknown') `
+    -Action 'Upgrade installed winget packages'
 
   Set-SetupStep -Name 'runtime installation'
   Write-Host "[7/12] Installing runtimes..." -ForegroundColor Cyan
@@ -381,7 +475,9 @@ function Start-Setup {
     Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install toolchain package '$pkg'"
   }
   if (Get-Command uv -ErrorAction SilentlyContinue) {
-    Invoke-NativeCommand -FilePath 'uv' -ArgumentList @('python', 'install') -Action 'Install uv-managed Python runtimes'
+    Invoke-NativeCommand -FilePath 'uv' `
+    -ArgumentList @('python', 'install') `
+    -Action 'Install uv-managed Python runtimes'
   }
 
   Set-SetupStep -Name 'development tool installation'
@@ -436,7 +532,9 @@ function Start-Setup {
     Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install application '$pkg'"
   }
 
-  Invoke-Winget -ArgumentList @('install', 'FFmpeg (Essentials Build)', '-h') -Action 'Install FFmpeg (Essentials Build)'
+  Invoke-Winget `
+    -ArgumentList @('install', 'FFmpeg (Essentials Build)', '-h') `
+    -Action 'Install FFmpeg (Essentials Build)'
   Invoke-Winget -ArgumentList @('install', 'CodeF0x.ffzap', '-h') -Action 'Install ffzap'
   Invoke-Winget -ArgumentList @('install', 'PaulPacifico.ShutterEncoder', '-h') -Action 'Install Shutter Encoder'
   Invoke-Winget -ArgumentList @('install', 'Microsoft.Edit', '-h') -Action 'Install Microsoft Edit'
@@ -488,7 +586,9 @@ function Start-Setup {
   foreach ($file in $firefoxFiles) { Remove-ItemBestEffort -Path $file }
 
   # Event Logs
-  Invoke-NativeCommand -FilePath 'wevtutil.exe' -ArgumentList @('cl', 'Application') -Action 'Clear Application event log'
+  Invoke-NativeCommand -FilePath 'wevtutil.exe' `
+    -ArgumentList @('cl', 'Application') `
+    -Action 'Clear Application event log'
   Invoke-NativeCommand -FilePath 'wevtutil.exe' -ArgumentList @('cl', 'System') -Action 'Clear System event log'
 
   # Temp Files
@@ -531,7 +631,8 @@ function Start-Setup {
     foreach ($pattern in $oneDrivePatterns) { Remove-ItemBestEffort -Path "$ODrive\$pattern" -Recurse }
     $scalingFactors = @("chrome_200_percent.pak", "chrome_300_percent.pak", "chrome_400_percent.pak")
     foreach ($factor in $scalingFactors) {
-      Get-ChildItem -Path $ODrive -Filter $factor -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+      Get-ChildItem -Path $ODrive -Filter $factor -Recurse -ErrorAction SilentlyContinue `
+    | Remove-Item -Force -ErrorAction SilentlyContinue
     }
   }
 
@@ -548,13 +649,19 @@ function Start-Setup {
 
   # Disk Operations
   Invoke-NativeCommand -FilePath 'cleanmgr.exe' -ArgumentList @('/sagerun:65535') -Action 'Run Disk Cleanup'
-  if (Get-Command msizap -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'msizap' -ArgumentList @('G!') -Action 'Run MSI cleanup' }
+  if (Get-Command msizap -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'msizap' `
+    -ArgumentList @('G!') `
+    -Action 'Run MSI cleanup' }
 
   # System Maintenance
-  Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Online', '/Cleanup-Image', '/RestoreHealth', '/Quiet') -Action 'Restore Windows image health'
+  Invoke-NativeCommand -FilePath 'DISM' `
+    -ArgumentList @('/Online', '/Cleanup-Image', '/RestoreHealth', '/Quiet') `
+    -Action 'Restore Windows image health'
   Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Cleanup-Mountpoints') -Action 'Clean DISM mount points'
   Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/CleanUp-Wim') -Action 'Clean WIM resources'
-  Invoke-NativeCommand -FilePath 'DISM' -ArgumentList @('/Online', '/Cleanup-Image', '/StartComponentCleanup', '/ResetBase') -Action 'Start component cleanup'
+  Invoke-NativeCommand -FilePath 'DISM' `
+    -ArgumentList @('/Online', '/Cleanup-Image', '/StartComponentCleanup', '/ResetBase') `
+    -Action 'Start component cleanup'
   Invoke-NativeCommand -FilePath 'sfc' -ArgumentList @('/scannow') -Action 'Run System File Checker'
   Invoke-NativeCommand -FilePath 'ipconfig' -ArgumentList @('/release') -Action 'Release IP configuration'
   Invoke-NativeCommand -FilePath 'ipconfig' -ArgumentList @('/renew') -Action 'Renew IP configuration'
@@ -565,9 +672,16 @@ function Start-Setup {
 
   # Final Updates
   Set-SetupStep -Name 'final package upgrades'
-  Invoke-Winget -ArgumentList @('upgrade', '-h', '-r', '-u', '--accept-package-agreements', '--accept-source-agreements', '--include-unknown', '--force', '--purge', '--disable-interactivity') -Action 'Run final winget upgrades'
-  if (Get-Command scoop -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'scoop' -ArgumentList @('update', '--all') -Action 'Update Scoop packages' }
-  if (Get-Command choco -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'choco' -ArgumentList @('upgrade', 'all', '-y') -Action 'Update Chocolatey packages' }
+  Invoke-Winget `
+    -ArgumentList @('upgrade', '-h', '-r', '-u', '--accept-package-agreements', `
+      '--accept-source-agreements', '--include-unknown', '--force', '--purge', '--disable-interactivity') `
+    -Action 'Run final winget upgrades'
+  if (Get-Command scoop -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'scoop' `
+    -ArgumentList @('update', '--all') `
+    -Action 'Update Scoop packages' }
+  if (Get-Command choco -ErrorAction SilentlyContinue) { Invoke-NativeCommand -FilePath 'choco' `
+    -ArgumentList @('upgrade', 'all', '-y') `
+    -Action 'Update Chocolatey packages' }
   if (Get-Command pip -ErrorAction SilentlyContinue) {
     $outdatedPackages = & pip list --outdated --format=freeze 2>&1
     $pipListExitCode = $LASTEXITCODE
@@ -577,7 +691,9 @@ function Start-Setup {
       foreach ($package in $outdatedPackages) {
         $packageName = ($package -split '==')[0]
         if ($packageName) {
-          Invoke-NativeCommand -FilePath 'pip' -ArgumentList @('install', '--upgrade', $packageName) -Action "Upgrade pip package '$packageName'"
+          Invoke-NativeCommand -FilePath 'pip' `
+    -ArgumentList @('install', '--upgrade', $packageName) `
+    -Action "Upgrade pip package '$packageName'"
         }
       }
     }
