@@ -1,7 +1,6 @@
 ---
 name: bootstrap-deployment
 description: Guidance for bootstrap and dotfile deployment workflows: dotbot config, Setup-Dotfiles.ps1, winget packages, and post-deploy verification.
-allowed-tools: Read, Write, Edit, Grep, Task (general)
 ---
 
 # Bootstrap & Deployment Skill

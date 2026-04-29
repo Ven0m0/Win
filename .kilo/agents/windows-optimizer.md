@@ -1,8 +1,5 @@
 ---
-name: windows-optimizer
 description: Agent specialized in Windows system optimization, registry tweaks, debloating, and gaming performance tuning for the Win dotfiles suite.
-fallback: orchestrator
-tools: Explore, General
 ---
 
 # Windows Optimizer Agent

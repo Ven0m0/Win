@@ -1,7 +1,6 @@
 ---
 name: validation
 description: Run narrow, repo-specific validation for PowerShell scripts, config deployment, autounattend.xml, and guidance files in the Win dotfiles project.
-allowed-tools: Read, Grep, Task (general)
 ---
 
 # Validation Skill for Win Dotfiles

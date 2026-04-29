@@ -1,7 +1,6 @@
 ---
 name: win-dotfiles
 description: Specialized for Windows dotfiles repos: PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, dotbot deployment, registry tweaks, Windows Terminal, winget packages.
-allowed-tools: Read, Write, Edit, Glob, Grep, Task (general, explore)
 ---
 
 # Windows Dotfiles Skill
