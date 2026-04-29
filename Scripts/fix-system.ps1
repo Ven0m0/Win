@@ -294,13 +294,13 @@ function Start-SystemFix {
                         if (Test-Path $swDistribPath) {
                             $backupName = "$swDistribPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                             Write-Info "Renaming SoftwareDistribution to $backupName"
-                            Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Sil
+                            Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction SilentlyContinue
                         }
 
                         if (Test-Path $catRootPath) {
                             $backupName = "$catRootPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                             Write-Info "Renaming CatRoot2 to $backupName"
-                            Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Silen
+                            Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction SilentlyContinue
                         }
 
                         Write-Info "Triggering Windows Update scan..."

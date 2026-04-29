@@ -11,6 +11,7 @@ Describe "ConvertFrom-VDF" {
 "AppState"
 {
     "appid" "730"
+
     "name" "Counter-Strike 2"
 }
 "@
@@ -92,7 +93,9 @@ Describe "ConvertTo-VDF" {
     }
 }
 Describe "VDF Parsing and Converting" {
+
     It "Should convert back and forth correctly" {
+
         $vdf = @"
 "AppState"
 {
@@ -118,6 +121,7 @@ Describe "VDF Parsing and Converting" {
 }
 
 Describe "ConvertFrom-VDF edge cases" {
+
     It "Should ignore empty lines" {
         $vdf = @"
 
@@ -125,6 +129,7 @@ Describe "ConvertFrom-VDF edge cases" {
 {
 
     "appid" "730"
+
 
 }
 "@
@@ -150,7 +155,9 @@ Describe "ConvertFrom-VDF values with spaces" {
 "AppState"
 {
     "name" "Counter-Strike Global Offensive"
+
     "path" "C:\Program Files (x86)\Steam"
+
 }
 "@
         $lines = $vdf -split "`n"
