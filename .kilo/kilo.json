@@ -8,9 +8,6 @@
 	"skills": {
 		"paths": [".kilo/skills", ".claude/skills"]
 	},
-	"agents": {
-		"paths": [".kilo/agents"]
-	},
 	"permission": {
 		"*": "allow",
 		"read": { "*.env": "deny", "*.lock": "deny", "*": "allow" },
@@ -98,11 +95,6 @@
 			"url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa",
 			"enabled": true,
 			"headers": { "x-api-key": "{env:EXA_API_KEY}" }
-		},
-		"fast-filesystem": {
-			"type": "local",
-			"command": ["npx", "-y", "fast-filesystem@latest"],
-			"enabled": false
 		},
 		"serena": {
 			"type": "local",
