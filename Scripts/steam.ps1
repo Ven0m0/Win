@@ -1,4 +1,4 @@
-# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
+﻿# Steam_min.ps1 - always restarts Steam in SmallMode with reduced RAM and CPU usage when idle - AveYo, 2025.08.23
 
 # Options
 $FriendsSignIn = 0
@@ -16,8 +16,10 @@ function Start-SteamMin {
     param()
 
     # Steam quick launch arguments
-    $QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite " + ($(if ($NoJoystick) { "-nojoy " } else { "" }))
-    $QUICK += ($(if ($NoShaders) { "-noshaders " } else { "" })) + ($(if ($NoGPU) { "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox " } else { "" }))
+    $QUICK = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite "
+    $QUICK += ($(if ($NoJoystick) { "-nojoy " } else { "" }))
+    $QUICK += ($(if ($NoShaders) { "-noshaders " } else { "" }))
+    $QUICK += ($(if ($NoGPU) { "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox " } else { "" }))
     $QUICK += "-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console"
 
     # Locate Steam installation
@@ -62,11 +64,13 @@ function Start-SteamMin {
       $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
       if ($key["SteamDefaultDialog"] -ne '"#app_games"') { $key["SteamDefaultDialog"] = '"#app_games"'; $write = $true }
       $ui = $key["FriendsUI"]["FriendsUIJSON"]; if (-not ($ui -like '*{*')) { $ui = '' }
-      if ($FriendsSignIn -eq 0 -and ($ui -like '*bSignIntoFriends\":true*' -or $ui -like '*PersonaNotifications\":1*') ) {
+      if ($FriendsSignIn -eq 0 -and
+          ($ui -like '*bSignIntoFriends\":true*' -or $ui -like '*PersonaNotifications\":1*')) {
         $ui = $ui.Replace('bSignIntoFriends\":true','bSignIntoFriends\":false')
         $ui = $ui.Replace('PersonaNotifications\":1','PersonaNotifications\":0'); $write = $true
       }
-      if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*') ) {
+      if ($FriendsAnimed -eq 0 -and
+          ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*')) {
         $ui = $ui.Replace('bAnimatedAvatars\":true','bAnimatedAvatars\":false')
         $ui = $ui.Replace('bDisableRoomEffects\":false','bDisableRoomEffects\":true'); $write = $true
       }
@@ -75,7 +79,8 @@ function Start-SteamMin {
     }
 
     # --- Update localconfig.vdf: library perf/small mode
-    $opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
+    $opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; }
+    $opt['LibraryDisplayIconInGameList'] = 0
     if ($ShowGameIcons -eq 1) {$opt.LibraryDisplayIconInGameList = 1}
     Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
       $file = $_.FullName

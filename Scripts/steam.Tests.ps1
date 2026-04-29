@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Define dummy functions for missing commands on non-Windows environments
