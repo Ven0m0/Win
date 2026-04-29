@@ -69,13 +69,13 @@ $StartTime = Get-Date
 
 Write-Header "Windows System Repair"
 Write-Info "Start Time: $($StartTime.ToString('yyyy-MM-dd HH:mm:ss'))"
-Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=$SkipWUReset, ScheduleChkdsk=$ScheduleChkdsk, DryRun=$DryRun, NoReboot=$NoReboot"
+Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=
 
 if ($DryRun) {
     Write-Warn "DRY RUN MODE - No commands will be executed"
 }
 
-Add-Log "Repair started with parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=$SkipWUReset, ScheduleChkdsk=$ScheduleChkdsk, DryRun=$DryRun, NoReboot=$NoReboot"
+Add-Log "Repair started with parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetwork
 
 # Step 1: DISM Health Check
 Write-Info "=== Step 1: DISM Health Check ==="
@@ -290,13 +290,13 @@ if (-not $QuickScan) {
                     if (Test-Path $swDistribPath) {
                         $backupName = "$swDistribPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                         Write-Info "Renaming SoftwareDistribution to $backupName"
-                        Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction SilentlyContinue
+                        Rename-Item -Path $swDistribPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Sil
                     }
 
                     if (Test-Path $catRootPath) {
                         $backupName = "$catRootPath-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                         Write-Info "Renaming CatRoot2 to $backupName"
-                        Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction SilentlyContinue
+                        Rename-Item -Path $catRootPath -NewName (Split-Path -Leaf $backupName) -Force -ErrorAction Silen
                     }
 
                     Write-Info "Triggering Windows Update scan..."
@@ -397,7 +397,7 @@ $((Get-Log) -join "`n")
 }
 
 if (-not $NoReboot -and (-not $DryRun) -and ($Results.Network -eq 'COMPLETE' -or $Results.WUReset -eq 'COMPLETE')) {
-    Write-Host "`nA system REBOOT is recommended to complete network and Windows Update changes." -ForegroundColor Yellow
+    Write-Host "`nA system REBOOT is recommended to complete network and Windows Update changes." -ForegroundColor Yello
     Write-Host "Run: shutdown /r /t 0" -ForegroundColor Yellow
 }
 

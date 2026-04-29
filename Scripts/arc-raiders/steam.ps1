@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Steam optimization: close steam, configure VDFs for max FPS, restart minimal.
 #>
@@ -78,7 +78,7 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
     if ($write) { sc-nonew $file (ConvertTo-VDF -Data $vdf); Write-Host "  Updated $file" }
 }
 
-$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
+$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList
 if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
 
 Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {

@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -53,7 +53,7 @@ $script:Results = @{}
 
 function Write-Status {
     param([string]$Message, [string]$Status = 'INFO')
-    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+    $color = switch ($Status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'Wh
     Write-Host "  [$Status] $Message" -ForegroundColor $color
     $script:Results[$Message] = $Status
 }
@@ -381,7 +381,7 @@ Write-Host ''
 
 foreach ($key in $script:Results.Keys | Sort-Object) {
     $status = $script:Results[$key]
-    $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'White' } }
+    $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'RUNNING' { 'Cyan' } default { 'Wh
     Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
 }
 

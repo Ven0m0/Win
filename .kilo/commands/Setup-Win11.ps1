@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     One-command Windows 11 setup: installs prerequisites, clones dotfiles, and runs bootstrap.
@@ -124,7 +124,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 # PowerShell 7 (optional but recommended)
 if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
     $ps7Installed = Invoke-Operation -Name 'Installing PowerShell 7+' -Action {
-        winget install --id Microsoft.PowerShell --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        winget install --id Microsoft.PowerShell --silent --accept-source-agreements --accept-package-agreements | Out-N
     }
 } else {
     Write-Status 'PowerShell 7+ is available' -Status 'OK'
@@ -171,7 +171,7 @@ if (-not (Test-Path $repoDir)) {
 # Ensure Python and dotbot are installed
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
     Write-Status 'Installing Python via winget...' -Status 'RUNNING'
-    try { winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null; Write-Status 'Python installed' -Status 'OK' }
+    try { winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-N
     catch { Write-Status "Python installation failed: $_" -Status 'WARN' }
 }
 
@@ -213,7 +213,7 @@ if (-not $SkipWSL) {
         if ($Unattended) {
             $installWSL = $true
         } else {
-            $installWSL = $host.UI.PromptForChoice('WSL2', 'Install WSL2 (recommended for Windows 11)?', @('&Yes', '&No'), 0) -eq 0
+            $installWSL = $host.UI.PromptForChoice('WSL2', 'Install WSL2 (recommended for Windows 11)?', @('&Yes', '&No'
         }
 
         if ($installWSL) {
@@ -262,7 +262,7 @@ Write-Host ''
 if ($Unattended) {
     Write-Host 'Setup completed in unattended mode. Check results above for any failures.' -ForegroundColor Cyan
 } else {
-    Write-Host 'Setup completed! If any errors appeared above, review and re-run with -Force if needed.' -ForegroundColor Cyan
+    Write-Host 'Setup completed! If any errors appeared above, review and re-run with -Force if needed.' -ForegroundColo
 }
 
 Write-Host ''

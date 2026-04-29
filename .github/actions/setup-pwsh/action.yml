@@ -1,0 +1,69 @@
+name: Setup PowerShell
+description: Setup PowerShell environment for CI/CD
+author: Ven0m0
+
+inputs:
+  version:
+    description: PowerShell version to install (e.g., "latest", "7.4", "5.1")
+    required: false
+    default: "latest"
+
+runs:
+  using: composite
+  steps:
+    - name: Install PowerShell (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        pwsh_version="${{ inputs.version }}"
+        if [ "$pwsh_version" = "latest" ]; then
+          pwsh_version="latest"
+        fi
+        
+        # Install PowerShell based on OS
+        if [ -f /etc/os-release ]; then
+          . /etc/os-release
+          case "$ID" in
+            ubuntu|debian)
+              # Install prerequisites
+              sudo apt-get update
+              sudo apt-get install -y wget apt-transport-https software-properties-common
+              
+              # Download and install PowerShell
+              wget -q https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb
+              sudo dpkg -i packages-microsoft-prod.deb
+              sudo apt-get update
+              sudo apt-get install -y powershell
+              ;;
+            fedora|rhel|centos)
+              # Install via RPM
+              curl -sSL https://packages.microsoft.com/config/rhel/8/prod.repo | sudo tee /etc/yum.repos.d/microsoft.repo
+              sudo yum install -y powershell
+              ;;
+            alpine)
+              # Alpine needs different approach
+              apk add --no-cache powershell
+              ;;
+          esac
+        fi
+        
+        # Verify installation
+        pwsh --version || echo "PowerShell installation may need manual setup"
+
+    - name: Install PowerShell (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "Windows runner detected - PowerShell should already be available"
+        $PSVersionTable.PSVersion
+
+        # Optionally install specific version via winget if needed
+        $pwsh_version = "${{ inputs.version }}"
+        if ($pwsh_version -ne "latest" -and $pwsh_version -ne "5.1") {
+          Write-Host "Installing PowerShell $pwsh_version..."
+          winget install --id Microsoft.PowerShell --version $pwsh_version --accept-source-agreements --accept-package-agreements
+        }
+
+branding:
+  icon: terminal
+  color: blue

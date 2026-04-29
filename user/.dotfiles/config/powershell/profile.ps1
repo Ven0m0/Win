@@ -1,4 +1,4 @@
-## PowerShell Profile
+﻿## PowerShell Profile
 # Location: $HOME\.dotfiles\config\powershell\profile.ps1
 # Managed by dotbot
 
