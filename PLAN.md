@@ -7,10 +7,35 @@ This plan captures four work items from `TODO.md`: integrating `py-psscriptanaly
 ## Research Notes
 
 ### T001 — py-psscriptanalyzer
-Context7 returned no documentation for `py-psscriptanalyzer`; the package appears to be a thin Python wrapper around PSScriptAnalyzer. Since no canonical docs were found, treat it as a CLI tool with `--recursive` and `--format` flags. Verify availability via `pip install py-psscriptanalyzer` or `pipx` before adding to `mise.toml`.
+Ref-tools (Exa code search + web fetch) retrieved the official docs at https://py-psscriptanalyzer.thetestlabs.io. Key findings:
+- **Installation:** `pip install py-psscriptanalyzer` (requires Python 3.9+, PowerShell Core 7.0+). The tool auto-installs the PSScriptAnalyzer module on first use.
+- **CLI flags:** `--recursive`, `--format`, `--severity {Information,Warning,Error,All}`, `--security-only`, `--output-format {text,json,sarif}`, `--output-file`, `--include-rules`, `--exclude-rules`.
+- **Pre-commit hooks:** Two hooks available: `py-psscriptanalyzer` (lint) and `py-psscriptanalyzer-format` (format). Config example:
+  ```yaml
+  repos:
+    - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+      rev: v0.3.1
+      hooks:
+        - id: py-psscriptanalyzer
+          args: ["--severity", "Warning"]
+        - id: py-psscriptanalyzer-format
+  ```
+- **CI integration:** GitHub Actions example uses `pip install py-psscriptanalyzer` then `py-psscriptanalyzer --recursive`. SARIF output is supported for GitHub Code Scanning.
+- **Environment variable:** `SEVERITY_LEVEL` can set default severity (overridden by CLI `--severity`).
+- **Action for PLAN:** Add `py-psscriptanalyzer` to `mise.toml` tasks, add `.pre-commit-config.yaml` with the two hooks, and update `.github/workflows/powershell.yml` to use `py-psscriptanalyzer --recursive --severity Error` (or Warning).
 
 ### T002 — ShadowWhisperer Fix-WinUpdates
-Exa search did not surface the exact `ShadowWhisperer/Fix-WinUpdates` repository; instead it returned several similar Windows Update repair scripts (e.g., `SysAdminDoc/WURepair`, `taylornrolyat/Repair-WindowsUpdates`). This suggests the upstream repo may be niche or renamed. Before implementation, confirm the repository still exists at `https://github.com/ShadowWhisperer/Fix-WinUpdates`. If unavailable, evaluate `SysAdminDoc/WURepair` as a fallback because it supports granular repair switches (`-RepairServices`, `-RepairDLLs`, `-Quick`) and is actively maintained.
+GitHub API confirmed `ShadowWhisperer/Fix-WinUpdates` exists (8 stars, 1 fork, Batchfile 100%). README and `Fix Updates.bat` retrieved via `octocode_githubGetFileContent`. Key findings:
+- **What it does:** Batch script that repairs Windows Update via 7 steps:
+  1. Stops BITS and wuauserv services
+  2. Configures service start types (wuauserv=auto, BITS=delayed-auto, AppReadiness=manual, CryptSvc=auto)
+  3. Deletes pending/cached updates (Temp, Prefetch, SoftwareDistribution, reboot-required registry keys)
+  4. Deletes malformed registry keys under `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore`
+  5. Resets catroot2, re-registers WU DLLs (atl.dll, msxml*.dll, wuaueng*.dll, etc.), resets BITS, winsock
+  6. Applies registry fixes (disable "Get updates ASAP", disable "Let's finish setting up your device", remove target release version constraints)
+  7. Runs gpupdate /force, prompts for reboot
+- **Caveats:** The script is a `.bat` file, not PowerShell. It uses `>nul 2>&1` everywhere (hides failures). It prompts for reboot with `pause`, which is non-ideal for automation. It modifies HKCU while running as SYSTEM in autounattend context (may not apply to the intended user).
+- **Action for PLAN:** Instead of downloading and executing the batch file blindly, port the safe operations (service reset, SoftwareDistribution clear, DLL re-register) into a PowerShell script `Scripts/Fix-WindowsUpdates.ps1` using `Common.ps1` helpers. Skip the interactive `pause` and `shutdown /r`. Add `-WhatIf` support.
 
 ### T003 — winget wait-loop
 Exa retrieved the exact schneegans sample (see https://schneegans.de/windows/unattend-generator/samples/). Key findings:
@@ -20,7 +45,7 @@ Exa retrieved the exact schneegans sample (see https://schneegans.de/windows/una
 - The build guard (`-lt 26100`) restricts the script to Windows 11 24H2+. For Windows 10 autounattend, omit the guard or adjust the build number.
 
 ### T004 — autounattend.xml fixes
-Exa surfaced multiple common failure modes for embedded-script autounattend files:
+Exa + GitHub research surfaced multiple common failure modes for embedded-script autounattend files:
 1. **ExtractScript mechanism** — The `ExtractScript` entity must be correctly encoded (`&#xA;` for newlines) and the extraction command must reference `C:\Windows\Panther\unattend.xml` (not `autounattend.xml`). See memstechtips/UnattendedWinstall commit `cfc62e2` for a working pattern.
 2. **FirstLogonCommands vs RunSynchronous** — `FirstLogonCommands` belongs in the `oobeSystem` pass; `RunSynchronousCommand` belongs in `specialize`. Mixing them causes Windows Setup to skip commands. See SuperUser #1342587.
 3. **Log locations** — If scripts fail, inspect:
