@@ -41,7 +41,11 @@
 		"opencode-betterread",
 		"opencode-helicone-session",
 		"opencode-sequential-thinking",
-		"opencode-web-search"
+		"opencode-web-search",
+		".kilo/plugins/context-shield.ts",
+		".kilo/plugins/json-healer.ts",
+		".kilo/plugins/custom-tools.ts",
+		".kilo/plugins/gitingest.ts"
 	],
 	"formatter": {
 		"biome": {

@@ -232,7 +232,7 @@ Review together:
 - `install.conf.yaml`
 - `Scripts/Setup-Dotfiles.ps1`
 - `README.md` (setup sections)
-- `.kilo/skills/bootstrap-deployment.md`
+- `.kilo/skills/bootstrap-deployment/SKILL.md`
 
 ### AI Guidance Changes
 
@@ -341,6 +341,46 @@ Installed plugins are listed in `.kilo/kilo.json` under the `plugin` key.
 | `opencode-web-search` | Built-in web search fallback |
 
 Plugins are resolved via npm or GitHub. Update versions in `kilo.json` and restart the session to apply changes.
+
+### Local Plugins (`.kilo/plugins/`)
+
+These custom plugins are registered as local paths in kilo.json:
+
+| Plugin | Purpose | Key Tools |
+|--------|---------|-----------|
+| `context-shield` | Output compaction, read limit enforcement, subagent routing | `cshield_toggle` |
+| `json-healer` | Auto-repair malformed JSON in tool args/outputs | (automatic) |
+| `custom-tools` | Register custom tools from `.kilo/tools/` | `json_repair`, `hl_edit`, `hl_read`, `hl_grep`, `sg`, `sgr` |
+| `gitingest` | Fetch external GitHub repos via gitingest.com API | `gitingest` |
+
+### Hash-Anchored Editing Workflow
+
+Custom tools (`hl_read`, `hl_grep`, `hl_edit`) provide a hash-anchored editing workflow that prevents stale edits:
+
+1. **Read** → `hl_read` returns each line as `LINE#HASH|content`
+2. **Search** → `hl_grep` returns matches with hash-annotated line references
+3. **Edit** → `hl_edit` validates hash anchors before applying changes; overlapping ranges are rejected
+
+**Example workflow:**
+```
+hl_read path/to/file.ts
+hl_grep "function hello"
+hl_edit { filePath: "path/to/file.ts", edits: [{ op: "replace", pos: "10#VK", lines: "function hello() {\n  return 42;\n}" }] }
+```
+
+---
+
+## Tools
+
+Custom tools in `.kilo/tools/` are registered via `custom-tools` plugin and provide domain-specific functionality:
+
+| Tool | Purpose |
+|------|---------|
+| `json_repair` | Repair malformed/incomplete JSON. Modes: `repair` (structural fix), `extract` (first JSON block from prose), `extract_all` (all JSON blocks as array), `strip` (remove LLM wrappers then repair). Pass file path or raw string. |
+| `hl_edit` | Hash-anchored file editor. Two modes: **Quick** (`start_line`/`end_line`/`new_code`) and **Hash** (`edits[]` with `LINE#ID` anchors for concurrent-safe editing). Handles BOM/CRLF automatically. |
+| `hl_read` | Read file with `LINE#HASH|content` annotations. Supports pagination via `offset`/`limit`. On directories, returns tree listing with file sizes. Binary files rejected. |
+| `hl_grep` | Search files with hash-annotated results. Uses ripgrep if available, falls back to fs-based search. Results are directly usable as `hl_edit` anchors. |
+| `sg` / `sgr` | AST structural code search/replace via ast-grep. Meta-vars: `$VAR` (single node), `$$$` (multi-node). 25+ languages supported. Requires `@ast-grep/cli` in PATH. |
 
 ---
 
