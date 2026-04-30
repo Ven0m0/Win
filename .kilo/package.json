@@ -2,7 +2,7 @@
   "dependencies": {
     "@ast-grep/cli": "^0.42.0",
     "@opencode-ai/plugin": "1.14.26",
-    "@kilocode/plugin": "7.2.24"
+    "@kilocode/plugin": "7.1.23"
   },
   "devDependencies": {
     "@opencode-ai/sdk": "^1.14.22",

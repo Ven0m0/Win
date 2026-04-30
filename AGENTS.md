@@ -4,19 +4,118 @@
 
 ---
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [OpenCode/Kilo Configuration](#opencodekilo-configuration)
+- [Repository Identity](#repository-identity)
+- [Commands](#commands)
+- [High-Signal Rules](#high-signal-rules)
+- [Main Repo Areas](#main-repo-areas)
+- [Change Guidance](#change-guidance)
+- [Validation](#validation)
+- [Agent Delegation](#agent-delegation)
+- [MCP Servers](#mcp-servers)
+- [Plugins](#plugins)
+- [Skills & Commands Reference](#skills--commands-reference)
+- [Git & Commits](#git--commits)
+- [Sensitive Content](#sensitive-content)
+- [Kilo Reference](#kilo-reference)
+- [Related](#related)
+
+---
+
 ## Quick Start
 
 | Task | Command or Reference |
 |------|---------------------|
-| Fresh Windows 11 install | `.\Scripts\Setup-Win11.ps1` or one-command: `iwr ...bootstrap.ps1 \| iex` |
+| Fresh Windows 11 install | `Scripts\Setup-Win11.ps1` or one-command: `iwr ...bootstrap.ps1 \| iex` |
 | Deploy dotfiles | `mise run deploy` or `dotbot -c install.conf.yaml` |
 | Deploy single config | `pwsh -File Scripts\Setup-Dotfiles.ps1 -Target 'PowerShell profile'` |
-| Debloat Windows | `.\Scripts\Debloat-Windows.ps1` or Kilo: `.\Debloat-Windows.md` |
-| Gaming optimization | `.\Scripts\Optimize-Gaming.ps1` or Kilo: `.\Optimize-Gaming.md` |
-| Validate changes | `.\Scripts\Validate-Changes.ps1` or `.\Invoke-ScriptAnalyzer.ps1` |
-| Create restore point | `.\Scripts\New-RestorePointSafe.ps1` |
+| Debloat Windows | `Scripts\Debloat-Windows.ps1` or Kilo: `/Debloat-Windows` |
+| Gaming optimization | `Scripts\Optimize-Gaming.ps1` or Kilo: `/Optimize-Gaming` |
+| Validate changes | `Scripts\Validate-Changes.ps1` or Kilo: `/Validate-Changes` |
+| Create restore point | `Scripts\New-RestorePointSafe.ps1` or Kilo: `/New-RestorePointSafe` |
+| Lint PowerShell | Kilo: `/Invoke-ScriptAnalyzer <path>` |
+| Security audit | Kilo: `/Audit-Security` |
+| Code review | Kilo: `/Review-Code <path>` |
 
-See `.kilo/commands/` for documented workflows (Kilo agents use these references).
+---
+
+## OpenCode/Kilo Configuration
+
+Project config lives in `.kilo/kilo.json`. Schema: `https://app.kilo.ai/config.json`.
+
+### Key Sections
+
+| Section | Purpose |
+|---------|---------|
+| `instructions` | Glob paths to rule files loaded for every session |
+| `skills` | Skill search paths (`.kilo/skills`, `.claude/skills`) |
+| `permission` | Global tool permissions (`read`, `edit`, `bash`, etc.) |
+| `provider` / `disabled_providers` | LLM provider API keys and enablement |
+| `plugin` | Installed OpenCode plugins |
+| `formatter` | Per-extension formatters (biome, ruff) |
+| `watcher` | Filesystem ignore patterns |
+| `mcp` | MCP server definitions (local and remote) |
+| `lsp` | Language server definitions |
+| `agent` | Primary and subagent configurations |
+| `compaction` | Context compaction settings |
+| `experimental` | Feature flags |
+
+### Adding MCP Servers
+
+**Remote** — HTTP endpoint, no local install:
+
+```json
+"mcp": {
+  "my-remote": {
+    "type": "remote",
+    "url": "https://api.example.com/mcp",
+    "enabled": true,
+    "headers": { "Authorization": "Bearer {env:MY_API_KEY}" }
+  }
+}
+```
+
+**Local** — spawned as a subprocess:
+
+```json
+"mcp": {
+  "my-local": {
+    "type": "local",
+    "command": ["npx", "-y", "@scope/mcp@latest"],
+    "enabled": true
+  }
+}
+```
+
+Use remote for APIs and knowledge bases; use local for filesystem, browser, or language-specific tools. Always use `{env:VAR_NAME}` for secrets — never commit literal keys.
+
+### Adding Plugins
+
+Plugins use npm or GitHub prefixes:
+
+| Prefix | Example |
+|--------|---------|
+| npm | `"opencode-ignore@1.1.0"` |
+| GitHub | `"github:user/repo"` |
+| GitHub tag | `"github:user/repo@tag"` |
+
+Add to the `plugin` array in `kilo.json`. Restart the session to apply changes.
+
+### Agent Configuration
+
+Agents are defined under the `agent` key. Each entry supports:
+
+| Field | Description |
+|-------|-------------|
+| `mode` | `primary` (orchestrator) or `subagent` (delegated task) |
+| `model` | Provider/model slug (e.g., `anthropic/claude-sonnet-4-5`) |
+| `temperature` | Sampling temperature (0.0–1.0); lower for deterministic tasks |
+| `permission` | Per-tool overrides (`edit`, `bash`, `task`, etc.) |
+
+Primary agents (`build`, `plan`) handle user-facing work. Subagents are delegated scoped tasks. See [Agent Delegation](#agent-delegation) for the full roster.
 
 ---
 
@@ -90,11 +189,11 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 | `Scripts/Common.ps1` | Shared helper library (reuse first) |
 | `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer (fully self-contained; embedded `ExtractScript`) |
 | `Scripts/arc-raiders/` | Game-specific optimization scripts (ARC Raiders, Steam boosters) |
-| `tests/` | Pester test files (*.Tests.ps1) - moved from Scripts/ |
+| `tests/` | Pester test files (*.Tests.ps1) |
 | `user/.dotfiles/config/` | Tracked dotfile content (deployed by hash, no symlinks) |
 | `install.conf.yaml` | Dotbot configuration → delegates to `Scripts/Setup-Dotfiles.ps1` |
 | `.github/scripts/bootstrap.ps1` | Internet bootstrap entry point |
-| `.kilo/` | Kilo AI configuration (skills, agents, rules, command reference) |
+| `.kilo/` | Kilo AI configuration (skills, agents, rules, commands, `kilo.json`) |
 
 ---
 
@@ -177,11 +276,116 @@ Kilo agents are specialized; delegate by scope:
 
 | Agent | Specialization | When to Delegate |
 |-------|----------------|------------------|
-| `powershell-expert` | PowerShell script authoring, refactoring, commenting, CI compliance | New or modified `.ps1` files, function extraction, script review |
-| `windows-system-agent` | Registry tweaks, debloating, gaming optimizations, network tuning, NVIDIA GPU handling | System modifications, service and task management, registry changes |
-| `config-deployer-agent` | Dotbot YAML, tracked config management, deployment path mapping, templates | `install.conf.yaml` edits, new tracked configs, deployment logic |
+| `powershell-expert` | PowerShell script authoring, refactoring, commenting, CI compliance | New or modified `.ps1` files, function extraction, script review, PSScriptAnalyzer remediation |
+| `windows-system-agent` | Registry tweaks, debloating, gaming optimizations, network tuning, NVIDIA GPU handling | System modifications, service and task management, registry changes, restore point operations |
+| `config-deployer-agent` | Dotbot YAML, tracked config management, deployment path mapping, templates | `install.conf.yaml` edits, new tracked configs, deployment logic, hash-based manifest updates |
+| `code-reviewer` | Read-only code review, best-practice verification, CI compliance | Before merging PowerShell changes, after refactoring, when adding new public functions |
+| `security-auditor` | Security audits, credential detection, unsafe pattern flagging | Before committing scripts that touch credentials, registry, or elevation; periodic repo audits |
+| `documentation-writer` | Markdown docs, README updates, AGENTS.md maintenance | New command or agent docs, README sync after feature changes, guidance rewrites |
+| `explore-codebase` | Fast read-only codebase exploration, mapping, locating symbols | Finding where a function lives, mapping dependencies, locating test coverage |
 
-Always load relevant skills first: `windows-dotfiles`, `bootstrap-deployment`, `validation`.
+Always load relevant skills first: `windows-dotfiles`, `bootstrap-deployment`, `validation`, `agent-delegation`.
+
+---
+
+## MCP Servers
+
+Configured in `.kilo/kilo.json` under the `mcp` key.
+
+### Enabled
+
+| Server | Type | Purpose |
+|--------|------|---------|
+| `ref-tools` | remote | Reference and citation tools |
+| `context7` | remote | Library documentation lookup (code examples, SDKs) |
+| `github` | remote | GitHub API integration (PRs, issues, code search) |
+| `exa` | remote | Live web search and content crawling |
+| `octocode` | local | Local code search, LSP navigation, filesystem traversal |
+
+### Disabled (Ready to Enable)
+
+| Server | Type | Purpose |
+|--------|------|---------|
+| `gh_grep` | remote | GitHub code search via grep.app |
+| `serena` | local | Advanced codebase analysis (requires `uvx`) |
+| `playwright` | local | Browser automation (headless) |
+| `sentry` | remote | Error tracking and monitoring |
+| `browser-tools` | local | Browser instrumentation |
+| `filesystem` | local | Dedicated filesystem MCP |
+| `git-mcp` | local | Git operations MCP |
+| `sqlite` | local | SQLite query interface |
+
+### Context Budget
+
+Every enabled MCP server adds tokens to the context window. Prefer built-in tools for simple file operations; enable MCP servers only when domain-specific filtering or live data is required. Disable unused servers if context limit warnings appear.
+
+---
+
+## Plugins
+
+Installed plugins are listed in `.kilo/kilo.json` under the `plugin` key.
+
+| Plugin | Purpose |
+|--------|---------|
+| `opencode-ignore` | Respect `.gitignore` and ignore patterns |
+| `opencode-agent-identity` | Agent identity and persona management |
+| `opencode-background-agents` | Background agent execution |
+| `subtask2` | Subtask decomposition and tracking |
+| `openslimedit` | Slim edit operations |
+| `opencode-agent-skills` | Dynamic skill loading for agents |
+| `opencode-betterglob` | Enhanced glob matching |
+| `opencode-bettergrep` | Enhanced grep/search |
+| `opencode-betterread` | Enhanced file reading |
+| `opencode-helicone-session` | Session tracking via Helicone |
+| `opencode-sequential-thinking` | Sequential reasoning chains |
+| `opencode-web-search` | Built-in web search fallback |
+
+Plugins are resolved via npm or GitHub. Update versions in `kilo.json` and restart the session to apply changes.
+
+---
+
+## Skills & Commands Reference
+
+### Skills (`.kilo/skills/`)
+
+Load with the `skill` tool. Reusable workflow knowledge for agents.
+
+| Skill | Description |
+|-------|-------------|
+| `windows-dotfiles` | Repo conventions, `Common.ps1` helpers, path rules |
+| `bootstrap-deployment` | Three-layer bootstrap, dotbot patterns, deployment order |
+| `validation` | Per-change-type validation matrix with decision table |
+| `agent-delegation` | Orchestrate tasks across agents with proper context handoff |
+| `mcp-server-management` | Configure, troubleshoot, and optimize MCP servers |
+| `opencode-migration` | Migrate configs from Claude Code, Cursor, and other tools |
+| `repo-cleanup` | Systematic repo cleanup: dead code, doc pruning, legacy removal |
+| `script-merge-guide` | Merge and consolidate PowerShell scripts safely |
+| `test-relocation` | Move and reorganize Pester test files |
+| `dead-code-cleanup` | Identify and remove unused code |
+
+### Commands (`.kilo/commands/`)
+
+Invoke with `/Command-Name`. Markdown prompt templates.
+
+| Command | Description |
+|---------|-------------|
+| `Audit-Security` | Run security checks across the repository |
+| `Backup-CurrentConfigs` | Backup current configs before changes |
+| `Debloat-Windows` | Windows debloating workflow |
+| `Deploy-Configs` | Deploy a single config group |
+| `Invoke-ScriptAnalyzer` | Lint PowerShell files |
+| `Lint-Guidance` | Validate AGENTS.md and `.kilo/` guidance files |
+| `Migrate-Config` | Migrate legacy configs to current layout |
+| `New-RestorePointSafe` | Create a system restore point |
+| `Optimize-Gaming` | Gaming optimization workflow |
+| `Optimize-Repository` | Analyze and improve repo maintainability |
+| `Review-Code` | Structured code review for PowerShell changes |
+| `Set-ExecutionPolicySafe` | Safely set PowerShell execution policy |
+| `Setup-Win11` | Fresh Windows 11 setup workflow |
+| `Sync-Configs` | Synchronize configs with deployment manifest |
+| `Test-Environment` | Validate the local environment |
+| `Update-WingetPackages` | Update winget-managed packages |
+| `Validate-Changes` | Run validation checks for changed areas |
 
 ---
 
@@ -210,21 +414,39 @@ Always load relevant skills first: `windows-dotfiles`, `bootstrap-deployment`, `
 - `windows-dotfiles.md` — repo conventions, Common.ps1 helpers, path rules
 - `bootstrap-deployment.md` — three-layer bootstrap, dotbot patterns, deployment order
 - `validation.md` — per-change-type validation matrix with decision table
+- `agent-delegation.md` — orchestrate tasks across agents with proper context handoff
+- `mcp-server-management.md` — configure, troubleshoot, and optimize MCP servers
+- `opencode-migration.md` — migrate configs from Claude Code, Cursor, and other tools
+- `repo-cleanup.md` — systematic repo cleanup: dead code, doc pruning, legacy removal
+- `script-merge-guide.md` — merge and consolidate PowerShell scripts safely
+- `test-relocation.md` — move and reorganize Pester test files
+- `dead-code-cleanup.md` — identify and remove unused code
 
 **Agents** (`.kilo/agents/`):
-- `powershell-expert.agent.md` — PowerShell script specialist
-- `windows-system-agent.agent.md` — Windows optimization & registry specialist
-- `config-deployer-agent.agent.md` — dotfile deployment & dotbot specialist
+- `powershell-agent.md` — PowerShell script specialist
+- `windows-optimizer.md` — Windows optimization & registry specialist
+- `config-deployer.md` — dotfile deployment & dotbot specialist
+- `code-reviewer.md` — read-only code review and CI compliance
+- `security-auditor.md` — security audits and credential detection
+- `documentation-writer.md` — markdown docs, README, and AGENTS.md maintenance
+- `explore-codebase.md` — fast read-only codebase exploration
 
 **Rules** (`.kilo/rules/`):
 - `powershell.md` — PowerShell 5.1+/7+, required and prohibited patterns, elevation, CI
 - `windows-os.md` — Win10/Win11 detection, feature guarding, telemetry differences
 - `registry-security.md` — safe registry ops, restore points, GPU discovery
+- `shell-strategy.md` — non-interactive shell mandates and banned commands
+- `agent-orchestration.md` — task decomposition, wave planning, context passing
+- `skills-workflows.md` — skill naming, frontmatter, maintenance
+- `commands-custom.md` — command file structure, placeholders, organization
+- `mcp-integration.md` — MCP server selection, context budget, fallback chains
 
-**Commands** (`.kilo/commands/` — markdown reference only):
+**Commands** (`.kilo/commands/` — markdown reference):
 - `Setup-Win11.md`, `Deploy-Configs.md`, `Validate-Changes.md`, `Invoke-ScriptAnalyzer.md`
 - `Update-WingetPackages.md`, `New-RestorePointSafe.md`, `Optimize-Gaming.md`
 - `Debloat-Windows.md`, `Sync-Configs.md`, `Backup-CurrentConfigs.md`, `Test-Environment.md`
+- `Set-ExecutionPolicySafe.md`
+- `Audit-Security.md`, `Review-Code.md`, `Migrate-Config.md`, `Optimize-Repository.md`, `Lint-Guidance.md`
 
 ---
 
