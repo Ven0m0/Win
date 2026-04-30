@@ -201,7 +201,6 @@
 	"agent": {
 		"build": {
 			"mode": "primary",
-			"model": "anthropic/claude-sonnet-4-5",
 			"permission": {
 				"edit": "allow",
 				"bash": "allow",
@@ -210,7 +209,6 @@
 		},
 		"plan": {
 			"mode": "primary",
-			"model": "anthropic/claude-haiku-4-5",
 			"permission": {
 				"edit": "ask",
 				"bash": "ask",
@@ -220,7 +218,6 @@
 		"code-reviewer": {
 			"description": "Reviews code for best practices and potential issues",
 			"mode": "subagent",
-			"model": "anthropic/claude-sonnet-4-5",
 			"temperature": 0.1,
 			"permission": {
 				"edit": "deny",
@@ -230,7 +227,6 @@
 		"security-auditor": {
 			"description": "Performs security audits and identifies vulnerabilities",
 			"mode": "subagent",
-			"model": "anthropic/claude-sonnet-4-5",
 			"temperature": 0.1,
 			"permission": {
 				"edit": "deny",
@@ -240,7 +236,6 @@
 		"documentation-writer": {
 			"description": "Writes and maintains project documentation",
 			"mode": "subagent",
-			"model": "anthropic/claude-haiku-4-5",
 			"temperature": 0.3,
 			"permission": {
 				"edit": { "*.md": "allow", "*": "ask" },
@@ -250,7 +245,6 @@
 		"explore-codebase": {
 			"description": "Fast read-only codebase exploration agent",
 			"mode": "subagent",
-			"model": "anthropic/claude-haiku-4-5",
 			"temperature": 0.2,
 			"permission": {
 				"edit": "deny",

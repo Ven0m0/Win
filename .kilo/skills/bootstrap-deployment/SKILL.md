@@ -1,6 +1,8 @@
 ---
 name: bootstrap-deployment
-description: Guidance for bootstrap and dotfile deployment workflows
+description: |
+  Three-layer bootstrap flow, dotbot patterns, and deployment order for Win dotfiles.
+  Use when editing bootstrap.ps1, install.conf.yaml, or Setup-Dotfiles.ps1.
 compatibility: opencode
 ---
 

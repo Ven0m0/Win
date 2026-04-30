@@ -111,7 +111,7 @@ Agents are defined under the `agent` key. Each entry supports:
 | Field | Description |
 |-------|-------------|
 | `mode` | `primary` (orchestrator) or `subagent` (delegated task) |
-| `model` | Provider/model slug (e.g., `anthropic/claude-sonnet-4-5`) |
+| `model` | Provider/model slug — optional; omit to inherit from session (Recommended) |
 | `temperature` | Sampling temperature (0.0–1.0); lower for deterministic tasks |
 | `permission` | Per-tool overrides (`edit`, `bash`, `task`, etc.) |
 

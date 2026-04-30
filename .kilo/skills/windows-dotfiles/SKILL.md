@@ -1,6 +1,8 @@
 ---
-name: win-dotfiles
-description: Specialized for Windows dotfiles
+name: windows-dotfiles
+description: |
+  Repo conventions, Common.ps1 helpers, path rules, and Windows dotfile patterns.
+  Use proactively when working on PowerShell scripts, registry tweaks, or dotfile deployment.
 compatibility: opencode
 ---
 
