@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 <#
 .NAME
@@ -2803,7 +2803,7 @@ function Initialize-AdapterUI {
         #ClampMss
         $ClampMss = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.ClampMss].GetEnumValues()
         [void] $cb_ClampMss.Items.AddRange([object[]]@($ClampMss))
-        $cb_ClampMss.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | 
+        $cb_ClampMss.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily |
 
         #DirectedMacWolPattern
         $DirectedMacWolPattern = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.DirectedMacWolPattern
@@ -2813,7 +2813,7 @@ function Initialize-AdapterUI {
         #EcnMarking
         $EcnMarking = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.EcnMarking].GetEnumValues()
         [void] $cb_EcnMarking.Items.AddRange([object[]]@($EcnMarking))
-        $cb_EcnMarking.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily 
+        $cb_EcnMarking.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
 
         #ForceArpNdWolPattern
         $ForceArpNdWolPattern = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.ForceArpNdWolPattern].
@@ -2823,7 +2823,7 @@ function Initialize-AdapterUI {
         #Forwarding
         $Forwarding = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.Forwarding].GetEnumValues()
         [void] $cb_Forwarding.Items.AddRange([object[]]@($Forwarding))
-        $cb_Forwarding.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily 
+        $cb_Forwarding.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
 
         #IgnoreDefaultRoutes
         $IgnoreDefaultRoutes = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.IgnoreDefaultRoutes].Ge
@@ -3523,7 +3523,7 @@ function ApplyInterfaceSettings{
             Write-Host "AutomaticMetric:"$cb_AutomaticMetric.Text  -ForegroundColor Green
             Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -AutomaticMetric $c
         }
-    if ($cb_ClampMss.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily 
+    if ($cb_ClampMss.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
         Write-Host "ClampMss is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "ClampMss:"$cb_ClampMss.Text  -ForegroundColor Green
@@ -3617,7 +3617,7 @@ function ApplyInterfaceSettings{
         Write-Host "BaseReachableTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "BaseReachableTime:"$tb_BaseReachableTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -BaseReachableTime 
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -BaseReachableTime
         }
     if ($tb_ReachableTime.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFa
         Write-Host "ReachableTime is same, skipping."  -ForegroundColor green}
@@ -3629,7 +3629,7 @@ function ApplyInterfaceSettings{
         Write-Host "DadRetransmitTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "DadRetransmitTime:"$tb_DadRetransmitTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -DadRetransmitTime 
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -DadRetransmitTime
         }
     if ($tb_DadTransmits.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFam
         Write-Host "DadTransmits is same, skipping."  -ForegroundColor green}
@@ -3703,19 +3703,19 @@ function RefreshingNetIPInterfaceSettings{
         $cb_AutomaticMetric.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFa
 
         #ClampMss
-        $cb_ClampMss.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily | 
+        $cb_ClampMss.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily |
 
         #DirectedMacWolPattern
         $cb_DirectedMacWolPattern.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:Add
 
         #EcnMarking
-        $cb_EcnMarking.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily 
+        $cb_EcnMarking.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
 
         #ForceArpNdWolPattern
         $cb_ForceArpNdWolPattern.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:Addr
 
         #Forwarding
-        $cb_Forwarding.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily 
+        $cb_Forwarding.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
 
         #IgnoreDefaultRoutes
         $cb_IgnoreDefaultRoutes.Text =  Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:Addre
@@ -4071,7 +4071,7 @@ function RegistryTweaks{
 
     #IgnorePushBitOnReceives
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObjec
-    if ($A -eq $false -and $null -ne $cb_IgnorePushBitOnReceives.Text -and $cb_IgnorePushBitOnReceives.Text -ne '' -and 
+    if ($A -eq $false -and $null -ne $cb_IgnorePushBitOnReceives.Text -and $cb_IgnorePushBitOnReceives.Text -ne '' -and
       Write-Host "Set AFDIgnorePushBitOnReceives to"$cb_IgnorePushBitOnReceives.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "
     }elseif($A -eq $true -and $null -eq $cb_IgnorePushBitOnReceives.Text -or $cb_IgnorePushBitOnReceives.Text -eq '' -or
@@ -4123,7 +4123,7 @@ function RegistryTweaks{
 
     #IrpStackSize
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObjec
-    if ($A -eq $false -and $null -ne $cb_IrpStackSize.Text -and $cb_IrpStackSize.Text -ne '' -and $cb_IrpStackSize.Text 
+    if ($A -eq $false -and $null -ne $cb_IrpStackSize.Text -and $cb_IrpStackSize.Text -ne '' -and $cb_IrpStackSize.Text
       Write-Host "Set AFDIrpStackSize to"$cb_IrpStackSize.Text -ForegroundColor Green
           New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "
     }elseif($A -eq $true -and $null -eq $cb_IrpStackSize.Text -or $cb_IrpStackSize.Text -eq '' -or $cb_IrpStackSize.Text
@@ -4161,11 +4161,11 @@ function HWSettings {
         New-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy" -Nam
     }elseif ($cb_InterruptPriority.SelectedIndex -eq '0'){
       Write-Host "Setting DevicePriority to Undefined." -ForegroundColor Green
-            Set-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy" 
+            Set-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy"
 
     elseif ($cb_InterruptPriority.SelectedIndex -eq '1'){
       Write-Host "Setting DevicePriority to Low." -ForegroundColor Green
-            Set-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy" 
+            Set-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\Affinity Policy"
         }
 
     elseif ($cb_InterruptPriority.SelectedIndex -eq '2'){

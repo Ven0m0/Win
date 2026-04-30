@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -133,7 +133,7 @@ $script:Config = @{
         'Adobe.Acrobat.Reader.64-bit' = @{
             Pre  = {
                 $script:_acrobatProcs = @(Get-Process -Name 'Acrobat', 'AcroRd32', 'AcroCEF' -ErrorAction SilentlyContin
-                if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray; 
+                if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray;
                 Write-Host "  Clearing temporary files to prevent Acrobat extraction errors..." -ForegroundColor Gray
                 Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Extension -
             }
@@ -726,7 +726,7 @@ $managers = @(
             # 1. Check for updates and run pre-hooks (needs for Adobe temp cleanup)
             Write-Host "  Checking for available updates (pre-hooks)..." -ForegroundColor Gray
             try {
-                $preScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', 
+                $preScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade',
                 if ($preScan.Output) { Write-FilteredOutput -Text $preScan.Output -Color ([ConsoleColor]::Gray) }
                 $checkOut = $preScan.Output
                 Invoke-WingetUpgradeHook -Phase 'Pre' -WingetOutput $checkOut
@@ -757,7 +757,7 @@ $managers = @(
 
             try {
                 $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrad
-                if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray) 
+                if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray)
                 $upgradeList = $upgradeScan.Output
                 $upgradeEntries = @(Get-WingetUpgradeEntries -WingetOutput $upgradeList)
                 $existingPinnedIds = @(Get-WingetPinnedPackageIds)
@@ -1095,7 +1095,7 @@ Invoke-Update -Name 'Deno' -RequiresCommand 'deno' -Disabled:$SkipNode -Action {
     if ($mgr) { $script:stepMessage = "managed by $mgr (already updated)"; return }
     $denoRun = Invoke-StreamingCapture -ScriptBlock { deno upgrade }
     $out = Read-CapturedOutput $denoRun.OutputPath
-    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } 
+    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' }
 }
 
 Invoke-Update -Name 'Rust' -RequiresCommand 'rustup' -Disabled:$SkipRust -Action {
@@ -1324,7 +1324,7 @@ Invoke-Update -Name 'uv-python' -Title 'uv Python Versions' -RequiresCommand 'uv
 }
 
 Invoke-Update -Name 'cargo-binaries' -Title 'Cargo Global Binaries' -RequiresCommand 'cargo' -Action {
-    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update 
+    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update
     $cargoRun = Invoke-StreamingCapture -ScriptBlock { cargo install-update -a }
     $out = Read-CapturedOutput $cargoRun.OutputPath
     if ($out -match 'Updated [1-9]\d* packages?|Overall updated [1-9]\d* packages?') {
@@ -1373,7 +1373,7 @@ Invoke-Update -Name 'vscode-extensions' -Title 'VS Code Extensions' -Disabled:$S
     }
     $out = Read-CapturedOutput $vsCodeRun.OutputPath
     if ($out -match 'VS Code CLI not found') { $script:stepMessage = 'VS Code not found' }
-    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated' 
+    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated'
     else { $script:stepMessage = 'extensions checked' }
 }
 
@@ -1456,7 +1456,7 @@ else {
         $tempPath = $env:TEMP
         $cutoff = (Get-Date).AddDays(-$script:Config.TempCleanupDays)
         if ($tempPath -and (Test-Path $tempPath)) {
-            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } 
+            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
             Write-Status "Temp files cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
         }
     }
@@ -1477,7 +1477,7 @@ else {
 
     if ($isAdmin -and $DeepClean) {
         try { DISM /Online /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null; Write-Status "DISM component store cle
-        try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization 
+        try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization
         if (-not $SkipDestructive) {
             try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -
         }
@@ -1561,7 +1561,7 @@ if ($script:SectionTimings.Count -gt 0) {
 try {
     if (Get-Module -ListAvailable -Name BurntToast -ErrorAction SilentlyContinue) {
         Import-Module BurntToast -ErrorAction SilentlyContinue
-        $msg = if ($updateResults.Failed.Count -gt 0) { "$($updatedNames.Count) updated, $($updateResults.Failed.Count) 
+        $msg = if ($updateResults.Failed.Count -gt 0) { "$($updatedNames.Count) updated, $($updateResults.Failed.Count)
         New-BurntToastNotification -Text 'Update-Everything', $msg -ErrorAction SilentlyContinue
     }
 }

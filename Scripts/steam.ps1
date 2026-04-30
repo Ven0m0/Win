@@ -51,19 +51,6 @@ function Invoke-SteamOptimization {
     }
     if ($focus) { $QUICK += " -foreground" }
 
-    # --- VDF helpers
-    function vdf_mkdir {
-        param($vdf, [string]$path = '')
-        $s = $path -split '\\', 2
-        $key, $recurse = $s[0], $s.Count -gt 1 ? $s[1] : $null
-        if ($key -and $vdf.Keys -notcontains $key) { $vdf[$key] = [ordered]@{} }
-        if ($recurse) { vdf_mkdir $vdf[$key] $recurse }
-    }
-    function sc-nonew($fn, $txt) {
-        if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
-        else { [IO.File]::WriteAllText($fn, $txt -join [char]10) }
-    }
-
     # --- Update sharedconfig.vdf: main UI/friends/game list tweaks
     Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
         $file = $_.FullName

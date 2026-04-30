@@ -13,7 +13,7 @@ Describe "gpu-display-manager.ps1 functions" {
             Mock Set-NvidiaGpuRegistryValue { return @("HKLM:\SOFTWARE\NVIDIA\TestPath1") }
             Mock Clear-Host {}
             Mock Write-Host {}
-            Mock Show-NvidiaGpuSettings {}
+            Mock Show-NvidiaGpuSetting {}
 
             Set-P0State -Value "1"
 
@@ -29,7 +29,7 @@ Describe "gpu-display-manager.ps1 functions" {
             Mock Set-NvidiaGpuRegistryValue { return @("HKLM:\SOFTWARE\NVIDIA\TestPath1") }
             Mock Clear-Host {}
             Mock Write-Host {}
-            Mock Show-NvidiaGpuSettings {}
+            Mock Show-NvidiaGpuSetting {}
 
             Set-HDCP -Value "0"
 
