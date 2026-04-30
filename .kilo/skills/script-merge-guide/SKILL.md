@@ -1,6 +1,8 @@
 ---
 name: script-merge-guide
-description: Guide for merging similar PowerShell scripts with parameterized modes in the Win dotfiles repository.
+description: |
+  Merge similar PowerShell scripts with parameterized modes and consolidate duplicate automation.
+  Use when two scripts share >80% code or differ only in config/options.
 compatibility: opencode
 ---
 

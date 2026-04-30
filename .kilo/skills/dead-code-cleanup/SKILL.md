@@ -1,6 +1,8 @@
 ---
 name: dead-code-cleanup
-description: Guide for removing dead code, commented-out blocks, and redundant conditionals from PowerShell scripts in the Win dotfiles repository.
+description: |
+  Remove dead code, commented-out blocks, and redundant conditionals from PowerShell scripts.
+  Use when cleaning up Scripts/*.ps1 or removing unreachable branches.
 compatibility: opencode
 ---
 

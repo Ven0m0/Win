@@ -1,6 +1,8 @@
 ---
 name: validation
-description: Run narrow, repo-specific validation for PowerShell scripts, config deployment, autounattend.xml, and guidance files in the Win dotfiles project.
+description: |
+  Per-change-type validation matrix for PowerShell, dotbot, autounattend.xml, and guidance files.
+  Use proactively after any change to run the narrowest applicable checks.
 compatibility: opencode
 ---
 

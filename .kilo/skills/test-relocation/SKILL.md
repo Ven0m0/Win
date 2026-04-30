@@ -1,6 +1,8 @@
 ---
 name: test-relocation
-description: Guide for relocating test files to a centralized tests/ directory and updating path references in the Win dotfiles repository.
+description: |
+  Relocate Pester test files to centralized tests/ and update path references.
+  Use when moving *.Tests.ps1 files or reorganizing test directory structure.
 compatibility: opencode
 ---
 
