@@ -37,10 +37,8 @@ Describe "Network-Tweaker.ps1" {
         & {
             . $scriptPath
 
-            # Verify core functions are defined by checking if they are exported in this scope
-            Get-Command -Name "Opacity" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command -Name "Set-ConsoleColor" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command -Name "Initialize-AdapterUI" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command -Name "applyglobal" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command -Name "RegistryTweaks" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
     }
 }

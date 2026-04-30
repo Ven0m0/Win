@@ -1,5 +1,5 @@
 import { tool } from "@opencode-ai/plugin";
-import { computeHash, parseRef, validateHash } from "./hashline_utils.ts";
+import { parseRef, validateHash } from "./hashline_utils.ts";
 
 const CTX = 2;
 const HASHLINE_PREFIX = /^\s*(?:>>>|>>)?\s*\d+\s*#\s*[ZPMQVRWSNKTXJBYH]{2}\|/;

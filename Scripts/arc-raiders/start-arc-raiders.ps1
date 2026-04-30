@@ -42,12 +42,10 @@ function Remove-Glob {
     }
 }
 
-function sc-nonew($fn, $txt) {
     if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
     else { [IO.File]::WriteAllText($fn, $txt -join [char]10) }
 }
 
-function vdf_mkdir {
     param($vdf, [string]$path = '')
     $s = $path -split '\\', 2
     $key, $recurse = $s[0], ($s.Count -gt 1 ? $s[1] : $null)

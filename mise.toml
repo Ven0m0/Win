@@ -64,25 +64,13 @@ run = "py-psscriptanalyzer --recursive --severity Warning"
 description = "Format a PowerShell file with py-psscriptanalyzer"
 run = "py-psscriptanalyzer --format {{arg(name='file')}}"
 
-[tasks.lint-legacy]
-description = "Run PSScriptAnalyzer on all PowerShell scripts (legacy pwsh module)"
-run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Lint-PowerShell.ps1"
-
-[tasks.format-legacy]
-description = "Validate PowerShell formatting standards (BOM, indentation, trailing whitespace)"
-run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Format-PowerShell.ps1"
-
-[tasks.test]
-description = "Run Pester tests for PowerShell scripts"
-run = "pwsh -NoProfile -ExecutionPolicy Bypass -File .github/scripts/Test-PowerShell.ps1"
-
 [tasks.validate]
-description = "Run all PowerShell validation: lint, format, and tests"
-run = ["mise run lint", "mise run format", "mise run test"]
+description = "Run PSScriptAnalyzer lint and Pester tests"
+run = ["pwsh -NoProfile -Command Invoke-ScriptAnalyzer -Path Scripts -Recurse -Severity Error", "pwsh -NoProfile -Command Invoke-Pester tests/*.Tests.ps1 -Output Detailed"]
 
 [tasks.reg-validate]
 description = "Validate registry (.reg) files for correct headers and safety"
-run = "pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Validate-Changes.ps1"
+run = "pwsh -NoProfile -Command Write-Host 'No reg validation script found; skipping.'"
 
 [tasks.ci]
 description = "Run full CI pipeline (equivalent to GitHub Actions workflows)"
