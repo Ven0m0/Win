@@ -24,26 +24,20 @@ jobs:
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
             Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
           }
+        shell: pwsh
 
       - name: Run Lint
         run: |
-          # Check Scripts for errors
-          $Results = @(Get-ChildItem -Path Scripts -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer -Severity Error)
-          if ($Results | Where-Object -FilterScript {($_.Severity -eq "Error") -or ($_.Severity -eq "ParseError")})
-          {
-            Write-Verbose -Message "Found script issue" -Verbose
-
-            $Results | Where-Object -FilterScript {($_.Severity -eq "Error") -or ($_.Severity -eq "ParseError")} | ForEach-Object -Process {
-              [PSCustomObject]@{
-                Line    = $_.Line
-                Message = $_.Message
-                Path    = $_.ScriptPath
-              }
-            } | Format-Table -AutoSize -Wrap
-
-            # Exit with a non-zero status to fail the job
+          $ErrorActionPreference = 'SilentlyContinue'
+          $results = Get-ChildItem -Path Scripts -File -Recurse -Include *.ps1, *.psm1 | Invoke-ScriptAnalyzer -Severity Error 2>$null
+          $failures = $results | Where-Object { $_.Severity -eq 'Error' -or $_.Severity -eq 'ParseError' }
+          if ($failures) {
+            $failures | ForEach-Object {
+              Write-Host "ERROR: $($_.ScriptPath):$($_.Line) - $($_.Message)"
+            }
             exit 1
           }
+        shell: pwsh
 
       - name: Check PSD1 validity
         run: |
