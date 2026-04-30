@@ -21,9 +21,6 @@ on:
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/lint-format-test.yml"
-      - ".github/scripts/Lint-PowerShell.ps1"
-      - ".github/scripts/Format-PowerShell.ps1"
-      - ".github/scripts/Test-PowerShell.ps1"
   pull_request:
     branches: ["main"]
     paths:
@@ -32,9 +29,6 @@ on:
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/lint-format-test.yml"
-      - ".github/scripts/Lint-PowerShell.ps1"
-      - ".github/scripts/Format-PowerShell.ps1"
-      - ".github/scripts/Test-PowerShell.ps1"
 
 # Cancel in-progress runs for the same workflow + ref
 concurrency:
@@ -247,7 +241,7 @@ jobs:
         run: |
           Set-StrictMode -Version Latest
 
-          $testFiles = Get-ChildItem -Path Scripts -Recurse -Include *.Tests.ps1 -File
+          $testFiles = Get-ChildItem -Path . -Recurse -Include *.Tests.ps1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
 
           if ($testFiles.Count -eq 0) {
             Write-Host "No test files found"
