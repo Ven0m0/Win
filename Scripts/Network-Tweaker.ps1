@@ -2737,10 +2737,12 @@ function Initialize-AdapterUI {
         }
 
         $afdPath = "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters"
-        $AFDFastSendDatagramThreshold = Get-ItemPropertyValue -Path $afdPath -Name "FastSendDatagramThreshold" -ErrorAction SilentlyContinue
+        $AFDFastSendDatagramThreshold = Get-ItemPropertyValue -Path $afdPath `
+            -Name "FastSendDatagramThreshold" -ErrorAction SilentlyContinue
         $cb_FastSendDatagramThreshold.Text = $AFDFastSendDatagramThreshold
 
-        $AFDFastCopyReceiveThreshold = Get-ItemPropertyValue -Path $afdPath -Name "FastCopyReceiveThreshold" -ErrorAction SilentlyContinue
+        $AFDFastCopyReceiveThreshold = Get-ItemPropertyValue -Path $afdPath `
+            -Name "FastCopyReceiveThreshold" -ErrorAction SilentlyContinue
         $cb_FastCopyReceiveThreshold.Text = $AFDFastCopyReceiveThreshold
 
         #IgnorePushBitOnReceives /Check Value
