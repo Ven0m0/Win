@@ -4,6 +4,7 @@
     "@opencode-ai/plugin": "^1.14.27",
     "@kilocode/plugin": "7.1.23",
     "repair-json-stream": "^1.0.0",
+    "@morphllm/opencode-morph-plugin": "2.0.9",
     "context-mode": "1.0.104"
   },
   "devDependencies": {
