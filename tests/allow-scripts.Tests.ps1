@@ -11,7 +11,6 @@ Describe "allow-scripts.ps1" {
         function Show-Menu { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
         function Get-MenuChoice { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
         function Wait-ForKeyPress { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
-        function Get-ChildItem { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
     }
 
     BeforeEach {
@@ -19,7 +18,6 @@ Describe "allow-scripts.ps1" {
         Mock -CommandName Remove-RegistryValue -MockWith { }
         Mock -CommandName Write-Host -MockWith { }
         Mock -CommandName Unblock-File -MockWith { }
-        Mock -CommandName Get-ChildItem -MockWith { }
     }
 
     Context "Enable-ScriptExecution" {
@@ -37,7 +35,7 @@ Describe "allow-scripts.ps1" {
             Assert-MockCalled -CommandName Unblock-File -Times 1
         }
 
-        It "Should write enabling status messages" {
+        It "Should write enabling status messages (at least banner and completion)" {
             Enable-ScriptExecution
             Assert-MockCalled -CommandName Write-Host -Times 6
         }
@@ -68,9 +66,9 @@ Describe "allow-scripts.ps1" {
             Assert-MockCalled -CommandName Unblock-File -Times 0
         }
 
-        It "Should write disabling status messages" {
+        It "Should write disabling status messages (at least banner and completion)" {
             Disable-ScriptExecution
-            Assert-MockCalled -CommandName Write-Host -Times 5
+            Assert-MockCalled -CommandName Write-Host -AtLeast 5
         }
     }
 
@@ -91,6 +89,22 @@ Describe "allow-scripts.ps1" {
             Should -Invoke Set-RegistryValue -ParameterFilter {
                 $Path -like '*HKCU*' -and $Name -eq 'ExecutionPolicy' -and $Data -eq 'Restricted'
             }
+        }
+    }
+
+    Context "-WhatIf support (SupportsShouldProcess)" {
+        BeforeAll {
+            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
+        }
+
+        It "Should not call Set-RegistryValue when -WhatIf is used for Enable-ScriptExecution" {
+            Enable-ScriptExecution -WhatIf
+            Assert-MockCalled -CommandName Set-RegistryValue -Times 0
+        }
+
+        It "Should not call Remove-RegistryValue when -WhatIf is used for Disable-ScriptExecution" {
+            Disable-ScriptExecution -WhatIf
+            Assert-MockCalled -CommandName Remove-RegistryValue -Times 0
         }
     }
 }

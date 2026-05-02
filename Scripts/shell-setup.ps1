@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -48,12 +48,9 @@ function Install-ScoopApp {
 function Install-WinGetApp {
   param([Parameter(Mandatory)][string]$PackageID)
   Write-Verbose "Installing $PackageID"
-  $output = winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements 2>&1
-  $outputText = ($output | Out-String).Trim()
+  winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
   if ($LASTEXITCODE -notin @(0, -1978335189)) {
-    $details = if ([string]::IsNullOrWhiteSpace($outputText)) { '' } else { "`nwinget output:`n$outputText" }
-    Write-Warning "winget install failed for $PackageID with exit code $LASTEXITCODE$details"
-    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)$details"
+    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)"
   }
 }
 
@@ -363,19 +360,10 @@ if ($HomeWorkstation) {
 }
 
 # VSCode custom install
-$vscodeOutput = winget install Microsoft.VisualStudioCode `
-    --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"' 2>&1
+winget install Microsoft.VisualStudioCode `
+    --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
 if ($LASTEXITCODE -notin @(0, -1978335189)) {
-  $vscodeOutputText = if ($null -ne $vscodeOutput) {
-    (($vscodeOutput | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine).Trim()
-  } else {
-    ''
-  }
-  if ([string]::IsNullOrWhiteSpace($vscodeOutputText)) {
-    Write-Warning "VSCode install failed with exit code $LASTEXITCODE."
-  } else {
-    Write-Warning "VSCode install failed with exit code $LASTEXITCODE. winget output:`n$vscodeOutputText"
-  }
+    throw "VSCode install failed with exit code $LASTEXITCODE"
 }
 
 # Choco packages
@@ -501,12 +489,9 @@ Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
 # Dotfiles
   if (-not (Test-Path -LiteralPath "$Env:UserProfile\dotposh")) {
     Write-Verbose "Install PowerShell dot files..."
-    $gitProc = Start-Process -FilePath "PowerShell" -ArgumentList "git",
-      "clone",
-      "https://github.com/mikepruett3/dotposh.git",
-      "$Env:UserProfile\dotposh" -Wait -PassThru
-    if ($gitProc.ExitCode -ne 0) {
-      throw "git clone failed for dotposh with exit code $($gitProc.ExitCode)"
+    git clone https://github.com/mikepruett3/dotposh.git "$Env:UserProfile\dotposh" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      throw "git clone failed for dotposh with exit code $LASTEXITCODE"
     }
 @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
