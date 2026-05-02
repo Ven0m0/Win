@@ -164,11 +164,13 @@
 	"agent": {
 		"build": {
 			"mode": "primary",
-			"permission": { "edit": "allow", "bash": "allow", "task": "allow" }
+			"permission": { "edit": "allow", "bash": "allow", "task": "allow" },
+      "temperature": 0.35
 		},
 		"plan": {
 			"mode": "primary",
-			"permission": { "edit": "ask", "bash": "ask", "write": "ask" }
+			"permission": { "edit": "ask", "bash": "ask", "write": "ask" },
+      "temperature": 0.35
 		},
 		"code-reviewer": {
 			"description": "Reviews code for best practices and potential issues",
