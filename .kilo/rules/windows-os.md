@@ -109,5 +109,5 @@ Always run in `-WhatIf` first, create restore points, and document rollback.
 - `Scripts/Common.ps1` — shared helpers for elevation, restore points, UI
 - `Scripts/debloat-windows.ps1` — example of safe Win10/Win11 branching
 - `Scripts/system-settings-manager.ps1` — registry tweak patterns
-- `.github/instructions/windows-11-setup.instructions.md` — setup-specific rules
-- `.github/instructions/powershell.instructions.md` — PowerShell coding rules
+- `.kilo/rules/bootstrap-deployment.md` — setup and deployment rules
+- `.kilo/rules/powershell.md` — PowerShell coding rules

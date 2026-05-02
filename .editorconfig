@@ -27,16 +27,12 @@ function_next_line = false
 binary_next_line = true
 end_of_line = lf
 
-[.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
+[*.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
 shell_variant = bash
 end_of_line = lf
 
-[.profile]
+[*.profile]
 shell_variant = posix
-end_of_line = lf
-
-[**.{fish,fish_*},fishd.*,fish_*]
-indent_size = 4
 end_of_line = lf
 
 # Windows Scripts
@@ -48,39 +44,10 @@ end_of_line = crlf
 # =============================================================================
 # Programming Languages
 # =============================================================================
-# C/C++
-[**.{c,cc,cpp,cxx,h,hpp,hxx}]
-indent_size = 4
-max_line_length = 100
-
-# C#
-[**.cs]
-indent_size = 4
-
-# Go (requires tabs)
-[**.go,go.mod,go.sum]
-indent_style = tab
-indent_size = 4
-tab_width = 4
-
-# Rust
-[**.rs,Cargo.toml,Cargo.lock]
-indent_size = 4
-max_line_length = 100
-
-# Zig
-[**.zig]
-indent_size = 4
-
 # Python
 [**.{py,pyw,pyi}]
 indent_size = 4
-max_line_length = 88
 quote_type = double
-
-# Java
-[**.java]
-indent_size = 4
 
 # JavaScript/TypeScript
 [**.{js,mjs,cjs,jsx}]
@@ -89,20 +56,16 @@ quote_type = single
 [**.{ts,mts,cts,tsx}]
 quote_type = single
 
-# PHP
-[**.php]
-indent_size = 4
-
-# Perl
-[**.{pl,pm}]
-indent_size = 4
-
 # =============================================================================
 # Configuration Files
 # =============================================================================
 # XML
-[**.{xml,svg}]
+[*.xml]
 indent_size = 4
+
+[**.{json,jsonc}]
+indent_size = 2
+indent_style = space
 
 # =============================================================================
 # Markup/Documentation
@@ -118,21 +81,8 @@ insert_final_newline = false
 # =============================================================================
 # Build Systems & Package Managers
 # =============================================================================
-# Makefiles (require tabs)
-[{Makefile,**.mk,.gitmodules}]
-indent_style = tab
-indent_size = 4
-tab_width = 4
-
 [{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
 indent_size = 4
-
-# =============================================================================
-# Git & Version Control
-# =============================================================================
-[.gitconfig]
-indent_style = tab
-tab_width = 4
 
 # =============================================================================
 # Special Cases

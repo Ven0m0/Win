@@ -1,17 +1,6 @@
----
-description: "CMD/Batch scripting standards for Windows batch file development"
-applyTo: "**/*.{bat,cmd}"
----
-
 # CMD/Batch Scripting Standards
 
-<Goals>
-
-- Fail fast: check errorlevel after commands
-- Performance: minimize overhead, batch operations
-- Clarity: descriptive names, consistent style
-
-</Goals>
+These rules apply to all batch files: `**/*.bat`, `**/*.cmd`.
 
 ## Template
 
@@ -21,14 +10,15 @@ setlocal enabledelayedexpansion
 setlocal enableextensions
 ```
 
-<Standards>
+## Standards
 
 **Variables**: `set "name=value"` for assignment. `%var%` immediate, `!var!` delayed (in code blocks)
-**Control Flow**: `if exist`, `if "%errorlevel%"=="0"`, `for %%i in (...) do`
-**Subroutines**: `call :label`, `exit /b 0` to return
-**Errors**: `if errorlevel 1` or `command && echo Success || echo Failure`
 
-</Standards>
+**Control Flow**: `if exist`, `if "%errorlevel%"=="0"`, `for %%i in (...) do`
+
+**Subroutines**: `call :label`, `exit /b 0` to return
+
+**Errors**: `if errorlevel 1` or `command && echo Success || echo Failure`
 
 ```batch
 :: Subroutine with parameters
@@ -42,20 +32,16 @@ echo Processing: %fullpath%
 exit /b 0
 ```
 
-<Limitations>
+## Limitations
 
 - No unquoted paths with spaces
 - No `%var%` inside code blocks (use `!var!` with delayed expansion)
 - No missing errorlevel checks
 - No environment modification without `setlocal`
 
-</Limitations>
-
-<Security>
+## Security
 
 - No hardcoded credentials
 - Input validation before use
 - Use `setlocal` to avoid polluting environment
 - Temporary files created securely
-
-</Security>

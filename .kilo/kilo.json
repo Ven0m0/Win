@@ -1,6 +1,6 @@
 {
 	"$schema": "https://app.kilo.ai/config.json",
-	"instructions": [".kilo/rules/*.md", "AGENTS.md", ".github/instructions/*.md"],
+	"instructions": [".kilo/rules/*.md", "AGENTS.md"],
 	"skills": { "paths": [".kilo/skills", ".claude/skills"] },
 	"permission": {
 		"*": "allow",
@@ -43,8 +43,12 @@
 	"formatter": {
 		"biome": {
 			"command": [
-				"npx", "-y", "@biomejs/biome",
-				"check", "--write", "--format-with-errors=true",
+				"npx",
+				"-y",
+				"@biomejs/biome",
+				"check",
+				"--write",
+				"--format-with-errors=true",
 				"$FILE"
 			],
 			"extensions": [".json", ".js"]
@@ -157,46 +161,29 @@
 	"agent": {
 		"build": {
 			"mode": "primary",
-			"permission": {
-				"edit": "allow",
-				"bash": "allow",
-				"task": "allow"
-			}
+			"permission": { "edit": "allow", "bash": "allow", "task": "allow" }
 		},
 		"plan": {
 			"mode": "primary",
-			"permission": {
-				"edit": "ask",
-				"bash": "ask",
-				"write": "ask"
-			}
+			"permission": { "edit": "ask", "bash": "ask", "write": "ask" }
 		},
 		"code-reviewer": {
 			"description": "Reviews code for best practices and potential issues",
 			"mode": "subagent",
 			"temperature": 0.1,
-			"permission": {
-				"edit": "deny",
-				"bash": "deny"
-			}
+			"permission": { "edit": "deny", "bash": "deny" }
 		},
 		"security-auditor": {
 			"description": "Performs security audits and identifies vulnerabilities",
 			"mode": "subagent",
 			"temperature": 0.1,
-			"permission": {
-				"edit": "deny",
-				"bash": "deny"
-			}
+			"permission": { "edit": "deny", "bash": "deny" }
 		},
 		"documentation-writer": {
 			"description": "Writes and maintains project documentation",
 			"mode": "subagent",
 			"temperature": 0.3,
-			"permission": {
-				"edit": { "*.md": "allow", "*": "ask" },
-				"bash": "deny"
-			}
+			"permission": { "edit": { "*.md": "allow", "*": "ask" }, "bash": "deny" }
 		},
 		"explore-codebase": {
 			"description": "Fast read-only codebase exploration agent",
