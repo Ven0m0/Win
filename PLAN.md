@@ -250,19 +250,19 @@ try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } cat
 
 ---
 
-### T007 · Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1
+### T007 · Expand Pester coverage for allow-scripts.ps1 and add missing tests for Backup-GameConfigs.ps1
 **File:** `Scripts/allow-scripts.ps1`, `Scripts/Backup-GameConfigs.ps1`
 **Severity:** medium · **Category:** testing · **Size:** S
 **Blocks:** —  **Blocked by:** —
 **Context:**
-> Test coverage audit: 2 of 20+ primary scripts lack `.Tests.ps1` files.
-> - allow-scripts.ps1 (90 lines) — toggles PowerShell execution policy
-> - Backup-GameConfigs.ps1 (97 lines) — game config backup utility
-**Intent:** Reach >90% test coverage across all primary automation scripts.
+> Test coverage audit found one primary script without a `.Tests.ps1` file and one with coverage that should be expanded.
+> - allow-scripts.ps1 (90 lines) — existing `tests/allow-scripts.Tests.ps1` should be expanded to cover policy detection, RemoteSigned enforcement, and `-WhatIf`
+> - Backup-GameConfigs.ps1 (97 lines) — game config backup utility currently lacks dedicated Pester coverage
+**Intent:** Reach >90% test coverage across all primary automation scripts by filling true gaps and strengthening existing tests.
 **Acceptance criteria:**
-- [ ] Create `tests/allow-scripts.Tests.ps1` (test policy detection, RemoteSigned enforcement, -WhatIf mode)
+- [ ] Expand `tests/allow-scripts.Tests.ps1` to cover policy detection, RemoteSigned enforcement, and `-WhatIf` behavior
 - [ ] Create `tests/Backup-GameConfigs.Tests.ps1` (test directory creation, Copy-Item calls, hash validation, missing source handling)
-- [ ] Use Pester v5 `Describe`/`Context`/`It` structure matching existing tests
+- [ ] Use Pester v5 `Describe`/`Context`/`It` structure matching existing tests for both new and updated test files
 - [ ] Achieve 80%+ branch coverage per script (Invoke-Pester -CodeCoverage)
 **Estimated LOC delta:** 80–120 lines total.
 
