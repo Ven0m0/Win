@@ -28,6 +28,8 @@
 		"@gotgenes/opencode-agent-identity@3.0.1",
 		"github:kdcokenny/opencode-background-agents",
 		"github:spoons-and-mirrors/subtask2",
+		"@tarquinen/opencode-dcp@3.1.9",
+		"context-mode@1.0.104",
 		"openslimedit@1.0.4",
 		"opencode-agent-skills@0.6.5",
 		"opencode-betterglob",
