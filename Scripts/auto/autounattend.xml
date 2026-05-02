@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  NOTE: Set __SET_STRONG_PASSWORD__ to a strong password before deployment.
+  Never use default or placeholder passwords in production.
+-->
 <unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
-	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=en-US&Locale=en-DE&Keyboard=00000409&GeoLocation=94&ProcessorArchitecture=amd64&BypassRequirementsCheck=true&BypassNetworkCheck=true&UseConfigurationSet=true&HidePowerShellWindows=true&ComputerNameMode=Custom&ComputerName=PC&CompactOsMode=Never&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Unattended&PartitionLayout=GPT&EspSize=550&RecoveryMode=Partition&RecoverySize=1000&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Index&InstallFromIndex=1&PEMode=Generated&Disable8Dot3Names=true&PauseBeforeFormatting=true&UserAccountMode=Unattended&AccountName0=Ven0m0&AccountDisplayName0=&AccountPassword0=hermes01&AccountGroup0=Administrators&AutoLogonMode=Own&PasswordExpirationMode=Unlimited&LockoutMode=Disabled&HideFiles=HiddenSystem&ShowFileExtensions=true&ClassicContextMenu=true&TaskbarSearch=Icon&TaskbarIconsMode=Empty&DisableWidgets=true&LeftTaskbar=true&HideTaskViewButton=true&DisableBingResults=true&StartTilesMode=Empty&StartPinsMode=Empty&DisableUac=true&DisableSac=true&DisableSmartScreen=true&DisableFastStartup=true&EnableLongPaths=true&HardenSystemDriveAcl=true&DeleteJunctions=true&AllowPowerShellScripts=true&DisableLastAccess=true&PreventAutomaticReboot=true&TurnOffSystemSounds=true&DisableAppSuggestions=true&PreventDeviceEncryption=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&MakeEdgeUninstallable=true&DisablePointerPrecision=true&DisableCoreIsolation=true&DeleteWindowsOld=true&DisableWpbt=true&EffectsMode=Custom&ThumbnailsOrIcon=true&DragFullWindows=true&FontSmoothing=true&DesktopIconsMode=Custom&IconControlPanel=true&IconHome=true&IconRecycleBin=true&StartFoldersMode=Default&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Configure&CapsLockInitial=Off&CapsLockBehavior=Ignore&NumLockInitial=Off&NumLockBehavior=Ignore&ScrollLockInitial=Off&ScrollLockBehavior=Ignore&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%23d300d6&WallpaperMode=Default&LockScreenMode=Default&WdacMode=Skip&AppLockerMode=Skip-->
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=en-US&Locale=en-DE&Keyboard=00000409&GeoLocation=94&ProcessorArchitecture=amd64&BypassRequirementsCheck=true&BypassNetworkCheck=true&UseConfigurationSet=true&HidePowerShellWindows=true&ComputerNameMode=Custom&ComputerName=PC&CompactOsMode=Never&TimeZoneMode=Explicit&TimeZone=W.+Europe+Standard+Time&PartitionMode=Unattended&PartitionLayout=GPT&EspSize=550&RecoveryMode=Partition&RecoverySize=1000&DiskAssertionMode=Skip&WindowsEditionMode=Generic&WindowsEdition=pro&InstallFromMode=Index&InstallFromIndex=1&PEMode=Generated&Disable8Dot3Names=true&PauseBeforeFormatting=true&UserAccountMode=Unattended&AccountName0=Ven0m0&AccountDisplayName0=&AccountPassword0=__SET_STRONG_PASSWORD__&AccountGroup0=Administrators&AutoLogonMode=Own&PasswordExpirationMode=Unlimited&LockoutMode=Disabled&HideFiles=HiddenSystem&ShowFileExtensions=true&ClassicContextMenu=true&TaskbarSearch=Icon&TaskbarIconsMode=Empty&DisableWidgets=true&LeftTaskbar=true&HideTaskViewButton=true&DisableBingResults=true&StartTilesMode=Empty&StartPinsMode=Empty&DisableUac=true&DisableSac=true&DisableSmartScreen=true&DisableFastStartup=true&EnableLongPaths=true&HardenSystemDriveAcl=true&DeleteJunctions=true&AllowPowerShellScripts=true&DisableLastAccess=true&PreventAutomaticReboot=true&TurnOffSystemSounds=true&DisableAppSuggestions=true&PreventDeviceEncryption=true&HideEdgeFre=true&DisableEdgeStartupBoost=true&MakeEdgeUninstallable=true&DisablePointerPrecision=true&DisableCoreIsolation=true&DeleteWindowsOld=true&DisableWpbt=true&EffectsMode=Custom&ThumbnailsOrIcon=true&DragFullWindows=true&FontSmoothing=true&DesktopIconsMode=Custom&IconControlPanel=true&IconHome=true&IconRecycleBin=true&StartFoldersMode=Default&WifiMode=Skip&ExpressSettings=DisableAll&LockKeysMode=Configure&CapsLockInitial=Off&CapsLockBehavior=Ignore&NumLockInitial=Off&NumLockBehavior=Ignore&ScrollLockInitial=Off&ScrollLockBehavior=Ignore&StickyKeysMode=Disabled&ColorMode=Custom&SystemColorTheme=Dark&AppsColorTheme=Dark&AccentColor=%23d300d6&WallpaperMode=Default&LockScreenMode=Default&WdacMode=Skip&AppLockerMode=Skip-->
 	<settings pass="offlineServicing"></settings>
 	<settings pass="windowsPE">
 		<component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -152,7 +156,7 @@
 						<DisplayName></DisplayName>
 						<Group>Administrators</Group>
 						<Password>
-							<Value>hermes01</Value>
+							<Value>__SET_STRONG_PASSWORD__</Value>
 							<PlainText>true</PlainText>
 						</Password>
 					</LocalAccount>
@@ -163,7 +167,7 @@
 				<Enabled>true</Enabled>
 				<LogonCount>1</LogonCount>
 				<Password>
-					<Value>hermes01</Value>
+					<Value>__SET_STRONG_PASSWORD__</Value>
 					<PlainText>true</PlainText>
 				</Password>
 			</AutoLogon>
@@ -1151,6 +1155,9 @@ if (-not (Test-InternetConnectivity)) {
     Write-Host '[INFO] Internet connectivity confirmed. Proceeding with installations...' -ForegroundColor Green
     $wingetExe = Wait-ForWinget
     &amp; $wingetExe upgrade -r -u @W --disable-interactivity
+    if ($LASTEXITCODE -notin @(0, -1978335189)) {
+        Write-Host "[WARN] winget upgrade exited with code $LASTEXITCODE" -ForegroundColor Yellow
+    }
 
     Install-WingetPackage -Packages @('Microsoft.VCRedist.2015+.x64', 'Microsoft.VCRedist.2013.x64', 'Microsoft.VCLibs.14', 'Microsoft.VCLibs.Desktop.14', 'Microsoft.WindowsAppRuntime.1.8', 'Microsoft.DotNet.Framework.DeveloperPack_4', 'Microsoft.DotNet.Runtime.6', 'Microsoft.DotNet.DesktopRuntime.5', 'Microsoft.DotNet.DesktopRuntime.6', 'Microsoft.DotNet.DesktopRuntime.7', 'Microsoft.DotNet.DesktopRuntime.8', 'Microsoft.DotNet.DesktopRuntime.9', 'Microsoft.DotNet.DesktopRuntime.10', 'Microsoft.DirectX', 'Microsoft.XNARedist', 'KhronosGroup.VulkanRT', 'KhronosGroup.VulkanSDK', 'Microsoft.OpenCLGLVulkanCompatibilityPack', 'Oracle.JavaRuntimeEnvironment', 'EclipseAdoptium.Temurin.21.JRE', 'EclipseAdoptium.Temurin.25.JRE', 'OpenAL.OpenAL', 'Gyan.FFmpeg')
 

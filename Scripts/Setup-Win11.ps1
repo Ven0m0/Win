@@ -30,6 +30,8 @@ param(
     [switch]$SkipWSL
 )
 
+. "$PSScriptRoot\Common.ps1"
+
 function Start-SetupWin11 {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -108,15 +110,17 @@ function Start-SetupWin11 {
     } else { Write-Status 'winget is available' -Status 'OK' }
 
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        $null = Invoke-Operation -Name 'Installing Git' -Action {
-            winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        $null = Invoke-BuildOperation -Name 'Installing Git' -Action {
+            & winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements 2>$null
+            if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "git install failed with exit code $LASTEXITCODE" }
         }
     } else { Write-Status 'Git is available' -Status 'OK' }
 
     if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
-        $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action {
-            winget install --id Microsoft.PowerShell --silent --accept-source-agreements `
-                --accept-package-agreements | Out-Null
+        $null = Invoke-BuildOperation -Name 'Installing PowerShell 7+' -Action {
+            & winget install --id Microsoft.PowerShell --silent --accept-source-agreements `
+                --accept-package-agreements 2>$null
+            if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "pwsh install failed with exit code $LASTEXITCODE" }
         }
     } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
@@ -137,14 +141,22 @@ function Start-SetupWin11 {
         } else {
             Write-Status 'Repository already initialized - pulling latest changes' `
                 -Status 'RUNNING'
-            try { git -C $repoDir pull; Write-Status 'Dotfiles updated' -Status 'OK' }
+            try {
+                git -C $repoDir pull
+                if ($LASTEXITCODE -ne 0) { throw "git pull failed with exit code $LASTEXITCODE" }
+                Write-Status 'Dotfiles updated' -Status 'OK'
+            }
             catch { Write-Status "Pull failed: $_" -Status 'WARN' }
         }
     }
 
     if (-not (Test-Path $repoDir)) {
         Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
-        try { git clone $repoUrl $repoDir; Write-Status 'Repository cloned' -Status 'OK' }
+        try {
+            git clone $repoUrl $repoDir
+            if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE" }
+            Write-Status 'Repository cloned' -Status 'OK'
+        }
         catch { Write-Status "Clone failed: $_" -Status 'FAIL'; return $false }
     }
 
@@ -152,8 +164,9 @@ function Start-SetupWin11 {
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
         Write-Status 'Installing Python via winget...' -Status 'RUNNING'
         try {
-            winget install --id Python.Python.3.12 --silent --accept-source-agreements `
-                --accept-package-agreements | Out-Null
+            & winget install --id Python.Python.3.12 --silent --accept-source-agreements `
+                --accept-package-agreements 2>$null
+            if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "python install failed with exit code $LASTEXITCODE" }
             Write-Status 'Python installed' -Status 'OK'
         }
         catch { Write-Status "Python installation failed: $_" -Status 'WARN' }

@@ -1616,6 +1616,161 @@ function Install-WingetPackage {
 }
 #endregion
 
+#region External Command Wrappers
+
+function Invoke-BuildOperation {
+    <#
+    .SYNOPSIS
+        Runs an operation with consistent status reporting.
+    .PARAMETER Name
+        Human-readable operation name.
+    .PARAMETER Action
+        Script block to execute.
+    .PARAMETER SuccessStatus
+        Status string on success (default: 'OK').
+    .OUTPUTS
+        Boolean indicating success.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [scriptblock]$Action,
+
+        [string]$SuccessStatus = 'OK'
+    )
+
+    $statusColor = 'Cyan'
+    Write-Host "  [RUNNING] $Name" -ForegroundColor $statusColor
+    try {
+        $result = & $Action
+        $color = switch ($SuccessStatus) { 'OK' { 'Green' } 'SKIP' { 'Yellow' } default { 'Green' } }
+        Write-Host "  [$SuccessStatus] $Name" -ForegroundColor $color
+        return $true
+    }
+    catch {
+        Write-Host "  [FAIL] $Name - $($_.Exception.Message)" -ForegroundColor Red
+        return $false
+    }
+}
+
+function Invoke-CommandChecked {
+    <#
+    .SYNOPSIS
+        Runs an external command and throws on non-zero exit code.
+    .PARAMETER FilePath
+        Path to the executable.
+    .PARAMETER ArgumentList
+        Arguments to pass.
+    .PARAMETER SuccessCodes
+        Array of exit codes considered successful (default: 0).
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+
+        [string]$ArgumentList = '',
+
+        [int[]]$SuccessCodes = @(0)
+    )
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $FilePath
+    $psi.Arguments = $ArgumentList
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+
+    $proc = New-Object System.Diagnostics.Process
+    $proc.StartInfo = $psi
+    $null = $proc.Start()
+    $proc.WaitForExit()
+
+    if ($proc.ExitCode -notin $SuccessCodes) {
+        $stderr = $proc.StandardError.ReadToEnd()
+        throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode)): $stderr"
+    }
+
+    return $proc.ExitCode
+}
+
+function Invoke-Winget {
+    <#
+    .SYNOPSIS
+        Runs winget with Wait-ForWinget and exit-code handling.
+    .PARAMETER Id
+        Winget package ID.
+    .PARAMETER Name
+        Human-readable name for output.
+    .PARAMETER Arguments
+        Additional arguments to winget.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Id,
+
+        [string]$Name,
+
+        [string]$Arguments = ''
+    )
+
+    if (-not $Name) { $Name = $Id }
+
+    $winget = Wait-ForWinget
+
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+    $scopeArg = if ($isAdmin) { '--scope machine' } else { '' }
+
+    if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        try {
+            $fullArgs = "install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg $Arguments"
+            $proc = Start-Process -FilePath $winget -ArgumentList $fullArgs -NoNewWindow -Wait -PassThru
+            $ec = $proc.ExitCode
+            if ($ec -eq 0 -or $ec -eq -1978335189) {
+                Write-Host " [OK]" -ForegroundColor Green
+            }
+            else {
+                Write-Host ""
+                throw "winget exit code: $ec"
+            }
+        }
+        catch {
+            Write-Host ""
+            throw "Failed to install $Name`: $_"
+        }
+    }
+}
+
+function Invoke-RegImport {
+    <#
+    .SYNOPSIS
+        Imports a .reg file with exit-code checking.
+    .PARAMETER Path
+        Path to the .reg file.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+
+    if ($PSCmdlet.ShouldProcess($Path, 'Import registry file')) {
+        if (-not (Test-Path $Path)) {
+            throw "Registry file not found: $Path"
+        }
+        Invoke-CommandChecked -FilePath 'reg.exe' -ArgumentList "import `"$Path`"" -SuccessCodes @(0)
+    }
+}
+#endregion
+
 #pragma warning restore PSAvoidUsingWriteHost
 
 function Ensure-Directory {
