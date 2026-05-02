@@ -366,7 +366,16 @@ if ($HomeWorkstation) {
 $vscodeOutput = winget install Microsoft.VisualStudioCode `
     --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"' 2>&1
 if ($LASTEXITCODE -notin @(0, -1978335189)) {
-    Write-Warning "VSCode install failed with exit code $LASTEXITCODE"
+  $vscodeOutputText = if ($null -ne $vscodeOutput) {
+    (($vscodeOutput | ForEach-Object { $_.ToString() }) -join [Environment]::NewLine).Trim()
+  } else {
+    ''
+  }
+  if ([string]::IsNullOrWhiteSpace($vscodeOutputText)) {
+    Write-Warning "VSCode install failed with exit code $LASTEXITCODE."
+  } else {
+    Write-Warning "VSCode install failed with exit code $LASTEXITCODE. winget output:`n$vscodeOutputText"
+  }
 }
 
 # Choco packages
