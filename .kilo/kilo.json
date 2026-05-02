@@ -33,7 +33,7 @@
 		"context-mode@1.0.104",
 		"openslimedit@1.0.4",
 		"opencode-agent-skills@0.6.5",
-		"@morphllm/opencode-morph-plugin",
+		"@morphllm/opencode-morph-plugin@2.0.9",
 		"opencode-betterglob",
 		"opencode-bettergrep",
 		"opencode-betterread",
