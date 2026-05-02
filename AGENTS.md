@@ -55,7 +55,6 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
   - `.github/skills/` — reusable repo workflows
   - `.kilo/skills/` — agent-facing workflow knowledge
   - `.kilo/agents/` — agent identity and handoff rules
-  - `.kilo/rules/` — coding and system standards
   - `.kilo/commands/` — documented command workflows
 
 ## PowerShell Scripts
