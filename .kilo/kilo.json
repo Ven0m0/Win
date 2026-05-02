@@ -1,10 +1,6 @@
 {
 	"$schema": "https://app.kilo.ai/config.json",
-	"instructions": [
-		".kilo/rules/*.md",
-		"AGENTS.md",
-		".github/instructions/*.md"
-	],
+	"instructions": [".kilo/rules/*.md", "AGENTS.md", ".github/instructions/*.md"],
 	"skills": { "paths": [".kilo/skills", ".claude/skills"] },
 	"permission": {
 		"*": "allow",
@@ -26,7 +22,7 @@
 			"options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
 		}
 	},
-	"disabled_providers": ["openai", "google"],
+	"disabled_providers": ["openai", "google", "anthropic"],
 	"plugin": [
 		"opencode-ignore@1.1.0",
 		"@gotgenes/opencode-agent-identity@3.0.1",
