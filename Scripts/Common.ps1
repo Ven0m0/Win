@@ -1685,17 +1685,51 @@ function Invoke-CommandChecked {
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
+    $stdoutBuilder = New-Object System.Text.StringBuilder
+    $stderrBuilder = New-Object System.Text.StringBuilder
+
     $proc = New-Object System.Diagnostics.Process
     $proc.StartInfo = $psi
-    $null = $proc.Start()
-    $proc.WaitForExit()
+    $proc.EnableRaisingEvents = $true
 
-    if ($proc.ExitCode -notin $SuccessCodes) {
-        $stderr = $proc.StandardError.ReadToEnd()
-        throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode)): $stderr"
+    $outputHandler = [System.Diagnostics.DataReceivedEventHandler]{
+        param($sender, $eventArgs)
+        if ($null -ne $eventArgs.Data) {
+            [void]$stdoutBuilder.AppendLine($eventArgs.Data)
+        }
     }
 
-    return $proc.ExitCode
+    $errorHandler = [System.Diagnostics.DataReceivedEventHandler]{
+        param($sender, $eventArgs)
+        if ($null -ne $eventArgs.Data) {
+            [void]$stderrBuilder.AppendLine($eventArgs.Data)
+        }
+    }
+
+    try {
+        $proc.add_OutputDataReceived($outputHandler)
+        $proc.add_ErrorDataReceived($errorHandler)
+
+        $null = $proc.Start()
+        $proc.BeginOutputReadLine()
+        $proc.BeginErrorReadLine()
+        $proc.WaitForExit()
+        $proc.WaitForExit()
+
+        if ($proc.ExitCode -notin $SuccessCodes) {
+            $stderr = $stderrBuilder.ToString().TrimEnd()
+            $stdout = $stdoutBuilder.ToString().TrimEnd()
+            $details = if ($stderr) { $stderr } elseif ($stdout) { $stdout } else { 'No error output.' }
+            throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode)): $details"
+        }
+
+        return $proc.ExitCode
+    }
+    finally {
+        $proc.remove_OutputDataReceived($outputHandler)
+        $proc.remove_ErrorDataReceived($errorHandler)
+        $proc.Dispose()
+    }
 }
 
 function Invoke-Winget {
