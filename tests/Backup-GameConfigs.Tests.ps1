@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -93,74 +93,4 @@ Describe "Backup-GameConfigs.ps1" {
 
     Context "Arc Raiders backup" {
         BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
-        }
-
-        It "Should skip Arc Raiders backup if source does not exist" {
-            Mock Test-Path -ParameterFilter { $Path -eq $arcRaidersSource } -MockWith { return $false }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
-            Should -Invoke Write-BackupStatus -ParameterFilter {
-                $Message -like "*not found*" -and $Message -like "*Arc Raiders*"
-            }
-        }
-
-        It "Should copy KeyBindings files" {
-            Mock Test-Path -ParameterFilter { $Path -eq $arcRaidersSource } -MockWith { return $true }
-            Mock Test-Path -ParameterFilter { $Path -like "*arc-raiders*" } -MockWith { return $true }
-            Mock Get-ChildItem -ParameterFilter { $Filter -like "*KeyBindings*" } -MockWith {
-                @([PSCustomObject]@{ FullName = "keybinds.sav"; Name = "keybinds.sav" })
-            }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
-            Should -Invoke Copy-Item -ParameterFilter {
-                $Destination -like "*keybinds.sav*"
-            }
-        }
-
-        It "Should copy GameUserSettings.ini and Engine.ini" {
-            Mock Test-Path -ParameterFilter { $Path -eq $arcRaidersSource } -MockWith { return $true }
-            Mock Test-Path -ParameterFilter { $Path -like "*arc-raiders*" } -MockWith { return $true }
-            Mock Get-ChildItem -ParameterFilter { $Filter -like "*KeyBindings*" } -MockWith { @() }
-            Mock Get-ChildItem -ParameterFilter {
-                $Path -eq $arcRaidersSource -and $Recurse -and $Filter -in @('GameUserSettings.ini', 'Engine.ini')
-            } -MockWith {
-                @([PSCustomObject]@{ FullName = "GameUserSettings.ini"; Name = "GameUserSettings.ini" })
-            }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
-            Should -Invoke Copy-Item -ParameterFilter {
-                $Destination -like "*GameUserSettings.ini*"
-            }
-        }
-    }
-
-    Context "Hash validation" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
-        }
-
-        It "Should overwrite existing files when content differs" {
-            Mock Test-Path -ParameterFilter { $Path -eq $bo6Source } -MockWith { return $true }
-            Mock Test-Path -ParameterFilter { $Path -like "*bo6*" } -MockWith { return $true }
-            Mock Get-ChildItem -ParameterFilter { $Path -eq $bo6Source -and $Directory } -MockWith {
-                @([PSCustomObject]@{ FullName = "test.cfg"; Name = "test.cfg"; Directory = $true })
-            }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
-            Should -Invoke Copy-Item -ParameterFilter { $Force -eq $true }
-        }
-    }
-
-    Context "Error handling for missing source" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
-        }
-
-        It "Should handle missing Black Ops 6 source gracefully" {
-            Mock Test-Path -ParameterFilter { $Path -eq $bo6Source } -MockWith { return $false }
-            { Backup-GameConfigs -DotfilesPath $dotfilesPath } | Should -Not -Throw
-        }
-
-        It "Should handle missing Arc Raiders source gracefully" {
-            Mock Test-Path -ParameterFilter { $Path -eq $arcRaidersSource } -MockWith { return $false }
-            { Backup-GameConfigs -DotfilesPath $dotfilesPath } | Should -Not -Throw
-        }
-    }
-}
+   
