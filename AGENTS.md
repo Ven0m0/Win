@@ -188,7 +188,7 @@ Load with the `skill` tool. Reusable workflow knowledge for agents.
 
 | Skill | Description |
 |-------|-------------|
-| `windows-dotfiles` | Repo conventions, Common.ps1 helpers, path rules |
+| win-patterns | Repo conventions, Common.ps1 helpers, path rules |
 | `bootstrap-deployment` | Three-layer bootstrap, dotbot patterns, deployment order |
 | `validation` | Per-change-type validation matrix with decision table |
 | `agent-delegation` | Orchestrate tasks across agents with proper context handoff |
