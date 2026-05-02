@@ -26,6 +26,7 @@ prek = "latest"
 "pipx:dotbot" = "latest"
 "pipx:py-psscriptanalyzer" = "latest"
 ripgrep = "latest"
+"github:edouard-claude/snip" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
