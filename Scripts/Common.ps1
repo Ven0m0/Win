@@ -1681,18 +1681,17 @@ function Invoke-CommandChecked {
     $psi.FileName = $FilePath
     $psi.Arguments = $ArgumentList
     $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
     $proc = New-Object System.Diagnostics.Process
     $proc.StartInfo = $psi
     $null = $proc.Start()
+    $stdout = $proc.StandardOutput.ReadToEnd()
     $proc.WaitForExit()
 
     if ($proc.ExitCode -notin $SuccessCodes) {
-        $stderr = $proc.StandardError.ReadToEnd()
-        throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode)): $stderr"
+        throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode))"
     }
 
     return $proc.ExitCode

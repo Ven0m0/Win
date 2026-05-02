@@ -491,7 +491,7 @@ Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
     Write-Verbose "Install PowerShell dot files..."
     git clone https://github.com/mikepruett3/dotposh.git "$Env:UserProfile\dotposh" 2>&1
     if ($LASTEXITCODE -ne 0) {
-      throw "git clone failed for dotposh with exit code $LASTEXITCODE"
+      Write-Warning "git clone failed for dotposh with exit code $LASTEXITCODE"
     }
 @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
