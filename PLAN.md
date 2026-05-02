@@ -274,7 +274,7 @@ try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } cat
 **Blocks:** —  **Blocked by:** —
 **Context:**
 > `Network-Tweaker.ps1` is a 4220-line monolith combining Windows Forms GUI with inline registry manipulation.
-> No unit tests exist because logic is inseparable from UI event handlers. Makes maintenance risky.
+> Existing tests are limited to UI smoke/definition checks; there are no meaningful unit tests for core logic because that logic is currently inseparable from UI event handlers. This makes maintenance risky.
 **Intent:** Extract all non-UI logic into a testable module, leaving the GUI as a thin interactive frontend.
 **Acceptance criteria:**
 - [ ] Create `Scripts/NetworkTweaker.Core.psm1` with pure functions:
