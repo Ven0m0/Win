@@ -1680,14 +1680,12 @@ function Invoke-CommandChecked {
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = $FilePath
     $psi.Arguments = $ArgumentList
-    $psi.RedirectStandardOutput = $true
     $psi.UseShellExecute = $false
     $psi.CreateNoWindow = $true
 
     $proc = New-Object System.Diagnostics.Process
     $proc.StartInfo = $psi
     $null = $proc.Start()
-    $stdout = $proc.StandardOutput.ReadToEnd()
     $proc.WaitForExit()
 
     if ($proc.ExitCode -notin $SuccessCodes) {
@@ -1743,7 +1741,7 @@ function Invoke-Winget {
         }
         catch {
             Write-Host ""
-            throw "Failed to install $Name`: $_"
+            throw "Failed to install $Name`: $($_.Exception.Message)"
         }
     }
 }
