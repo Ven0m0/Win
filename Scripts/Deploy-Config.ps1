@@ -1,4 +1,4 @@
-## Deploy-Config.ps1
+﻿## Deploy-Config.ps1
 # Suppress Write-Host warnings
 #pragma warning disable PSAvoidUsingWriteHost
 ## Deploy-Config.ps1

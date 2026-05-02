@@ -1,4 +1,4 @@
-# steam.ps1 - Steam optimization: restarts Steam with reduced RAM/CPU usage
+﻿# steam.ps1 - Steam optimization: restarts Steam with reduced RAM/CPU usage
 # Supports two modes: Default (SmallMode=1, NoGPU=1) and Arc Raiders (SmallMode=0, NoGPU=0)
 
 [CmdletBinding()]
