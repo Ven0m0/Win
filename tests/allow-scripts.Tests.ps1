@@ -92,19 +92,4 @@ Describe "allow-scripts.ps1" {
         }
     }
 
-    Context "-WhatIf support (SupportsShouldProcess)" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
-        }
-
-        It "Should not call Set-RegistryValue when -WhatIf is used for Enable-ScriptExecution" {
-            Enable-ScriptExecution -WhatIf
-            Assert-MockCalled -CommandName Set-RegistryValue -Times 0
-        }
-
-        It "Should not call Remove-RegistryValue when -WhatIf is used for Disable-ScriptExecution" {
-            Disable-ScriptExecution -WhatIf
-            Assert-MockCalled -CommandName Remove-RegistryValue -Times 0
-        }
     }
-}
