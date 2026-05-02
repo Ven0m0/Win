@@ -44,20 +44,12 @@
 	],
 	"formatter": {
 		"biome": {
-			"command": [
-				"npx",
-				"-y",
-				"@biomejs/biome",
-				"check",
-				"--write",
-				"--format-with-errors=true",
-				"$FILE"
-			],
-			"extensions": [".json", ".js"]
+			"command": ["npx", "-y", "@biomejs/biome", "check", "--write", "--format-with-errors=true", "$FILE"],
+			"extensions": [".json", ".jsonc", ".js", ".ts"]
 		},
 		"ruff": {
 			"command": ["ruff", "format", "$FILE"],
-			"extensions": [".py", ".pyi"]
+			"extensions": [".py", ".pyi",".pyc"]
 		}
 	},
 	"watcher": {
