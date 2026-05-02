@@ -1,17 +1,11 @@
 {
 	"$schema": "https://app.kilo.ai/config.json",
-	"instructions": [
-		".kilo/rules/*.md",
-		"AGENTS.md",
-		".github/instructions/*.md"
-	],
-	"skills": {
-		"paths": [".kilo/skills", ".claude/skills"]
-	},
+	"instructions": [".kilo/rules/*.md", "AGENTS.md", ".github/instructions/*.md"],
+	"skills": { "paths": [".kilo/skills", ".claude/skills"] },
 	"permission": {
 		"*": "allow",
 		"read": { "*.env": "deny", "*.lock": "deny", "*": "allow" },
-		"edit": { "dist/**": "deny", "*.lock": "deny", "*": "allow" },
+		"edit": { "*.lock": "deny", "*": "allow" },
 		"sudo *": "deny",
 		"rm -rf /": "deny",
 		"rm -rf /*": "deny",
@@ -41,7 +35,6 @@
 		"opencode-betterread",
 		"opencode-helicone-session",
 		"opencode-sequential-thinking",
-		"opencode-web-search",
 		".kilo/plugins/context-shield.ts",
 		".kilo/plugins/json-healer.ts",
 		".kilo/plugins/custom-tools.ts",
@@ -50,18 +43,14 @@
 	"formatter": {
 		"biome": {
 			"command": [
-				"npx",
-				"-y",
-				"@biomejs/biome",
-				"check",
-				"--write",
-				"--format-with-errors=true",
+				"npx", "-y", "@biomejs/biome",
+				"check", "--write", "--format-with-errors=true",
 				"$FILE"
 			],
 			"extensions": [".json", ".js"]
 		},
 		"ruff": {
-			"command": ["uvx", "ruff", "format", "$FILE"],
+			"command": ["ruff", "format", "$FILE"],
 			"extensions": [".py", ".pyi"]
 		}
 	},
@@ -85,7 +74,7 @@
 			"type": "remote",
 			"url": "https://mcp.context7.com/mcp",
 			"headers": { "Authorization": "Bearer {env:CONTEXT7_API_KEY}" },
-			"enabled": true
+			"enabled": false
 		},
 		"github": {
 			"type": "remote",
@@ -126,48 +115,11 @@
 			"type": "local",
 			"command": ["npx", "-y", "@playwright/mcp@latest", "--headless"],
 			"enabled": false
-		},
-		"sentry": {
-			"type": "remote",
-			"url": "https://mcp.sentry.dev/mcp",
-			"oauth": {},
-			"enabled": false
-		},
-		"browser-tools": {
-			"type": "local",
-			"command": ["npx", "-y", "@agentdeskai/browser-tools-mcp@latest"],
-			"enabled": false
-		},
-		"filesystem": {
-			"type": "local",
-			"command": [
-				"npx",
-				"-y",
-				"@modelcontextprotocol/server-filesystem@latest",
-				"."
-			],
-			"enabled": false
-		},
-		"git-mcp": {
-			"type": "local",
-			"command": ["npx", "-y", "@modelcontextprotocol/server-git@latest"],
-			"enabled": false
-		},
-		"sqlite": {
-			"type": "local",
-			"command": [
-				"npx",
-				"-y",
-				"@modelcontextprotocol/server-sqlite@latest",
-				"--db-path",
-				".opencode/sessions.db"
-			],
-			"enabled": false
 		}
 	},
 	"lsp": {
 		"basedpyright": {
-			"command": ["uvx", "basedpyright-langserver", "--stdio"],
+			"command": ["basedpyright-langserver", "--stdio"],
 			"extensions": [".py", ".pyw", ".pyi"]
 		},
 		"bash": {
