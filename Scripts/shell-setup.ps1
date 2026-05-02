@@ -49,9 +49,11 @@ function Install-WinGetApp {
   param([Parameter(Mandatory)][string]$PackageID)
   Write-Verbose "Installing $PackageID"
   $output = winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements 2>&1
+  $outputText = ($output | Out-String).Trim()
   if ($LASTEXITCODE -notin @(0, -1978335189)) {
-    Write-Warning "winget install failed for $PackageID with exit code $LASTEXITCODE"
-    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)"
+    $details = if ([string]::IsNullOrWhiteSpace($outputText)) { '' } else { "`nwinget output:`n$outputText" }
+    Write-Warning "winget install failed for $PackageID with exit code $LASTEXITCODE$details"
+    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)$details"
   }
 }
 
