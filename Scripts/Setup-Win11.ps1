@@ -80,7 +80,7 @@ function Start-SetupWin11 {
     }
     $isAdmin = Test-IsAdmin
     if (-not $isAdmin) {
-        Write-Host '  [REQUIRED] Administrator privileges required. Relaunching as administrator...' -ForegroundColor Yellow
+        Write-Host '  [REQUIRED] Administrator privileges required. Relaunching as admin...' -ForegroundColor Yellow
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""

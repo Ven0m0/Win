@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 #Requires -RunAsAdministrator
 
@@ -73,14 +73,14 @@ function Start-SystemFix {
 
     Write-Header "Windows System Repair"
     Write-Info "Start Time: $($StartTime.ToString('yyyy-MM-dd HH:mm:ss'))"
-    Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=
-
+        Write-Info "Parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck",
+            "SkipNetworkFix=$SkipNetworkFix, SkipWUReset=$SkipWUReset"
     if ($DryRun) {
         Write-Warn "DRY RUN MODE - No commands will be executed"
     }
 
-    Add-Log "Repair started with parameters: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetwork
-
+    Add-Log "Repair started: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck",
+        "SkipNetworkFix=$SkipNetworkFix, SkipWUReset=$SkipWUReset"
     # Step 1: DISM Health Check
     Write-Info "=== Step 1: DISM Health Check ==="
 

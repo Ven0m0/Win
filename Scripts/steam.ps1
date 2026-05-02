@@ -59,7 +59,10 @@ function Invoke-SteamOptimization {
         if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"', '{', '}') }
         vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam\FriendsUI'
         $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
-        if ($key["SteamDefaultDialog"] -ne '"#app_games"') { $key["SteamDefaultDialog"] = '"#app_games"'; $write = $true }
+        if ($key["SteamDefaultDialog"] -ne '"#app_games"') {
+            $key["SteamDefaultDialog"] = '"#app_games"'
+            $write = $true
+        }
         $ui = $key["FriendsUI"]["FriendsUIJSON"]; if (-not ($ui -like '*{*')) { $ui = '' }
         if ($FriendsSignIn -eq 0 -and ($ui -like '*bSignIntoFriends\":true*' `
                     -or $ui -like '*PersonaNotifications\":1*') ) {
@@ -103,11 +106,13 @@ function Invoke-SteamOptimization {
 
     # --- Refresh desktop shortcut: Steam_min
     $wsh = if ($IsWindows -eq $false -or $null -eq $IsWindows) {
-        [pscustomobject]@{ } | `
-                Add-Member -MemberType ScriptMethod -Name CreateShortcut -Value { param() `
-                    $x = [pscustomobject]@{ Description = ""; IconLocation = ""; WindowStyle = 7; TargetPath = ""; Arguments = "" }; `
-                    Add-Member -InputObject $x -MemberType ScriptMethod -Name Save -Value {}; return $x `
-            } -PassThru
+        [pscustomobject]@{ } | Add-Member -MemberType ScriptMethod -Name CreateShortcut -Value {
+        param()
+        [pscustomobject]@{
+            Description = ""; IconLocation = ""; WindowStyle = 7
+            TargetPath = ""; Arguments = ""
+        } | Add-Member -MemberType ScriptMethod -Name Save -Value {}; return $x
+    } -PassThru
     }
     else { & { New-Object -ComObject WScript.Shell } }
     $shortcutPath = "$([Environment]::GetFolderPath('Desktop'))\Steam_min.lnk"
