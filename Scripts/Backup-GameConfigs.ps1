@@ -56,7 +56,8 @@ if (Test-Path $bo6Source) {
         }
     }
 
-    $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^s\
+    $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -match '^s' }
     foreach ($file in $rootFiles) {
         Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
         Write-BackupStatus "  Copied: $($file.Name)" -Color Gray

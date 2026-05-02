@@ -1,4 +1,4 @@
-## Deploy-Config.ps1
+﻿## Deploy-Config.ps1
 # Suppress Write-Host warnings
 #pragma warning disable PSAvoidUsingWriteHost
 ## Deploy-Config.ps1
@@ -493,7 +493,13 @@ function Start-DeployConfig {
 
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]
-        $color = switch ($status) { 'OK' { 'Green' } 'FAIL' { 'Red' } 'SKIP' { 'Yellow' } 'UP-TO-DATE' { 'Gray' } default { 'White' } }
+        $color = switch ($status) {
+            'OK' { 'Green' }
+            'FAIL' { 'Red' }
+            'SKIP' { 'Yellow' }
+            'UP-TO-DATE' { 'Gray' }
+            default { 'White' }
+        }
         Write-Host "  $($key.PadRight(50)) : " -NoNewline
         Write-Host "$status" -ForegroundColor $color
 

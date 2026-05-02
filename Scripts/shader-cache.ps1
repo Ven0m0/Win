@@ -66,7 +66,8 @@ function Invoke-ShaderCacheCleanup {
   foreach ($app in $apps) {
     if ($app.exe) {
       $dir=Split-Path $app.exe
-      Get-ChildItem "$dir\*.mdmp" -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+      Get-ChildItem "$dir\*.mdmp" -Force -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
     }
   }
   Write-Host "`n* Clearing APP shadercache..." -ForegroundColor Cyan

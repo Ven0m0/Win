@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -20,21 +20,76 @@ Describe "allow-scripts.ps1" {
         Mock -CommandName Unblock-File -MockWith { }
     }
 
-    Context "Script functions" {
+    Context "Enable-ScriptExecution" {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
         }
 
-        It "Should run Enable-ScriptExecution without errors and configure correctly" {
-            { Enable-ScriptExecution } | Should -Not -Throw
+        It "Should call Set-RegistryValue for HKCR and both HKCU/HKLM execution policies" {
+            Enable-ScriptExecution
             Assert-MockCalled -CommandName Set-RegistryValue -Times 3
-            # We don't assert how many times Unblock-File is called since it depends on the directory's contents
         }
 
-        It "Should run Disable-ScriptExecution without errors and configure correctly" {
-            { Disable-ScriptExecution } | Should -Not -Throw
-            Assert-MockCalled -CommandName Remove-RegistryValue -Times 2
-            Assert-MockCalled -CommandName Set-RegistryValue -Times 2
+        It "Should call Unblock-File for each script in the directory" {
+            Enable-ScriptExecution
+            Assert-MockCalled -CommandName Unblock-File -Times 1
+        }
+
+        It "Should write enabling status messages (at least banner and completion)" {
+            Enable-ScriptExecution
+            Assert-MockCalled -CommandName Write-Host -Times 6
+        }
+
+        It "Should not call Remove-RegistryValue when enabling" {
+            Enable-ScriptExecution
+            Assert-MockCalled -CommandName Remove-RegistryValue -Times 0
         }
     }
-}
+
+    Context "Disable-ScriptExecution" {
+        BeforeAll {
+            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
+        }
+
+        It "Should call Remove-RegistryValue for HKCR ps1 associations" {
+            Disable-ScriptExecution
+            Assert-MockCalled -CommandName Remove-RegistryValue -Times 2
+        }
+
+        It "Should call Set-RegistryValue for HKCU/HKLM to Restricted" {
+            Disable-ScriptExecution
+            Assert-MockCalled -CommandName Set-RegistryValue -Times 2
+        }
+
+        It "Should not call Unblock-File when disabling" {
+            Disable-ScriptExecution
+            Assert-MockCalled -CommandName Unblock-File -Times 0
+        }
+
+        It "Should write disabling status messages (at least banner and completion)" {
+            Disable-ScriptExecution
+            Assert-MockCalled -CommandName Write-Host -AtLeast 5
+        }
+    }
+
+    Context "Policy detection" {
+        BeforeAll {
+            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
+        }
+
+        It "Should enable scripts sets RemoteSigned in HKCU registry" {
+            Enable-ScriptExecution
+            Should -Invoke Set-RegistryValue -ParameterFilter {
+                $Path -like '*HKCU*' -and $Name -eq 'ExecutionPolicy' -and $Data -eq 'RemoteSigned'
+            }
+        }
+
+        It "Should disable scripts sets Restricted in HKCU registry" {
+            Disable-ScriptExecution
+            Should -Invoke Set-RegistryValue -ParameterFilter {
+                $Path -like '*HKCU*' -and $Name -eq 'ExecutionPolicy' -and $Data -eq 'Restricted'
+            }
+        }
+    }
+
+    }

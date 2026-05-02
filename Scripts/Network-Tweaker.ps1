@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 <#
 .NAME
@@ -2736,10 +2736,13 @@ function Initialize-AdapterUI {
             $cb_DynamicSendBufferDisable.Text='1'
         }
 
-        $AFDFastSendDatagramThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -ErrorAction SilentlyContinue)
+        $afdPath = "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters"
+        $AFDFastSendDatagramThreshold = Get-ItemPropertyValue -Path $afdPath `
+            -Name "FastSendDatagramThreshold" -ErrorAction SilentlyContinue
         $cb_FastSendDatagramThreshold.Text = $AFDFastSendDatagramThreshold
 
-        $AFDFastCopyReceiveThreshold = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -ErrorAction SilentlyContinue)
+        $AFDFastCopyReceiveThreshold = Get-ItemPropertyValue -Path $afdPath `
+            -Name "FastCopyReceiveThreshold" -ErrorAction SilentlyContinue
         $cb_FastCopyReceiveThreshold.Text = $AFDFastCopyReceiveThreshold
 
         #IgnorePushBitOnReceives /Check Value

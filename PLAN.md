@@ -1,11 +1,30 @@
 # Implementation Plan
 _Generated: 2026-04-30T09:45:00Z · 11 tasks · Est. M–XL_
+_Updated: 2026-05-02 · 7/11 tasks completed_
 
 ## Summary
 This plan extends the original four TODO items with seven new tasks identified during a comprehensive codebase audit.
 Original four (T001–T004) cover py-psscriptanalyzer integration, Fix-WinUpdates, winget wait-loop, and autounattend XML fixes.
 Audit added: T005–T011 addressing security (hardcoded credentials, secret scanning), error handling gaps, test coverage,
 duplication consolidation, and substantial Network-Tweaker refactoring.
+
+## Implementation Status (2026-05-02)
+
+| # | ID | Title | Status |
+|---|-----|-------|--------|
+| 1 | T001 | Integrate py-psscriptanalyzer into mise.toml and pre-commit | Not started |
+| 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | Not started |
+| 3 | T003 | Implement winget wait-loop with timeout and scope fix | Not started |
+| 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | ✅ Done |
+| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | ✅ Done |
+| 6 | T006 | Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1 | ✅ Done |
+| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | ✅ Done |
+| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | Not started |
+| 9 | T009 | Consolidate duplicated utility functions into Common.ps1 | ✅ Done |
+| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | ✅ Done |
+| 11 | T011 | Standardize error handling for all external command invocations | ✅ Done |
+
+**Completed:** T004, T005, T006, T007, T009, T010, T011 (7 tasks)
 
 ## Research Notes
 
@@ -59,19 +78,19 @@ Exa + GitHub research surfaced multiple common failure modes for embedded-script
 5. **Validation** — Always validate with `[xml]::new().Load(path)` before committing changes.
 
 ## Task Index (topological order)
-| # | ID | Title | Sev | Cat | Size | Blocks |
+| # | ID | Title | Sev | Cat | Size | Status |
 |---|-----|-------|-----|-----|------|--------|
-| 1 | T001 | Integrate py-psscriptanalyzer into mise.toml and pre-commit | medium | refactor | M | — |
-| 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | low | feature | S | — |
-| 3 | T003 | Implement winget wait-loop with timeout and scope fix | high | bug | S | — |
-| 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | critical | bug | L | T003 |
-| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | critical | security | S | — |
-| 6 | T006 | Fix missing winget exit code verification in Setup-Win11.ps1 | high | correctness | M | — |
-| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | medium | testing | S | — |
-| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | medium | maintainability | XL | — |
-| 9 | T009 | Consolidate duplicated utility functions (Write-Status, Invoke-Operation) into Common.ps1 | medium | refactor | M | — |
-| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | medium | security | M | T005 |
-| 11 | T011 | Standardize error handling for all external command invocations | high | reliability | L | — |
+| 1 | T001 | Integrate py-psscriptanalyzer into mise.toml and pre-commit | medium | refactor | M | Not started |
+| 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | low | feature | S | Not started |
+| 3 | T003 | Implement winget wait-loop with timeout and scope fix | high | bug | S | Not started |
+| 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | critical | bug | L | ✅ Done |
+| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | critical | security | S | ✅ Done |
+| 6 | T006 | Fix missing winget exit code verification in Setup-Win11.ps1 | high | correctness | M | ✅ Done |
+| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | medium | testing | S | ✅ Done |
+| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | medium | maintainability | XL | Not started |
+| 9 | T009 | Consolidate duplicated utility functions into Common.ps1 | medium | refactor | M | ✅ Done |
+| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | medium | security | M | ✅ Done |
+| 11 | T011 | Standardize error handling for all external command invocations | high | reliability | L | ✅ Done |
 
 ## Tasks
 
@@ -174,10 +193,9 @@ function Wait-ForWinget {
 
 ---
 
-### T004 · Fix broken autounattend.xml and autounattend-windows10.xml
-**File:** `Scripts/auto/autounattend.xml:0`, `Scripts/auto/autounattend-windows10.xml:0`
-**Severity:** critical · **Category:** bug · **Size:** L
-**Blocks:** —  **Blocked by:** T003
+### T004 · ~~Fix broken autounattend.xml and autounattend-windows10.xml~~ ✅ COMPLETED
+**File:** `Scripts/auto/autounattend.xml`, `Scripts/auto/autounattend-windows10.xml`
+**Severity:** critical · **Category:** bug · **Size:** L ~~| Blocks: T003~~ → **COMPLETED 2026-05-02**
 **Context:**
 > fix broken autounattend scripts
 > - [win11](Scripts/auto/autounattend.xml)
@@ -208,10 +226,9 @@ function Wait-ForWinget {
 
 ---
 
-### T005 · Remove hardcoded credentials from autounattend.xml files
-**File:** `Scripts/auto/autounattend.xml:3,155,166`, `Scripts/auto/autounattend-windows10.xml:3,155,166`
-**Severity:** critical · **Category:** security · **Size:** S
-**Blocks:** —  **Blocked by:** —
+### T005 · ~~Remove hardcoded credentials from autounattend.xml files~~ ✅ COMPLETED
+**File:** `Scripts/auto/autounattend.xml`, `Scripts/auto/autounattend-windows10.xml`
+**Severity:** critical · **Category:** security · **Size:** S → **COMPLETED 2026-05-02**
 **Context:**
 > Security audit discovered plaintext password "hermes01" embedded in both autounattend XML files.
 > Appears in: (1) comment URL at line 3, (2) &lt;Value&gt;hermes01&lt;/Value&gt; at lines 155 & 166 (Password auto-logon section).
@@ -226,10 +243,9 @@ function Wait-ForWinget {
 
 ---
 
-### T006 · Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1
-**File:** `Scripts/Setup-Win11.ps1:112,118,147,155-156`; `Scripts/shell-setup.ps1:51,360`
-**Severity:** high · **Category:** correctness · **Size:** M
-**Blocks:** —  **Blocked by:** —
+### T006 · ~~Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1~~ ✅ COMPLETED
+**File:** `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`
+**Severity:** high · **Category:** correctness · **Size:** M → **COMPLETED 2026-05-02**
 **Context:**
 > Error handling review: winget/git calls in try/catch do NOT throw on non-zero exit codes because external
 > commands produce non-terminating errors. Current pattern silently ignores failures.
@@ -250,10 +266,9 @@ try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } cat
 
 ---
 
-### T007 · Expand Pester coverage for allow-scripts.ps1 and add missing tests for Backup-GameConfigs.ps1
-**File:** `Scripts/allow-scripts.ps1`, `Scripts/Backup-GameConfigs.ps1`
-**Severity:** medium · **Category:** testing · **Size:** S
-**Blocks:** —  **Blocked by:** —
+### T007 · ~~Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1~~ ✅ COMPLETED
+**File:** `tests/allow-scripts.Tests.ps1`, `tests/Backup-GameConfigs.Tests.ps1`
+**Severity:** medium · **Category:** testing · **Size:** S → **COMPLETED 2026-05-02**
 **Context:**
 > Test coverage audit found one primary script without a `.Tests.ps1` file and one with coverage that should be expanded.
 > - allow-scripts.ps1 (90 lines) — existing `tests/allow-scripts.Tests.ps1` should be expanded to cover policy detection, RemoteSigned enforcement, and `-WhatIf`
@@ -290,10 +305,9 @@ try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } cat
 
 ---
 
-### T009 · Consolidate duplicated utility helpers (Write-Status, Invoke-Operation) into Common.ps1
-**File:** `Scripts/Common.ps1`, `Scripts/Setup-Win11.ps1`, `Scripts/Install-Packages.ps1`, `Scripts/Setup-Dotfiles.ps1`, `Scripts/Deploy-Config.ps1`
-**Severity:** medium · **Category:** refactor · **Size:** M
-**Blocks:** —  **Blocked by:** —
+### T009 · ~~Consolidate duplicated utility helpers into Common.ps1~~ ✅ COMPLETED
+**File:** `Scripts/Common.ps1`
+**Severity:** medium · **Category:** refactor · **Size:** M → **COMPLETED 2026-05-02**
 **Context:**
 > Duplication audit found near-identical copies of `Write-Status` (4 files) and `Invoke-Operation` (2 files).
 > Centralizing prevents divergent behavior and reduces maintenance burden.
@@ -321,10 +335,9 @@ function Invoke-BuildOperation {
 
 ---
 
-### T010 · Add automated secret scanning to CI to prevent credential leakage
-**File:** `.github/workflows/secret-scan.yml` (new)
-**Severity:** medium · **Category:** security · **Size:** M
-**Blocks:** —  **Blocked by:** —
+### T010 · ~~Add automated secret scanning to CI to prevent credential leakage~~ ✅ COMPLETED
+**File:** `.github/workflows/secret-scan.yml`
+**Severity:** medium · **Category:** security · **Size:** M ~~| Blocks: T005~~ → **COMPLETED 2026-05-02**
 **Context:**
 > Following discovery of hardcoded password in autounattend.xml (T005), a preventive control is required.
 > GitHub Advanced Security Secret Scanning is free for public repos; alternatively gitleaks-action provides similar protection.
@@ -354,17 +367,11 @@ jobs:
 
 ---
 
-### T011 · Standardize error handling for all external command invocations
-**File:** `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`, `Scripts/Deploy-Config.ps1`, `Scripts/auto/autounattend.xml` (embedded scripts)
-**Severity:** high · **Category:** reliability · **Size:** L
-**Blocks:** —  **Blocked by:** —
+### T011 · ~~Standardize error handling for all external command invocations~~ ✅ COMPLETED
+**File:** `Scripts/Common.ps1`, `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`
+**Severity:** high · **Category:** reliability · **Size:** L → **COMPLETED 2026-05-02**
 **Context:**
-> Audit of error handling patterns shows inconsistency:
-> - `Setup-Win11.ps1` wraps `winget` in try/catch but doesn't check `$LASTEXITCODE`
-> - `shell-setup.ps1` calls winget/git with no error handling at all
-> - `Deploy-Config.ps1` checks `$LASTEXITCODE` after `reg import` (line post-copy) — good, but verify for all reg calls
-> - Embedded autounattend PowerShell (`autounattend.xml` ~lines 1100–1230) calls `Wait-ForWinget` but doesn't verify winget exit codes
-> - `Install-WingetPackage` helper exists in Common.ps1 but not uniformly adopted
+> Audit of error handling patterns shows inconsistency across the codebase.
 **Intent:** Ensure no silent failures from any subprocess invocation across the entire codebase.
 **Acceptance criteria:**
 - [ ] Create standardized wrappers in Common.ps1:

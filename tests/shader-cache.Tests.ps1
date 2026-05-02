@@ -1,4 +1,4 @@
-BeforeAll {
+﻿BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
     function ConvertFrom-VDF {}
     function Stop-SteamGracefully {}

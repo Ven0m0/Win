@@ -49,6 +49,9 @@ function Install-WinGetApp {
   param([Parameter(Mandatory)][string]$PackageID)
   Write-Verbose "Installing $PackageID"
   winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
+  if ($LASTEXITCODE -notin @(0, -1978335189)) {
+    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)"
+  }
 }
 
 function Install-ChocoApp {
@@ -359,6 +362,9 @@ if ($HomeWorkstation) {
 # VSCode custom install
 winget install Microsoft.VisualStudioCode `
     --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
+if ($LASTEXITCODE -notin @(0, -1978335189)) {
+    throw "VSCode install failed with exit code $LASTEXITCODE"
+}
 
 # Choco packages
 $Choco = @("syspin","sd-card-formatter","winimage","winsetupfromusb","fluidsynth")
@@ -481,12 +487,12 @@ Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
     "c:5386"
 
 # Dotfiles
-if (-not (Test-Path -LiteralPath "$Env:UserProfile\dotposh")) {
-  Write-Verbose "Install PowerShell dot files..."
-  Start-Process -FilePath "PowerShell" -ArgumentList "git",
-    "clone",
-    "https://github.com/mikepruett3/dotposh.git",
-    "$Env:UserProfile\dotposh" -Wait
+  if (-not (Test-Path -LiteralPath "$Env:UserProfile\dotposh")) {
+    Write-Verbose "Install PowerShell dot files..."
+    git clone https://github.com/mikepruett3/dotposh.git "$Env:UserProfile\dotposh" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      Write-Warning "git clone failed for dotposh with exit code $LASTEXITCODE"
+    }
 @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
 Remove-Item `
