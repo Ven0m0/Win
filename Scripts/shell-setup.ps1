@@ -506,7 +506,7 @@ Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
       "https://github.com/mikepruett3/dotposh.git",
       "$Env:UserProfile\dotposh" -Wait -PassThru
     if ($gitProc.ExitCode -ne 0) {
-      Write-Warning "git clone failed for dotposh with exit code $($gitProc.ExitCode)"
+      throw "git clone failed for dotposh with exit code $($gitProc.ExitCode)"
     }
 @'
 New-Item -Path $Env:UserProfile\Documents\WindowsPowerShell -ItemType Directory -ErrorAction Ignore
