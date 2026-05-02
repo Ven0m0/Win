@@ -1,8 +1,11 @@
 # Implementation Plan
-_Generated: 2026-04-29T12:08:26Z · 4 tasks · Est. M–L_
+_Generated: 2026-04-30T09:45:00Z · 11 tasks · Est. M–XL_
 
 ## Summary
-This plan captures four work items from `TODO.md`: integrating `py-psscriptanalyzer` into the build pipeline, adding a Windows Update repair source, implementing a robust winget wait-and-install pattern, and fixing broken autounattend XML scripts for both Windows 10 and Windows 11.
+This plan extends the original four TODO items with seven new tasks identified during a comprehensive codebase audit.
+Original four (T001–T004) cover py-psscriptanalyzer integration, Fix-WinUpdates, winget wait-loop, and autounattend XML fixes.
+Audit added: T005–T011 addressing security (hardcoded credentials, secret scanning), error handling gaps, test coverage,
+duplication consolidation, and substantial Network-Tweaker refactoring.
 
 ## Research Notes
 
@@ -62,6 +65,13 @@ Exa + GitHub research surfaced multiple common failure modes for embedded-script
 | 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | low | feature | S | — |
 | 3 | T003 | Implement winget wait-loop with timeout and scope fix | high | bug | S | — |
 | 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | critical | bug | L | T003 |
+| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | critical | security | S | — |
+| 6 | T006 | Fix missing winget exit code verification in Setup-Win11.ps1 | high | correctness | M | — |
+| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | medium | testing | S | — |
+| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | medium | maintainability | XL | — |
+| 9 | T009 | Consolidate duplicated utility functions (Write-Status, Invoke-Operation) into Common.ps1 | medium | refactor | M | — |
+| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | medium | security | M | T005 |
+| 11 | T011 | Standardize error handling for all external command invocations | high | reliability | L | — |
 
 ## Tasks
 
@@ -198,6 +208,178 @@ function Wait-ForWinget {
 
 ---
 
+### T005 · Remove hardcoded credentials from autounattend.xml files
+**File:** `Scripts/auto/autounattend.xml:3,155,166`, `Scripts/auto/autounattend-windows10.xml:3,155,166`
+**Severity:** critical · **Category:** security · **Size:** S
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Security audit discovered plaintext password "hermes01" embedded in both autounattend XML files.
+> Appears in: (1) comment URL at line 3, (2) &lt;Value&gt;hermes01&lt;/Value&gt; at lines 155 & 166 (Password auto-logon section).
+**Intent:** Remove hardcoded credentials from version control to prevent security exposure.
+**Acceptance criteria:**
+- [ ] Replace hardcoded password with `{{DEFAULT_ADMIN_PASSWORD}}` placeholder in both files
+- [ ] Document in autounattend header: "Set a strong password before deployment — never use default"
+- [ ] Remove the password from the comment URL as well
+- [ ] Consider scanning repo for additional plaintext credentials
+**Estimated LOC delta:** 4–6 lines total
+**Security note:** This is an active credential in a tracked file. Rotate any usage of "hermes01" immediately.
+
+---
+
+### T006 · Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1
+**File:** `Scripts/Setup-Win11.ps1:112,118,147,155-156`; `Scripts/shell-setup.ps1:51,360`
+**Severity:** high · **Category:** correctness · **Size:** M
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Error handling review: winget/git calls in try/catch do NOT throw on non-zero exit codes because external
+> commands produce non-terminating errors. Current pattern silently ignores failures.
+**Intent:** Ensure installation failures are detected and abort the setup.
+**Acceptance criteria:**
+- [ ] Replace direct `winget install` calls with `Install-WingetPackage` (Common.ps1:1560) or explicit `$LASTEXITCODE` check
+- [ ] Wrap `git clone`/`git pull` with exit code verification
+- [ ] Apply same fix to `shell-setup.ps1` winget calls
+- [ ] Test by attempting invalid package ID; script should stop with clear error
+**Implementation:**
+```powershell
+# Existing helper already available in Common.ps1:
+Install-WingetPackage -Id 'Git.Git' -Name 'Git'
+# For git operations:
+try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } catch { ... }
+```
+**Estimated LOC delta:** 10–30 lines.
+
+---
+
+### T007 · Expand Pester coverage for allow-scripts.ps1 and add missing tests for Backup-GameConfigs.ps1
+**File:** `Scripts/allow-scripts.ps1`, `Scripts/Backup-GameConfigs.ps1`
+**Severity:** medium · **Category:** testing · **Size:** S
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Test coverage audit found one primary script without a `.Tests.ps1` file and one with coverage that should be expanded.
+> - allow-scripts.ps1 (90 lines) — existing `tests/allow-scripts.Tests.ps1` should be expanded to cover policy detection, RemoteSigned enforcement, and `-WhatIf`
+> - Backup-GameConfigs.ps1 (97 lines) — game config backup utility currently lacks dedicated Pester coverage
+**Intent:** Reach >90% test coverage across all primary automation scripts by filling true gaps and strengthening existing tests.
+**Acceptance criteria:**
+- [ ] Expand `tests/allow-scripts.Tests.ps1` to cover policy detection, RemoteSigned enforcement, and `-WhatIf` behavior
+- [ ] Create `tests/Backup-GameConfigs.Tests.ps1` (test directory creation, Copy-Item calls, hash validation, missing source handling)
+- [ ] Use Pester v5 `Describe`/`Context`/`It` structure matching existing tests for both new and updated test files
+- [ ] Achieve 80%+ branch coverage per script (Invoke-Pester -CodeCoverage)
+**Estimated LOC delta:** 80–120 lines total.
+
+---
+
+### T008 · Refactor Network-Tweaker.ps1 (4220 lines) — separate core logic from Windows Forms UI
+**File:** `Scripts/Network-Tweaker.ps1`
+**Severity:** medium · **Category:** maintainability · **Size:** XL
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> `Network-Tweaker.ps1` is a 4220-line monolith combining Windows Forms GUI with inline registry manipulation.
+> Existing tests are limited to UI smoke/definition checks; there are no meaningful unit tests for core logic because that logic is currently inseparable from UI event handlers. This makes maintenance risky.
+**Intent:** Extract all non-UI logic into a testable module, leaving the GUI as a thin interactive frontend.
+**Acceptance criteria:**
+- [ ] Create `Scripts/NetworkTweaker.Core.psm1` with pure functions:
+  - `Get-NetAdapter()` — wrapper for `Get-NetAdapter`
+  - `Get-OffloadCapabilities($AdapterName)` — reads NDIS registry parameters
+  - `Set-OffloadParameter($Path, $Name, $Value)` — validates & writes registry
+  - `Get-RssSettings()` / `Set-RssSettings()`
+  - `Get-Profiles()` / `Apply-Profile($ProfileName)` — named config sets
+- [ ] Refactor `Network-Tweaker.ps1` to `using module 'NetworkTweaker.Core.psm1'` and call these from UI handlers
+- [ ] Add Pester tests for the core module (mock registry reads/writes via `Mock -CommandName Set-ItemProperty`)
+- [ ] Document all functions with comment-based help
+**Estimated LOC delta:** Module ~400 lines, tests ~150 lines, UI shim ~-100 → net +450 lines over several commits.
+
+---
+
+### T009 · Consolidate duplicated utility helpers (Write-Status, Invoke-Operation) into Common.ps1
+**File:** `Scripts/Common.ps1`, `Scripts/Setup-Win11.ps1`, `Scripts/Install-Packages.ps1`, `Scripts/Setup-Dotfiles.ps1`, `Scripts/Deploy-Config.ps1`
+**Severity:** medium · **Category:** refactor · **Size:** M
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Duplication audit found near-identical copies of `Write-Status` (4 files) and `Invoke-Operation` (2 files).
+> Centralizing prevents divergent behavior and reduces maintenance burden.
+**Intent:** Single-source common patterns in `Common.ps1` with clear naming.
+**Acceptance criteria:**
+- [ ] Add `Write-BuildStatus` and `Invoke-BuildOperation` to `Common.ps1` (namespaced to avoid collisions)
+- [ ] Replace all local definitions with `using module` or dot-sourced calls
+- [ ] Ensure signature compatibility (params: `$Message`, `$Status` for Write-; `$Name`, `$Action`, `$SuccessStatus` for Invoke-)
+- [ ] Run full test suite to verify zero behavioral change
+**Implementation sketch:**
+```powershell
+function Write-BuildStatus {
+    param([string]$Message, [string]$Status = 'INFO')
+    $color = switch ($Status) { 'OK' {'Green'}; 'FAIL' {'Red'}; 'SKIP' {'Yellow'}; 'RUNNING' {'Cyan'}; default {'White'} }
+    Write-Host "  [$Status] $Message" -ForegroundColor $color
+}
+function Invoke-BuildOperation {
+    param([string]$Name, [scriptblock]$Action, [string]$SuccessStatus = 'OK')
+    Write-BuildStatus $Name -Status 'RUNNING'
+    try { & $Action; Write-BuildStatus $Name -Status $SuccessStatus; $true }
+    catch { Write-BuildStatus "$Name - $($_.Exception.Message)" -Status 'FAIL'; $false }
+}
+```
+**Estimated LOC delta:** ~20 lines added / ~80 lines removed across files.
+
+---
+
+### T010 · Add automated secret scanning to CI to prevent credential leakage
+**File:** `.github/workflows/secret-scan.yml` (new)
+**Severity:** medium · **Category:** security · **Size:** M
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Following discovery of hardcoded password in autounattend.xml (T005), a preventive control is required.
+> GitHub Advanced Security Secret Scanning is free for public repos; alternatively gitleaks-action provides similar protection.
+**Intent:** Block any future commits containing plaintext credentials/tokens.
+**Acceptance criteria:**
+- [ ] Enable GitHub Advanced Security Secret Scanning (Settings → Code security)
+  -OR-
+- [ ] Add `.github/workflows/secret-scan.yml` using `gitleaks/gitleaks-action@v2`
+- [ ] Configure scan to run on every PR and push
+- [ ] Optionally add local pre-commit hook: `pip install gitleaks && pre-commit install`
+**Implementation (github native):**
+No YAML needed — just enable in repo settings.
+**Implementation (gitleaks action):**
+```yaml
+name: Secret Scan
+on: [push, pull_request]
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+**Estimated LOC delta:** 0–40 lines.
+
+---
+
+### T011 · Standardize error handling for all external command invocations
+**File:** `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`, `Scripts/Deploy-Config.ps1`, `Scripts/auto/autounattend.xml` (embedded scripts)
+**Severity:** high · **Category:** reliability · **Size:** L
+**Blocks:** —  **Blocked by:** —
+**Context:**
+> Audit of error handling patterns shows inconsistency:
+> - `Setup-Win11.ps1` wraps `winget` in try/catch but doesn't check `$LASTEXITCODE`
+> - `shell-setup.ps1` calls winget/git with no error handling at all
+> - `Deploy-Config.ps1` checks `$LASTEXITCODE` after `reg import` (line post-copy) — good, but verify for all reg calls
+> - Embedded autounattend PowerShell (`autounattend.xml` ~lines 1100–1230) calls `Wait-ForWinget` but doesn't verify winget exit codes
+> - `Install-WingetPackage` helper exists in Common.ps1 but not uniformly adopted
+**Intent:** Ensure no silent failures from any subprocess invocation across the entire codebase.
+**Acceptance criteria:**
+- [ ] Create standardized wrappers in Common.ps1:
+  - `Invoke-CommandChecked` — runs command, checks `$LASTEXITCODE`, throws on failure
+  - `Invoke-Winget` — uses `Wait-ForWinget`, calls winget, handles exit codes 0/-1978335189
+  - `Invoke-RegImport` — wraps `reg.exe import`, throws on non-zero
+- [ ] Replace all direct winget calls in: Setup-Win11, shell-setup, Setup-Dotfiles (if any), Install-Packages (verify already uses helper), autounattend embedded scripts
+- [ ] Replace all `reg.exe` calls with `Invoke-RegImport` or `Import-RegistryConfig` (which already uses try/catch)
+- [ ] Replace `git clone/pull` with wrapper that checks exit code
+- [ ] Document in `AGENTS.md` under "External command pattern" that all subprocess calls MUST use these helpers
+- [ ] Run static analysis (Invoke-ScriptAnalyzer) to catch any remaining bare `& winget`, `& reg`, `& git` without wrapper
+**Estimated LOC delta:** 40–80 lines (helpers + refactor), high reliability impact.
+
+---
+
 ## Appendix: Severity Legend
 | Level | Meaning |
 |-------|---------|
@@ -213,3 +395,4 @@ function Wait-ForWinget {
 | M | 20–100 |
 | L | 100–300 |
 | XL | 300+ |
+
