@@ -24,4 +24,4 @@ Guardrails:
 - Keep new tracked config under `user/.dotfiles/config/`.
 - Validate changed PowerShell files with `Invoke-ScriptAnalyzer -Path <file>`.
 
-Load `.github/skills/win-patterns/SKILL.md` for deeper repo workflow context, and `.github/instructions/windows-11-setup.instructions.md` for Windows 11 setup patterns.
+Load `.github/skills/win-patterns/SKILL.md` for deeper repo workflow context, and `.kilo/rules/bootstrap-deployment.md` for Windows 11 setup patterns.

@@ -1,18 +1,20 @@
----
-applyTo: "**/Setup-Win11.ps1,**/bootstrap.ps1,**/Setup-Dotfiles.ps1"
----
+# Bootstrap Deployment Rules
 
-# Windows 11 Setup Instructions
+These rules apply to bootstrap and deployment scripts: `**/Setup-Win11.ps1`, `**/bootstrap.ps1`, `**/Setup-Dotfiles.ps1`.
 
-These instructions apply to Windows 11-specific setup and bootstrap scripts.
+## Bootstrap Layers
+
+1. **Internet bootstrap** (`.github/scripts/bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo
+2. **Repo bootstrap** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs winget packages, deploys configs via SHA256 hash, configures PATH, creates directories
+3. **Unattended USB** (`Scripts/auto/autounattend.xml`) — fully self-contained; no companion flat files
 
 ## Unattended USB Install (Scripts/auto/)
 
 `Scripts/auto/autounattend.xml` provides a fully unattended Windows 11 install from USB:
 
-1. Copy `autounattend.xml` to the **root of the USB drive** — that is the only file required.
-2. Boot from the USB. Windows Setup detects the file and runs fully unattended.
-3. All setup scripts are **embedded inside the XML** via the `ExtractScript` mechanism and extracted to `C:\Windows\Setup\Scripts\` during the specialize pass.
+1. Copy `autounattend.xml` to the **root of the USB drive** — that is the only file required
+2. Boot from the USB. Windows Setup detects the file and runs fully unattended
+3. All setup scripts are **embedded inside the XML** via the `ExtractScript` mechanism and extracted to `C:\Windows\Setup\Scripts\` during the specialize pass
 
 **Do not** add flat `.ps1` or `.cmd` files alongside the XML in `Scripts/auto/`; they become stale duplicates.
 
@@ -26,9 +28,7 @@ These instructions apply to Windows 11-specific setup and bootstrap scripts.
 $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 ```
 
-**WinUtil Win11 Creator**: use any USB creation tool (WinUtil, Rufus, Ventoy), then copy `autounattend.xml` to the USB root to replace the generated answer file.
-
-## Fresh Windows 11 Install Path
+## Fresh Windows 11 Install
 
 A clean Windows 11 installation can be fully automated with a single command:
 
@@ -37,27 +37,21 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 ```
 
 This script performs a complete hands-free setup:
-
 1. **Elevates to administrator** automatically
-2. **Installs winget** (Windows Package Manager) if not present
+2. **Installs winget** if not present
 3. **Installs core tools**: Git, PowerShell 7+ (via winget)
 4. **Clones the repository** using git
-5. **Runs the repository bootstrap** (deploys configs via dotbot, sets up PATH, etc.)
+5. **Runs the repository bootstrap** (deploys configs via dotbot, sets up PATH)
 6. **Offers WSL2 installation** (can be skipped with `-SkipWSL`)
 
 ### Unattended Mode
-
-For fully automated deployments (CI, imaging, etc.):
 
 ```powershell
 # Download and run with no prompts
 iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex -Unattended
 ```
 
-The `-Unattended` flag:
-- Skips all user prompts
-- Accepts all default options
-- Suppresses optional features (uses safe defaults)
+The `-Unattended` flag skips all user prompts, accepts default options, and suppresses optional features.
 
 ### Advanced Flags
 
@@ -69,8 +63,6 @@ The `-Unattended` flag:
 | `-Force` | Re-run setup even if already configured |
 
 ## Local Setup (Already Cloned)
-
-If you've already cloned the repository manually:
 
 ```powershell
 # Run the local bootstrap script

@@ -51,7 +51,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Guidance splits**:
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
-  - `.github/instructions/` — narrow language or topic rules
+  - `.kilo/rules/` — coding and system standards
   - `.github/skills/` — reusable repo workflows
   - `.kilo/skills/` — agent-facing workflow knowledge
   - `.kilo/agents/` — agent identity and handoff rules
@@ -96,7 +96,7 @@ Review together:
 
 - Keep `.github/copilot-instructions.md` minimal
 - Broader rules → `AGENTS.md`
-- Narrow rules → `.github/instructions/`
+- Narrow rules → `.kilo/rules/`
 - Reusable workflows → `.github/skills/` and `.kilo/skills/`
 - After editing `.github/` guidance: run `ctxlint --depth 3 --mcp --strict --fix --yes`
 
@@ -109,7 +109,7 @@ Review together:
 | `Scripts/Setup-Dotfiles.ps1` | ScriptAnalyzer + deployment manifest review | Config paths verification |
 | `user/.dotfiles/config/*` | Format preservation (no cosmetic re-serialization) | Deployment manifest correctness |
 | `Scripts/auto/autounattend.xml` | `$xml = [xml]::new(); $xml.Load(path)`; check `ExtractScript` entity encoding | Embedded script paths valid |
-| `.github/instructions/*` | Verify all referenced paths and commands exist | `ctxlint --fix-safe` |
+| `.kilo/rules/*.md` | Validate syntax and path references | `ctxlint --fix-safe` |
 | `.github/workflows/*` | YAML syntax, tool availability check | — |
 | `.kilo/` config changes | Validate JSON or YAML syntax; ensure paths correct | Run `ctxlint` on guidance if touched |
 
@@ -265,5 +265,5 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 - `README.md` — user-facing setup and usage
 - `.github/copilot-instructions.md` — short startup guide
 - `.github/skills/win-patterns/SKILL.md` — recurring repo workflows
-- `.github/instructions/powershell.instructions.md` — PowerShell-specific rules
-- `.github/instructions/windows-11-setup.instructions.md` — Win11 setup rules
+- `.kilo/rules/powershell.md` — PowerShell coding rules
+- `.kilo/rules/bootstrap-deployment.md` — bootstrap and deployment rules
