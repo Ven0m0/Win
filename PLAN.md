@@ -226,8 +226,8 @@ function Wait-ForWinget {
 
 ---
 
-### T006 · Fix missing winget exit code verification in Setup-Win11.ps1 and shell-setup.ps1
-**File:** `Scripts/Setup-Win11.ps1:112,118,155,147`; `Scripts/shell-setup.ps1:51,360`
+### T006 · Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1
+**File:** `Scripts/Setup-Win11.ps1:112,118,147,155-156`; `Scripts/shell-setup.ps1:51,360`
 **Severity:** high · **Category:** correctness · **Size:** M
 **Blocks:** —  **Blocked by:** —
 **Context:**
