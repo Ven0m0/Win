@@ -48,7 +48,7 @@ This script performs a complete hands-free setup:
 
 ```powershell
 # Download and run with no prompts
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex -Unattended
+& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing).Content)) -Unattended
 ```
 
 The `-Unattended` flag skips all user prompts, accepts default options, and suppresses optional features.
