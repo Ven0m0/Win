@@ -7,9 +7,18 @@ BeforeAll {
 Describe "Backup-GameConfigs.ps1" {
     BeforeAll {
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
+        $script:originalUserProfile = $env:USERPROFILE
+        $script:originalLocalAppData = $env:LOCALAPPDATA
+        $env:USERPROFILE = $testDir
+        $env:LOCALAPPDATA = Join-Path $testDir "AppData\Local"
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"
-        $script:bo6Source = Join-Path $testDir "Documents\Call of Duty\players"
+        $script:bo6Source = Join-Path $env:USERPROFILE "Documents\Call of Duty\players"
         $script:arcRaidersSource = Join-Path $env:LOCALAPPDATA "PioneerGame\Saved\SaveGames"
+    }
+
+    AfterAll {
+        $env:USERPROFILE = $script:originalUserProfile
+        $env:LOCALAPPDATA = $script:originalLocalAppData
     }
 
     BeforeEach {
