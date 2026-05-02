@@ -22,7 +22,7 @@
 			"options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
 		}
 	},
-	"disabled_providers": ["openai", "google"],
+	"disabled_providers": ["openai", "google", "anthropic"],
 	"plugin": [
 		"opencode-ignore@1.1.0",
 		"@gotgenes/opencode-agent-identity@3.0.1",
@@ -120,9 +120,14 @@
 			"extensions": [".sh", ".bash", ".zsh"]
 		},
 		"vtsls": {
-			"command": ["vtsls", "--stdio"],
-			"extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".mts"]
+      "command": ["vtsls", "--stdio"],
+      "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
+      "initialization": { "preferences": { "importModuleSpecifierPreference": "relative" } }
 		},
+    "rust": {
+      "command": ["rust-analyzer"],
+      "extensions": [".rs"]
+    },
 		"yaml-ls": {
 			"command": ["yaml-language-server", "--stdio"],
 			"extensions": [".yaml", ".yml"]
@@ -135,12 +140,21 @@
 			"command": ["tombi", "lsp"],
 			"extensions": [".toml"]
 		},
+    "dockerfile-ls": {
+      "command": ["docker-langserver", "--stdio"],
+      "extensions": [".dockerfile"]
+    },
+    "html-ls": {
+      "command": ["vscode-html-language-server", "--stdio"],
+      "extensions": [".html", ".htm"]
+    },
+    "css-ls": {
+      "command": ["vscode-css-language-server", "--stdio"],
+      "extensions": [".css", ".scss", ".less"]
+    },
 		"powershell": {
 			"command": [
-				"pwsh",
-				"-NoLogo",
-				"-NoProfile",
-				"-Command",
+				"pwsh", "-NoLogo", "-NoProfile", "-Command",
 				"$module = Get-Module -ListAvailable PowerShellEditorServices | Sort-Object Version -Descending | Select-Object -First 1; if (-not $module) { throw 'PowerShellEditorServices is not installed. Run: Install-Module -Name PowerShellEditorServices -Scope CurrentUser' }; Import-Module $module.Path; Start-EditorServices -HostName 'Claude Code' -HostProfileId 'ClaudeCode' -HostVersion '1.0.0' -Stdio -BundledModulesPath (Split-Path $module.Path) -LogPath '/dev/null' -LogLevel 'None' -EnableConsoleRepl"
 			],
 			"extensions": [".ps1", ".psm1", ".psd1"]
@@ -184,7 +198,6 @@
 			}
 		}
 	},
-	"default_agent": "build",
 	"command": {
 		"test": {
 			"template": "Run the full test suite with coverage report and show any failures. Focus on the failing tests and suggest fixes.",
