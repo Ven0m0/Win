@@ -27,11 +27,11 @@ function_next_line = false
 binary_next_line = true
 end_of_line = lf
 
-[.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
+[*.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
 shell_variant = bash
 end_of_line = lf
 
-[.profile]
+[*.profile]
 shell_variant = posix
 end_of_line = lf
 
@@ -62,6 +62,10 @@ quote_type = single
 # XML
 [*.xml]
 indent_size = 4
+
+[**.{json,jsonc}]
+indent_size = 2
+indent_style = space
 
 # =============================================================================
 # Markup/Documentation
