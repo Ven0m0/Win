@@ -363,7 +363,7 @@ jobs:
 > - `Setup-Win11.ps1` wraps `winget` in try/catch but doesn't check `$LASTEXITCODE`
 > - `shell-setup.ps1` calls winget/git with no error handling at all
 > - `Deploy-Config.ps1` checks `$LASTEXITCODE` after `reg import` (line post-copy) — good, but verify for all reg calls
-> - Embedded autounattend PowerShell (`autounattend.xml` ~lines 1100–1230) calls `WaitForWinget` but doesn't verify winget exit codes
+> - Embedded autounattend PowerShell (`autounattend.xml` ~lines 1100–1230) calls `Wait-ForWinget` but doesn't verify winget exit codes
 > - `Install-WingetPackage` helper exists in Common.ps1 but not uniformly adopted
 **Intent:** Ensure no silent failures from any subprocess invocation across the entire codebase.
 **Acceptance criteria:**
