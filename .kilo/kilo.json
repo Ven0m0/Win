@@ -120,7 +120,11 @@
 			"type": "local",
 			"command": ["npx", "-y", "@playwright/mcp@latest", "--headless"],
 			"enabled": false
-		}
+		},
+    "context-mode": {
+      "type": "local",
+      "command": ["context-mode"]
+    }
 	},
 	"lsp": {
 		"basedpyright": {
