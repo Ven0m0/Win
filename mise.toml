@@ -76,7 +76,13 @@ run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/en
 [tasks.pwsh-install]
 description = "Install pwsh lint"
 run = '''
-pwsh -NoLogo -NoProfile -Command "Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber"
+pwsh -NoLogo -NoProfile -Command '
+Set-PSRepository PSGallery -InstallationPolicy Trusted
+Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber -SkipPublisherCheck
+Import-Module PowerShellGet
+Register-PSRepository -Name "ottomatt" -SourceLocation "https://www.myget.org/F/ottomatt/api/v2"
+Install-Module -Name "OptimizationRules" -RequiredVersion "0.4.0" -Repository "ottomatt"
+'
 '''
 
 [tasks.lint]
