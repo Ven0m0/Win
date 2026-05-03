@@ -27,7 +27,6 @@
 		"opencode-ignore@1.1.0",
     "@bastiangx/opencode-unmoji",
 		"@gotgenes/opencode-agent-identity@3.0.1",
-		"@nick-vi/opencode-type-inject@1.1.2",
     "@openspoon/subtask2@0.3.9",
 		"@tarquinen/opencode-dcp@3.1.9",
 		"context-mode@1.0.104",
@@ -103,7 +102,7 @@
     "context-mode": {
       "type": "local",
       "command": ["context-mode"],
-      "enabled": false
+      "enabled": true
     }
 	},
 	"lsp": {
