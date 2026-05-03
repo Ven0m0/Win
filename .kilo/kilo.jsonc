@@ -15,7 +15,7 @@
 		"doom_loop": "deny"
 	},
   "agent": {
-    "compaction": { "model": "openrouter/free" },
+    "compaction": { "model": "kilo-auto/free" },
   },
 	"provider": {
 		"openai": {
