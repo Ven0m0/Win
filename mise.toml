@@ -27,8 +27,10 @@ prek = "latest"
 ripgrep = "latest"
 fd = "latest"
 "pipx:dotbot" = "latest"
-"pipx:dotbot-firefox" = "latest"
-"pipx:dotbot-windows" = "latest"
+# Dotbot compatible cli https://pypi.org/project/dotfiles-cli/
+"pipx:dotfiles-cli" = "latest"
+#"pipx:dotbot-firefox" = "latest"
+#"pipx:dotbot-windows" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
