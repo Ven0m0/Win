@@ -55,6 +55,11 @@ jobs:
         with:
           cache: true
 
+      - name: Cache PowerShell modules
+        uses: actions/powershell-module-cache@v5.1
+        with:
+          modules-to-cache: PSScriptAnalyzer
+
       - name: Install PSScriptAnalyzer
         run: |
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
