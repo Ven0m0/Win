@@ -73,6 +73,11 @@ indent_size = 2
 tab_width = 2
 indent_style = space
 
+[.kilo/kilo.jsonc]
+indent_size = 2
+tab_width = 2
+indent_style = space
+
 # =============================================================================
 # Markup/Documentation
 # =============================================================================
