@@ -7,6 +7,10 @@ inputs:
     description: PowerShell version to install (e.g., "latest", "7.4", "5.1")
     required: false
     default: "latest"
+  modules:
+    description: PowerShell modules to cache (space-separated)
+    required: false
+    default: "PSScriptAnalyzer"
 
 runs:
   using: composite
@@ -17,3 +21,9 @@ runs:
         pwsh_version="${{ inputs.version }}"
         mise use powershell@$pwsh_version
         mise exec -- pwsh --version
+
+    - name: Cache PowerShell modules
+      uses: actions/powershell-module-cache@v5.1
+      with:
+        modules-to-cache: ${{ inputs.modules }}
+        shell: pwsh
