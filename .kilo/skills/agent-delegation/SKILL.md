@@ -99,7 +99,7 @@ Never forward raw conversation logs. Extract the minimum viable context:
 
 ### Decisions
 - Using `Set-RegistryValue` helper from Common.ps1
-- Target: `HKCU:\Software\MyTweak`, value `Enable` = 1
+- Target: `HKCU\Software\MyTweak`, value `Enable` = 1
 
 ### Findings
 - GPU registry paths: `HKLM:\SYSTEM\...\0000` and `0001`
