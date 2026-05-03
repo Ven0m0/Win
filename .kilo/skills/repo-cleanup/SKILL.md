@@ -1,6 +1,6 @@
 ---
 name: repo-cleanup
-description: "Use when user wants to Systematic repository cleanup: dead code removal, doc pruning, legacy cleanup"
+description: "Use for systematic repository cleanup: dead code removal, doc pruning, legacy cleanup"
 compatibility: opencode
 ---
 
