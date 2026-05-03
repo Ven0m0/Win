@@ -8,6 +8,7 @@ lockfile = true
 [settings.python]
 uv_venv_auto = "create|source"
 uv_venv_create_args = ["--seed", "--system-site-packages"]
+github_attestations = false
 
 [settings.pipx]
 uvx = true
