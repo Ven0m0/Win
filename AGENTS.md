@@ -112,9 +112,11 @@ Review together:
 | `.github/workflows/*` | YAML syntax, tool availability check | — |
 | `.kilo/` config changes | Validate JSON or YAML syntax; ensure paths correct | Run `ctxlint` on guidance if touched |
 
-**Current CI:** `.github/workflows/powershell.yml` runs `PSScriptAnalyzer`. Enforced: `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`.
+**Current CI:**
+- `powershell.yml` — SARIF-based PSScriptAnalyzer (GitHub Security tab). Enforces `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`.
+- `lint-format-test.yml` — full lint + format check + Pester tests on windows-latest.
 
-**Pester:** Run only when tests already exist for the area or when adding new testable logic.
+**Pester:** Tests live in `tests/` (19 files) and `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal` locally. Add or run tests when the changed area has existing coverage.
 
 ## Agent Delegation
 

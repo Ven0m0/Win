@@ -45,7 +45,8 @@ npx -y @yawlabs/ctxlint --depth 3 --mcp --strict --yes
 
 ### Pester
 
-- Run `Invoke-Pester -Path Scripts/ -Output Minimal` only when tests exist for the changed area or when you add new tests.
+- Run `Invoke-Pester -Path tests/ -Output Minimal` when tests exist for the changed area or when you add new tests.
+- Include `setup.Tests.ps1` at the repo root if your change touches `setup.ps1`: `Invoke-Pester -Path tests/, setup.Tests.ps1 -Output Minimal`.
 - Do not invent or widen test scope just to satisfy the skill.
 
 ## Invariants
