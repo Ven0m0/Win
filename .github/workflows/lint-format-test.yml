@@ -50,6 +50,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          cache: true
+
       - name: Install PSScriptAnalyzer
         run: |
           if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {

@@ -33,3 +33,16 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe]
 "UseLargePages"=dword:00000001
 
+; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
+"Name"="PioneerGame.exe"
+"DscpValue"=dword:0000002e
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\BlackOps6]
+"Name"="cod24-cod.exe"
+"DscpValue"=dword:0000002e
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\Fortnite]
+"Name"="FortniteClient-Win64-Shipping.exe"
+"DscpValue"=dword:0000002e
+

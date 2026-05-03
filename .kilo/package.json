@@ -2,7 +2,7 @@
   "dependencies": {
     "@ast-grep/cli": "*",
     "@opencode-ai/plugin": "^1.14.33",
-    "@kilocode/plugin": "^7.1.23",
+    "@kilocode/plugin": "7.1.23",
     "repair-json-stream": "*",
     "diff": "*",
     "@morphllm/opencode-morph-plugin": "*",
