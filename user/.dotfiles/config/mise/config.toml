@@ -1,2 +1,3 @@
 [tools]
 "ubi:spddl/GoInterruptPolicy" = "latest"
+"npm:@kilocode/cli" = "latest"
