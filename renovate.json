@@ -45,11 +45,19 @@
   "pipenv": {
     "enabled": false
   },
+  "npm": {
+    "managerFilePatterns": ["/.kilo/package.json/"]
+  },
   "postUpdateOptions": ["uvLockUpdate"],
   "packageRules": [
     {
       "description": "Disable GitHub Actions digest pinning",
       "matchManagers": ["github-actions"],
+      "pinDigests": false
+    },
+    {
+      "description": "Disable Docker digest pinning",
+      "matchDatasources": ["docker"],
       "pinDigests": false
     },
     {
