@@ -3,6 +3,7 @@ experimental = true
 color = true
 yes = true
 auto_install = true
+lockfile = true
 
 [settings.python]
 uv_venv_auto = "create|source"
@@ -10,6 +11,9 @@ uv_venv_create_args = ["--seed", "--system-site-packages"]
 
 [settings.pipx]
 uvx = true
+
+[settings.npm]
+package_manager = "bun"
 
 [settings.dotnet]
 cli_telemetry_optout = true
@@ -32,6 +36,7 @@ fd = "latest"
 "pipx:dotfiles-cli" = "latest"
 #"pipx:dotbot-firefox" = "latest"
 #"pipx:dotbot-windows" = "latest"
+bun = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
