@@ -15,6 +15,7 @@ Load this skill when the task touches repository conventions or spans multiple r
 - `Scripts/auto/autounattend.xml` for unattended Windows 11 USB install
 - `user/.dotfiles/config/` for tracked config and game assets
 - `install.conf.yaml` (dotbot) and `Scripts/Setup-Dotfiles.ps1` for bootstrap behavior
+- `tests/` for Pester test files; `setup.Tests.ps1` at repo root
 - `.github/` for Copilot guidance and workflow metadata
 
 ## Common workflows
@@ -65,7 +66,7 @@ Place `autounattend.xml` at the USB root created by any tool (WinUtil, Rufus, Ve
 
 ## Validation reminders
 
-- Current CI runs PSScriptAnalyzer from `.github/workflows/powershell.yml`.
-- CI currently enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
-- The repo does not currently ship a committed Pester suite, so add tests only when the change justifies them.
+- `powershell.yml` — SARIF-based PSScriptAnalyzer (GitHub Security tab). Enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.
+- `lint-format-test.yml` — comprehensive lint + format check + Pester tests on windows-latest. Run this locally to catch issues before pushing.
+- The repo ships Pester v5 tests in `tests/` and `setup.Tests.ps1` at the repo root. Run `Invoke-Pester -Path tests/ -Output Minimal` (add `-Path setup.Tests.ps1` to include root tests).
 - After editing `Scripts/auto/autounattend.xml`, validate with: `$xml = [xml]::new(); $xml.Load($path)`

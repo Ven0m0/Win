@@ -30,4 +30,6 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
           Install-Module PSScriptAnalyzer -Scope CurrentUser -Repository PSGallery -Force
+          Install-Module Pester -MinimumVersion 5.0.0 -Scope CurrentUser -Repository PSGallery -Force
           Get-Module -ListAvailable PSScriptAnalyzer | Select-Object -First 1 Name, Version
+          Get-Module -ListAvailable Pester | Select-Object -First 1 Name, Version
