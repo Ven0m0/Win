@@ -1,10 +1,6 @@
 ---
 name: validation
-description: Use when user wants to Per-change-type validation matrix for PowerShell, dotbot, autounattend.xml, and guidance files.
-Use proactively after any change to run the narrowest applicable checks.
-  Per-change-type validation matrix for PowerShell, dotbot, autounattend.xml, and guidance files.
-  Use proactively after any change to run the narrowest applicable checks.
-compatibility: opencode
+description: Use when user wants to Per-change-type validation matrix for PowerShell, dotbot, autounattend.xml, and guidance files. Use proactively after any change to run the narrowest applicable checks. Per-change-type validation matrix for PowerShell, dotbot, autounattend.xml, and guidance files. Use proactively after any change to run the narrowest applicable checks.
 ---
 
 # Validation Skill for Win Dotfiles
