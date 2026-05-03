@@ -1,7 +1,7 @@
 ---
 name: powershell-windows
-description: PowerShell Windows patterns. Critical pitfalls, operator syntax, error handling.
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+description: Use when user wants to PowerShell Windows patterns. Critical pitfalls, operator syntax, error handling.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git:*)
 ---
 
 # PowerShell Windows Patterns
@@ -90,7 +90,7 @@ Write-Output "Value: $value"
 
 | Pattern | Use |
 |---------|-----|
-| Literal path | `C:\Users\User\file.txt` |
+| Literal path | `C:/Users/User/file.txt` |
 | Variable path | `Join-Path $env:USERPROFILE "file.txt"` |
 | Relative | `Join-Path $ScriptDir "data"` |
 

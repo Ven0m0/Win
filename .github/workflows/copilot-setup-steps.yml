@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  setup:
+  copilot-setup-steps:
     name: Prepare Copilot environment
     runs-on: ubuntu-latest
     timeout-minutes: 10

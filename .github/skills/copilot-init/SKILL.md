@@ -1,7 +1,7 @@
 ---
 name: copilot-init
-description: Refresh Copilot bootstrap assets for the Win repository so guidance matches its Windows dotfiles, PowerShell, dotbot, and registry-focused workflows.
-allowed-tools: 'Read, Write, Edit, Glob, Grep, Bash'
+description: Use when user wants to Refresh Copilot bootstrap assets for the Win repository so guidance matches its Windows dotfiles, PowerShell, dotbot, and registry-focused workflows.
+allowed-tools: 'Read, Write, Edit, Glob, Grep, Bash(git:*)'
 ---
 
 # Copilot init for Win

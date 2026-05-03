@@ -1,4 +1,5 @@
 ---
+name: security-auditor
 description: Subagent for security-focused analysis. Audits PowerShell scripts and configs for credential leaks, hardcoded paths, unsafe registry ops, and input validation flaws.
 mode: subagent
 temperature: 0.1

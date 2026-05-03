@@ -1,7 +1,7 @@
 ---
 name: validate
-description: Run the narrowest checks for Win repository changes across PowerShell, tracked config, bootstrap files, and Copilot guidance.
-allowed-tools: 'Read, Bash, Grep, Glob'
+description: Use when user wants to Run the narrowest checks for Win repository changes across PowerShell, tracked config, bootstrap files, and Copilot guidance.
+allowed-tools: 'Read, Bash(git:*), Grep, Glob'
 ---
 
 # Validate
