@@ -9,7 +9,7 @@
   applies privacy registry tweaks, and cleans the system.
   Ported and adapted from obra/debloat-windows-vm.
 .PARAMETER Restore
-  Restore previously disabled services, scheduled tasks, and re-enable removed bloatware via winget.
+  Restore previously disabled services, scheduled tasks, and registry values changed by this script.
 .PARAMETER NoRestorePoint
   Skip creating a restore point before applying changes.
 #>
