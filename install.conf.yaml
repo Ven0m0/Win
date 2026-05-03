@@ -20,7 +20,7 @@
     # Target:  %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Windows Terminal settings' -SkipWingetTools -SkipWSL
       description: "Windows Terminal → %LOCALAPPDATA%\\Packages\\Microsoft.WindowsTerminal_*\\LocalState\\settings.json"
-   # ── BleachBit cleaners ──────────────────────────────────────────────────
+    # ── BleachBit cleaners ──────────────────────────────────────────────────
     # Source:  user/.dotfiles/config/bleachbit/cleaners/*.xml
     # Target:  %APPDATA%\BleachBit\cleaners\
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'BleachBit cleaners' -SkipWingetTools -SkipWSL
@@ -55,3 +55,7 @@
     # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA assets' -SkipWingetTools -SkipWSL
       description: "NVIDIA assets → manual (skipped — apply selectively from user/.dotfiles/config/nvidia/)"
+- plugin: dotbot-firefox
+  source: dotbot-plugins/firefox
+- plugin: dotbot-windows
+  source: dotbot-plugins/windows

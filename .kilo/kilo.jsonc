@@ -32,14 +32,10 @@
 		"@gotgenes/opencode-agent-identity@3.0.1",
     "@openspoon/subtask2@0.3.9",
 		"@tarquinen/opencode-dcp@3.1.9",
-		"context-mode@1.0.104",
 		"openslimedit@1.0.4",
 		"@morphllm/opencode-morph-plugin@2.0.9",
     "opencode-agent-memory@0.2.0",
     "superpowers@git+https://github.com/obra/superpowers.git",
-		"opencode-betterglob",
-		"opencode-bettergrep",
-		"opencode-betterread",
 		".kilo/plugins/context-shield.ts",
 		".kilo/plugins/json-healer.ts",
 		".kilo/plugins/custom-tools.ts",
@@ -89,7 +85,7 @@
 				"serena", "start-mcp-server",
 				"--context", "ide", "--project-from-cwd"
 			],
-			"enabled": false
+			"enabled": true
 		},
 		"octocode": {
 			"type": "local",
@@ -101,11 +97,6 @@
       "command": ["npx", "-y", "@morphllm/morphmcp"],
       "environment": { "MORPH_API_KEY": "{env:MORPH_API_KEY}" },
       "enabled": false
-    },
-    "context-mode": {
-      "type": "local",
-      "command": ["context-mode"],
-      "enabled": true
     }
 	},
 	"lsp": {

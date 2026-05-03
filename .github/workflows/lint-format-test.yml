@@ -21,6 +21,7 @@ on:
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/lint-format-test.yml"
+      - ".github/workflows/lint.yml"
   pull_request:
     branches: ["main"]
     paths:
@@ -49,6 +50,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          cache: true
+
+      - name: Cache PowerShell modules
+        uses: actions/powershell-module-cache@v5.1
+        with:
+          modules-to-cache: PSScriptAnalyzer
 
       - name: Install PSScriptAnalyzer
         run: |
@@ -302,4 +313,33 @@ jobs:
           } else {
             echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
             exit 0
+          }
+
+      - name: Check PSD1 validity
+        run: |
+          Get-ChildItem -Path Scripts -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
+              $File = $_.FullName
+              try
+              {
+                  $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content -Path $File -Raw), [ref]$null)
+              }
+              catch
+              {
+                  Write-Verbose -Message "PSD1 parse error: $File - $_" -Verbose
+                  exit 1
+              }
+          }
+
+      - name: Check YAML validity
+        run: |
+          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
+              $File = $_.FullName
+              try
+              {
+                  Get-Content -Path $File | ConvertFrom-Yaml -ErrorAction Stop | Out-Null
+              }
+              catch
+              {
+                  Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
+              }
           }

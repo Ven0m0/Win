@@ -58,15 +58,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          cache: true
+
+      - name: Cache PowerShell modules
+        uses: actions/powershell-module-cache@v5.1
+        with:
+          modules-to-cache: PSScriptAnalyzer
+
       - name: Validate autounattend XML
         shell: pwsh
         run: |
           $xml = [xml]::new()
           $xml.Load("$PWD/Scripts/auto/autounattend.xml")
           $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
-
-      - name: Install py-psscriptanalyzer
-        run: pip install py-psscriptanalyzer
 
       - name: Run py-psscriptanalyzer
         run: py-psscriptanalyzer --recursive --severity Error --output-format sarif --output-file results.sarif
