@@ -1,9 +1,13 @@
+# https://mise.jdx.dev/configuration.html
 [settings]
 experimental = true
 color = true
 yes = true
 auto_install = true
 lockfile = true
+activate_aggressive = true
+jobs = 8
+go_skip_checksum = true
 
 [settings.python]
 uv_venv_auto = "create|source"
@@ -46,6 +50,12 @@ PROJECT_ROOT = "{{config_root}}"
 UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 UV_LINK_MODE = "symlink"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
+DO_NOT_TRACK = "1"
+NODE_NO_WARNINGS = "1"
+PYTHONOPTIMIZE = "1"
+CARGO_NET_GIT_FETCH_WITH_CLI = "false"
+CARGO_HTTP_MULTIPLEXING = "true"
+BINSTALL_DISABLE_TELEMETRY = "true"
 
 [hooks]
 enter = "mise i -yq"
