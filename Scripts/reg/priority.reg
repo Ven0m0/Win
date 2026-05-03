@@ -69,3 +69,33 @@ New-NetQosPolicy -Name "BlackOps6" -AppPathNameMatchCondition "cod24-cod.exe" -D
 New-NetQosPolicy -Name "Fortnite" -AppPathNameMatchCondition "FortniteClient-Win64-Shipping.exe" -DSCPAction 46
 gpupdate /force
 
+; === System Policy Tweaks ===
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Psched]
+"NonBestEffortLimit"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Power\PowerThrottling]
+"PowerThrottlingOff"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
+"AllowTelemetry"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\SQMClient\Windows]
+"CEIPEnable"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Dsh]
+"AllowNewsAndInterests"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CloudContent]
+"DisableWindowsConsumerFeatures"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender]
+"DisablePeriodicScanning"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\Scan]
+"DisableArchiveScanning"=dword:00000001
+"DisableEmailScanning"=dword:00000001
+
+; === Windows Defender Exclusions ===
+Add-MpPreference -ExclusionProcess "node.exe","clang.exe","rustc.exe","cargo.exe","bun.exe","bunx.exe","sccache.exe"
+Add-MpPreference -ExclusionProcess "PioneerGame.exe","cod24-cod.exe","FortniteClient-Win64-Shipping.exe"
+
