@@ -6,3 +6,6 @@ fix all findings/errors under "https://github.com/Ven0m0/Win/security/code-scann
 
 ### 3
 use mise for `.github/actions/setup-pwsh/action.yml`
+
+### 4
+add Qos 46 to `Scripts/reg/priority.reg` for arc raiders, bo6 and fortnite
