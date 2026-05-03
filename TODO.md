@@ -23,3 +23,6 @@ git submodule add https://github.com/kurtmckee/dotbot-windows.git
 git submodule update --init dotbot-windows
 git submodule add https://github.com/zknx/dotbot-winget
 ```
+
+### 6
+add [powershell yaml](https://github.com/cloudbase/powershell-yaml) support via `Install-Module powershell-yaml`
