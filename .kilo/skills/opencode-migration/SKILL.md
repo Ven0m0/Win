@@ -1,6 +1,6 @@
 ---
 name: opencode-migration
-description: "Use when user wants to Migrate AI assistant configurations from Claude Code, Cursor, and other tools to OpenCode/Kilo"
+description: "Use when migrating AI assistant configurations from Claude Code, Cursor, and other tools to OpenCode/Kilo"
 compatibility: opencode
 ---
 

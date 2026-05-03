@@ -36,7 +36,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `Scripts/reg/` | Registry `.reg` files and priority tweaks |
 | `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer |
 | `Scripts/auto/autounattend-windows10.xml` | Unattended Windows 10 USB installer |
-| tests/ | Pester test files (`*.Tests.ps1`) |
+| `tests/` | Pester test files (`*.Tests.ps1`) |
 | `setup.Tests.ps1` | Root-level Pester tests |
 | `user/.dotfiles/config/` | Tracked dotfile content (deploy targets) |
 | `install.conf.yaml` | Dotbot configuration |
@@ -49,7 +49,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Tracked config** → always under `user/.dotfiles/config/`
 - **Windows compatibility** → preserve PowerShell 5.1+/7+ support; use `$PSScriptRoot`, `$HOME`, `$env:*`
 - **Reversible changes** → prefer `-Restore` / `-Undo` parameters for system modifications
-- **Script names** → prefer lowercase-with-dashes for new scripts (e.g., `debloat-windows.ps1`); legacy scripts may use existing mixed-case names such as `Setup-Win11.ps1` and should only be renamed deliberately
+- **New script names** → lowercase-with-dashes (e.g., `debloat-windows.ps1`); legacy PascalCase scripts remain as-is
 - **Guidance splits**:
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
@@ -85,7 +85,7 @@ Set-RegistryValue / Remove-RegistryValue        # safe registry ops
 Get-RegistryValueSafe                           # read without throwing
 
 # NVIDIA
-Get-NvidiaGpuRegistryPath                       # discover one or more GPU registry paths (function name is singular)
+Get-NvidiaGpuRegistryPath                       # discover all NVIDIA adapter registry paths (function name is singular)
 Get-NvidiaGpuPath / Set-NvidiaGpuRegistryValue  # GPU-specific ops
 Set-NvidiaSignatureOverride / Get-NvidiaSignatureStatus
 Set-FullscreenMode / Set-MultiPlaneOverlay      # display tweaks
@@ -127,7 +127,7 @@ Show-Summary                                    # display results summary
 - Preserve native file formats — do not reformat (JSON, YAML, REG, etc.)
 - Hash-based deployment (SHA256) — copies only when source differs
 - Template files use `##template` suffix; dotbot handles substitution
-- Machine-local PS overrides go in untracked `user/.dotfiles/config/powershell/local.ps1`
+- Machine-local PS overrides go in untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
 **Tracked config areas** (`user/.dotfiles/config/`):
 
