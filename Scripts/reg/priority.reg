@@ -60,16 +60,12 @@ Windows Registry Editor Version 5.00
 "DSCP Value"="46"
 "Throttle Rate"="-1"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\Fortnite]
-"Version"="1.0"
-"Application Name"="FortniteClient-Win64-Shipping.exe"
-"Protocol"="*"
-"Local Port"="*"
-"Remote Port"="*"
-"Local IP"="*"
-"Remote IP"="*"
-"Local IP Prefix Length"="*"
-"Remote IP Prefix Length"="*"
-"DSCP Value"="46"
-"Throttle Rate"="-1"
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\QoS]
+"Do not use NLA"=dword:00000001
+
+; === QoS PowerShell equivalent ===
+New-NetQosPolicy -Name "ArcRaiders" -AppPathNameMatchCondition "PioneerGame.exe" -DSCPAction 46
+New-NetQosPolicy -Name "BlackOps6" -AppPathNameMatchCondition "cod24-cod.exe" -DSCPAction 46
+New-NetQosPolicy -Name "Fortnite" -AppPathNameMatchCondition "FortniteClient-Win64-Shipping.exe" -DSCPAction 46
+gpupdate /force
 
