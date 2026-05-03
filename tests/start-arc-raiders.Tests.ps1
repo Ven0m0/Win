@@ -2,11 +2,34 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    . "$PSScriptRoot/../Scripts/arc-raiders/start-arc-raiders.ps1"
+
+    $scriptPath = Join-Path $PSScriptRoot "../Scripts/arc-raiders/start-arc-raiders.ps1"
+    $tokens = $null
+    $parseErrors = $null
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
+
+    if ($parseErrors) {
+        throw "Failed to parse start-arc-raiders.ps1: $($parseErrors[0].Message)"
+    }
+
+    $removeGlobDefinition = $ast.Find(
+        {
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Remove-Glob'
+        },
+        $true
+    )
+
+    if (-not $removeGlobDefinition) {
+        throw "Remove-Glob function was not found in start-arc-raiders.ps1."
+    }
+
+    . ([ScriptBlock]::Create($removeGlobDefinition.Extent.Text))
 }
 
 Describe "Start-ArcRaiders Script Initialization" {
-    It "Should safely source the script" {
+    It "Should safely load the Remove-Glob function definition" {
         $true | Should -Be $true
     }
 
