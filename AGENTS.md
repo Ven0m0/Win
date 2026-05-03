@@ -1,6 +1,6 @@
 # AGENTS.md — AI Assistant Guide
 
-`CLAUDE.md` is a symlink to this file. Update AGENTS.md, not CLAUDE.md.
+`CLAUDE.md` is a symlink to this file. Update AGENTS.md, not CLAUDE.md. Use ref-tools mcp-server to find docs.
 
 ## Quick Start
 
