@@ -359,14 +359,22 @@ function Restore-ScheduledTasks {
 function Restore-RegistryTweaks {
   Write-Host "=== Restore: Reverting registry tweaks ===" -ForegroundColor Cyan
   # Telemetry
-  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -ErrorAction SilentlyContinue
-  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "DoNotShowFeedbackNotifications" -ErrorAction SilentlyContinue
+  $telemetryPolicyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
+  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "AllowTelemetry" -ErrorAction SilentlyContinue)) {
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry"
+  }
+  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "DoNotShowFeedbackNotifications" -ErrorAction SilentlyContinue)) {
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "DoNotShowFeedbackNotifications"
+  }
   # Cortana
-  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -ErrorAction SilentlyContinue
+  $windowsSearchPolicyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+  if ($null -ne (Get-ItemProperty -Path $windowsSearchPolicyPath -Name "AllowCortana" -ErrorAction SilentlyContinue)) {
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana"
+  }
   # Suggestions
-  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SystemPaneSuggestionsEnabled" -Type REG_DWORD -Data "1" -ErrorAction SilentlyContinue
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SystemPaneSuggestionsEnabled" -Type REG_DWORD -Data "1"
   # Advertising
-  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Type REG_DWORD -Data "1" -ErrorAction SilentlyContinue
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Type REG_DWORD -Data "1"
   Write-Host "=== Registry restore complete ===" -ForegroundColor Green
 }
 
