@@ -19,7 +19,7 @@ This plan synthesizes six pending work items from `TODO.md`, covering CI toolcha
 
 ### T001 · Integrate mise GitHub Action into CI workflows
 
-**File:** `.github/workflows/powershell.yml:68`, `.github/workflows/lint.yml:0`, `.github/workflows/lint-format-test.yml:0`
+**File:** `.github/workflows/powershell.yml:68`, `.github/workflows/lint.yml` (new insertion point immediately after `actions/checkout`), `.github/workflows/lint-format-test.yml` (new insertion point immediately after `actions/checkout`)
 **Severity:** medium · **Category:** feature · **Size:** M
 **Blocks:** T003  **Blocked by:** —
 **Context:**
