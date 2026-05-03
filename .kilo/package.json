@@ -2,7 +2,7 @@
   "dependencies": {
     "@ast-grep/cli": "^0.42.0",
     "@opencode-ai/plugin": "^1.2.27",
-    "@kilocode/plugin": "7.1.23",
+    "@kilocode/plugin": "^7.1.23",
     "@ai-sdk/openai-compatible": "*",
     "repair-json-stream": "^1.3.1",
     "diff": "^9.0.0",
@@ -10,10 +10,9 @@
   },
   "devDependencies": {
     "@opencode-ai/sdk": "^1.2.27",
-    "@kilocode/sdk": "^7.2.14",
+    "@kilocode/sdk": "^7.1.23",
     "@types/bun": "*",
-    "typescript": "*",
-    "zod": "^4.4.2"
+    "typescript": "*"
   },
   "packageManager": "bun@*"
 }
