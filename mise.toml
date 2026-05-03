@@ -42,8 +42,8 @@ _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--
 enter = "mise i -yq"
 
 [tasks.bootstrap]
-description = "Install dotbot and deploy dotfiles"
-run = ["pip install dotbot", "dotbot -c install.conf.yaml"]
+description = "deploy dotfiles"
+run = ["dotbot -c install.conf.yaml"]
 
 [tasks.deploy]
 description = "Deploy dotfiles (dotbot must be installed)"
