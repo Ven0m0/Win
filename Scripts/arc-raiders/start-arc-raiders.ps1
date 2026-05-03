@@ -1,6 +1,7 @@
 ﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 . "$PSScriptRoot\..\Common.ps1"
+. "$PSScriptRoot\ArcRaidersCommon.ps1"
 <#
 .SYNOPSIS
     Arc Raiders pre-launch: clear logs/crashes/temp, trim memory, optimize SSD, restart Steam minimal.
@@ -20,26 +21,7 @@ $totalCount = 0
 
 function Remove-Glob {
     param([string]$Pattern)
-    $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
-    foreach ($item in $items) {
-        $sz = if ($item.PSIsContainer) {
-            $dirSize = 0
-            try {
-                $dirInfo = [System.IO.DirectoryInfo]::new($item.FullName)
-                foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
-                    $dirSize += $f.Length
-                }
-                $dirSize
-            } catch {
-                (Get-ChildItem $item -Recurse -File -Force -ErrorAction SilentlyContinue |
-                    Measure-Object Length -Sum).Sum
-            }
-        } else { $item.Length }
-        $script:totalSize  += [long]$sz
-        $script:totalCount++
-        Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "  DEL  $($item.FullName)"
-    }
+    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
 }
 
     if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
@@ -85,7 +67,7 @@ public class MemUtil2 {
             try {
                 IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
                 if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch {}
+            } catch { Write-Verbose "MemUtil2.TrimAll process failed: $_" }
         }
     }
     public static void PurgeStandby() {

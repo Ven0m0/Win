@@ -26,11 +26,11 @@ function Find-ArcRaiders {
     $steamPath = $null
     try {
         $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop | Select-Object -Ex
-    } catch {}
+    } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
             $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop |
-        } catch {}
+        } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     }
     if ($steamPath) {
         $steamPath = $steamPath.Replace('/', '\')
@@ -123,7 +123,7 @@ function Remove-QuestFiles {
             try {
                 Remove-Item $fp -Force -ErrorAction Stop
                 $deleted++
-            } catch {}
+            } catch { Write-Verbose "Remove-QuestFiles item failed: $_" }
         }
     }
 

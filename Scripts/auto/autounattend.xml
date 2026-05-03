@@ -1232,7 +1232,7 @@ $wg = Wait-ForWinget
 
 # Chris Titus WinUtil — opens on next logon (Win11 Creator compatible)
 New-Item -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Force -ErrorAction SilentlyContinue | Out-Null
-Set-ItemProperty -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'WinUtil' -Type String -Force -Value 'powershell.exe -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString(''https://christitus.com/win''))"'
+Set-ItemProperty -LiteralPath 'Registry::HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce' -Name 'WinUtil' -Type String -Force -Value 'powershell.exe -ExecutionPolicy Bypass -Command "$f = Join-Path $env:TEMP ''winutil.ps1''; Invoke-WebRequest ''https://christitus.com/win'' -UseBasicParsing -OutFile $f; powershell.exe -ExecutionPolicy Bypass -File $f"'
 
 Unregister-ScheduledTask -TaskName 'post-reboot' -Confirm:$false
 Stop-Transcript

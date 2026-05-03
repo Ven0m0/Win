@@ -87,6 +87,7 @@ function Start-SetupWin11 {
         foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
+        if ($WhatIfPreference) { $argList += ' -WhatIf' }
         Start-Process $shell -ArgumentList $argList -Verb RunAs
         return $true
     }

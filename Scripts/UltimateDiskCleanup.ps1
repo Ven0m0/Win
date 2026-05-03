@@ -15,7 +15,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 # Configure error handling
-$ErrorActionPreference = 'SilentlyContinue'
+$ErrorActionPreference = 'Continue'
 # Create the form
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Ultimate Cleanup'

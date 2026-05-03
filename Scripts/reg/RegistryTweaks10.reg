@@ -1,7 +1,13 @@
 Windows Registry Editor Version 5.00
 
-
-; Disable UAC 
+; ╔══════════════════════════════════════════════════════════════════════════════╗
+; ║  WARNING: This file disables User Account Control (UAC) by setting          ║
+; ║  EnableLUA=0. This significantly reduces your system's security posture.    ║
+; ║  Only import this file if you fully understand the implications.            ║
+; ║  Consider removing the UAC keys below if you do not need them.              ║
+; ╚══════════════════════════════════════════════════════════════════════════════╝
+;
+; Disable UAC (EnableLUA=0 — reduces security; import with caution)
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
 "PromptOnSecureDesktop"=dword:00000000
 "EnableLUA"=dword:00000000

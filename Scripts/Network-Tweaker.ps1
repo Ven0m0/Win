@@ -2252,7 +2252,7 @@ $cb_ospcf.text = (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoal
 
 # ========================================================
 # RSS Global
-$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = 'Continue'
 $Global:TCPIP_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
 $Global:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
 
@@ -2378,9 +2378,7 @@ function Initialize-AdapterUI {
         $Global:EthernetClassGuid = $PnPEntity.ClassGuid
         $Global:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
         $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID
-    #check whether the registry path exists.
-    #SupressTerminationErrors
-    $ErrorActionPreference="SilentlyContinue"
+    $ErrorActionPreference = 'Continue'
 
     $Global:KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}\$AdapterDevic
     If(Test-Path -Path $KeyPath)

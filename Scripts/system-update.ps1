@@ -352,7 +352,7 @@ function Invoke-StreamingCapture {
                 $captured = Get-Content -LiteralPath $outputPath -Raw -ErrorAction SilentlyContinue
                 if ($captured) { Write-Log -Message $captured -Level 'Error' }
             }
-            catch {}
+            catch { Write-Verbose "Captured output read failed: $_" }
         }
         throw
     }
@@ -406,8 +406,8 @@ function Invoke-WingetWithTimeout {
 
         $exited = $proc.WaitForExit($TimeoutSec * 1000)
         if (-not $exited) {
-            try { & taskkill.exe /PID $proc.Id /T /F | Out-Null } catch { }
-            try { $proc.Kill() } catch { }
+            try { & taskkill.exe /PID $proc.Id /T /F | Out-Null } catch { Write-Verbose "taskkill failed: $_" }
+            try { $proc.Kill() } catch { Write-Verbose "process kill failed: $_" }
             throw "winget timed out after ${TimeoutSec}s"
         }
         $stdout = Get-Content -Raw -Path $stdoutFile -Encoding UTF8 -ErrorAction SilentlyContinue
@@ -730,7 +730,7 @@ $managers = @(
                 if ($preScan.Output) { Write-FilteredOutput -Text $preScan.Output -Color ([ConsoleColor]::Gray) }
                 $checkOut = $preScan.Output
                 Invoke-WingetUpgradeHook -Phase 'Pre' -WingetOutput $checkOut
-            } catch {}
+            } catch { Write-Verbose "Captured output read failed: $_" }
 
             # 2. Main Upgrade
             Write-Host "  Upgrading all (winget source, timeout: $($script:Config.WingetTimeoutSec)s)..." -ForegroundCol
@@ -836,7 +836,7 @@ $managers = @(
                 $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade'
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
-                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch { }
+                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch { Write-Verbose "Post-upgrade hook failed: $_" }
 
                 $script:stepChanged = $anyInstalled
                 if (-not $anyFailed) {
@@ -1460,7 +1460,7 @@ else {
             Write-Status "Temp files cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
         }
     }
-    catch {}
+    catch { Write-Verbose "Captured output read failed: $_" }
 
     if ($isAdmin) {
         try {
@@ -1469,10 +1469,10 @@ else {
                 Write-Status "C:\Windows\Temp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
             }
         }
-        catch {}
+        catch { Write-Verbose "Captured output read failed: $_" }
     }
 
-    try { Clear-DnsClientCache -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch {}
+    try { Clear-DnsClientCache -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch { Write-Verbose "Captured output read failed: $_" }
     try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catc
 
     if ($isAdmin -and $DeepClean) {
@@ -1565,7 +1565,7 @@ try {
         New-BurntToastNotification -Text 'Update-Everything', $msg -ErrorAction SilentlyContinue
     }
 }
-catch {}
+catch { Write-Verbose "Captured output read failed: $_" }
 
 # --- Pause if needed ----------------------------------------------------------
 if (-not $NoPause -and $AutoElevate) { Read-Host "`nPress Enter to close" }

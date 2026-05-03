@@ -66,7 +66,7 @@ foreach ($reg in @('HKCU:\Software\Valve\Steam', 'HKLM:\Software\Wow6432Node\Val
     try {
         $p = (Get-ItemProperty $reg -ErrorAction Stop).SteamPath
         if ($p) { $steamPath = $p -replace '/', '\'; break }
-    } catch {}
+    } catch { Write-Verbose "Steam path lookup failed: $_" }
 }
 
 if ($steamPath) {
@@ -144,10 +144,9 @@ public class MemUtil {
             try {
                 IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
                 if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch {}
+} catch { Write-Verbose "TrimAll process failed: $_" }
         }
-    }
-    // SystemMemoryListInformation=80, command 4=purge standby list
+        // SystemMemoryListInformation=80, command 4=purge standby list
     public static void PurgeStandby() {
         IntPtr buf = Marshal.AllocHGlobal(4);
         Marshal.WriteInt32(buf, 4);

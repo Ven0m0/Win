@@ -129,6 +129,7 @@ function Self-Elevate {
         if ($NoLaunch)  { $args_ += '-NoLaunch' }
         if ($NoRestore) { $args_ += '-NoRestore' }
         if ($DryRun)    { $args_ += '-DryRun' }
+        if ($WhatIfPreference) { $args_ += '-WhatIf' }
         Start-Process pwsh -ArgumentList $args_ -Verb RunAs
         exit 0
     }
@@ -191,7 +192,7 @@ public class ArcBoostMem {
             try {
                 IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
                 if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); count++; }
-            } catch {}
+            } catch { Write-Verbose "ArcBoostMem.TrimAll process failed: $_" }
         }
         return count;
     }
@@ -453,7 +454,7 @@ if (-not $NoLaunch -and -not $DryRun) {
             $gameProc = Get-GameProcess
             if ($gameProc) {
                 Write-Ok "Game detected: $($gameProc.Name) (PID $($gameProc.Id))"
-                try { $gameProc.PriorityClass = 'High' } catch {}
+                try { $gameProc.PriorityClass = 'High' } catch { Write-Verbose "Game priority set failed: $_" }
                 break
             }
         }
