@@ -5,8 +5,7 @@
     "@kilocode/plugin": "7.1.23",
     "repair-json-stream": "*",
     "diff": "*",
-    "@morphllm/opencode-morph-plugin": "*",
-    "context-mode": "*"
+    "@morphllm/opencode-morph-plugin": "*"
   },
   "devDependencies": {
     "@opencode-ai/sdk": "^1.14.33",
