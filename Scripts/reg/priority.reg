@@ -35,14 +35,41 @@ Windows Registry Editor Version 5.00
 
 ; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
-"Name"="PioneerGame.exe"
-"DscpValue"=dword:0000002e
+"Version"="1.0"
+"Application Name"="PioneerGame.exe"
+"Protocol"="*"
+"Local Port"="*"
+"Remote Port"="*"
+"Local IP"="*"
+"Remote IP"="*"
+"Local IP Prefix Length"="*"
+"Remote IP Prefix Length"="*"
+"DSCP Value"="46"
+"Throttle Rate"="-1"
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\BlackOps6]
-"Name"="cod24-cod.exe"
-"DscpValue"=dword:0000002e
+"Version"="1.0"
+"Application Name"="cod24-cod.exe"
+"Protocol"="*"
+"Local Port"="*"
+"Remote Port"="*"
+"Local IP"="*"
+"Remote IP"="*"
+"Local IP Prefix Length"="*"
+"Remote IP Prefix Length"="*"
+"DSCP Value"="46"
+"Throttle Rate"="-1"
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\Fortnite]
-"Name"="FortniteClient-Win64-Shipping.exe"
-"DscpValue"=dword:0000002e
+"Version"="1.0"
+"Application Name"="FortniteClient-Win64-Shipping.exe"
+"Protocol"="*"
+"Local Port"="*"
+"Remote Port"="*"
+"Local IP"="*"
+"Remote IP"="*"
+"Local IP Prefix Length"="*"
+"Remote IP Prefix Length"="*"
+"DSCP Value"="46"
+"Throttle Rate"="-1"
 
