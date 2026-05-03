@@ -23,7 +23,31 @@
 		},
 		"anthropic": {
 			"options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
-		}
+		},
+   "agentrouter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AgentRouter",
+      "options": {
+        "baseURL": "https://agentrouter.org/v1",
+        "apiKey": "{env:AGENTROUTER_API_KEY}"
+      },
+     "models": {
+       "glm-5.1": {
+          "name": "GLM 5.1",
+          "limit": { "context": 202752, "output": 65535 },
+          "reasoning": true
+       },
+       "deepseek-r1-0528": {
+          "name": "DeepSeek R1 0528",
+          "limit": { "context": 163840, "output": 16384 },
+          "reasoning": true
+        },
+       "deepseek-v3.2": {
+          "name": "DeepSeek v3.2",
+          "limit": { "context": 131072, "output": 32768 },
+          "reasoning": false
+        }
+     }
 	},
 	"disabled_providers": ["openai", "google", "anthropic"],
 	"plugin": [
@@ -36,6 +60,7 @@
 		"@tarquinen/opencode-dcp@3.1.9",
 		"openslimedit@1.0.4",
 		"@morphllm/opencode-morph-plugin@2.0.9",
+    "opencode-agentrouter@1.3.0",
     "opencode-agent-memory@0.2.0",
     "superpowers@git+https://github.com/obra/superpowers.git",
 		".kilo/plugins/context-shield.ts",
