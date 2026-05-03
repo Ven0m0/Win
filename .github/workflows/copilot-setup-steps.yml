@@ -21,6 +21,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+
       - name: Install py-psscriptanalyzer
         run: pip install py-psscriptanalyzer
 
