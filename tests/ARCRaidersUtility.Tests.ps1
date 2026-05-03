@@ -2,7 +2,31 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    . "$PSScriptRoot/../Scripts/arc-raiders/ARCRaidersUtility.ps1"
+
+    $scriptPath = Join-Path $PSScriptRoot '../Scripts/arc-raiders/ARCRaidersUtility.ps1'
+    $tokens = $null
+    $parseErrors = $null
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
+
+    $parseErrors | Should -BeNullOrEmpty
+
+    $definitions = New-Object System.Collections.Generic.List[string]
+
+    foreach ($functionAst in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)) {
+        $definitions.Add($functionAst.Extent.Text)
+    }
+
+    foreach ($assignmentAst in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+        if ($assignmentAst.Left -is [System.Management.Automation.Language.VariableExpressionAst]) {
+            $variableName = $assignmentAst.Left.VariablePath.UserPath
+            if ($variableName -in @('PRESETS', 'CACHE_PATHS')) {
+                $definitions.Add($assignmentAst.Extent.Text)
+            }
+        }
+    }
+
+    $definitions.Count | Should -BeGreaterThan 0
+    . ([scriptblock]::Create(($definitions -join [Environment]::NewLine + [Environment]::NewLine)))
 }
 
 Describe "ARCRaidersUtility Script Initialization" {
