@@ -57,10 +57,14 @@ jobs:
           cache: true
           install: true
 
+      - name: Setting additional PSRepositories
+        shell: pwsh
+        run: |
+            Register-PSRepository -Name 'OttoMatt' -publishlocation='https://www.myget.org/F/ottomatt/api/v2/package' -sourcelocation='https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'trusted'
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
         with:
-          modules-to-cache: PSScriptAnalyzer
+          modules-to-cache: PSScriptAnalyzer,OptimizationRules,powershell-yaml
 
       - name: Install PSScriptAnalyzer
         run: |
