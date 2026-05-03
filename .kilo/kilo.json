@@ -99,11 +99,11 @@
       "command": ["npx", "-y", "@morphllm/morphmcp"],
       "environment": { "MORPH_API_KEY": "{env:MORPH_API_KEY}" },
       "enabled": false
-    }
+    },
     "context-mode": {
       "type": "local",
       "command": ["context-mode"],
-      "enabled": true
+      "enabled": false
     }
 	},
 	"lsp": {
