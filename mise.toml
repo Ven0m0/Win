@@ -23,10 +23,11 @@ ty = "latest"
 prek = "latest"
 "pipx:pytest" = "latest"
 "pipx:basedpyright" = "latest"
-"pipx:dotbot" = "latest"
 "pipx:py-psscriptanalyzer" = "latest"
 ripgrep = "latest"
 fd = "latest"
+"pipx:dotbot" = "latest"
+"pipx:dotbot-firefox" = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
