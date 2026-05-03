@@ -1,393 +1,197 @@
 # Implementation Plan
-_Generated: 2026-04-30T09:45:00Z · 11 tasks · Est. M–XL_
-_Updated: 2026-05-02 · 7/11 tasks completed_
+_Generated: 2026-05-03T09:00:00Z · 6 tasks · Est. M–XL_
 
 ## Summary
-This plan extends the original four TODO items with seven new tasks identified during a comprehensive codebase audit.
-Original four (T001–T004) cover py-psscriptanalyzer integration, Fix-WinUpdates, winget wait-loop, and autounattend XML fixes.
-Audit added: T005–T011 addressing security (hardcoded credentials, secret scanning), error handling gaps, test coverage,
-duplication consolidation, and substantial Network-Tweaker refactoring.
-
-## Implementation Status (2026-05-02)
-
-| # | ID | Title | Status |
-|---|-----|-------|--------|
-| 1 | T001 | Integrate py-psscriptanalyzer into mise.toml and pre-commit | Not started |
-| 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | Not started |
-| 3 | T003 | Implement winget wait-loop with timeout and scope fix | Not started |
-| 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | ✅ Done |
-| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | ✅ Done |
-| 6 | T006 | Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1 | ✅ Done |
-| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | ✅ Done |
-| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | Not started |
-| 9 | T009 | Consolidate duplicated utility functions into Common.ps1 | ✅ Done |
-| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | ✅ Done |
-| 11 | T011 | Standardize error handling for all external command invocations | ✅ Done |
-
-**Completed:** T004, T005, T006, T007, T009, T010, T011 (7 tasks)
-
-## Research Notes
-
-### T001 — py-psscriptanalyzer
-Ref-tools (Exa code search + web fetch) retrieved the official docs at https://py-psscriptanalyzer.thetestlabs.io. Key findings:
-- **Installation:** `pip install py-psscriptanalyzer` (requires Python 3.9+, PowerShell Core 7.0+). The tool auto-installs the PSScriptAnalyzer module on first use.
-- **CLI flags:** `--recursive`, `--format`, `--severity {Information,Warning,Error,All}`, `--security-only`, `--output-format {text,json,sarif}`, `--output-file`, `--include-rules`, `--exclude-rules`.
-- **Pre-commit hooks:** Two hooks available: `py-psscriptanalyzer` (lint) and `py-psscriptanalyzer-format` (format). Config example:
-  ```yaml
-  repos:
-    - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-      rev: v0.3.1
-      hooks:
-        - id: py-psscriptanalyzer
-          args: ["--severity", "Warning"]
-        - id: py-psscriptanalyzer-format
-  ```
-- **CI integration:** GitHub Actions example uses `pip install py-psscriptanalyzer` then `py-psscriptanalyzer --recursive`. SARIF output is supported for GitHub Code Scanning.
-- **Environment variable:** `SEVERITY_LEVEL` can set default severity (overridden by CLI `--severity`).
-- **Action for PLAN:** Add `py-psscriptanalyzer` to `mise.toml` tasks, add `.pre-commit-config.yaml` with the two hooks, and update `.github/workflows/powershell.yml` to use `py-psscriptanalyzer --recursive --severity Error` (or Warning).
-
-### T002 — ShadowWhisperer Fix-WinUpdates
-GitHub API confirmed `ShadowWhisperer/Fix-WinUpdates` exists (8 stars, 1 fork, Batchfile 100%). README and `Fix Updates.bat` retrieved via `octocode_githubGetFileContent`. Key findings:
-- **What it does:** Batch script that repairs Windows Update via 7 steps:
-  1. Stops BITS and wuauserv services
-  2. Configures service start types (wuauserv=auto, BITS=delayed-auto, AppReadiness=manual, CryptSvc=auto)
-  3. Deletes pending/cached updates (Temp, Prefetch, SoftwareDistribution, reboot-required registry keys)
-  4. Deletes malformed registry keys under `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore`
-  5. Resets catroot2, re-registers WU DLLs (atl.dll, msxml*.dll, wuaueng*.dll, etc.), resets BITS, winsock
-  6. Applies registry fixes (disable "Get updates ASAP", disable "Let's finish setting up your device", remove target release version constraints)
-  7. Runs gpupdate /force, prompts for reboot
-- **Caveats:** The script is a `.bat` file, not PowerShell. It uses `>nul 2>&1` everywhere (hides failures). It prompts for reboot with `pause`, which is non-ideal for automation. It modifies HKCU while running as SYSTEM in autounattend context (may not apply to the intended user).
-- **Action for PLAN:** Instead of downloading and executing the batch file blindly, port the safe operations (service reset, SoftwareDistribution clear, DLL re-register) into a PowerShell script `Scripts/Fix-WindowsUpdates.ps1` using `Common.ps1` helpers. Skip the interactive `pause` and `shutdown /r`. Add `-WhatIf` support.
-
-### T003 — winget wait-loop
-Exa retrieved the exact schneegans sample (see https://schneegans.de/windows/unattend-generator/samples/). Key findings:
-- The wait-loop is required because on Windows 11 24H2+ the `winget.exe` stub is not immediately present after first logon; Windows needs time to finish UWP app registration.
-- The sample uses `--scope machine`, which requires admin elevation. In non-admin contexts this will fail silently.
-- Timeout is 5 minutes with 1-second polling; this is acceptable but should be parameterized.
-- The build guard (`-lt 26100`) restricts the script to Windows 11 24H2+. For Windows 10 autounattend, omit the guard or adjust the build number.
-
-### T004 — autounattend.xml fixes
-Exa + GitHub research surfaced multiple common failure modes for embedded-script autounattend files:
-1. **ExtractScript mechanism** — The `ExtractScript` entity must be correctly encoded (`&#xA;` for newlines) and the extraction command must reference `C:\Windows\Panther\unattend.xml` (not `autounattend.xml`). See memstechtips/UnattendedWinstall commit `cfc62e2` for a working pattern.
-2. **FirstLogonCommands vs RunSynchronous** — `FirstLogonCommands` belongs in the `oobeSystem` pass; `RunSynchronousCommand` belongs in `specialize`. Mixing them causes Windows Setup to skip commands. See SuperUser #1342587.
-3. **Log locations** — If scripts fail, inspect:
-   - `C:\Windows\Panther\setupact.log` (PE stage)
-   - `C:\Windows\Setup\Scripts\*.log` (post-install)
-   - `%TEMP%\UserOnce.log` (user-once scripts)
-4. **Script extraction failures** — Ensure the SYSTEM account has write access to `C:\Windows\Setup\Scripts\` and that PowerShell 5.1+ is available.
-5. **Validation** — Always validate with `[xml]::new().Load(path)` before committing changes.
+This plan synthesizes six pending work items from `TODO.md`, covering CI toolchain modernization (mise GitHub Action integration), security hardening (Code Scanning findings), game network QoS tuning, dotbot plugin ecosystem expansion, and PowerShell YAML module support. Task ordering respects the dependency that mise CI integration must precede its use in the setup-pwsh action.
 
 ## Task Index (topological order)
-| # | ID | Title | Sev | Cat | Size | Status |
+
+| # | ID | Title | Sev | Cat | Size | Blocks |
 |---|-----|-------|-----|-----|------|--------|
-| 1 | T001 | Integrate py-psscriptanalyzer into mise.toml and pre-commit | medium | refactor | M | Not started |
-| 2 | T002 | Add ShadowWhisperer Fix-WinUpdates to system fix scripts | low | feature | S | Not started |
-| 3 | T003 | Implement winget wait-loop with timeout and scope fix | high | bug | S | Not started |
-| 4 | T004 | Fix broken autounattend.xml and autounattend-windows10.xml | critical | bug | L | ✅ Done |
-| 5 | T005 | Remove hardcoded credentials from autounattend.xml files | critical | security | S | ✅ Done |
-| 6 | T006 | Fix missing winget exit code verification in Setup-Win11.ps1 | high | correctness | M | ✅ Done |
-| 7 | T007 | Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1 | medium | testing | S | ✅ Done |
-| 8 | T008 | Refactor Network-Tweaker.ps1: extract logic from 4220-line GUI monolith | medium | maintainability | XL | Not started |
-| 9 | T009 | Consolidate duplicated utility functions into Common.ps1 | medium | refactor | M | ✅ Done |
-| 10 | T010 | Add automated secret scanning to CI to prevent credential leakage | medium | security | M | ✅ Done |
-| 11 | T011 | Standardize error handling for all external command invocations | high | reliability | L | ✅ Done |
+| 1 | T001 | Integrate mise GitHub Action into CI workflows | medium | feature | M | T003 |
+| 2 | T002 | Resolve all GitHub Code Scanning security findings | high | security | L | — |
+| 3 | T003 | Migrate setup-pwsh action to use mise toolchain | medium | refactor | S | — |
+| 4 | T004 | Add QoS 46 priority entries for Arc Raiders, BO6, and Fortnite | low | feature | S | — |
+| 5 | T005 | Extend dotbot via plugin submodules and config | medium | feature | M | — |
+| 6 | T006 | Install PowerShell YAML module for config handling | low | feature | S | — |
 
 ## Tasks
 
-### T001 · Integrate py-psscriptanalyzer into mise.toml and pre-commit
-**File:** `mise.toml:0` (new entries), `TODO.md:1`
-**Severity:** medium · **Category:** refactor · **Size:** M
+### T001 · Integrate mise GitHub Action into CI workflows
+
+**File:** `.github/workflows/powershell.yml:68`, `.github/workflows/lint.yml` (new insertion point immediately after `actions/checkout`), `.github/workflows/lint-format-test.yml` (new insertion point immediately after `actions/checkout`)
+**Severity:** medium · **Category:** feature · **Size:** M
+**Blocks:** T003  **Blocked by:** —
+**Context:**
+> implement [mise action](https://github.com/jdx/mise-action) `jdx/mise-action@v4` in [workflows](.github/workflows/)
+**Intent:** Replace ad-hoc tool installation in GitHub Actions with the mise action to ensure consistent, cacheable tool versions across CI.
+**Acceptance criteria:**
+- [ ] Add a `jdx/mise-action@v4` step to workflows `powershell.yml`, `lint.yml`, and `lint-format-test.yml` immediately after checkout
+- [ ] The action installs toolchains defined in `mise.toml` automatically
+- [ ] Remove explicit `pip install py-psscriptanalyzer` lines (now redundant)
+- [ ] CI runs successfully with tools available on PATH
+**Implementation:**
+Insert into each workflow:
+```yaml
+- name: Set up mise
+  uses: jdx/mise-action@v4
+  with:
+    cache: true
+```
+Remove the dedicated "Install py-psscriptanalyzer" step in `powershell.yml` (line~68–69). The action will run `mise install` under the hood.
+**Estimated LOC delta:** +12 lines (4 per workflow) –20 lines removed (redundant install steps) → net ~ –8
+
+### T002 · Resolve all GitHub Code Scanning security findings
+
+**File:** `TODO.md:5` (source), code changes across repository
+**Severity:** high · **Category:** security · **Size:** L
 **Blocks:** —  **Blocked by:** —
 **Context:**
-> extend py-psscriptanalyzer integration and include it in @mise.toml
-> also ensure the pre-commit hooks of py-psscriptanalyzer work correctly
-**Intent:** Add Python-based PSScriptAnalyzer wrapper to the project's task runner and enforce it before commits.
+> fix all findings/errors under "https://github.com/Ven0m0/Win/security/code-scanning"
+**Intent:** Close every open Code Scanning (CodeQL, secret scanning, dependency review) alert to improve the project's security posture.
 **Acceptance criteria:**
-- [ ] `mise.toml` contains a `[tasks.lint]` or `[tasks.analyze]` entry that runs `py-psscriptanalyzer --recursive`
-- [ ] `mise.toml` contains a `[tasks.format]` entry that runs `py-psscriptanalyzer --format <file>`
-- [ ] A pre-commit hook (`.pre-commit-config.yaml` or equivalent) invokes `py-psscriptanalyzer` on staged `*.ps1` files
-- [ ] Running `mise run lint` exits `0` when no issues exist and non-zero when issues are found
-- [ ] CI workflow (`.github/workflows/powershell.yml`) is updated to use `py-psscriptanalyzer` instead of or alongside `Invoke-ScriptAnalyzer`
+- [ ] All alerts listed under Security → Code scanning on GitHub are marked "Closed" (fixed or dismissed with justification)
+- [ ] No new "Critical" or "High" alerts appear within 7 days of merge
+- [ ] CI includes at least one secret-scanning step (gitleaks or GitHub native) as a preventative barrier
 **Implementation:**
-```toml
-[tasks.lint]
-description = "Lint PowerShell files with py-psscriptanalyzer"
-run = "py-psscriptanalyzer --recursive"
+Use the Security alerts UI to identify each alert's type and location:
+- CodeQL: Apply the suggested fix pattern; e.g., replace `Invoke-Expression` with safe alternatives, add input validation.
+- Secrets: Rotate the exposed credential immediately, purge from history (BFG or filter-branch), and add pre-commit gitleaks hook.
+- Dependency review: Raise vulnerable dependencies in `mise.toml` to patched versions.
+Commit changes referencing the alert numbers (e.g., "Fix CodeQL #123: parameterized command").
+**Estimated LOC delta:** 100–250 lines depending on findings
 
-[tasks.format]
-description = "Format a PowerShell file"
-run = "py-psscriptanalyzer --format {{arg(name='file')}}"
+### T003 · Migrate setup-pwsh action to use mise toolchain
+
+**File:** `.github/actions/setup-pwsh/action.yml:1`
+**Severity:** medium · **Category:** refactor · **Size:** S
+**Blocks:** —  **Blocked by:** T001
+**Context:**
+> use mise for `.github/actions/setup-pwsh/action.yml`
+**Intent:** Simplify the custom setup-pwsh composite action by delegating tool installation to mise, reducing maintenance and ensuring version consistency.
+**Acceptance criteria:**
+- [ ] `action.yml` no longer contains distro-specific apt/yum/rpm install blocks for PowerShell
+- [ ] The composite action runs `mise install` (or relies on top-level `jdx/mise-action`) and then executes PowerShell via `mise exec`
+- [ ] Action still installs the requested PowerShell version (honors `inputs.version`) via mise tool version resolution
+- [ ] Action runs faster due to mise caching and avoids redundant package manager calls
+**Implementation:**
+Replace lines 14–58 with a single step that leverages mise:
+```yaml
+- name: Set up PowerShell via mise
+  shell: bash
+  run: |
+    # mise is already installed by jdx/mise-action at the workflow level
+    mise use powershell@${{ inputs.version }}
+    # Expose pwsh on PATH for subsequent steps; mise exec handles this
 ```
-Add `py-psscriptanalyzer` to `pyproject.toml` `[project.optional-dependencies] dev` or `requirements-dev.txt`.
-**Estimated LOC delta:** 20–60 lines across `mise.toml`, `.pre-commit-config.yaml`, and CI YAML.
+For Windows runners, ensure the top-level workflow has already installed mise (T001). The action becomes a thin wrapper around `mise exec`.
+**Estimated LOC delta:** –30 lines (net removal)
 
----
+### T004 · Add QoS 46 priority entries for Arc Raiders, BO6, and Fortnite
 
-### T002 · Add ShadowWhisperer Fix-WinUpdates to system fix scripts
-**File:** `TODO.md:14`
+**File:** `Scripts/reg/priority.reg:35` (append at EOF)
 **Severity:** low · **Category:** feature · **Size:** S
 **Blocks:** —  **Blocked by:** —
 **Context:**
-> add to system fix:
-> - https://github.com/ShadowWhisperer/Fix-WinUpdates
-**Intent:** Integrate a third-party Windows Update repair script into the existing system-fix workflow.
+> add Qos 46 to `Scripts/reg/priority.reg` for arc raiders, bo6 and fortnite
+**Intent:** Assign DSCP value 46 (Expedited Forwarding) to network traffic from these competitive games to prioritize game packets and reduce latency.
 **Acceptance criteria:**
-- [ ] New script `Scripts/Fix-WindowsUpdates.ps1` created that downloads and runs `ShadowWhisperer/Fix-WinUpdates` safely
-- [ ] Script uses `Invoke-WebRequest` with `$ProgressPreference = 'SilentlyContinue'` for download
-- [ ] Script validates SHA256 checksum of downloaded content before execution (if upstream publishes one)
-- [ ] Script supports `-WhatIf` and `-Restore` parameters following `Common.ps1` patterns
-- [ ] Entry added to `AGENTS.md` or `.kilo/commands/` referencing the new script
+- [ ] `priority.reg` contains three new `[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\<GameName>]` sections, one per game
+- [ ] Each section sets `"Name"` to the game's `.exe` filename and `"DscpValue"=dword:0000002e` (46 decimal)
+- [ ] File passes `regedit /s priority.reg` test import without errors
+- [ ] Comment above each section documents the game and rationale
 **Implementation:**
-```powershell
-[CmdletBinding(SupportsShouldProcess)]
-param([switch]$Restore)
-$ErrorActionPreference = 'Stop'
-$uri = 'https://raw.githubusercontent.com/ShadowWhisperer/Fix-WinUpdates/main/Fix-WinUpdates.ps1'
-$tmp = Join-Path $env:TEMP 'Fix-WinUpdates.ps1'
-if ($PSCmdlet.ShouldProcess($uri, 'Download')) {
-    $ProgressPreference = 'SilentlyContinue'
-    Invoke-WebRequest -Uri $uri -OutFile $tmp -UseBasicParsing
-    & $tmp
-}
+Append to `Scripts/reg/priority.reg`:
+```registry
+; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
+"Name"="PioneerGame.exe"
+"DscpValue"=dword:0000002e
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\BlackOps6]
+"Name"="cod24-cod.exe"
+"DscpValue"=dword:0000002e
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\Fortnite]
+"Name"="FortniteClient-Win64-Shipping.exe"
+"DscpValue"=dword:0000002e
 ```
-**Estimated LOC delta:** 30–50 lines.
+Deploy with `reg import Scripts/reg/priority.reg`. Verify under `HKLM\SOFTWARE\Policies\Microsoft\Windows\QoS\`.
+**Estimated LOC delta:** +18 lines
 
----
+### T005 · Extend dotbot via plugin submodules and config
 
-### T003 · Implement winget wait-loop with timeout and scope fix
-**File:** `TODO.md:17`
-**Severity:** high · **Category:** bug · **Size:** S
-**Blocks:** T004  **Blocked by:** —
-**Context:**
-> from https://schneegans.de/windows/unattend-generator/samples
-> ```pwsh
-> if( [System.Environment]::OSVersion.Version.Build -lt 26100 ) { ... }
-> $timeout = [datetime]::Now.AddMinutes( 5 );
-> $exe = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe";
-> while( $true ) { ... }
-> ```
-**Intent:** Replace brittle winget invocations with a robust wait-loop that handles the UWP stub delay on fresh installs.
-**Acceptance criteria:**
-- [ ] Extract a `Wait-ForWinget` helper into `Scripts/Common.ps1` (or new `Scripts/Helpers/Winget.ps1`)
-- [ ] Helper accepts `-TimeoutMinutes [int]` (default 5) and `-ExePath [string]` (default `%LOCALAPPDATA%\Microsoft\WindowsApps\winget.exe`)
-- [ ] Helper returns the resolved executable path or throws a terminating error on timeout
-- [ ] All existing winget calls in `Scripts/Setup-Dotfiles.ps1`, `Scripts/Install-Packages.ps1`, and `Scripts/auto/autounattend.xml` are updated to call the helper first
-- [ ] `Install-WingetPackage` in `autounattend.xml` uses `--scope machine` only when admin context is confirmed
-**Implementation:**
-```powershell
-function Wait-ForWinget {
-    [CmdletBinding()]
-    param(
-        [string]$ExePath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
-        [int]$TimeoutMinutes = 5
-    )
-    $deadline = [datetime]::Now.AddMinutes($TimeoutMinutes)
-    while (-not (Test-Path $ExePath)) {
-        if ([datetime]::Now -gt $deadline) { throw "winget not found within ${TimeoutMinutes}m" }
-        Start-Sleep -Seconds 1
-    }
-    return $ExePath
-}
-```
-**Estimated LOC delta:** 20–40 lines.
-
----
-
-### T004 · ~~Fix broken autounattend.xml and autounattend-windows10.xml~~ ✅ COMPLETED
-**File:** `Scripts/auto/autounattend.xml`, `Scripts/auto/autounattend-windows10.xml`
-**Severity:** critical · **Category:** bug · **Size:** L ~~| Blocks: T003~~ → **COMPLETED 2026-05-02**
-**Context:**
-> fix broken autounattend scripts
-> - [win11](Scripts/auto/autounattend.xml)
-> - [win10](Scripts/auto/autounattend-windows10.xml)
-**Intent:** Repair the unattended installation XML files so they produce a working Windows 10/11 setup without manual intervention.
-**Acceptance criteria:**
-- [ ] Both XML files pass validation: `$xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')` succeeds without errors
-- [ ] Both XML files contain well-formed `ExtractScript` entities and embedded scripts are syntactically valid PowerShell
-- [ ] `FirstLogon.ps1` → `install.ps1` → `stage2.ps1` execution chain is intact and file paths match extracted locations (`C:\Windows\Setup\Scripts\`)
-- [ ] Winget installation blocks in both XML files use the `Wait-ForWinget` pattern from T003 instead of direct invocation
-- [ ] Windows 10 XML does not reference Windows 11-only Appx packages (e.g., `Microsoft.Todos` removal list is version-appropriate)
-- [ ] A dry-run parse of both XML files in CI prevents future regressions
-**Implementation:**
-1. Load each XML with `[xml]::new().Load(path)` and fix any parser errors (encoding, unclosed tags, malformed CDATA).
-2. Review `ExtractScript` entities for correct `&#xA;` encoding and valid PowerShell syntax.
-3. Replace inline winget calls with `Wait-ForWinget` + `& $exe install ...`.
-4. Validate Appx removal lists against known Windows 10/11 package names.
-5. Add CI step:
-   ```yaml
-   - name: Validate autounattend XML
-     shell: pwsh
-     run: |
-       $xml = [xml]::new()
-       $xml.Load("$PWD/Scripts/auto/autounattend.xml")
-       $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
-   ```
-**Estimated LOC delta:** 100–250 lines across both XML files plus CI YAML.
-
----
-
-### T005 · ~~Remove hardcoded credentials from autounattend.xml files~~ ✅ COMPLETED
-**File:** `Scripts/auto/autounattend.xml`, `Scripts/auto/autounattend-windows10.xml`
-**Severity:** critical · **Category:** security · **Size:** S → **COMPLETED 2026-05-02**
-**Context:**
-> Security audit discovered plaintext password "hermes01" embedded in both autounattend XML files.
-> Appears in: (1) comment URL at line 3, (2) &lt;Value&gt;hermes01&lt;/Value&gt; at lines 155 & 166 (Password auto-logon section).
-**Intent:** Remove hardcoded credentials from version control to prevent security exposure.
-**Acceptance criteria:**
-- [ ] Replace hardcoded password with `{{DEFAULT_ADMIN_PASSWORD}}` placeholder in both files
-- [ ] Document in autounattend header: "Set a strong password before deployment — never use default"
-- [ ] Remove the password from the comment URL as well
-- [ ] Consider scanning repo for additional plaintext credentials
-**Estimated LOC delta:** 4–6 lines total
-**Security note:** This is an active credential in a tracked file. Rotate any usage of "hermes01" immediately.
-
----
-
-### T006 · ~~Fix missing winget and git exit code verification in Setup-Win11.ps1 and shell-setup.ps1~~ ✅ COMPLETED
-**File:** `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`
-**Severity:** high · **Category:** correctness · **Size:** M → **COMPLETED 2026-05-02**
-**Context:**
-> Error handling review: winget/git calls in try/catch do NOT throw on non-zero exit codes because external
-> commands produce non-terminating errors. Current pattern silently ignores failures.
-**Intent:** Ensure installation failures are detected and abort the setup.
-**Acceptance criteria:**
-- [ ] Replace direct `winget install` calls with `Install-WingetPackage` (Common.ps1:1560) or explicit `$LASTEXITCODE` check
-- [ ] Wrap `git clone`/`git pull` with exit code verification
-- [ ] Apply same fix to `shell-setup.ps1` winget calls
-- [ ] Test by attempting invalid package ID; script should stop with clear error
-**Implementation:**
-```powershell
-# Existing helper already available in Common.ps1:
-Install-WingetPackage -Id 'Git.Git' -Name 'Git'
-# For git operations:
-try { git clone $url $dir; if ($LASTEXITCODE -ne 0) { throw "git failed" } } catch { ... }
-```
-**Estimated LOC delta:** 10–30 lines.
-
----
-
-### T007 · ~~Add missing Pester tests for allow-scripts.ps1 and Backup-GameConfigs.ps1~~ ✅ COMPLETED
-**File:** `tests/allow-scripts.Tests.ps1`, `tests/Backup-GameConfigs.Tests.ps1`
-**Severity:** medium · **Category:** testing · **Size:** S → **COMPLETED 2026-05-02**
-**Context:**
-> Test coverage audit found one primary script without a `.Tests.ps1` file and one with coverage that should be expanded.
-> - allow-scripts.ps1 (90 lines) — existing `tests/allow-scripts.Tests.ps1` should be expanded to cover policy detection, RemoteSigned enforcement, and `-WhatIf`
-> - Backup-GameConfigs.ps1 (97 lines) — game config backup utility currently lacks dedicated Pester coverage
-**Intent:** Reach >90% test coverage across all primary automation scripts by filling true gaps and strengthening existing tests.
-**Acceptance criteria:**
-- [ ] Expand `tests/allow-scripts.Tests.ps1` to cover policy detection, RemoteSigned enforcement, and `-WhatIf` behavior
-- [ ] Create `tests/Backup-GameConfigs.Tests.ps1` (test directory creation, Copy-Item calls, hash validation, missing source handling)
-- [ ] Use Pester v5 `Describe`/`Context`/`It` structure matching existing tests for both new and updated test files
-- [ ] Achieve 80%+ branch coverage per script (Invoke-Pester -CodeCoverage)
-**Estimated LOC delta:** 80–120 lines total.
-
----
-
-### T008 · Refactor Network-Tweaker.ps1 (4220 lines) — separate core logic from Windows Forms UI
-**File:** `Scripts/Network-Tweaker.ps1`
-**Severity:** medium · **Category:** maintainability · **Size:** XL
+**File:** `install.conf.yaml:57` (append), `.gitmodules` (new)
+**Severity:** medium · **Category:** feature · **Size:** M
 **Blocks:** —  **Blocked by:** —
 **Context:**
-> `Network-Tweaker.ps1` is a 4220-line monolith combining Windows Forms GUI with inline registry manipulation.
-> Existing tests are limited to UI smoke/definition checks; there are no meaningful unit tests for core logic because that logic is currently inseparable from UI event handlers. This makes maintenance risky.
-**Intent:** Extract all non-UI logic into a testable module, leaving the GUI as a thin interactive frontend.
+> extend dotbot via its [plugins](https://github.com/anishathalye/dotbot/wiki/Plugins)
+> ```bash
+> git submodule add https://github.com/fundor333/dotbot-gh-extension.git
+> git submodule add https://github.com/kurtmckee/dotbot-firefox.git
+> git submodule update --init dotbot-firefox
+> git submodule add https://github.com/alexcormier/dotbot-rust.git
+> git submodule add https://github.com/JamJar00/dotbot-scoop.git
+> git submodule add https://github.com/kurtmckee/dotbot-windows.git
+> git submodule update --init dotbot-windows
+> git submodule add https://github.com/zknx/dotbot-winget
+> ```
+**Intent:** Bring in third-party dotbot plugins as git submodules to enable new configuration targets (Firefox, Windows settings, Rust tools, Scoop, winget) without vendoring code.
 **Acceptance criteria:**
-- [ ] Create `Scripts/NetworkTweaker.Core.psm1` with pure functions:
-  - `Get-NetAdapter()` — wrapper for `Get-NetAdapter`
-  - `Get-OffloadCapabilities($AdapterName)` — reads NDIS registry parameters
-  - `Set-OffloadParameter($Path, $Name, $Value)` — validates & writes registry
-  - `Get-RssSettings()` / `Set-RssSettings()`
-  - `Get-Profiles()` / `Apply-Profile($ProfileName)` — named config sets
-- [ ] Refactor `Network-Tweaker.ps1` to `using module 'NetworkTweaker.Core.psm1'` and call these from UI handlers
-- [ ] Add Pester tests for the core module (mock registry reads/writes via `Mock -CommandName Set-ItemProperty`)
-- [ ] Document all functions with comment-based help
-**Estimated LOC delta:** Module ~400 lines, tests ~150 lines, UI shim ~-100 → net +450 lines over several commits.
-
----
-
-### T009 · ~~Consolidate duplicated utility helpers into Common.ps1~~ ✅ COMPLETED
-**File:** `Scripts/Common.ps1`
-**Severity:** medium · **Category:** refactor · **Size:** M → **COMPLETED 2026-05-02**
-**Context:**
-> Duplication audit found near-identical copies of `Write-Status` (4 files) and `Invoke-Operation` (2 files).
-> Centralizing prevents divergent behavior and reduces maintenance burden.
-**Intent:** Single-source common patterns in `Common.ps1` with clear naming.
-**Acceptance criteria:**
-- [ ] Add `Write-BuildStatus` and `Invoke-BuildOperation` to `Common.ps1` (namespaced to avoid collisions)
-- [ ] Replace all local definitions with `using module` or dot-sourced calls
-- [ ] Ensure signature compatibility (params: `$Message`, `$Status` for Write-; `$Name`, `$Action`, `$SuccessStatus` for Invoke-)
-- [ ] Run full test suite to verify zero behavioral change
-**Implementation sketch:**
-```powershell
-function Write-BuildStatus {
-    param([string]$Message, [string]$Status = 'INFO')
-    $color = switch ($Status) { 'OK' {'Green'}; 'FAIL' {'Red'}; 'SKIP' {'Yellow'}; 'RUNNING' {'Cyan'}; default {'White'} }
-    Write-Host "  [$Status] $Message" -ForegroundColor $color
-}
-function Invoke-BuildOperation {
-    param([string]$Name, [scriptblock]$Action, [string]$SuccessStatus = 'OK')
-    Write-BuildStatus $Name -Status 'RUNNING'
-    try { & $Action; Write-BuildStatus $Name -Status $SuccessStatus; $true }
-    catch { Write-BuildStatus "$Name - $($_.Exception.Message)" -Status 'FAIL'; $false }
-}
+- [ ] Run all `git submodule add` commands listed, creating entries in `.gitmodules` and submodule directories
+- [ ] Execute `git submodule update --init --recursive` to clone submodule contents
+- [ ] Modify `install.conf.yaml` to include `- plugin:` blocks for each plugin that will be immediately used (at least `dotbot-firefox` and `dotbot-windows` as examples)
+- [ ] CI runs `dotbot -c install.conf.yaml` without plugin resolution errors
+**Implementation:**
+1. Add submodules from repo root:
+```bash
+git submodule add https://github.com/fundor333/dotbot-gh-extension.git dotbot-plugins/gh-extension
+git submodule add https://github.com/kurtmckee/dotbot-firefox.git dotbot-plugins/firefox
+git submodule add https://github.com/alexcormier/dotbot-rust.git dotbot-plugins/rust
+git submodule add https://github.com/JamJar00/dotbot-scoop.git dotbot-plugins/scoop
+git submodule add https://github.com/kurtmckee/dotbot-windows.git dotbot-plugins/windows
+git submodule add https://github.com/zknx/dotbot-winget.git dotbot-plugins/winget
+git submodule update --init --recursive
 ```
-**Estimated LOC delta:** ~20 lines added / ~80 lines removed across files.
-
----
-
-### T010 · ~~Add automated secret scanning to CI to prevent credential leakage~~ ✅ COMPLETED
-**File:** `.github/workflows/secret-scan.yml`
-**Severity:** medium · **Category:** security · **Size:** M ~~| Blocks: T005~~ → **COMPLETED 2026-05-02**
-**Context:**
-> Following discovery of hardcoded password in autounattend.xml (T005), a preventive control is required.
-> GitHub Advanced Security Secret Scanning is free for public repos; alternatively gitleaks-action provides similar protection.
-**Intent:** Block any future commits containing plaintext credentials/tokens.
-**Acceptance criteria:**
-- [ ] Enable GitHub Advanced Security Secret Scanning (Settings → Code security)
-  -OR-
-- [ ] Add `.github/workflows/secret-scan.yml` using `gitleaks/gitleaks-action@v2`
-- [ ] Configure scan to run on every PR and push
-- [ ] Optionally add local pre-commit hook: `pip install gitleaks && pre-commit install`
-**Implementation (github native):**
-No YAML needed — just enable in repo settings.
-**Implementation (gitleaks action):**
+2. Append to `install.conf.yaml` (after line 57):
 ```yaml
-name: Secret Scan
-on: [push, pull_request]
-jobs:
-  gitleaks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+- plugin: dotbot-firefox
+  source: dotbot-plugins/firefox
+- plugin: dotbot-windows
+  source: dotbot-plugins/windows
 ```
-**Estimated LOC delta:** 0–40 lines.
+Add more plugins as configuration needs arise. Keep plugin order independent.
+**Estimated LOC delta:** +40 lines (6 submodule entries + 2–4 plugin config blocks)
 
----
+### T006 · Install PowerShell YAML module for config handling
 
-### T011 · ~~Standardize error handling for all external command invocations~~ ✅ COMPLETED
-**File:** `Scripts/Common.ps1`, `Scripts/Setup-Win11.ps1`, `Scripts/shell-setup.ps1`
-**Severity:** high · **Category:** reliability · **Size:** L → **COMPLETED 2026-05-02**
+**File:** `mise.toml:33` (add to tools)
+**Severity:** low · **Category:** feature · **Size:** S
+**Blocks:** —  **Blocked by:** —
 **Context:**
-> Audit of error handling patterns shows inconsistency across the codebase.
-**Intent:** Ensure no silent failures from any subprocess invocation across the entire codebase.
+> add [powershell yaml](https://github.com/cloudbase/powershell-yaml) support via `Install-Module powershell-yaml`
+**Intent:** Provide native PowerShell YAML parsing capabilities across scripts by installing the `powershell-yaml` module from PSGallery.
 **Acceptance criteria:**
-- [ ] Create standardized wrappers in Common.ps1:
-  - `Invoke-CommandChecked` — runs command, checks `$LASTEXITCODE`, throws on failure
-  - `Invoke-Winget` — uses `Wait-ForWinget`, calls winget, handles exit codes 0/-1978335189
-  - `Invoke-RegImport` — wraps `reg.exe import`, throws on non-zero
-- [ ] Replace all direct winget calls in: Setup-Win11, shell-setup, Setup-Dotfiles (if any), Install-Packages (verify already uses helper), autounattend embedded scripts
-- [ ] Replace all `reg.exe` calls with `Invoke-RegImport` or `Import-RegistryConfig` (which already uses try/catch)
-- [ ] Replace `git clone/pull` with wrapper that checks exit code
-- [ ] Document in `AGENTS.md` under "External command pattern" that all subprocess calls MUST use these helpers
-- [ ] Run static analysis (Invoke-ScriptAnalyzer) to catch any remaining bare `& winget`, `& reg`, `& git` without wrapper
-**Estimated LOC delta:** 40–80 lines (helpers + refactor), high reliability impact.
-
----
+- [ ] `mise.toml` `[tools]` section includes a new tool entry `"pipx:powershell-yaml" = "latest"`
+- [ ] `mise install` fetches and installs the module in the mise-managed environment
+- [ ] Any script needing YAML can `Import-Module powershell-yaml` without errors
+- [ ] Optional: add a fallback install to `Scripts/Setup-Dotfiles.ps1` in case mise is absent
+**Implementation:**
+Add to `mise.toml` after line 33:
+```toml
+"pipx:powershell-yaml" = "latest"
+```
+Optionally in `Scripts/Setup-Dotfiles.ps1` add:
+```powershell
+if (-not (Get-Module -ListAvailable powershell-yaml)) {
+    Install-Module -Name powershell-yaml -Scope CurrentUser -Force
+}
+```
+Prefer mise-managed installation to keep tooling consistent.
+**Estimated LOC delta:** +2 lines (mise.toml)
 
 ## Appendix: Severity Legend
+
 | Level | Meaning |
 |-------|---------|
 | critical | Data loss risk, security hole, crash path, broken public API |
@@ -396,10 +200,10 @@ jobs:
 | low | Docs gap, naming, style, optional improvement |
 
 ## Appendix: Size Legend
+
 | Size | LOC Range |
 |------|-----------|
 | S | < 20 |
 | M | 20–100 |
 | L | 100–300 |
 | XL | 300+ |
-

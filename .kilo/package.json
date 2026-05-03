@@ -1,15 +1,16 @@
 {
   "dependencies": {
     "@ast-grep/cli": "*",
-    "@opencode-ai/plugin": "1.14.33",
-    "@kilocode/plugin": "7.2.31",
+    "@opencode-ai/plugin": "^1.14.33",
+    "@kilocode/plugin": "^7.1.23",
     "repair-json-stream": "*",
+    "diff": "*",
     "@morphllm/opencode-morph-plugin": "*",
     "context-mode": "*"
   },
   "devDependencies": {
-    "@opencode-ai/sdk": "1.14.33",
-    "@kilocode/sdk": "7.2.31",
+    "@opencode-ai/sdk": "^1.14.33",
+    "@kilocode/sdk": "^7.1.23",
     "@types/bun": "*",
     "typescript": "*",
     "zod": "*"
