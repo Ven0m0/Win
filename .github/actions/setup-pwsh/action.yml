@@ -23,7 +23,7 @@ runs:
         mise exec -- pwsh --version
 
     - name: Cache PowerShell modules
-      uses: actions/powershell-module-cache@v5.1
+      uses: potatoqualitee/psmodulecache@v6.2.1
       with:
         modules-to-cache: ${{ inputs.modules }}
-        shell: pwsh
+        updatable: true
