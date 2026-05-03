@@ -1,4 +1,5 @@
 ---
+name: documentation-writer
 description: Subagent for writing and maintaining documentation. Updates AGENTS.md, README files, inline comment help, and ensures cross-references are valid.
 mode: subagent
 temperature: 0.3

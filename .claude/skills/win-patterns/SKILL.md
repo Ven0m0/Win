@@ -1,9 +1,6 @@
 ---
 name: win-patterns
-description: Coding patterns and conventions extracted from the Win dotfiles repository. Covers commit style, PowerShell script structure, file organization, CI behavior, and issue tracking. Load when writing scripts, commits, or docs for this repo.
-version: 1.1.0
-source: local-git-analysis
-analyzed_commits: 200+
+description: Use when writing scripts, commits, or docs for the Win repo. Covers commit style, PowerShell script structure, file organization, CI behavior, and issue tracking.
 user-invocable: false
 ---
 
@@ -58,7 +55,7 @@ Every new script in `Scripts/` must follow this structure:
 
 ```powershell
 #Requires -RunAsAdministrator
-. "$PSScriptRoot\Common.ps1"
+. "$PSScriptRoot/Common.ps1"
 
 Request-AdminElevation
 Initialize-ConsoleUI -Title "Script Name (Administrator)"

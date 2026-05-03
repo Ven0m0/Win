@@ -1,6 +1,6 @@
 ---
 name: session-complete
-description: Mandatory end-of-session workflow — file issues, run quality gates, push to remote, verify clean state, hand off context.
+description: Use when user wants to Mandatory end-of-session workflow — file issues, run quality gates, push to remote, verify clean state, hand off context.
 disable-model-invocation: false
 ---
 

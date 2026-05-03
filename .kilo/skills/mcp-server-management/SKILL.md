@@ -1,6 +1,6 @@
 ---
 name: mcp-server-management
-description: "Configure and troubleshoot MCP servers for OpenCode/Kilo environments"
+description: "Use when user wants to Configure and troubleshoot MCP servers for OpenCode/Kilo environments"
 compatibility: opencode
 ---
 

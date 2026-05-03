@@ -1,3 +1,8 @@
+---
+name: ps-reviewer
+description: Reviews PowerShell scripts for code quality, registry safety, CI compliance, and Common.ps1 convention adherence. Use when a .ps1 file has been edited or before merging PowerShell changes.
+---
+
 # PowerShell Code Reviewer Agent
 
 Specialized subagent for reviewing PowerShell scripts and validating against AGENTS.md conventions.

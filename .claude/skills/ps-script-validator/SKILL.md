@@ -1,3 +1,8 @@
+---
+name: ps-script-validator
+description: Use when validating a PowerShell script against Win repo conventions. Checks Common.ps1 reuse, admin elevation patterns, registry safety, CI analyzer compliance, and style rules.
+---
+
 # PowerShell Script Validator
 
 Automated validation for PowerShell scripts against this repo's conventions (AGENTS.md).

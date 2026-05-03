@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: bootstrap-deployment
 description: |
   Three-layer bootstrap flow, dotbot patterns, and deployment order for Win dotfiles.

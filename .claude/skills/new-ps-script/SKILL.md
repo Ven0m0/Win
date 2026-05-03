@@ -1,3 +1,8 @@
+---
+name: new-ps-script
+description: Use when creating a new PowerShell script in the Win repo. Scaffolds .ps1 files with required headers, admin elevation, Common.ps1 import, menu structure, and AGENTS.md-compliant boilerplate.
+---
+
 # New PowerShell Script Template
 
 Scaffold a new PowerShell script with best-practice boilerplate and helper utilities.

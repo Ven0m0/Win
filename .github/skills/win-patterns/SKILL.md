@@ -1,7 +1,7 @@
 ---
 name: win-patterns
 description: Repo-specific workflow guide for Win. Use when editing PowerShell scripts, tracked config, bootstrap logic, or Copilot guidance.
-allowed-tools: 'Read, Glob, Grep, Bash'
+allowed-tools: 'Read, Glob, Grep, Bash(git:*)'
 ---
 
 # Win repository patterns
@@ -62,7 +62,7 @@ Review these files together:
 
 ### WinUtil Win11 Creator compatibility
 
-Place `autounattend.xml` at the USB root created by any tool (WinUtil, Rufus, Ventoy). The XML's `stage2.ps1` sets a `HKCU\RunOnce` entry so WinUtil (`christitus.com/win`) opens on the logon after WSL setup — matching the WinUtil Win11 Creator post-install flow.
+Place `autounattend.xml` at the USB root created by any tool (WinUtil, Rufus, Ventoy). The XML's `stage2.ps1` sets a `HKCU/RunOnce` entry so WinUtil (`christitus.com/win`) opens on the logon after WSL setup — matching the WinUtil Win11 Creator post-install flow.
 
 ## Validation reminders
 

@@ -1,4 +1,5 @@
 ---
+name: code-reviewer
 description: Subagent for code review without making changes. Reviews PowerShell scripts for CI compliance, security, performance, and maintainability.
 mode: subagent
 temperature: 0.1

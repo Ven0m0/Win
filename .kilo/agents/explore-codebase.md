@@ -1,7 +1,8 @@
 ---
+name: explore-codebase
 description: Subagent for fast read-only codebase exploration. Maps architecture, discovers files, searches patterns, and reports structured findings.
 mode: subagent
-temperature: 0.2
+temperature: 0.1
 permission:
   edit: deny
   bash: allow
