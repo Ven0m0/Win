@@ -97,8 +97,8 @@
 			"type": "remote",
 			"url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}""
-      }
+        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
 			"enabled": true
 		},
 		"exa": {
