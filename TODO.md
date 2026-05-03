@@ -21,4 +21,5 @@ git submodule add https://github.com/alexcormier/dotbot-rust
 git submodule add https://github.com/JamJar00/dotbot-scoop.git
 git submodule add https://github.com/kurtmckee/dotbot-windows.git
 git submodule update --init dotbot-windows
+git submodule add https://github.com/zknx/dotbot-winget
 ```
