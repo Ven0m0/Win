@@ -26,9 +26,6 @@ jobs:
         with:
           install: true
 
-      - name: Install py-psscriptanalyzer
-        run: pip install py-psscriptanalyzer
-
       - name: Prepare PowerShell tooling
         shell: pwsh
         run: |
