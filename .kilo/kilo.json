@@ -14,6 +14,9 @@
 		":(){:|:&};:": "deny",
 		"doom_loop": "deny"
 	},
+  "agent": {
+    "compaction": { "model": "kilo/kilo-auto/free" },
+  },
 	"provider": {
 		"openai": {
 			"options": { "apiKey": "{env:OPENAI_API_KEY}" }
@@ -159,6 +162,7 @@
 	"experimental": {
 		"continue_loop_on_deny": false,
 		"codebase_search": true,
+    "semantic_indexing": true,
 		"mcp_timeout": 30000,
 		"openTelemetry": false,
 		"batch_tool": true
