@@ -49,7 +49,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Tracked config** → always under `user/.dotfiles/config/`
 - **Windows compatibility** → preserve PowerShell 5.1+/7+ support; use `$PSScriptRoot`, `$HOME`, `$env:*`
 - **Reversible changes** → prefer `-Restore` / `-Undo` parameters for system modifications
-- **Script names** → lowercase-with-dashes (e.g., `debloat-windows.ps1`)
+- **Script names** → prefer lowercase-with-dashes for new scripts (e.g., `debloat-windows.ps1`); legacy scripts may use existing mixed-case names such as `Setup-Win11.ps1` and should only be renamed deliberately
 - **Guidance splits**:
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
