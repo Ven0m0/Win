@@ -36,7 +36,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `Scripts/reg/` | Registry `.reg` files and priority tweaks |
 | `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer |
 | `Scripts/auto/autounattend-windows10.xml` | Unattended Windows 10 USB installer |
-| `tests/` | Pester test files (`*.Tests.ps1`) — 19 files |
+| tests/ | Pester test files (`*.Tests.ps1`) |
 | `setup.Tests.ps1` | Root-level Pester tests |
 | `user/.dotfiles/config/` | Tracked dotfile content (deploy targets) |
 | `install.conf.yaml` | Dotbot configuration |
