@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@ast-grep/cli": "^0.42.0",
-    "@opencode-ai/plugin": "^1.14.27",
+    "@opencode-ai/plugin": "^1.14.33",
     "@kilocode/plugin": "^7.1.23",
     "repair-json-stream": "^1.0.0",
     "@morphllm/opencode-morph-plugin": "^2.0.9",
