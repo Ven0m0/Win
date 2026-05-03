@@ -157,60 +157,6 @@
 		}
 	},
 	"compaction": { "auto": true, "prune": true },
-	"agent": {
-		"build": {
-			"mode": "primary",
-			"permission": { "edit": "allow", "bash": "allow", "task": "allow" },
-      "temperature": 0.35
-		},
-		"plan": {
-			"mode": "primary",
-			"permission": { "edit": "ask", "bash": "ask", "write": "ask" },
-      "temperature": 0.35
-		},
-		"code-reviewer": {
-			"description": "Reviews code for best practices and potential issues",
-			"mode": "subagent",
-			"temperature": 0.1,
-			"permission": { "edit": "deny", "bash": "deny" }
-		},
-		"security-auditor": {
-			"description": "Performs security audits and identifies vulnerabilities",
-			"mode": "subagent",
-			"temperature": 0.1,
-			"permission": { "edit": "deny", "bash": "deny" }
-		},
-		"documentation-writer": {
-			"description": "Writes and maintains project documentation",
-			"mode": "subagent",
-			"temperature": 0.3,
-			"permission": { "edit": { "*.md": "allow", "*": "ask" }, "bash": "deny" }
-		},
-		"explore-codebase": {
-			"description": "Fast read-only codebase exploration agent",
-			"mode": "subagent",
-			"temperature": 0.2,
-			"permission": {
-				"edit": "deny",
-				"bash": { "git *": "allow", "grep *": "allow", "*": "deny" }
-			}
-		}
-	},
-	"command": {
-		"test": {
-			"template": "Run the full test suite with coverage report and show any failures. Focus on the failing tests and suggest fixes.",
-			"description": "Run tests with coverage",
-			"agent": "build"
-		},
-		"lint-ps": {
-			"template": "Run Invoke-ScriptAnalyzer on $ARGUMENTS with PSScriptAnalyzerSettings.psd1 and report all findings with severity and line numbers.",
-			"description": "Lint a PowerShell file"
-		},
-		"deploy-config": {
-			"template": "Deploy the config group '$1' using Scripts/Setup-Dotfiles.ps1. Skip winget tools: $2",
-			"description": "Deploy a single config group"
-		}
-	},
 	"experimental": {
 		"continue_loop_on_deny": false,
 		"codebase_search": true,
