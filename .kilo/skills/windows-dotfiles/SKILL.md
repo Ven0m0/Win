@@ -1,9 +1,6 @@
 ---
 name: windows-dotfiles
-description: Use when user wants to Repo conventions, Common.ps1 helpers, path rules, and Windows dotfile patterns.
-Use proactively when working on PowerShell scripts, registry tweaks, or dotfile deployment.
-  Repo conventions, Common.ps1 helpers, path rules, and Windows dotfile patterns.
-  Use proactively when working on PowerShell scripts, registry tweaks, or dotfile deployment.
+description: Use when user wants to Repo conventions, Common.ps1 helpers, path rules, and Windows dotfile patterns. Use proactively when working on PowerShell scripts, registry tweaks, or dotfile deployment. Repo conventions, Common.ps1 helpers, path rules, and Windows dotfile patterns. Use proactively when working on PowerShell scripts, registry tweaks, or dotfile deployment.
 compatibility: opencode
 ---
 
