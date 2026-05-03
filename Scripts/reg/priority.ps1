@@ -1,4 +1,5 @@
-
+﻿#Requires -Version 5.1
+#Requires -RunAsAdministrator
 
 ; === QoS PowerShell equivalent ===
 New-NetQosPolicy -Name "ArcRaiders" -AppPathNameMatchCondition "PioneerGame.exe" -DSCPAction 46
