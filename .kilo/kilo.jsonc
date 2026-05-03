@@ -18,36 +18,37 @@
     "compaction": { "model": "kilo-auto/free" },
   },
 	"provider": {
-		"openai": {
-			"options": { "apiKey": "{env:OPENAI_API_KEY}" }
-		},
-		"anthropic": {
-			"options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
-		},
-   "agentrouter": {
+	  "openai": {
+	  	"options": { "apiKey": "{env:OPENAI_API_KEY}" }
+	  },
+	  "anthropic": {
+		  "options": { "apiKey": "{env:ANTHROPIC_API_KEY}" }
+	  },
+    "agentrouter": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "AgentRouter",
       "options": {
         "baseURL": "https://agentrouter.org/v1",
         "apiKey": "{env:AGENTROUTER_API_KEY}"
       },
-     "models": {
-       "glm-5.1": {
+      "models": {
+        "glm-5.1": {
           "name": "GLM 5.1",
           "limit": { "context": 202752, "output": 65535 },
           "reasoning": true
-       },
-       "deepseek-r1-0528": {
+        },
+        "deepseek-r1-0528": {
           "name": "DeepSeek R1 0528",
           "limit": { "context": 163840, "output": 16384 },
           "reasoning": true
         },
-       "deepseek-v3.2": {
+        "deepseek-v3.2": {
           "name": "DeepSeek v3.2",
           "limit": { "context": 131072, "output": 32768 },
           "reasoning": false
         }
-     }
+	    }
+    }
 	},
 	"disabled_providers": ["openai", "google", "anthropic"],
 	"plugin": [
