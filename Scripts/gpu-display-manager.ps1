@@ -101,8 +101,11 @@ function Show-NvidiaMenu {
       6 {
         $installerPath = "$PSScriptRoot\..\user\.dotfiles\config\nvidia\xtremeg-installer.ps1"
         if (Test-Path $installerPath) {
-          $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath
-          Start-Process powershell.exe -ArgumentList $args -Verb RunAs
+          if ($WhatIfPreference) { Write-Host "WhatIf: Would launch XtremeG Installer as administrator" -ForegroundColor Yellow }
+          else {
+            $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath
+            Start-Process powershell.exe -ArgumentList $args -Verb RunAs
+          }
         } else {
           Write-Host "XtremeG Installer not found at: $installerPath" -ForegroundColor Red
           Wait-ForKeyPress

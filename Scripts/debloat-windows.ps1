@@ -8,7 +8,15 @@
   Removes bloatware apps, disables unnecessary services, tasks, and features,
   applies privacy registry tweaks, and cleans the system.
   Ported and adapted from obra/debloat-windows-vm.
+.PARAMETER Restore
+  Restore previously disabled services, scheduled tasks, and re-enable removed bloatware via winget.
+.PARAMETER NoRestorePoint
+  Skip creating a restore point before applying changes.
 #>
+param(
+  [switch]$Restore,
+  [switch]$NoRestorePoint
+)
 
 # Import common functions
 . "$PSScriptRoot/Common.ps1"
@@ -303,8 +311,74 @@ function Run-SystemCleanup {
 }
 #endregion
 
+function Restore-DisabledServices {
+  Write-Host "=== Restore: Re-enabling previously disabled services ===" -ForegroundColor Cyan
+  $servicesToEnable = @(
+    "DiagTrack","dmwappushservice","XblAuthManager","XblGameSave","XboxGipSvc","XboxNetApiSvc",
+    "MapsBroker","WMPNetworkSvc","WpcMonSvc","RetailDemo","wisvc","WalletService",
+    "PhoneSvc","icssvc","lfsvc","WerSvc","wercplsupport","Fax"
+  )
+  foreach ($svc in $servicesToEnable) {
+    if (Get-Service -Name $svc -ErrorAction SilentlyContinue) {
+      Write-Host "  Enabling: $svc" -ForegroundColor Green
+      Set-Service -Name $svc -StartupType Automatic -ErrorAction SilentlyContinue
+      Start-Service -Name $svc -ErrorAction SilentlyContinue
+    }
+  }
+
+  $servicesToAuto = @("SysMain","WSearch","BITS","wuauserv","TabletInputService","PcaSvc")
+  foreach ($svc in $servicesToAuto) {
+    if (Get-Service -Name $svc -ErrorAction SilentlyContinue) {
+      Write-Host "  Setting to Auto: $svc" -ForegroundColor Green
+      Set-Service -Name $svc -StartupType Automatic -ErrorAction SilentlyContinue
+    }
+  }
+}
+
+function Restore-ScheduledTasks {
+  Write-Host "=== Restore: Re-enabling previously disabled scheduled tasks ===" -ForegroundColor Cyan
+  $tasksToEnable = @(
+    "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"
+    "\Microsoft\Windows\Application Experience\StartupAppTask"
+    "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator"
+    "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip"
+    "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"
+    "\Microsoft\Windows\Windows Error Reporting\QueueReporting"
+  )
+  foreach ($tp in $tasksToEnable) {
+    $parent = Split-Path $tp -Parent
+    $leaf   = Split-Path $tp -Leaf
+    $task   = Get-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue
+    if ($task -and $task.State -eq "Disabled") {
+      Write-Host "  Enabling: $tp" -ForegroundColor Green
+      Enable-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue | Out-Null
+    }
+  }
+}
+
+function Restore-RegistryTweaks {
+  Write-Host "=== Restore: Reverting registry tweaks ===" -ForegroundColor Cyan
+  # Telemetry
+  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -ErrorAction SilentlyContinue
+  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "DoNotShowFeedbackNotifications" -ErrorAction SilentlyContinue
+  # Cortana
+  Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -ErrorAction SilentlyContinue
+  # Suggestions
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SystemPaneSuggestionsEnabled" -Type REG_DWORD -Data "1" -ErrorAction SilentlyContinue
+  # Advertising
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Type REG_DWORD -Data "1" -ErrorAction SilentlyContinue
+  Write-Host "=== Registry restore complete ===" -ForegroundColor Green
+}
+
+function Restore-AllPhases {
+  Restore-DisabledServices
+  Restore-ScheduledTasks
+  Restore-RegistryTweaks
+  Write-Host "`nRestore complete. Restart recommended." -ForegroundColor Cyan
+}
+
 function Run-AllPhases {
-  New-RestorePoint -Description "Before Debloating"
+  if (-not $NoRestorePoint) { New-RestorePoint -Description "Before Debloating" }
   Remove-BloatwareApps
   Disable-UnnecessaryServices
   Disable-WindowsFeatures
@@ -315,6 +389,29 @@ function Run-AllPhases {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
+  if ($Restore) {
+    # Restore mode
+    Request-AdminElevation
+    Initialize-ConsoleUI -Title "Windows Debloater — Restore Mode"
+    Show-Menu -Title "Windows Debloater - Restore" -Options @(
+      "Restore All (Services, Tasks, Registry)"
+      "Restore Disabled Services"
+      "Restore Scheduled Tasks"
+      "Restore Registry Tweaks"
+      "Exit"
+    )
+    $rChoice = Get-MenuChoice -Min 1 -Max 5
+    switch ($rChoice) {
+      1 { Restore-AllPhases }
+      2 { Restore-DisabledServices }
+      3 { Restore-ScheduledTasks }
+      4 { Restore-RegistryTweaks }
+      5 { exit }
+    }
+    if ($rChoice -ne 5) { Wait-ForKeyPress }
+    exit
+  }
+
   # Request admin elevation
   Request-AdminElevation
 

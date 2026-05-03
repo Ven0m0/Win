@@ -348,3 +348,29 @@ jobs:
                   Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
               }
           }
+
+  # ===========================================================================
+  # Job 4: Dotbot deployment dry-run integration test
+  # ===========================================================================
+  deploy-dry-run:
+    name: Dotbot Deployment -WhatIf
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Run Setup-Dotfiles.ps1 with -WhatIf for all targets
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+          $result = pwsh -NoProfile -File Scripts/Setup-Dotfiles.ps1 -WhatIf -SkipWingetTools 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "## Deployment -WhatIf failed with exit code $LASTEXITCODE" -ForegroundColor Red
+            exit 1
+          }
+          Write-Host "## Deployment -WhatIf completed successfully" -ForegroundColor Green
+          exit 0

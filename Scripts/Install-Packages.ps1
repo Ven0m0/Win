@@ -106,6 +106,7 @@ function Start-InstallPackages {
             } catch {
                 Write-Host ""
                 Write-Warning "  [WARN] $Name - $_"
+                Write-Verbose "winget install failed for $Id : $_"
             }
         }
     }
@@ -123,7 +124,7 @@ function Start-InstallPackages {
                 [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
                 [Security.Principal.WindowsBuiltInRole]::Administrator
             )
-        } catch {}
+        } catch { Write-Verbose "Admin role check failed: $_" }
     } else {
         $isAdmin = $script:isAdminOverride
     }
@@ -137,7 +138,8 @@ function Start-InstallPackages {
         foreach ($p in 'SkipWinget','SkipScoop','SkipChoco','SkipSystemFeatures','ApplyPostInstall') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
-        try { Start-Process $shell -ArgumentList $argList -Verb RunAs } catch {}
+        if ($WhatIfPreference) { $argList += ' -WhatIf' }
+        try { Start-Process $shell -ArgumentList $argList -Verb RunAs } catch { Write-Verbose "Elevation relaunch failed: $_" }
         return
     }
 
