@@ -5,9 +5,9 @@ color = true
 yes = true
 auto_install = true
 lockfile = true
-activate_aggressive = true
-jobs = 8
-go_skip_checksum = true
+#activate_aggressive = true
+#jobs = 8
+#go_skip_checksum = true
 
 [settings.python]
 uv_venv_auto = "create|source"
@@ -27,6 +27,8 @@ cli_telemetry_optout = true
 powershell = "latest"
 python = "3.14"
 uv = "latest"
+bun = "latest"
+node = "24"
 ruff = "latest"
 ty = "latest"
 prek = "latest"
@@ -41,12 +43,11 @@ fd = "latest"
 "pipx:dotfiles-cli" = "latest"
 #"pipx:dotbot-firefox" = "latest"
 #"pipx:dotbot-windows" = "latest"
-bun = "latest"
 
 [env]
 PROJECT_ROOT = "{{config_root}}"
 # Ensure uv uses the exact Python interpreter installed by `mise install`.
-# `tools = true` makes `tools.python.path` available when mise resolves tool-aware env vars at runtime.
+# `tools = true` makes `tools.python.path` available when mise resolves tool-aware env vars at runime.
 UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
 UV_LINK_MODE = "symlink"
 _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
@@ -75,7 +76,13 @@ run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/en
 [tasks.pwsh-install]
 description = "Install pwsh lint"
 run = '''
-pwsh -NoLogo -NoProfile -Command "Set-PSRepository PSGallery -InstallationPolicy Trusted; Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber"
+pwsh -NoLogo -NoProfile -Command '
+Set-PSRepository PSGallery -InstallationPolicy Trusted
+Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber -SkipPublisherCheck
+Import-Module PowerShellGet
+Register-PSRepository -Name "ottomatt" -SourceLocation "https://www.myget.org/F/ottomatt/api/v2"
+Install-Module -Name "OptimizationRules" -RequiredVersion "0.4.0" -Repository "ottomatt"
+'
 '''
 
 [tasks.lint]
