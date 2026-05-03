@@ -6,10 +6,10 @@
 
 | Task | Command |
 |------|---------|
-| Fresh Windows 11 install | `Scripts\Setup-Win11.ps1` or `iwr ...bootstrap.ps1 \| iex` |
+| Fresh Windows 11 install | `Scripts/Setup-Win11.ps1` or `iwr ...bootstrap.ps1 \| iex` |
 | Deploy dotfiles | `mise run deploy` or `dotbot -c install.conf.yaml` |
-| Deploy single config | `pwsh -File Scripts\Setup-Dotfiles.ps1 -Target 'PowerShell profile'` |
-| Debloat Windows | `Scripts\debloat-windows.ps1` |
+| Deploy single config | `pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'` |
+| Debloat Windows | `Scripts/debloat-windows.ps1` |
 | Validate PS file | `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` |
 | Run tests | `Invoke-Pester -Path tests/ -Output Minimal` |
 
@@ -133,7 +133,7 @@ Show-Summary                                    # display results summary
 
 | Subdirectory | Contents |
 |---|---|
-| `powershell/` | PS profile, local.ps1 overrides |
+| `powershell/` | PS profile |
 | `nvidia/` | Performance tweaks, profiles, optional reg tweaks |
 | `games/arc-raiders/` | Engine.ini, GameUserSettings.ini, keybindings |
 | `games/bf2/` | BF2 config and options |
@@ -197,7 +197,7 @@ README.md  (setup sections)
 | `ps-format.yml` | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml` | push/PR on `*.reg` | Registry file validation |
 | `secret-scan.yml` | all push/PR | Gitleaks secret detection |
-| `copilot-setup-steps.yml` | — | Copilot environment setup |
+| `copilot-setup-steps.yml` | push/PR on workflow file, `workflow_dispatch` | Copilot environment setup |
 
 **CI enforces:** `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 
