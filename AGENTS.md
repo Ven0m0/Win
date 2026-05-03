@@ -85,7 +85,7 @@ Set-RegistryValue / Remove-RegistryValue        # safe registry ops
 Get-RegistryValueSafe                           # read without throwing
 
 # NVIDIA
-Get-NvidiaGpuRegistryPath                       # discover GPU registry path (NOT plural)
+Get-NvidiaGpuRegistryPath                       # discover one or more GPU registry paths (function name is singular)
 Get-NvidiaGpuPath / Set-NvidiaGpuRegistryValue  # GPU-specific ops
 Set-NvidiaSignatureOverride / Get-NvidiaSignatureStatus
 Set-FullscreenMode / Set-MultiPlaneOverlay      # display tweaks
