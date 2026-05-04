@@ -46,7 +46,7 @@ jobs:
   # ===========================================================================
   lint:
     name: PSScriptAnalyzer Lint
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
@@ -133,7 +133,7 @@ jobs:
   # ===========================================================================
   format:
     name: PowerShell Format Check
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -298,7 +298,7 @@ jobs:
   # ===========================================================================
   summary:
     name: CI Summary
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: [lint, format, test, deploy-dry-run]
     if: always()
     steps:

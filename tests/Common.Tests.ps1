@@ -114,7 +114,7 @@ Describe "VDF Parsing and Converting" {
         $convertedStr = $converted -join ''
         $normalizedConverted = $convertedStr -replace "`r`n", "`n"
 
-        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
 
         $normalizedConverted | Should -Be $expected
     }
@@ -132,7 +132,7 @@ Describe "ConvertFrom-VDF edge cases" {
 
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.appid | Should -Be '"730"'
@@ -159,7 +159,7 @@ Describe "ConvertFrom-VDF values with spaces" {
             "path" "C:\Program Files (x86)\Steam"
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
@@ -174,8 +174,8 @@ Describe "Show-RestartRequired" {
 
         Show-RestartRequired
 
-        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $F
-        Should -Invoke Wait-ForKeyPress -Times 1
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke -CommandName Wait-ForKeyPress -Times 1
     }
 
     It "Should call Write-Host with custom message" {
@@ -185,7 +185,91 @@ Describe "Show-RestartRequired" {
         $msg = "Custom Restart Message"
         Show-RestartRequired -CustomMessage $msg
 
-        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
-        Should -Invoke Wait-ForKeyPress -Times 1
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke -CommandName Wait-ForKeyPress -Times 1
+    }
+}
+
+Describe "Invoke-ServiceOperation" {
+    BeforeAll {
+        function Get-Service { param($Name, $ErrorAction) }
+        function Stop-Service { param($Name, $Force, $ErrorAction) }
+        function Start-Service { param($Name, $ErrorAction) }
+        function Write-Warn { param($Message) }
+    }
+
+    It "Should do nothing and warn if service is not found" {
+        Mock -CommandName Get-Service { return $null }
+        Mock -CommandName Write-Warn {}
+
+        $global:actionExecuted = $false
+        $action = { $global:actionExecuted = $true }
+
+        Invoke-ServiceOperation -Name "NonExistentService" -Action $action
+
+        Should -Invoke -CommandName Get-Service -Times 1 -ParameterFilter { $Name -eq "NonExistentService" }
+        Should -Invoke -CommandName Write-Warn -Times 1 -ParameterFilter { $Message -eq "Service 'NonExistentService' not found" }
+        $global:actionExecuted | Should -Be $false
+    }
+
+    It "Should not stop or start if the service is not running" {
+        Mock -CommandName Get-Service { return [pscustomobject]@{ Status = 'Stopped' } }
+        Mock -CommandName Stop-Service {}
+        Mock -CommandName Start-Service {}
+
+        $global:actionExecuted = $false
+        $action = { $global:actionExecuted = $true }
+
+        Invoke-ServiceOperation -Name "StoppedService" -Action $action
+
+        Should -Invoke -CommandName Stop-Service -Times 0
+        Should -Invoke -CommandName Start-Service -Times 0
+        $global:actionExecuted | Should -Be $true
+    }
+
+    It "Should stop, execute action, and start if service is running" {
+        Mock -CommandName Get-Service { return [pscustomobject]@{ Status = 'Running' } }
+        Mock -CommandName Stop-Service {}
+        Mock -CommandName Start-Service {}
+
+        $global:actionExecuted = $false
+        $action = {
+            $global:actionExecuted = $true
+            Should -Invoke -CommandName Stop-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
+        }
+
+        Invoke-ServiceOperation -Name "RunningService" -Action $action
+
+        Should -Invoke -CommandName Stop-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
+        Should -Invoke -CommandName Start-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
+        $global:actionExecuted | Should -Be $true
+    }
+
+    It "Should stop and execute, but not start if Restart is `$false" {
+        Mock -CommandName Get-Service { return [pscustomobject]@{ Status = 'Running' } }
+        Mock -CommandName Stop-Service {}
+        Mock -CommandName Start-Service {}
+
+        $global:actionExecuted = $false
+        $action = { $global:actionExecuted = $true }
+
+        Invoke-ServiceOperation -Name "RunningService" -Action $action -Restart $false
+
+        Should -Invoke -CommandName Stop-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
+        Should -Invoke -CommandName Start-Service -Times 0
+        $global:actionExecuted | Should -Be $true
+    }
+
+    It "Should still restart service if action throws an error" {
+        Mock -CommandName Get-Service { return [pscustomobject]@{ Status = 'Running' } }
+        Mock -CommandName Stop-Service {}
+        Mock -CommandName Start-Service {}
+
+        $action = { throw "Simulated action failure" }
+
+        { Invoke-ServiceOperation -Name "RunningService" -Action $action } | Should -Throw "Simulated action failure"
+
+        Should -Invoke -CommandName Stop-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
+        Should -Invoke -CommandName Start-Service -Times 1 -ParameterFilter { $Name -eq "RunningService" }
     }
 }
