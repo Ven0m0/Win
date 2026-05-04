@@ -204,7 +204,8 @@ function Disable-ScheduledTasks {
     foreach ($task in $tasks) {
       if ($task.State -ne "Disabled") {
         Write-Host "  Disabling folder task: $($task.TaskName)" -ForegroundColor Yellow
-        Disable-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName -ErrorAction SilentlyContinue | Out-Null
+        Disable-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName `
+    -ErrorAction SilentlyContinue | Out-Null
       }
     }
   }
@@ -363,7 +364,8 @@ function Restore-RegistryTweaks {
   if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "AllowTelemetry" -ErrorAction SilentlyContinue)) {
     Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry"
   }
-  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "DoNotShowFeedbackNotifications" -ErrorAction SilentlyContinue)) {
+  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "DoNotShowFeedbackNotifications" `
+    -ErrorAction SilentlyContinue)) {
     Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "DoNotShowFeedbackNotifications"
   }
   # Cortana

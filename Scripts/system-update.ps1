@@ -120,13 +120,15 @@ $script:Config = @{
             Post = { if ($script:_chromeWasRunning) { $p = Join-Path ${env:ProgramFiles(x86)} 'Google\Chrome\Application
         }
         'Microsoft.VisualStudioCode'  = @{
-            Pre  = { $script:_vscodeWasRunning = [bool](Get-Process -Name 'Code' -ErrorAction SilentlyContinue); if ($sc
+            Pre  = { $script:_vscodeWasRunning = [bool](Get-Process -Name 'Code' `
+    -ErrorAction SilentlyContinue); if ($sc
             Post = { if ($script:_vscodeWasRunning) { $p = Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.
         }
         'Foxit.FoxitReader' = @{
             Pre  = {
                 $script:_foxitWasRunning = [bool](Get-Process -Name 'FoxitPDFReader', 'FoxitReader' -ErrorAction Silentl
-                if ($script:_foxitWasRunning) { Write-Host "  Closing Foxit Reader..." -ForegroundColor Gray; Stop-Proce
+                if ($script:_foxitWasRunning) { Write-Host "  Closing Foxit Reader..." `
+      -ForegroundColor Gray; Stop-Proce
             }
             Post = { if ($script:_foxitWasRunning) { $p = @((Join-Path $env:ProgramFiles 'Foxit Software\Foxit PDF Reade
         }
@@ -135,7 +137,8 @@ $script:Config = @{
                 $script:_acrobatProcs = @(Get-Process -Name 'Acrobat', 'AcroRd32', 'AcroCEF' -ErrorAction SilentlyContin
                 if ($script:_acrobatProcs.Count -gt 0) { Write-Host "  Closing Adobe Acrobat..." -ForegroundColor Gray;
                 Write-Host "  Clearing temporary files to prevent Acrobat extraction errors..." -ForegroundColor Gray
-                Get-ChildItem -Path $env:TEMP -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Extension -
+                Get-ChildItem -Path $env:TEMP -File -Force `
+    -ErrorAction SilentlyContinue | Where-Object { $_.Extension -
             }
             Post = { if ($script:_acrobatProcs.Count -gt 0) { $p = @((Join-Path $env:ProgramFiles 'Adobe\Acrobat DC\Acro
         }
@@ -642,7 +645,8 @@ function Invoke-Update {
     # Determine skip reasons
     if ($Disabled) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'flag' }); return }
     if ($RequiresCommand -and -not (Test-Command $RequiresCommand)) { $updateResults.Skipped.Add([pscustomobject]@{ Name
-    if ($RequiresAnyCommand -and -not ($RequiresAnyCommand | Where-Object { Test-Command $_ } | Select-Object -First 1))
+    if ($RequiresAnyCommand -and -not ($RequiresAnyCommand | Where-Object { Test-Command $_ } `
+    | Select-Object -First 1))
     if ($RequiresAdmin -and -not $isAdmin) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'requi
     if ($SlowOperation -and $FastMode) { $updateResults.Skipped.Add([pscustomobject]@{ Name = $Name; Reason = 'fast mode
 
@@ -820,7 +824,8 @@ $managers = @(
                             } else {
                                 $pkgFailed = $true
                                 if ($pkgOutput) {
-                                    $firstLine = ($pkgOutput -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object
+                                    $firstLine = ($pkgOutput -split "`r?`n" | Where-Object { $_.Trim() } `
+    | Select-Object
                                     if ($firstLine) { Write-Detail "$pkgId failed: $firstLine" -Type Warning }
                                 }
                             }
@@ -890,7 +895,8 @@ $managers = @(
             if ($out -match 'most recent version.+already installed') { $script:stepMessage = 'platform already up to da
 
             if (-not $SkipWSLDistros) {
-                $distroNames = @( wsl --list --quiet 2>&1 | ForEach-Object { ($_ -replace '\x00', '').Trim() } | Where-O
+                $distroNames = @( wsl --list --quiet 2>&1 `
+    | ForEach-Object { ($_ -replace '\x00', '').Trim() } | Where-O
                 if ($distroNames.Count -eq 0) { $script:stepMessage = 'platform current; no distros found' }
                 else {
                     foreach ($dn in $distroNames) {
@@ -1406,7 +1412,8 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         $psrCommand = Get-Command Update-PSResource -ErrorAction SilentlyContinue
         $supportsAcceptLicense = $psrCommand -and $psrCommand.Parameters.ContainsKey('AcceptLicense')
         $beforeSnapshot = @{}
-        @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$
+        @(Get-InstalledPSResource `
+    -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$
         $updateArgs = @{ Name = '*'; ErrorAction = 'SilentlyContinue' }
         if ($supportsAcceptLicense) { $updateArgs.AcceptLicense = $true }
         try { Update-PSResource @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-PSResource failed: $($_.Exce
@@ -1421,7 +1428,8 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         $moduleCommand = Get-Command Update-Module -ErrorAction SilentlyContinue
         $supportsAcceptLicense = $moduleCommand -and $moduleCommand.Parameters.ContainsKey('AcceptLicense')
         $beforeSnapshot = @{}
-        @(Get-InstalledModule -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Ve
+        @(Get-InstalledModule `
+    -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Ve
         $updateArgs = @{ ErrorAction = 'SilentlyContinue' }
         if ($supportsAcceptLicense) { $updateArgs.AcceptLicense = $true }
         try { Update-Module @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-Module failed: $($_.Exception.Me
@@ -1465,21 +1473,25 @@ else {
     if ($isAdmin) {
         try {
             if (Test-Path 'C:\Windows\Temp') {
-                Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -l
+                Get-ChildItem -Path 'C:\Windows\Temp' `
+    -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -l
                 Write-Status "C:\Windows\Temp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
             }
         }
         catch { Write-Verbose "Captured output read failed: $_" }
     }
 
-    try { Clear-DnsClientCache -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch { Write-Verbose "Captured output read failed: $_" }
-    try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catc
+    try { Clear-DnsClientCache `
+    -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch { Write-Verbose "Captured output read failed: $_" }
+    try { Clear-RecycleBin -Force `
+    -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catc
 
     if ($isAdmin -and $DeepClean) {
         try { DISM /Online /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null; Write-Status "DISM component store cle
         try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization
         if (-not $SkipDestructive) {
-            try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -
+            try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' `
+    -ErrorAction SilentlyContinue | Remove-Item -
         }
     }
     $updateResults.Checked.Add('cleanup')
@@ -1529,7 +1541,8 @@ Write-Host (" UPDATE COMPLETE -- {0}" -f $duration.ToString('hh\:mm\:ss')) -Fore
 Write-Host "$('=' * 54)" -ForegroundColor Green
 
 $updatedNames = @($updateResults.Success | Select-Object -Unique)
-$checkedNames = @($updateResults.Checked | Where-Object { $_ -notin $updatedNames -and $_ -notin $updateResults.Failed }
+$checkedNames = @($updateResults.Checked `
+    | Where-Object { $_ -notin $updatedNames -and $_ -notin $updateResults.Failed }
 
 if ($updatedNames.Count -gt 0) {
     Write-Host "`n[OK] Updated   ($($updatedNames.Count))" -ForegroundColor Green
@@ -1553,7 +1566,8 @@ if ($script:SectionTimings.Count -gt 0) {
     $timingsToShow = @( $script:SectionTimings.GetEnumerator() | Sort-Object Value -Descending )
     if ($timingsToShow.Count -gt 0) {
         Write-Host "`n  Section timings:" -ForegroundColor DarkGray
-        $timingsToShow | ForEach-Object { Write-Host ("    {0,-30} {1,6}s" -f $_.Key, $_.Value.ToString('F1', [culturein
+        $timingsToShow `
+    | ForEach-Object { Write-Host ("    {0,-30} {1,6}s" -f $_.Key, $_.Value.ToString('F1', [culturein
     }
 }
 

@@ -2449,14 +2449,17 @@ function Initialize-AdapterUI {
     #RSS Queues
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
     if($null -eq $rssstatus -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
-        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfRecei
+        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc `
+    | Select-Object -ExpandProperty NumberOfRecei
         $Global:AdapterQueues = $AdapterQueues
         [void] $cb_rssqueues.Items.Add($AdapterQueues)
         $cb_rssqueues.Text = $AdapterQueues
         }else{
-        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Propert
+        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" `
+    | Select-Object -ExpandProperty Propert
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
-        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -exp
+        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" `
+    | Select-Object -exp
         $cb_rssqueues.Text = $AdapterQueues
         }
 
@@ -2996,7 +2999,8 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*FlowControl" -Value "3" -Force}
 
         #IPChecksumOffloadIPv4
-        if ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*IPChecksumOffloa
+        if ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*IPChecksumOffloa
             Write-Host "IPChecksumOffloadIPv4 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq '0'){
@@ -3016,7 +3020,8 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4" -Value "3" -Force}
 
         #TCPChecksumOffloadIPv4
-        if ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TCPChecksumOffl
+        if ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*TCPChecksumOffl
             Write-Host "TCPChecksumOffloadIPv4 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq '0'){
@@ -3036,7 +3041,8 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4" -Value "3" -Force}
 
         #TCPChecksumOffloadIPv6
-        if ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TCPChecksumOffl
+        if ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*TCPChecksumOffl
             Write-Host "TCPChecksumOffloadIPv6 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq '0'){
@@ -3056,7 +3062,8 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6" -Value "3" -Force}
 
         #UDPChecksumOffloadIPv4
-        if ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*UDPChecksumOffl
+        if ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*UDPChecksumOffl
             Write-Host "UDPChecksumOffloadIPv4 is same then Registry, skipping."  -ForegroundColor Green}
 
             elseif ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq '0'){
@@ -3076,7 +3083,8 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4" -Value "3" -Force}
 
         #UDPChecksumOffloadIPv6
-        if ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*UDPChecksumOffl
+        if ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*UDPChecksumOffl
             Write-Host "UDPChecksumOffloadIPv6 is same then Registry, skipping."  -ForegroundColor Green}
 
             elseif ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq '0'){
@@ -3198,7 +3206,8 @@ function RSSEnable{
             }
 
         #InterruptModeration
-        if ($cb_InterruptModeration.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*InterruptModeratio
+        if ($cb_InterruptModeration.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" `
+    -Name "*InterruptModeratio
             Write-Host "InterruptModeration is same then Registry, skipping."  -ForegroundColor Green}
 
             elseif ($cb_InterruptModeration.SelectedIndex -eq '0'){
@@ -3368,7 +3377,8 @@ function RSSEnable{
         function RSSQueuesUnlock {
             if (Test-Path "$KeyPath\Ndi\Params\*NumRssQueues") {
                 try {
-                    $AdapterQueuesOriginal = (Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -Erro
+                    $AdapterQueuesOriginal = (Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" `
+    -Name "default" -Erro
                 }
                 catch {
                     # Fallback if the key exists but the 'default' value is missing
@@ -3398,9 +3408,11 @@ function RSSEnable{
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "11" -PropertyType STRING -Value "11 Q
             New-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" -Name "12" -PropertyType STRING -Value "12 Q
             $cb_rssqueues.Items.Clear()
-            $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" | Select-Object
+            $AdapterQueuesDefault = Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" `
+    | Select-Object
             #Query Avaible RSSQueues
-            $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Pro
+            $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" `
+    | Select-Object -ExpandProperty Pro
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
             $cb_rssqueues.Text = $AdapterQueuesDefault
             #$btn_unqueues.Enabled = $False
@@ -3575,7 +3587,8 @@ function ApplyInterfaceSettings{
     if ($cb_NeighborUnreachabilityDetection.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily
         Write-Host "NeighborUnreachabilityDetection is same, skipping."  -ForegroundColor green}
         else{
-            Write-Host "NeighborUnreachabilityDetection:"$cb_NeighborUnreachabilityDetection.Text  -ForegroundColor Gree
+            Write-Host "NeighborUnreachabilityDetection:"$cb_NeighborUnreachabilityDetection.Text  `
+    -ForegroundColor Gree
             Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -NeighborUnreachabi
         }
     if ($cb_OtherStatefulConfiguration.Text -eq (Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Glo

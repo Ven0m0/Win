@@ -622,7 +622,7 @@ function Start-Bootstrap {
     @{ label = 'Scripts directory';       ok = Test-Path $scriptsPath },
     @{ label = 'Scripts in PATH';         ok = ($updatedPath -like "*$scriptsPath*") },
   @{ label = 'Execution policy (User)'
-     ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined') }
+    ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined') }
   )
 
   foreach ($check in $checks) {
