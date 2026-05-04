@@ -1,9 +1,7 @@
-## Deploy-Config.ps1
+﻿## Deploy-Config.ps1
 # NOTE: Setup-Dotfiles.ps1 is the canonical hash-aware config deployment script.
 # This file provides a lightweight alternative for deploying only tracked configs
 # without the full bootstrap toolchain (winget, WSL, etc.).
-# Suppress Write-Host warnings
-#pragma warning disable PSAvoidUsingWriteHost
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
@@ -30,6 +28,29 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 
+function Write-ColorOutput {
+    <#
+    .SYNOPSIS
+        Writes colored text directly to the console without using Write-ColorOutput
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0, ValueFromPipeline = $true)]
+        [string]$Text = '',
+
+        [ConsoleColor]$ForegroundColor = $host.UI.RawUI.ForegroundColor,
+        [ConsoleColor]$BackgroundColor = $host.UI.RawUI.BackgroundColor,
+
+        [switch]$NoNewline
+    )
+
+    if ($NoNewline) {
+        $host.UI.Write($ForegroundColor, $BackgroundColor, $Text)
+    } else {
+        $host.UI.WriteLine($ForegroundColor, $BackgroundColor, $Text)
+    }
+}
+
 
 
 function Write-Status {
@@ -41,7 +62,7 @@ function Write-Status {
         'UP-TO-DATE' { 'Gray' }
         default { 'White' }
     }
-    Write-Host "  [$Status] $Message" -ForegroundColor $color
+    Write-ColorOutput "  [$Status] $Message" -ForegroundColor $color
     $script:Results[$Message] = $Status
 }
 
@@ -325,11 +346,11 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 1: Verify config root exists
     # ============================================================================
-    Write-Host '[1/5] Verifying configuration source...' -ForegroundColor Cyan
+    Write-ColorOutput '[1/5] Verifying configuration source...' -ForegroundColor Cyan
 
     if (-not (Test-Path $script:ConfigRoot)) {
         Write-Status "Config directory not found: $script:ConfigRoot" -Status 'FAIL'
-        Write-Host "  Ensure the repository is cloned or the config directory exists." -ForegroundColor Yellow
+        Write-ColorOutput "  Ensure the repository is cloned or the config directory exists." -ForegroundColor Yellow
         return 1
     }
 
@@ -338,8 +359,8 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 2: Deploy PowerShell profile
     # ============================================================================
-    Write-Host ''
-    Write-Host '[2/5] Deploying PowerShell profile...' -ForegroundColor Cyan
+    Write-ColorOutput ''
+    Write-ColorOutput '[2/5] Deploying PowerShell profile...' -ForegroundColor Cyan
 
     $profileSource = Join-Path $script:ConfigRoot 'powershell\profile.ps1'
     if (Test-Path $profileSource) {
@@ -351,8 +372,8 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 3: Deploy Windows Terminal settings
     # ============================================================================
-    Write-Host ''
-    Write-Host '[3/5] Deploying Windows Terminal settings...' -ForegroundColor Cyan
+    Write-ColorOutput ''
+    Write-ColorOutput '[3/5] Deploying Windows Terminal settings...' -ForegroundColor Cyan
 
     $wtSettingsSource = Join-Path $script:ConfigRoot 'windows-terminal\settings.json'
     $wtPackageDir = Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" `
@@ -370,8 +391,8 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 4: Deploy application configs
     # ============================================================================
-    Write-Host ''
-    Write-Host '[4/5] Deploying application configs...' -ForegroundColor Cyan
+    Write-ColorOutput ''
+    Write-ColorOutput '[4/5] Deploying application configs...' -ForegroundColor Cyan
 
     # Firefox user.js
     $firefoxSource = Join-Path $script:ConfigRoot 'firefox\user.js'
@@ -406,8 +427,8 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 5: Deploy game configs
     # ============================================================================
-    Write-Host ''
-    Write-Host '[5/5] Deploying game configs...' -ForegroundColor Cyan
+    Write-ColorOutput ''
+    Write-ColorOutput '[5/5] Deploying game configs...' -ForegroundColor Cyan
 
     # Star Wars Battlefront II (2017)
     $bf2Source = Join-Path $script:ConfigRoot 'games\bf2'
@@ -443,8 +464,8 @@ function Start-DeployConfig {
     # ============================================================================
     # Phase 6: PATH and directory setup
     # ============================================================================
-    Write-Host ''
-    Write-Host '[6/5] Configuring PATH and directories...' -ForegroundColor Cyan
+    Write-ColorOutput ''
+    Write-ColorOutput '[6/5] Configuring PATH and directories...' -ForegroundColor Cyan
 
     $scriptsPath = Join-Path $HOME 'Scripts'
     $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -482,9 +503,9 @@ function Start-DeployConfig {
     # ============================================================================
     # Summary
     # ============================================================================
-    Write-Host ''
-    Write-Host 'Configuration Deployment Summary' -ForegroundColor Cyan
-    Write-Host ''
+    Write-ColorOutput ''
+    Write-ColorOutput 'Configuration Deployment Summary' -ForegroundColor Cyan
+    Write-ColorOutput ''
 
     $successCount = 0
     $failCount = 0
@@ -500,8 +521,8 @@ function Start-DeployConfig {
             'UP-TO-DATE' { 'Gray' }
             default { 'White' }
         }
-        Write-Host "  $($key.PadRight(50)) : " -NoNewline
-        Write-Host "$status" -ForegroundColor $color
+        Write-ColorOutput "  $($key.PadRight(50)) : " -NoNewline
+        Write-ColorOutput "$status" -ForegroundColor $color
 
         switch ($status) {
             'OK' { $successCount++ }
@@ -511,25 +532,25 @@ function Start-DeployConfig {
         }
     }
 
-    Write-Host ""
-    Write-Host "  Results: " -NoNewline
-    Write-Host "$successCount deployed" -ForegroundColor Green -NoNewline
-    Write-Host ", " -NoNewline
-    Write-Host "$upToDateCount up-to-date" -ForegroundColor Gray -NoNewline
-    Write-Host ", " -NoNewline
-    Write-Host "$skipCount skipped" -ForegroundColor Yellow -NoNewline
+    Write-ColorOutput ""
+    Write-ColorOutput "  Results: " -NoNewline
+    Write-ColorOutput "$successCount deployed" -ForegroundColor Green -NoNewline
+    Write-ColorOutput ", " -NoNewline
+    Write-ColorOutput "$upToDateCount up-to-date" -ForegroundColor Gray -NoNewline
+    Write-ColorOutput ", " -NoNewline
+    Write-ColorOutput "$skipCount skipped" -ForegroundColor Yellow -NoNewline
     if ($failCount -gt 0) {
-        Write-Host ", " -NoNewline
-        Write-Host "$failCount failed" -ForegroundColor Red
+        Write-ColorOutput ", " -NoNewline
+        Write-ColorOutput "$failCount failed" -ForegroundColor Red
     } else {
-        Write-Host ""
+        Write-ColorOutput ""
     }
 
     $duration = (Get-Date) - $script:StartTime
-    Write-Host "  Total time: $($duration.ToString('hh\:mm\:ss'))" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "  Restart your terminal to apply the new profile." -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "  Total time: $($duration.ToString('hh\:mm\:ss'))" -ForegroundColor Cyan
+    Write-ColorOutput ""
+    Write-ColorOutput "  Restart your terminal to apply the new profile." -ForegroundColor Cyan
+    Write-ColorOutput ""
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
