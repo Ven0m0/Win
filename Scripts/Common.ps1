@@ -700,7 +700,6 @@ function Set-MultiPlaneOverlay {
     }
 }
 
-function Show-GamingDisplayStatus {
     <#
     .SYNOPSIS
         Displays current gaming display settings
@@ -1157,7 +1156,6 @@ function Add-Log {
     $script:LogOutput.Add("[$timestamp] $Text")
 }
 
-function Get-Log {
     <#
     .SYNOPSIS
         Returns the accumulated log entries
