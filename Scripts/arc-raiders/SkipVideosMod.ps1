@@ -67,20 +67,24 @@ function Find-ArcRaiders {
 function Remove-VideoFile {
     param([string]$Dir, [string]$FileName, [string]$Label = '')
     if (-not (Test-Path $Dir)) {
-        Write-Host "  ${esc}[91m[X]${esc}[0m $($Label ? "$Label - " : '')Directory not found" -ForegroundColor Red
+        $labelPrefix = if ($Label) { "$Label - " } else { '' }
+        Write-Host "  ${esc}[91m[X]${esc}[0m ${labelPrefix}Directory not found" -ForegroundColor Red
         return $false
     }
     $fullPath = Join-Path $Dir $FileName
     if (-not (Test-Path $fullPath)) {
-        Write-Host "  ${esc}[93m!WARN!${esc}[0m $($Label ? "$Label - " : '')Already applied" -ForegroundColor Yellow
+        $labelPrefix = if ($Label) { "$Label - " } else { '' }
+        Write-Host "  ${esc}[93m!WARN!${esc}[0m ${labelPrefix}Already applied" -ForegroundColor Yellow
         return $true
     }
     try {
         Remove-Item $fullPath -Force -ErrorAction Stop
-        Write-Host "  ${esc}[92m[v]${esc}[0m $($Label ? "$Label - " : '')Successfully applied" -ForegroundColor Green
+        $labelPrefix = if ($Label) { "$Label - " } else { '' }
+        Write-Host "  ${esc}[92m[v]${esc}[0m ${labelPrefix}Successfully applied" -ForegroundColor Green
         return $true
     } catch {
-        Write-Host "  ${esc}[91m[X]${esc}[0m $($Label ? "$Label - " : '')Failed to delete file" -ForegroundColor Red
+        $labelPrefix = if ($Label) { "$Label - " } else { '' }
+        Write-Host "  ${esc}[91m[X]${esc}[0m ${labelPrefix}Failed to delete file" -ForegroundColor Red
         return $false
     }
 }

@@ -159,7 +159,7 @@ $Label7.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssbaseproc                  = New-Object system.Windows.Forms.ComboBox
 $cb_rssbaseproc.width            = 108
 $cb_rssbaseproc.height           = 20
-[void] $cb_rssbaseproc.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15')
+[void] $cb_rssbaseproc.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssbaseproc.location         = New-Object System.Drawing.Point(117,89)
 $cb_rssbaseproc.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssbaseproc.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -195,7 +195,7 @@ $Label9.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssmaxprocs                  = New-Object system.Windows.Forms.ComboBox
 $cb_rssmaxprocs.width            = 108
 $cb_rssmaxprocs.height           = 20
-[void] $cb_rssmaxprocs.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15')
+[void] $cb_rssmaxprocs.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssmaxprocs.location         = New-Object System.Drawing.Point(117,136)
 $cb_rssmaxprocs.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssmaxprocs.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -367,7 +367,7 @@ $Label17.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_flowcontrol                  = New-Object system.Windows.Forms.ComboBox
 $cb_flowcontrol.width            = 190
 $cb_flowcontrol.height           = 20
-[void] $cb_flowcontrol.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enable
+[void] $cb_flowcontrol.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_flowcontrol.location         = New-Object System.Drawing.Point(193,17)
 $cb_flowcontrol.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_flowcontrol.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -455,7 +455,7 @@ $btn_adaptrest.ForeColor         = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_IPChecksumOffloadIPv4        = New-Object system.Windows.Forms.ComboBox
 $cb_IPChecksumOffloadIPv4.width  = 190
 $cb_IPChecksumOffloadIPv4.height  = 20
-[void] $cb_IPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and
+[void] $cb_IPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_IPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,39)
 $cb_IPChecksumOffloadIPv4.Font   = New-Object System.Drawing.Font('Calibri',9)
 $cb_IPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -464,7 +464,7 @@ $cb_IPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHtm
 $cb_TCPChecksumOffloadIPv4       = New-Object system.Windows.Forms.ComboBox
 $cb_TCPChecksumOffloadIPv4.width  = 190
 $cb_TCPChecksumOffloadIPv4.height  = 20
-[void] $cb_TCPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx an
+[void] $cb_TCPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_TCPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,61)
 $cb_TCPChecksumOffloadIPv4.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_TCPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -473,7 +473,7 @@ $cb_TCPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_TCPChecksumOffloadIPv6       = New-Object system.Windows.Forms.ComboBox
 $cb_TCPChecksumOffloadIPv6.width  = 190
 $cb_TCPChecksumOffloadIPv6.height  = 20
-[void] $cb_TCPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx an
+[void] $cb_TCPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_TCPChecksumOffloadIPv6.location  = New-Object System.Drawing.Point(193,83)
 $cb_TCPChecksumOffloadIPv6.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_TCPChecksumOffloadIPv6.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -482,7 +482,7 @@ $cb_TCPChecksumOffloadIPv6.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_UDPChecksumOffloadIPv4       = New-Object system.Windows.Forms.ComboBox
 $cb_UDPChecksumOffloadIPv4.width  = 190
 $cb_UDPChecksumOffloadIPv4.height  = 20
-[void] $cb_UDPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx an
+[void] $cb_UDPChecksumOffloadIPv4.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_UDPChecksumOffloadIPv4.location  = New-Object System.Drawing.Point(193,105)
 $cb_UDPChecksumOffloadIPv4.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_UDPChecksumOffloadIPv4.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -491,7 +491,7 @@ $cb_UDPChecksumOffloadIPv4.BackColor  = [System.Drawing.ColorTranslator]::FromHt
 $cb_UDPChecksumOffloadIPv6       = New-Object system.Windows.Forms.ComboBox
 $cb_UDPChecksumOffloadIPv6.width  = 190
 $cb_UDPChecksumOffloadIPv6.height  = 20
-[void] $cb_UDPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx an
+[void] $cb_UDPChecksumOffloadIPv6.Items.AddRange([object[]]@('0 - Disabled','1 - Tx Enabled','2 - Rx Enabled','3 - Rx and Tx Enabled'))
 $cb_UDPChecksumOffloadIPv6.location  = New-Object System.Drawing.Point(193,127)
 $cb_UDPChecksumOffloadIPv6.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_UDPChecksumOffloadIPv6.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -509,7 +509,7 @@ $Label24.ForeColor               = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_InterruptModerationRate      = New-Object system.Windows.Forms.ComboBox
 $cb_InterruptModerationRate.width  = 190
 $cb_InterruptModerationRate.height  = 20
-[void] $cb_InterruptModerationRate.Items.AddRange([object[]]@('0 - Disabled','200 - Minimal','400 - Low','950 - Medium',
+[void] $cb_InterruptModerationRate.Items.AddRange([object[]]@('0 - Disabled','200 - Minimal','400 - Low','950 - Medium','5000 - Medium','5000 - High','5000 - VeryHigh'))
 $cb_InterruptModerationRate.location  = New-Object System.Drawing.Point(193,343)
 $cb_InterruptModerationRate.Font  = New-Object System.Drawing.Font('Calibri',9)
 $cb_InterruptModerationRate.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
@@ -2346,20 +2346,20 @@ function applyglobal {
 }
 
 function Apply_NetworkDirect{
-$NetworkDirectAvaible = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Pa
+$NetworkDirectAvaible = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirect" -ErrorAction SilentlyContinue))
   if ($NetworkDirectAvaible -eq $false -and $cb_osntd.Text -eq 'Disabled' ){
-        New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "N
+        New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirect" -Value $cb_osntd.Text -PropertyType String
     }else{
-      Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "
+      Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirect"
     }
 }
 
 function Apply_NetworkDirectGlobalFlags{
-$NetworkDirectGlobalFlags = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDI
+$NetworkDirectGlobalFlags = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirectAcrossIPSubnets" -ErrorAction SilentlyContinue))
   if ($NetworkDirectGlobalFlags -eq $false -and $cb_osntdais.Text -eq 'Allowed' ){
-        New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "N
+        New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirectAcrossIPSubnets" -Value $cb_osntdais.Text -PropertyType String
     }else{
-      Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "
+      Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\NDIS\Parameters" -Name "NetworkDirectAcrossIPSubnets"
     }
 }
 
@@ -2643,15 +2643,15 @@ function Initialize-AdapterUI {
 #Getting Tweaks Settings
 
         #AFDDefaultReceiveWindow
-        $AFDDefaultReceiveWindow = (Get-ItemPropertyValue -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\S
+        $AFDDefaultReceiveWindow = (Get-ItemPropertyValue -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -ErrorAction SilentlyContinue)
         $cb_Afd_defaultRecWin.Text=$AFDDefaultReceiveWindow
 
         #AFDDefaultSendWindow
-        $AFDDefaultSendWindow = (Get-ItemPropertyValue -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Serv
+        $AFDDefaultSendWindow = (Get-ItemPropertyValue -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -ErrorAction SilentlyContinue)
         $cb_Afd_defaultSendWin.Text=$AFDDefaultSendWindow
 
         #BufferMultiplier
-        $AFDBufferMultiplier = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parame
+        $AFDBufferMultiplier = (Get-ItemPropertyValue -Path "REGISTRY::HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier" -ErrorAction SilentlyContinue)
         $cb_BufferMultiplier.Text=$AFDBufferMultiplier
 
         #DisableAddressSharing /CHeckValue
