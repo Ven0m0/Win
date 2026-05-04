@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -14,6 +14,7 @@ function Request-AdminElevation {
     .DESCRIPTION
         Checks if the current session has admin rights. If not, relaunches the script with elevation
     #>
+    param()
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]$identity
     if (!($principal.IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator'))) {
@@ -194,6 +195,7 @@ function Get-NvidiaGpuRegistryPath {
     .DESCRIPTION
         Returns registry paths for all NVIDIA display adapters
     #>
+    param()
     $basePath = "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
     $subkeys = (Get-ChildItem -Path "Registry::$basePath" -Force -ErrorAction SilentlyContinue).Name
     return $subkeys | Where-Object { $_ -notlike '*Configuration' }
@@ -453,6 +455,7 @@ function Get-NvidiaSignatureStatus {
     .SYNOPSIS
         Returns status of NVIDIA signature override settings
     #>
+    param()
     $status = [ordered]@{
         GlobalOverride  = $false
         ServiceOverride = $false
@@ -706,6 +709,7 @@ function Show-GamingDisplayStatus {
     .SYNOPSIS
         Displays current gaming display settings
     #>
+    param()
     Clear-Host
     Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
     Write-Host ""
@@ -927,6 +931,7 @@ function Set-EDIDOverride {
     .SYNOPSIS
         Applies EDID override to all monitors to fix display driver stuttering
     #>
+    param()
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
     $edidHex = `
         '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' + `
@@ -959,6 +964,7 @@ function Remove-EDIDOverride {
     .SYNOPSIS
         Removes EDID override from all monitors
     #>
+    param()
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
     $monitors = Get-MonitorInstances
 
@@ -987,6 +993,7 @@ function Show-EDIDStatus {
     .SYNOPSIS
         Displays current EDID override status for all monitors
     #>
+    param()
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
@@ -1162,6 +1169,7 @@ function Get-Log {
     .SYNOPSIS
         Returns the accumulated log entries
     #>
+    param()
     return $script:LogOutput
 }
 
@@ -1171,6 +1179,7 @@ function Clear-Log {
     .SYNOPSIS
         Clears all log entries
     #>
+    param()
     $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 }
 #endregion

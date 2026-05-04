@@ -2,6 +2,7 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
+    function Get-WmiObject {}
     . "$PSScriptRoot/../Scripts/Common.ps1"
 }
 
@@ -114,7 +115,7 @@ Describe "VDF Parsing and Converting" {
         $convertedStr = $converted -join ''
         $normalizedConverted = $convertedStr -replace "`r`n", "`n"
 
-        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
 
         $normalizedConverted | Should -Be $expected
     }
@@ -132,7 +133,7 @@ Describe "ConvertFrom-VDF edge cases" {
 
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.appid | Should -Be '"730"'
@@ -159,7 +160,7 @@ Describe "ConvertFrom-VDF values with spaces" {
             "path" "C:\Program Files (x86)\Steam"
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
@@ -174,7 +175,7 @@ Describe "Show-RestartRequired" {
 
         Show-RestartRequired
 
-        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $F
+        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
         Should -Invoke Wait-ForKeyPress -Times 1
     }
 
@@ -187,5 +188,24 @@ Describe "Show-RestartRequired" {
 
         Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
         Should -Invoke Wait-ForKeyPress -Times 1
+    }
+}
+
+Describe "Get-MonitorInstance" {
+    BeforeEach {
+        $script:CachedMonitorInstances = $null
+    }
+
+    It "Should catch error, log message and return empty array" {
+        Mock Get-WmiObject { throw "WMI Error" }
+        Mock Write-Host
+
+        $result = @(Get-MonitorInstance)
+
+        # Test that result is an empty array
+        $result -is [array] | Should -Be $true
+        $result.Count | Should -Be 0
+
+        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -like "*WMI Error*" -and $ForegroundColor -eq 'Red' }
     }
 }
