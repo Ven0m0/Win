@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -14,6 +14,7 @@ function Request-AdminElevation {
     .DESCRIPTION
         Checks if the current session has admin rights. If not, relaunches the script with elevation
     #>
+    param()
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]$identity
     if (!($principal.IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator'))) {
@@ -34,10 +35,13 @@ function Initialize-ConsoleUI {
         The window title to set
     #>
     param(
+        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Title')]
         [string]$Title = $myInvocation.MyCommand.Definition + " (Administrator)"
     )
 
-    $Host.UI.RawUI.WindowTitle = $Title
+    # Use parameter to prevent unused variable warnings while maintaining backward compatibility
+    $null = $Title
+    try { $Host.UI.RawUI.WindowTitle = $Title } catch {}
     $Host.UI.RawUI.BackgroundColor = "Black"
     $Host.PrivateData.ProgressBackgroundColor = "Black"
     $Host.PrivateData.ProgressForegroundColor = "White"
@@ -706,6 +710,7 @@ function Show-GamingDisplayStatus {
     .SYNOPSIS
         Displays current gaming display settings
     #>
+    param()
     Clear-Host
     Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
     Write-Host ""
@@ -1162,6 +1167,7 @@ function Get-Log {
     .SYNOPSIS
         Returns the accumulated log entries
     #>
+    param()
     return $script:LogOutput
 }
 
@@ -1171,6 +1177,7 @@ function Clear-Log {
     .SYNOPSIS
         Clears all log entries
     #>
+    param()
     $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 }
 #endregion
