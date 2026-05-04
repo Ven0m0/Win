@@ -71,13 +71,13 @@ function Invoke-ShaderCacheCleanup {
     }
   }
   Write-Host "`n* Clearing APP shadercache..." -ForegroundColor Cyan
+  $allTargets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
   foreach ($app in $apps) {
-    $targets = [System.Collections.Generic.List[string]]::new()
-    if ($app.game) { $targets.Add("$($app.game)\shadercache") }
-    if ($app.steamapps) { $targets.Add("$($app.steamapps)\shadercache\$($app.id)") }
-    if ($app.steamapps -ne "$STEAM\steamapps") { $targets.Add("$STEAM\steamapps\shadercache\$($app.id)") }
-    foreach ($t in $targets) { Clear-DirectorySafe $t }
+    if ($app.game) { [void]$allTargets.Add("$($app.game)\shadercache") }
+    if ($app.steamapps) { [void]$allTargets.Add("$($app.steamapps)\shadercache\$($app.id)") }
+    if ($app.steamapps -ne "$STEAM\steamapps") { [void]$allTargets.Add("$STEAM\steamapps\shadercache\$($app.id)") }
   }
+  foreach ($t in $allTargets) { Clear-DirectorySafe $t }
   Write-Host "`n* Clearing NVIDIA Compute cache..." -ForegroundColor Cyan
   Clear-DirectorySafe "$env:APPDATA\NVIDIA\ComputeCache"
   Write-Host "`n* Clearing NV_Cache..." -ForegroundColor Cyan
