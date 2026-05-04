@@ -116,7 +116,7 @@ function Get-ActivePhysicalAdapterAlias {
   }
 }
 
-function Set-DnsServersForActiveAdapters {
+function Set-DnsServerForActiveAdapter {
   param(
     [Parameter(Mandatory)]
     [string[]]$ServerAddresses
@@ -397,7 +397,7 @@ function Start-Setup {
   # ============================================
   Set-SetupStep -Name 'dns configuration'
   Write-Host "[4/12] Configuring DNS..." -ForegroundColor Cyan
-  Set-DnsServersForActiveAdapters -ServerAddresses @('1.1.1.1', '1.0.0.1')
+  Set-DnsServerForActiveAdapter -ServerAddresses @('1.1.1.1', '1.0.0.1')
 
   # ============================================
   # BLOATWARE REMOVAL
