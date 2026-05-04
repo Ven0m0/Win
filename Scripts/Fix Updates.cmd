@@ -1,4 +1,9 @@
 @echo off
+rem ═══════════════════════════════════════════════════════════════════════════════
+rem  DEPRECATED: Use Fix-WindowsUpdates.ps1 instead.
+rem  This CMD wrapper is kept for reference only. The PowerShell version provides
+rem  better error handling, logging, and cross-version (Win10/Win11) support.
+rem ═══════════════════════════════════════════════════════════════════════════════
 title Fix Windows Updates
 
 cls

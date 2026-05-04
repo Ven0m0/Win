@@ -7,6 +7,7 @@
 
 #region Admin Elevation
 function Request-AdminElevation {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Ensures the script is running with administrator privileges
@@ -25,6 +26,7 @@ function Request-AdminElevation {
 
 #region UI Configuration
 function Initialize-ConsoleUI {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Initializes console UI with consistent styling
@@ -43,6 +45,7 @@ function Initialize-ConsoleUI {
 }
 
 function Show-Menu {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a formatted menu
@@ -69,6 +72,7 @@ function Show-Menu {
 }
 
 function Get-MenuChoice {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Gets and validates user menu choice
@@ -93,6 +97,7 @@ function Get-MenuChoice {
 }
 
 function Wait-ForKeyPress {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Waits for user to press any key
@@ -118,6 +123,7 @@ function Wait-ForKeyPress {
 }
 
 function Show-RestartRequired {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a restart required message and waits for user acknowledgment
@@ -135,6 +141,7 @@ function Show-RestartRequired {
 
 #region Registry Helpers
 function Set-RegistryValue {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Sets a registry value with error suppression
@@ -158,6 +165,7 @@ function Set-RegistryValue {
 }
 
 function Remove-RegistryValue {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Removes a registry value with error suppression
@@ -179,6 +187,7 @@ function Remove-RegistryValue {
 }
 
 function Get-NvidiaGpuRegistryPath {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
@@ -193,6 +202,7 @@ function Get-NvidiaGpuRegistryPath {
 $script:CachedNvidiaGpuPaths = $null
 
 function Get-NvidiaGpuPath {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Returns cached NVIDIA GPU registry paths
@@ -209,6 +219,7 @@ function Get-NvidiaGpuPath {
 }
 
 function Set-NvidiaGpuRegistryValue {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Sets a registry value for all NVIDIA GPUs
@@ -243,6 +254,7 @@ function Set-NvidiaGpuRegistryValue {
 }
 
 function Get-NvidiaGpuSetting {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Retrieves NVIDIA GPU registry settings for display
@@ -296,6 +308,7 @@ function Get-NvidiaGpuSetting {
 }
 
 function Show-NvidiaGpuSetting {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays NVIDIA GPU settings for all detected GPUs
@@ -342,6 +355,7 @@ function Show-NvidiaGpuSetting {
 }
 
 function Get-RegistryValueSafe {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Safely retrieves a registry value with fallback
@@ -376,6 +390,7 @@ function Get-RegistryValueSafe {
 }
 
 function Set-NvidiaSignatureOverride {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Enables or disables NVIDIA driver signature override
@@ -433,6 +448,7 @@ function Set-NvidiaSignatureOverride {
 }
 
 function Get-NvidiaSignatureStatus {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Returns status of NVIDIA signature override settings
@@ -470,6 +486,7 @@ function Get-NvidiaSignatureStatus {
 
 #region File Download
 function Get-FileFromWeb {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Downloads a file from the web with progress indicator
@@ -487,6 +504,7 @@ function Get-FileFromWeb {
     )
 
     function Show-Progress {
+    [CmdletBinding()]
         param(
             [Parameter(Mandatory)][Single]$TotalValue,
             [Parameter(Mandatory)][Single]$CurrentValue,
@@ -560,6 +578,7 @@ function Get-FileFromWeb {
 $script:CachedMonitorInstances = $null
 
 function Get-MonitorInstance {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Retrieves all monitor instance paths from WMI
@@ -588,6 +607,7 @@ function Get-MonitorInstance {
 
 #region Gaming Display Settings
 function Set-FullscreenMode {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Configures fullscreen mode (FSO or FSE)
@@ -631,6 +651,7 @@ function Set-FullscreenMode {
 }
 
 function Set-MultiPlaneOverlay {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Configures Multiplane Overlay and windowed game optimizations
@@ -680,6 +701,7 @@ function Set-MultiPlaneOverlay {
 }
 
 function Show-GamingDisplayStatus {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays current gaming display settings
@@ -732,6 +754,7 @@ function Show-GamingDisplayStatus {
 
 #region VDF Parsing (for Steam scripts)
 function ConvertFrom-VDF {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Parses Valve Data Format (VDF) files
@@ -761,6 +784,7 @@ function ConvertFrom-VDF {
 }
 
 function ConvertTo-VDF {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Converts hashtable to VDF format
@@ -793,6 +817,7 @@ function ConvertTo-VDF {
 
 #region Cleanup Helpers
 function Clear-DirectorySafe {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Safely clears directory contents using robocopy or fallback
@@ -821,6 +846,7 @@ function Clear-DirectorySafe {
 
 #region System Management
 function New-RestorePoint {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Creates a system restore point
@@ -851,6 +877,7 @@ function New-RestorePoint {
 
 #region App Management
 function Remove-AppxPackageSafe {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Safely removes an Appx package for all users and its provisioned counterpart
@@ -895,6 +922,7 @@ function Remove-AppxPackageSafe {
 
 #region EDID Override Management
 function Set-EDIDOverride {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Applies EDID override to all monitors to fix display driver stuttering
@@ -926,6 +954,7 @@ function Set-EDIDOverride {
 }
 
 function Remove-EDIDOverride {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Removes EDID override from all monitors
@@ -953,6 +982,7 @@ function Remove-EDIDOverride {
 }
 
 function Show-EDIDStatus {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays current EDID override status for all monitors
@@ -991,6 +1021,7 @@ function Show-EDIDStatus {
 
 #region MSI Mode
 function Set-MSIMode {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Enables or disables MSI mode for all display adapters
@@ -1047,6 +1078,7 @@ function Set-MSIMode {
 
 #region UI Helpers
 function Write-Header {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a formatted section header
@@ -1060,6 +1092,7 @@ function Write-Header {
 }
 
 function Write-Success {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a success message
@@ -1071,6 +1104,7 @@ function Write-Success {
 }
 
 function Write-Fail {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a failure message
@@ -1082,6 +1116,7 @@ function Write-Fail {
 }
 
 function Write-Warn {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a warning message
@@ -1093,6 +1128,7 @@ function Write-Warn {
 }
 
 function Write-Info {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays an informational message
@@ -1108,6 +1144,7 @@ function Write-Info {
 $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 
 function Add-Log {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Adds a timestamped entry to the script log
@@ -1120,6 +1157,7 @@ function Add-Log {
 }
 
 function Get-Log {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Returns the accumulated log entries
@@ -1128,6 +1166,7 @@ function Get-Log {
 }
 
 function Clear-Log {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Clears all log entries
@@ -1138,6 +1177,7 @@ function Clear-Log {
 
 #region File Size Utilities
 function Get-FolderSize {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Calculates the total size of a folder
@@ -1168,6 +1208,7 @@ function Get-FolderSize {
 }
 
 function Format-Size {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Formats a byte count into human-readable string
@@ -1194,6 +1235,7 @@ function Format-Size {
 #endregion
 
 function Invoke-Operation {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Executes an operation with consistent DryRun, error handling, and result tracking
@@ -1294,6 +1336,7 @@ function Invoke-Operation {
 }
 
 function Clear-PathSafe {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Safely clears a directory, file, or file pattern with error suppression
@@ -1336,6 +1379,7 @@ function Clear-PathSafe {
 }
 
 function Invoke-ServiceOperation {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Executes an action with a service stopped and optionally restarts it
@@ -1380,6 +1424,7 @@ function Invoke-ServiceOperation {
 }
 
 function Stop-SteamGracefully {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Stops Steam process gracefully (shutdown then force kill)
@@ -1427,6 +1472,7 @@ function Stop-SteamGracefully {
 
 #region Execution Timing
 function Measure-Execution {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Measures and formats script execution time
@@ -1452,6 +1498,7 @@ function Measure-Execution {
 
 #region Summary Display
 function Show-Summary {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Displays a formatted summary of operation results

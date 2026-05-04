@@ -8,10 +8,14 @@ Windows Registry Editor Version 5.00
 ; ╚══════════════════════════════════════════════════════════════════════════════╝
 ;
 ; Disable UAC (EnableLUA=0 — reduces security; import with caution)
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
-"PromptOnSecureDesktop"=dword:00000000
-"EnableLUA"=dword:00000000
-"ConsentPromptBehaviorAdmin"=dword:00000000
+; ╔══════════════════════════════════════════════════════════════════════════════╗
+; ║  UAC DISABLING IS COMMENTED OUT BY DEFAULT FOR SAFETY                       ║
+; ║  Uncomment the three lines below ONLY if you fully understand the risk.     ║
+; ╚══════════════════════════════════════════════════════════════════════════════╝
+; [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System]
+; "PromptOnSecureDesktop"=dword:00000000
+; "EnableLUA"=dword:00000000
+; "ConsentPromptBehaviorAdmin"=dword:00000000
 
 ; Edge Tweaks
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Edge]

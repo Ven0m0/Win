@@ -23,7 +23,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths
