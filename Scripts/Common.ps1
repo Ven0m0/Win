@@ -855,38 +855,50 @@ function Remove-AppxPackageSafe {
     .SYNOPSIS
         Safely removes an Appx package for all users and its provisioned counterpart
     .PARAMETER AppName
-        Name or wildcard for the Appx package
+        Name or wildcard for the Appx package, or an array of names/wildcards
     #>
     param(
         [Parameter(Mandatory)]
-        [string]$AppName
+        [string[]]$AppName
     )
 
-    $packages = Get-AppxPackage -Name $AppName -AllUsers 2>$null
-    if ($packages) {
-        foreach ($package in $packages) {
-            Write-Host "  Removing: $($package.Name)" -ForegroundColor Yellow
-            try {
-                Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
-            } catch {
-                try {
-                    Remove-AppxPackage -Package $package.PackageFullName 2>$null
-                } catch {
-                    Write-Host "    Failed to remove $($package.Name)" -ForegroundColor Red
+    $allPackages = Get-AppxPackage -AllUsers 2>$null
+    if ($allPackages) {
+        $removedPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($name in $AppName) {
+            $matched = @($allPackages.Where({ $_.Name -like "*$name*" -or $_.PackageFullName -like "*$name*" }))
+            foreach ($package in $matched) {
+                if ($removedPackages.Add($package.PackageFullName)) {
+                    Write-Host "  Removing: $($package.Name)" -ForegroundColor Yellow
+                    try {
+                        Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
+                    } catch {
+                        try {
+                            Remove-AppxPackage -Package $package.PackageFullName 2>$null
+                        } catch {
+                            Write-Host "    Failed to remove $($package.Name)" -ForegroundColor Red
+                        }
+                    }
                 }
             }
         }
     }
 
-    $provisioned = Get-AppxProvisionedPackage -Online 2>$null | Where-Object { $_.PackageName -like "*$AppName*" }
-    if ($provisioned) {
-        foreach ($package in $provisioned) {
-            Write-Host "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
-            try {
-                Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
-            } catch {
-                Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
-                    -ForegroundColor Red
+    $allProvisioned = Get-AppxProvisionedPackage -Online 2>$null
+    if ($allProvisioned) {
+        $removedProvisioned = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($name in $AppName) {
+            $matched = @($allProvisioned.Where({ $_.PackageName -like "*$name*" }))
+            foreach ($package in $matched) {
+                if ($removedProvisioned.Add($package.PackageName)) {
+                    Write-Host "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
+                    try {
+                        Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
+                    } catch {
+                        Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
+                            -ForegroundColor Red
+                    }
+                }
             }
         }
     }

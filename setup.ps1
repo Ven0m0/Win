@@ -436,9 +436,7 @@ function Start-Setup {
     'microsoft.windowscommunicationsapps', 'Microsoft.WindowsMaps', 'Microsoft.WindowsCamera',
     'Microsoft.WindowsSoundRecorder'
   )
-  foreach ($app in $bloatwareApps) {
-    Remove-AppxPackageSafe -AppName $app
-  }
+  Remove-AppxPackageSafe -AppName $bloatwareApps
 
   # ============================================
   # SOFTWARE INSTALLATION

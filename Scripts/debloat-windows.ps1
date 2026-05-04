@@ -57,9 +57,7 @@ function Remove-BloatwareApps {
     "Microsoft.549981C3F5F10"
   )
 
-  foreach ($app in $appsToRemove) {
-    Remove-AppxPackageSafe -AppName $app
-  }
+  Remove-AppxPackageSafe -AppName $appsToRemove
 
   Write-Host "`n=== Phase 1 Complete ===" -ForegroundColor Green
 }

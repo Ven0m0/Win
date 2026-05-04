@@ -132,7 +132,7 @@ Describe "ConvertFrom-VDF edge cases" {
 
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.appid | Should -Be '"730"'
@@ -159,7 +159,7 @@ Describe "ConvertFrom-VDF values with spaces" {
             "path" "C:\Program Files (x86)\Steam"
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
