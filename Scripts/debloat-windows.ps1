@@ -361,8 +361,10 @@ function Restore-RegistryTweaks {
   if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "AllowTelemetry" -ErrorAction SilentlyContinue)) {
     Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry"
   }
-  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "DoNotShowFeedbackNotifications" -ErrorAction SilentlyContinue)) {
-    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "DoNotShowFeedbackNotifications"
+  if ($null -ne (Get-ItemProperty -Path $telemetryPolicyPath -Name "DoNotShowFeedbackNotifications" `
+      -ErrorAction SilentlyContinue)) {
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" `
+      -Name "DoNotShowFeedbackNotifications"
   }
   # Cortana
   $windowsSearchPolicyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
@@ -370,9 +372,11 @@ function Restore-RegistryTweaks {
     Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana"
   }
   # Suggestions
-  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SystemPaneSuggestionsEnabled" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" `
+    -Name "SystemPaneSuggestionsEnabled" -Type REG_DWORD -Data "1"
   # Advertising
-  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Type REG_DWORD -Data "1"
+  Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" `
+    -Name "Enabled" -Type REG_DWORD -Data "1"
   Write-Host "=== Registry restore complete ===" -ForegroundColor Green
 }
 

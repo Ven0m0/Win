@@ -864,7 +864,8 @@ function Remove-AppxPackageSafe {
 
     $allPackages = Get-AppxPackage -AllUsers 2>$null
     if ($allPackages) {
-        $removedPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        $cmp = [System.StringComparer]::OrdinalIgnoreCase
+        $removedPackages = [System.Collections.Generic.HashSet[string]]::new($cmp)
         foreach ($name in $AppName) {
             $matched = @($allPackages.Where({ $_.Name -like "*$name*" -or $_.PackageFullName -like "*$name*" }))
             foreach ($package in $matched) {
@@ -886,7 +887,8 @@ function Remove-AppxPackageSafe {
 
     $allProvisioned = Get-AppxProvisionedPackage -Online 2>$null
     if ($allProvisioned) {
-        $removedProvisioned = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        $cmp = [System.StringComparer]::OrdinalIgnoreCase
+        $removedProvisioned = [System.Collections.Generic.HashSet[string]]::new($cmp)
         foreach ($name in $AppName) {
             $matched = @($allProvisioned.Where({ $_.PackageName -like "*$name*" }))
             foreach ($package in $matched) {
@@ -895,7 +897,8 @@ function Remove-AppxPackageSafe {
                     try {
                         Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
                     } catch {
-                        Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
+                        $msg = $_.Exception.Message
+                        Write-Host "    Failed to remove provisioned package $($package.DisplayName): $msg" `
                             -ForegroundColor Red
                     }
                 }
@@ -913,9 +916,11 @@ function Set-EDIDOverride {
     #>
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
     $edidHex = `
-        '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' + `
+        '020304000000000000000000000000000000000000000000000000000000000000000000' + `
+        '00000000000000000000000000000000' + `
                 '0000000000000000000000000000000000000000000000000000000000000000000' + `
-                '00000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
+                '00000000000000000000000000000000000000000000000000000000000000000000' + `
+                '00000000000000000f7'
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
