@@ -9,7 +9,7 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
 }
 
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config "$env:USERPROFILE\.config\ohmyposh\zen.toml" | Invoke-Expression
+    oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Invoke-Expression
 }
 # Terminal icons
 if (Get-Module -ListAvailable -Name Terminal-Icons) {
@@ -33,13 +33,13 @@ $Host.PrivateData.ProgressForegroundColor = "White"
 
 #region Environment Variables
 # Add custom Scripts to PATH if not already there
-$scriptsPath = "$HOME\Scripts"
+$scriptsPath = Join-Path $HOME "Scripts"
 if ((Test-Path $scriptsPath) -and ($env:Path -notlike "*$scriptsPath*")) {
     $env:Path = "$env:Path;$scriptsPath"
 }
 
 # Add local bin to PATH
-$localBin = "$HOME\.local\bin"
+$localBin = Join-Path $HOME ".local\bin"
 if ((Test-Path $localBin) -and ($env:Path -notlike "*$localBin*")) {
     $env:Path = "$env:Path;$localBin"
 }
@@ -132,7 +132,7 @@ function .... { Set-Location ../../.. }
 function ..... { Set-Location ../../../.. }
 
 # Common directories
-function dotfiles { Set-Location -Path "$env:USERPROFILE\.dotfiles\$args" }
+function dotfiles { Set-Location -Path (Join-Path $env:USERPROFILE ".dotfiles\$args") }
 #endregion
 
 #region Functions
@@ -200,7 +200,7 @@ function Edit-Profile {
     .SYNOPSIS
         Edit PowerShell profile
     #>
-    & $env:EDITOR "$HOME\.dotfiles\config\powershell\profile.ps1"
+    & $env:EDITOR (Join-Path $HOME ".dotfiles\config\powershell\profile.ps1")
 }
 
 function Get-PublicIP {
@@ -511,8 +511,8 @@ function Clear-TempFiles {
         Clear temporary files
     #>
     $tempPaths = @(
-        "$env:TEMP\*",
-        "$env:WINDIR\Temp\*"
+        (Join-Path $env:TEMP "*"),
+        (Join-Path $env:WINDIR "Temp\*")
     )
 
     foreach ($path in $tempPaths) {
@@ -584,7 +584,7 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 
 #region Chocolatey Profile
 # Import Chocolatey Profile to enable tab-completions
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+$ChocolateyProfile = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
 if (Test-Path($ChocolateyProfile)) {
     Import-Module "$ChocolateyProfile"
 }
@@ -639,7 +639,7 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 #endregion
 
 # Load any local customizations (not tracked in git)
-$localProfile = "$HOME\.dotfiles\config\powershell\local.ps1"
+$localProfile = Join-Path $HOME ".dotfiles\config\powershell\local.ps1"
 if (Test-Path $localProfile) {
     . $localProfile
 }
