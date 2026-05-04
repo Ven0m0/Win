@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -706,6 +706,7 @@ function Show-GamingDisplayStatus {
     .SYNOPSIS
         Displays current gaming display settings
     #>
+    param()
     Clear-Host
     Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
     Write-Host ""
@@ -1162,6 +1163,7 @@ function Get-Log {
     .SYNOPSIS
         Returns the accumulated log entries
     #>
+    param()
     return $script:LogOutput
 }
 
