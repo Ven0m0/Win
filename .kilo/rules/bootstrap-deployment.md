@@ -104,6 +104,8 @@ Phase 5: Verification summary
 - **Shared utilities**: `Scripts/Common.ps1`
 - **Config deployment**: Manifest-driven in `Setup-Dotfiles.ps1` with hash-based change detection
 - **Tool installation**: Uses `winget` with `--silent --accept-*` flags for non-interactive installs
+- **Tracked config root**: keep deployable config under `user/.dotfiles/config/`
+- **Review set for bootstrap changes**: `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md`, and `AGENTS.md`
 
 ## Validation Checklist
 
@@ -117,3 +119,11 @@ After running setup:
 - [ ] Git status shows clean repo
 
 If any check fails, review the console output for errors and re-run with `-WhatIf` first to preview changes.
+
+## Guidance Validation
+
+When bootstrap work also changes `.github/` guidance or workflow files:
+
+```bash
+npx -y @yawlabs/ctxlint --depth 3 --mcp --strict --yes
+```

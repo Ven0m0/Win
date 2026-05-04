@@ -8,9 +8,11 @@ These rules apply to all PowerShell files in this repository: `Scripts/**/*.ps1`
 - Use `[CmdletBinding()]` and `SupportsShouldProcess` for functions that modify system state
 - Provide comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, `.EXAMPLE`)
 - Use full cmdlet names (no aliases like `select`, `%`, `?`, `cd`)
+- Keep OTBS braces and 2-space indentation
 - Validate parameters with `[ValidateNotNullOrEmpty()]`, `[ValidateSet()]`, or custom validation
 - Check exit codes/bool results on external commands (`reg.exe`, `winget`, `git`, `wsl`)
 - Prefer `Write-Verbose`, `Write-Warning`, `Write-Error` over `Write-Host` for non-UI output
+- Set `$ProgressPreference = 'SilentlyContinue'` before `Invoke-WebRequest`
 
 ## Prohibited Patterns
 
@@ -19,6 +21,7 @@ These rules apply to all PowerShell files in this repository: `Scripts/**/*.ps1`
 - ❌ `ConvertTo-SecureString` with plaintext key material (CI violation: `PSAvoidUsingConvertToSecureStringWithPlainText`)
 - ❌ Global aliases in script/module scope (CI violation: `PSAvoidGlobalAliases`)
 - ❌ Hardcoded user paths like `C:\Users\Ven0m0\...` — use `$HOME`, `$env:USERPROFILE`, `$PSScriptRoot`
+- ❌ Bare `curl` in PowerShell — use `curl.exe` when the external binary is intended
 
 ## Path and Environment
 
@@ -85,6 +88,7 @@ process {
 - CI runs `Invoke-ScriptAnalyzer -Settings PSScriptAnalyzerSettings.psd1`
 - Current enforced rules: `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 - Run locally before committing: `Invoke-ScriptAnalyzer -Path Scripts/<changed>.ps1 -Settings ./PSScriptAnalyzerSettings.psd1`
+- If the changed area already has tests, run `Invoke-Pester -Path tests/ -Output Minimal`
 
 ## Windows Compatibility
 
