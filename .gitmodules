@@ -8,9 +8,6 @@
 [submodule "dotbot-plugins/firefox"]
 	path = dotbot-plugins/firefox
 	url = https://github.com/kurtmckee/dotbot-firefox.git
-[submodule "dotbot-plugins/rust"]
-	path = dotbot-plugins/rust
-	url = https://github.com/alexcormier/dotbot-rust.git
 [submodule "dotbot-plugins/windows"]
 	path = dotbot-plugins/windows
 	url = https://github.com/kurtmckee/dotbot-windows.git
