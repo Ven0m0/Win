@@ -5,9 +5,23 @@ on:
   push:
     paths:
       - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - '.github/skills/**'
+      - 'AGENTS.md'
+      - 'install.conf.yaml'
+      - 'Scripts/Setup-Dotfiles.ps1'
+      - '.github/scripts/bootstrap.ps1'
   pull_request:
     paths:
       - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - '.github/skills/**'
+      - 'AGENTS.md'
+      - 'install.conf.yaml'
+      - 'Scripts/Setup-Dotfiles.ps1'
+      - '.github/scripts/bootstrap.ps1'
 
 permissions:
   contents: read
@@ -26,12 +40,54 @@ jobs:
         with:
           install: true
 
-      - name: Prepare PowerShell tooling
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Set up PowerShell
+        uses: ./.github/actions/setup-pwsh
+        with:
+          modules: 'PSScriptAnalyzer Pester'
+
+      - name: Install dotbot
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install dotbot
+
+      - name: Verify Copilot repo tooling
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-          Install-Module PSScriptAnalyzer -Scope CurrentUser -Repository PSGallery -Force
-          Install-Module Pester -MinimumVersion 5.0.0 -Scope CurrentUser -Repository PSGallery -Force
+          $requiredPaths = @(
+            '.github/copilot-instructions.md',
+            '.github/instructions/powershell.instructions.md',
+            '.github/instructions/windows-11-setup.instructions.md',
+            '.github/skills/win-patterns/SKILL.md',
+            '.github/skills/bootstrap-deployment/SKILL.md',
+            'install.conf.yaml',
+            'Scripts/Setup-Dotfiles.ps1',
+            '.github/scripts/bootstrap.ps1'
+          )
+
+          foreach ($path in $requiredPaths) {
+            if (-not (Test-Path $path)) {
+              throw "Expected path missing: $path"
+            }
+          }
+
+          $toolChecks = @(
+            @{ Name = 'pwsh'; Command = { pwsh --version } },
+            @{ Name = 'python'; Command = { python --version } },
+            @{ Name = 'dotbot'; Command = { dotbot --version } }
+          )
+
+          foreach ($toolCheck in $toolChecks) {
+            Write-Host "## $($toolCheck.Name)"
+            & $toolCheck.Command
+          }
+
           Get-Module -ListAvailable PSScriptAnalyzer | Select-Object -First 1 Name, Version
           Get-Module -ListAvailable Pester | Select-Object -First 1 Name, Version

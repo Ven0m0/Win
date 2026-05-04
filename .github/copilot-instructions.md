@@ -3,25 +3,23 @@
 Ven0m0/Win is a Windows dotfiles repository managed with [dotbot](https://github.com/anishathalye/dotbot).
 Start with `AGENTS.md` for repo-wide guidance, then load only the instruction files and skills needed for the current task.
 
-**New in 2025:** One-command fresh Windows 11 setup:
+Load these only when relevant:
+
+- `.github/instructions/powershell.instructions.md` for `Scripts/`, PowerShell profile, or `.github/scripts/*.ps1`
+- `.github/instructions/windows-11-setup.instructions.md` for bootstrap, dotbot, `install.conf.yaml`, or unattended setup work
+- `.github/skills/win-patterns/SKILL.md` for cross-cutting repo workflow context
+- `.github/skills/bootstrap-deployment/SKILL.md` for bootstrap entry points and deployment changes
+
+Keep these guardrails in mind:
+
+- Reuse `Scripts/Common.ps1` before adding new helpers.
+- Keep tracked config under `user/.dotfiles/config/`.
+- Review `install.conf.yaml` and `Scripts/Setup-Dotfiles.ps1` together for bootstrap changes.
+- Preserve Windows and PowerShell 5.1+/7+ compatibility and environment-based paths.
+- Prefer reversible registry or system changes.
+
+Fresh Windows 11 bootstrap entry point:
+
 ```powershell
 iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
 ```
-
-Focus on these areas:
-
-- `Scripts/` for PowerShell automation; reuse `Scripts/Common.ps1`.
-- `user/.dotfiles/config/` for tracked configuration files.
-- `install.conf.yaml` (dotbot config) and `Scripts/Setup-Dotfiles.ps1` for bootstrap behavior.
-- `Scripts/Setup-Win11.ps1` and `.github/scripts/bootstrap.ps1` for fresh-install automation.
-- `.github/` files should stay concise and repository-specific.
-
-Guardrails:
-
-- Preserve Windows and PowerShell 5.1+/7+ compatibility.
-- Use environment-based paths instead of machine-specific paths.
-- Prefer reversible registry or system changes.
-- Keep new tracked config under `user/.dotfiles/config/`.
-- Validate changed PowerShell files with `Invoke-ScriptAnalyzer -Path <file>`.
-
-Load `.github/skills/win-patterns/SKILL.md` for deeper repo workflow context, and `.kilo/rules/bootstrap-deployment.md` for Windows 11 setup patterns.
