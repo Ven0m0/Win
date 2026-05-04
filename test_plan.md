@@ -1,8 +1,4 @@
-The PowerShell format CI check is still failing. Let's run it again to see what lines exceed the 120 character limit.
+The PSScriptAnalyzer check failed again on `Scripts/Common.ps1:1161` because it says:
+`Unexpected attribute 'CmdletBinding'.`
 
-From the previous output:
-## Formatting Issues Found
-[tests/Common.Tests.ps1]:178: Line exceeds 120 characters (127)
-[tests/Common.Tests.ps1]:214: Line exceeds 120 characters (130)
-
-We missed some lines, let's fix them in `tests/Common.Tests.ps1`.
+Let's inspect `Scripts/Common.ps1` around line 1161 to see what's wrong.
