@@ -209,7 +209,7 @@ README.md  (setup sections)
 - Broader rules → `AGENTS.md`
 - Narrow rules → `.kilo/rules/`
 - Reusable workflows → `.kilo/skills/`
-- After editing `.github/` guidance: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
+- After editing `.kilo/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
 
 ## Agent Delegation
 
