@@ -36,7 +36,13 @@ find .kilo/ -name '*.json' -exec python3 -m json.tool {} \;
 grep -r '^description:' .kilo/skills/
 
 # 5. Cross-reference paths mentioned in AGENTS.md
-grep -oE '[A-Za-z0-9_./-]+\.md' AGENTS.md | xargs -I {} test -f {} && echo "OK" || echo "MISSING: {}"
+grep -oE '[A-Za-z0-9_./-]+\.md' AGENTS.md | while IFS= read -r path; do
+  if [ -f "$path" ]; then
+    echo "OK: $path"
+  else
+    echo "MISSING: $path"
+  fi
+done
 ```
 
 ## Parameters
