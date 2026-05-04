@@ -1,2 +1,0 @@
-- remove dotbot-plugins/rust submodule
-- fix all codeql errors: https://github.com/Ven0m0/Win/security/code-scanning
