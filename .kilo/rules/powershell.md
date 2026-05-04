@@ -128,7 +128,7 @@ end {
 Write blocks in execution order: `param`, `begin`, `process`, `end`. Always name blocks explicitly — avoid the anonymous end-block shorthand and the `filter` keyword.
 
 ### No `return` in Advanced Functions
-Do not use `return` to emit objects — place the object on its own line inside `process {}`. The `return` keyword exits the current iteration, not the function, which is almost never what you want for pipeline output.
+Do not use `return` to emit objects — place the object on its own line inside `process {}`. The `return` keyword exits the current execution block (begin/process/end), which can lead to skipped logic if used prematurely.
 
 ```powershell
 # Wrong
