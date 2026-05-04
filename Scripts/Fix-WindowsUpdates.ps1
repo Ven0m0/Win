@@ -1,5 +1,5 @@
 ﻿#Requires -Version 5.1
-
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Repairs Windows Update components safely.
