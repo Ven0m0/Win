@@ -46,7 +46,7 @@ jobs:
   # ===========================================================================
   lint:
     name: PSScriptAnalyzer Lint
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
@@ -133,7 +133,7 @@ jobs:
   # ===========================================================================
   format:
     name: PowerShell Format Check
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -314,7 +314,7 @@ jobs:
           echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if (needs.lint.result == 'failure' || needs.format.result == 'failure' || needs.test.result == 'failure' || needs.deploy-dry-run.result == 'failure') {
+          if ('${{ needs.lint.result }}' -eq 'failure' -or '${{ needs.format.result }}' -eq 'failure' -or '${{ needs.test.result }}' -eq 'failure' -or '${{ needs.deploy-dry-run.result }}' -eq 'failure') {
             echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
             exit 1
           } else {
@@ -356,7 +356,7 @@ jobs:
   # ===========================================================================
   deploy-dry-run:
     name: Dotbot Deployment -WhatIf
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read

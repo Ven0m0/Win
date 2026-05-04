@@ -702,11 +702,11 @@ function Set-MultiPlaneOverlay {
 
 function Show-GamingDisplayStatus {
     [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Displays current gaming display settings
     #>
-    param()
     Clear-Host
     Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
     Write-Host ""
@@ -1159,11 +1159,11 @@ function Add-Log {
 
 function Get-Log {
     [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Returns the accumulated log entries
     #>
-    param()
     return $script:LogOutput
 }
 
