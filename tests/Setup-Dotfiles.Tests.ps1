@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -26,9 +26,11 @@ Describe "Setup-Dotfiles.ps1" {
             Get-Command Get-FirefoxDefaultProfilePath -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Get-CallOfDutyPlayersPath -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Get-StarWarsBattlefrontIIRootPath -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command Get-StarWarsBattlefrontIIActiveProfilePath -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Get-StarWarsBattlefrontIIActiveProfilePath -ErrorAction SilentlyContinue | `
+                Should -Not -BeNullOrEmpty
             Get-Command Set-CmdAliasAutoRun -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command Deploy-StarWarsBattlefrontIIConfigs -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Deploy-StarWarsBattlefrontIIConfigs -ErrorAction SilentlyContinue | `
+                Should -Not -BeNullOrEmpty
             Get-Command Invoke-ConfigManifestEntry -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-WingetTool -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }

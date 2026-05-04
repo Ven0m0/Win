@@ -500,7 +500,8 @@ function Start-Bootstrap {
       Mode               = 'file'
       Label              = 'Windows Terminal settings'
       ResolveDestination = {
-      Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue |
+      Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' `
+        -Directory -ErrorAction SilentlyContinue |
           Select-Object -First 1 | ForEach-Object { Join-Path $_.FullName 'LocalState\settings.json' }
       }
       GetSkipReason      = { 'Windows Terminal package directory not found' }
@@ -516,7 +517,8 @@ function Start-Bootstrap {
       Path               = 'firefox\user.js'
       Mode               = 'file'
       Label              = 'Firefox user.js'
-    ResolveDestination = { $profilePath = Get-FirefoxDefaultProfilePath; if ($profilePath) { Join-Path $profilePath 'user.js' } }
+    ResolveDestination = { $profilePath = Get-FirefoxDefaultProfilePath
+      if ($profilePath) { Join-Path $profilePath 'user.js' } }
       GetSkipReason      = { "Firefox profile not found under: $firefoxProfilesRoot" }
     },
     @{
@@ -528,7 +530,8 @@ function Start-Bootstrap {
       Path  = 'nvidia'
       Mode  = 'manual'
       Label = 'NVIDIA assets'
-    Note  = 'manual deployment required; the folder contains mixed scripts, profiles, docs, and registry assets for install.'
+    Note  = 'manual deployment required; the folder contains mixed scripts, ' +
+      'profiles, docs, and registry assets for install.'
     },
     @{
       Path   = 'cmd'
@@ -618,7 +621,8 @@ function Start-Bootstrap {
     @{ label = 'PowerShell profile';      ok = Test-Path $PROFILE },
     @{ label = 'Scripts directory';       ok = Test-Path $scriptsPath },
     @{ label = 'Scripts in PATH';         ok = ($updatedPath -like "*$scriptsPath*") },
-  @{ label = 'Execution policy (User)'; ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined') }
+  @{ label = 'Execution policy (User)'
+     ok = (Get-ExecutionPolicy -Scope CurrentUser) -notin @('Restricted', 'Undefined') }
   )
 
   foreach ($check in $checks) {
