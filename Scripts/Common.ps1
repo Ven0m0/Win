@@ -431,8 +431,8 @@ function Set-NvidiaSignatureOverride {
     $value = if ($Enabled) { "on" } else { "off" }
     $regData = if ($Enabled) { "01" } else { "00" }
 
-    Write-ColorOutput "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." `
-        -ForegroundColor Cyan
+    $msg = "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..."
+    Write-ColorOutput $msg -ForegroundColor Cyan
 
     # BCDEDIT settings
     $bcdNoIntegrityOutput = & bcdedit.exe /set nointegritychecks $value 2>&1
