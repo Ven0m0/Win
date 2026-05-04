@@ -54,7 +54,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
   - `.kilo/rules/` — narrow coding and system standards
-  - `.github/skills/` and `.kilo/skills/` — reusable workflow knowledge
+  - `.kilo/skills/` — reusable workflow knowledge
   - `.kilo/agents/` — agent identity and handoff rules
   - `.kilo/commands/` — documented command workflows
 
@@ -208,8 +208,8 @@ README.md  (setup sections)
 - Keep `.github/copilot-instructions.md` minimal (startup only)
 - Broader rules → `AGENTS.md`
 - Narrow rules → `.kilo/rules/`
-- Reusable workflows → `.github/skills/` and `.kilo/skills/`
-- After editing `.github/` guidance: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
+- Reusable workflows → `.kilo/skills/`
+- After editing `.kilo/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
 
 ## Agent Delegation
 
@@ -316,6 +316,6 @@ npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes
 
 - `README.md` — user-facing setup and usage
 - `.github/copilot-instructions.md` — short startup guide
-- `.github/skills/win-patterns/SKILL.md` — recurring repo workflows
+- `.kilo/skills/win-patterns/SKILL.md` — recurring repo workflows
 - `.kilo/rules/powershell.md` — PowerShell coding rules
 - `.kilo/rules/bootstrap-deployment.md` — bootstrap and deployment rules

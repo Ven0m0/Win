@@ -82,6 +82,4 @@ Prefer these over new utilities:
 
 - `README.md` — user-facing setup and usage
 - `.github/copilot-instructions.md` — short startup guide
-- `.github/skills/win-patterns/SKILL.md` — recurring repo workflows
-- `.github/instructions/powershell.instructions.md` — PowerShell-specific rules
-- `.github/instructions/windows-11-setup.instructions.md` — Win11 setup rules
+- `.kilo/skills/win-patterns/SKILL.md` — recurring repo workflows

@@ -62,9 +62,9 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 
 ## Notes
 
-- Actual `.kilo/commands/Setup-Win11.ps1` exists in `Scripts/` for local execution; this markdown file serves as Kilo command reference only.
-- See `AGENTS.md` and `.github/skills/win-patterns/SKILL.md` for repo conventions.
-- Validation: run `.\Validate-Changes.ps1` after modifying this script.
+- Actual `Scripts/Setup-Win11.ps1` exists for local execution; this markdown file serves as Kilo command reference only.
+- See `AGENTS.md` and `.kilo/skills/win-patterns/SKILL.md` for repo conventions.
+- Validation: run `pwsh -File Scripts\Setup-Win11.ps1` after modifying this workflow.
 
 ## Related
 

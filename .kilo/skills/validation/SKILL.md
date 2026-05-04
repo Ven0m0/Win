@@ -90,6 +90,5 @@ Do not invent or widen test scope solely to satisfy validation.
 | `Setup-Dotfiles.ps1` | ScriptAnalyzer, hash deployment | Config paths review |
 | `user/.dotfiles/config/*` | Format preservation | Deployment manifest |
 | `Scripts/auto/autounattend.xml` | XML validate, entity encoding | Script embed review |
-| `.github/instructions/*` | Path/command verification | `ctxlint` |
-| `.github/skills/*` | Skill references valid? | — |
+| `.kilo/*` | JSON/YAML syntax, path references | `ctxlint` |
 | `.github/workflows/*` | YAML syntax, tool availability | — |

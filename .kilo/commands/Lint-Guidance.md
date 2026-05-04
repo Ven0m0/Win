@@ -5,13 +5,13 @@
 
 ## Synopsis
 
-Run linting and structural validation on repository AI guidance: `AGENTS.md`, `.kilo/` skills, agents, rules, and `.github/instructions/`.
+Run linting and structural validation on repository AI guidance: `AGENTS.md`, `.kilo/` skills, agents, and rules.
 
 ## Description
 
 This workflow command validates AI guidance files for syntax errors, broken symlinks, invalid frontmatter, and structural inconsistencies:
 
-1. **ctxlint** — Run `@yawlabs/ctxlint` on `.github/instructions/`, `.github/skills/`, `.github/workflows/`, and `.kilo/` configuration
+1. **ctxlint** — Run `@yawlabs/ctxlint` on `.kilo/` configuration
 2. **Symlink check** — Verify `CLAUDE.md` remains a valid symlink to `AGENTS.md`
 3. **JSON/YAML validation** — Parse `.kilo/skills/`, `.kilo/agents/`, `.kilo/rules/` and workflow files for syntax errors
 4. **Skill frontmatter** — Verify each skill file has valid metadata and referenced paths exist
@@ -21,7 +21,7 @@ This workflow command validates AI guidance files for syntax errors, broken syml
 
 ```bash
 # 1. Run ctxlint on guidance files
-npx ctxlint --depth 3 --mcp --strict --fix --yes .github/instructions/ .github/skills/ .kilo/
+npx ctxlint --depth 3 --mcp --strict --fix --yes .kilo/
 
 # 2. Check symlink status
 ls -la CLAUDE.md
@@ -33,11 +33,16 @@ cat .github/workflows/powershell.yml | python3 -c "import yaml,sys; yaml.safe_lo
 find .kilo/ -name '*.json' -exec python3 -m json.tool {} \;
 
 # 4. Verify skill frontmatter and references
-grep -r '^applyTo:' .github/instructions/
-grep -r '^description:' .github/skills/
+grep -r '^description:' .kilo/skills/
 
 # 5. Cross-reference paths mentioned in AGENTS.md
-grep -oE '[A-Za-z0-9_./-]+\.md' AGENTS.md | xargs -I {} test -f {} && echo "OK" || echo "MISSING: {}"
+grep -oE '[A-Za-z0-9_./-]+\.md' AGENTS.md | while IFS= read -r path; do
+  if [ -f "$path" ]; then
+    echo "OK: $path"
+  else
+    echo "MISSING: $path"
+  fi
+done
 ```
 
 ## Parameters

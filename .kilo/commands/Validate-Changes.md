@@ -13,7 +13,7 @@ This workflow command aggregates all repository validation steps:
 
 1. **PowerShell linting** — `Invoke-ScriptAnalyzer` on changed `.ps1`/`.psm1`/`.psd1` files using `PSScriptAnalyzerSettings.psd1`
 2. **autounattend.xml** — validates XML syntax and checks for `ExtractScript` blocks
-3. **Guidance linting** — runs `@yawlabs/ctxlint` on `.github/instructions/`, `.github/skills/`, `.github/workflows/`
+3. **Guidance linting** — runs `@yawlabs/ctxlint` on `.kilo/`
 
 Use before committing to catch issues early.
 

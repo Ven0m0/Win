@@ -5,10 +5,8 @@ Start with `AGENTS.md` for repo-wide guidance, then load only the instruction fi
 
 Load these only when relevant:
 
-- `.github/instructions/powershell.instructions.md` for `Scripts/`, PowerShell profile, or `.github/scripts/*.ps1`
-- `.github/instructions/windows-11-setup.instructions.md` for bootstrap, dotbot, `install.conf.yaml`, or unattended setup work
-- `.github/skills/win-patterns/SKILL.md` for cross-cutting repo workflow context
-- `.github/skills/bootstrap-deployment/SKILL.md` for bootstrap entry points and deployment changes
+- `.kilo/skills/win-patterns/SKILL.md` for cross-cutting repo workflow context
+- `.kilo/skills/bootstrap-deployment/SKILL.md` for bootstrap entry points and deployment changes
 
 Keep these guardrails in mind:
 
