@@ -37,6 +37,7 @@ end_of_line = lf
 # Cmd
 [**.{bat,cmd}]
 indent_style = space
+charset = utf-8-bom
 indent_size = 2
 tab_width = 2
 end_of_line = crlf
