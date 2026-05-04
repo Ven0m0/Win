@@ -1,4 +1,4 @@
-﻿## PowerShell Profile
+## PowerShell Profile
 # Location: $HOME\.dotfiles\config\powershell\profile.ps1
 # Managed by dotbot
 
@@ -329,8 +329,8 @@ function winutil {
 # System Utilities
 function admin {
     if ($args.Count -gt 0) {
-        $argList = $args -join ' '
-        Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -NoExit -Command $argList"
+        $argList = @('pwsh.exe', '-NoExit', '-Command') + $args
+        Start-Process wt -Verb runAs -ArgumentList $argList
     } else {
         Start-Process wt -Verb runAs
     }

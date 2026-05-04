@@ -19,11 +19,13 @@ function Find-SteamPath {
 
     $steamPath = $null
     try {
-        $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop | Select-Object -ExpandProperty SteamPath
+        $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop `
+    | Select-Object -ExpandProperty SteamPath
     } catch { Write-Verbose "ArcRaidersCommon: HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
-            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop | Select-Object -ExpandProperty InstallPath
+            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop `
+    | Select-Object -ExpandProperty InstallPath
         } catch { Write-Verbose "ArcRaidersCommon: HKLM Steam lookup failed: $_" }
     }
     if ($steamPath) {

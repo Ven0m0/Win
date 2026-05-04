@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 # gpu-display-manager.ps1 - Unified GPU and Display Settings Manager
 # Combines NVIDIA GPU settings, EDID overrides, gaming display optimizations, and MSI mode
@@ -101,7 +101,8 @@ function Show-NvidiaMenu {
       6 {
         $installerPath = "$PSScriptRoot\..\user\.dotfiles\config\nvidia\xtremeg-installer.ps1"
         if (Test-Path $installerPath) {
-          if ($WhatIfPreference) { Write-Host "WhatIf: Would launch XtremeG Installer as administrator" -ForegroundColor Yellow }
+          if ($WhatIfPreference) { Write-Host "WhatIf: Would launch XtremeG Installer as administrator" `
+    -ForegroundColor Yellow }
           else {
             $args = "-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $installerPath
             Start-Process powershell.exe -ArgumentList $args -Verb RunAs

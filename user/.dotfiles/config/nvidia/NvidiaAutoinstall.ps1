@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿#nvidia driver auto installation script by zoic
+#nvidia driver auto installation script by zoic
 
 # Import common functions if available
 if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
@@ -815,13 +815,46 @@ if (!(Check-Internet)) {
     }
 
     # Pre-filter Sound Devices and map them to their corresponding PnP device
+    $pnpByDeviceID = @{}
+    $pnpByName = @{}
+    foreach ($pnp in $pnpDevices) {
+        if (-not [string]::IsNullOrWhiteSpace($pnp.PNPDeviceID)) {
+            # Only store the first match to mimic the 'break' in loop logic
+            if (-not $pnpByDeviceID.ContainsKey($pnp.PNPDeviceID)) {
+                $pnpByDeviceID[$pnp.PNPDeviceID] = $pnp
+            }
+        }
+        if (-not [string]::IsNullOrWhiteSpace($pnp.Name)) {
+            if (-not $pnpByName.ContainsKey($pnp.Name)) {
+                $pnpByName[$pnp.Name] = $pnp
+            }
+        }
+    }
+
+    $vcByDeviceID = @{}
+    foreach ($vc in $videoControllers) {
+        if (-not [string]::IsNullOrWhiteSpace($vc.PNPDeviceID)) {
+            if (-not $vcByDeviceID.ContainsKey($vc.PNPDeviceID)) {
+                $vcByDeviceID[$vc.PNPDeviceID] = $vc
+            }
+        }
+    }
+
     $soundDeviceToPnpMap = @{}
     foreach ($soundDevice in $soundDevices) {
         $soundPnp = $null
-        foreach ($pnp in $pnpDevices) {
-            if ($pnp.PNPDeviceID -like "*$($soundDevice.DeviceID)*") {
-                $soundPnp = $pnp
-                break
+
+        # Remove any _X suffix from device ID to match the generic PnP ID if present, or just use exact.
+        $searchId = $soundDevice.DeviceID -replace '_[0-9]+$', ''
+
+        if ($pnpByDeviceID.ContainsKey($searchId)) {
+            $soundPnp = $pnpByDeviceID[$searchId]
+        } else {
+            foreach ($pnp in $pnpDevices) {
+                if ($pnp.PNPDeviceID -like "*$($soundDevice.DeviceID)*") {
+                    $soundPnp = $pnp
+                    break
+                }
             }
         }
         $soundDeviceToPnpMap[$soundDevice.DeviceID] = $soundPnp
@@ -845,13 +878,24 @@ if (!(Check-Internet)) {
 
         # Try to find a matching PnP device for the monitor
         $monitorPnp = $null
-        foreach ($pnp in $pnpDevices) {
-            if ($pnp.PNPDeviceID -like "*$monitorInstance*" -or
-                $pnp.Name -like "*$manufacturerName*") {
-                $monitorPnp = $pnp
-                break
+
+        # WmiMonitorID.InstanceName typically has a _0 suffix not present in Win32_PnPEntity.PNPDeviceID
+        $monitorSearchId = $monitorInstance -replace '_[0-9]+$', ''
+
+        if ($pnpByDeviceID.ContainsKey($monitorSearchId)) {
+            $monitorPnp = $pnpByDeviceID[$monitorSearchId]
+        } elseif ($pnpByName.ContainsKey($manufacturerName)) {
+            $monitorPnp = $pnpByName[$manufacturerName]
+        } else {
+            foreach ($pnp in $pnpDevices) {
+                if ($pnp.PNPDeviceID -like "*$monitorInstance*" -or
+                    $pnp.Name -like "*$manufacturerName*") {
+                    $monitorPnp = $pnp
+                    break
+                }
             }
         }
+
         if (-not $monitorPnp) {
             foreach ($pnp in $displayPnpDevices) {
                 $monitorPnp = $pnp
@@ -861,10 +905,15 @@ if (!(Check-Internet)) {
 
         # Find the video controller associated with the monitor
         $relatedVideoController = $null
-        foreach ($vc in $videoControllers) {
-            if ($vc.PNPDeviceID -like "*$monitorInstance*") {
-                $relatedVideoController = $vc
-                break
+
+        if ($vcByDeviceID.ContainsKey($monitorSearchId)) {
+            $relatedVideoController = $vcByDeviceID[$monitorSearchId]
+        } else {
+            foreach ($vc in $videoControllers) {
+                if ($vc.PNPDeviceID -like "*$monitorInstance*") {
+                    $relatedVideoController = $vc
+                    break
+                }
             }
         }
         if (-not $relatedVideoController -and $nvidiaVideoControllers.Count -gt 0) {

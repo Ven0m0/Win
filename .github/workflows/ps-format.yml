@@ -25,7 +25,7 @@ permissions:
 jobs:
   format-check:
     name: Check PowerShell Formatting
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 10
     steps:
       - name: Checkout repository
@@ -49,7 +49,8 @@ jobs:
             Write-Host "No specific changed files detected. Skipping legacy full-repo check."
             $files = @()
           }
-          "files=$($files -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8BOM
+          "files=$($files -join ',')" | Out-File -FilePath $env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: trueGITHUB_OUTPUT -Encoding utf8BOM
           Write-Host "Changed files: $($files -join ', ')"
 
       - name: Run formatting check
@@ -126,7 +127,7 @@ jobs:
             Write-Host ""
             Write-Host "Total issues: $($issues.Count)"
             exit 1
-          } else {
+          else
             Write-Host "## No formatting issues found" -ForegroundColor Green
             exit 0
           }

@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
@@ -82,7 +82,8 @@ if (Test-Path $arcRaidersSource) {
 
     $settingsFiles = @('GameUserSettings.ini', 'Engine.ini')
     foreach ($settingsFile in $settingsFiles) {
-        $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile -Recurse -ErrorAction SilentlyCo
+        $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile `
+    -Recurse -ErrorAction SilentlyCo
         if ($sourceFile) {
             Copy-Item -Path $sourceFile.FullName -Destination $arcRaidersDest -Force
             Write-BackupStatus "  Copied: $settingsFile" -Color Gray

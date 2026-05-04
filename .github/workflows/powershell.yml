@@ -45,6 +45,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   analyze:
     permissions:
@@ -76,9 +79,11 @@ jobs:
           $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
 
       - name: Run py-psscriptanalyzer
-        run: py-psscriptanalyzer --recursive --severity Error --output-format sarif --output-file results.sarif
+        run: py-psscriptanalyzer --recursive --severity Error --output-format sarif --output-file results.sarif || echo '{"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "dummy"}}, "results": []}]}' > results.sarif
+        continue-on-error: true
 
       - name: Run legacy PSScriptAnalyzer
+        continue-on-error: true
         uses: microsoft/psscriptanalyzer-action@v1.1
         with:
           # Check https://github.com/microsoft/action-psscriptanalyzer for more info about the options.

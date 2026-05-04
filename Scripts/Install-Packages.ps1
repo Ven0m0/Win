@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -139,7 +139,8 @@ function Start-InstallPackages {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
-        try { Start-Process $shell -ArgumentList $argList -Verb RunAs } catch { Write-Verbose "Elevation relaunch failed: $_" }
+        try { Start-Process $shell `
+    -ArgumentList $argList -Verb RunAs } catch { Write-Verbose "Elevation relaunch failed: $_" }
         return
     }
 
