@@ -2,10 +2,12 @@
 ## <meta>
 Update: 2026-05-04 | Scope: Address TODO.md items
 Prev TODOs: 2 items found from TODO.md
+Completed: TODO1 (submodule removal)
+Pending: TODO2 (CodeQL fixes)
 </meta>
 
 ## <exec_order>
-1. Submodule removal → TODO1
+1. Submodule removal → TODO1 (DONE)
 2. CodeQL fixes → TODO2
 </exec_order>
 
@@ -19,6 +21,7 @@ Prev TODOs: 2 items found from TODO.md
 <do>Remove the submodule using git rm and commit the change</do>
 <files>dotbot-plugins/rust</files>
 <effort>XS</effort>
+<status>completed</status>
 </task>
 
 <task id="TODO2">
@@ -27,6 +30,7 @@ Prev TODOs: 2 items found from TODO.md
 <do>Review and fix all codeql errors shown in GitHub security tab for code scanning alerts</do>
 <files>TBD based on codeql scan results</files>
 <effort>M</effort>
+<status>pending</status>
 </task>
 
 </tasks>
@@ -40,6 +44,7 @@ Prev TODOs: 2 items found from TODO.md
 
 ## <legend>
 Effort: XS = <1h, S = 1-4h, M = 4-16h, L = 16-40h
+Status: completed, pending, in_progress, cancelled
 </legend>
 
 </plan>

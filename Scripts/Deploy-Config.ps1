@@ -1,4 +1,4 @@
-﻿## Deploy-Config.ps1
+## Deploy-Config.ps1
 # NOTE: Setup-Dotfiles.ps1 is the canonical hash-aware config deployment script.
 # This file provides a lightweight alternative for deploying only tracked configs
 # without the full bootstrap toolchain (winget, WSL, etc.).
