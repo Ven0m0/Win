@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 #Requires -RunAsAdministrator
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
@@ -15,7 +15,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 # Configure error handling
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 # Create the form
 $form = New-Object System.Windows.Forms.Form
 $form.Text = 'Ultimate Cleanup'

@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     ARC Raiders — PRO Utility (PowerShell port of ARCRaidersUtility.exe v5.3)
@@ -23,7 +23,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths

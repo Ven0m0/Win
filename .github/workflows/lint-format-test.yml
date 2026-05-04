@@ -20,6 +20,7 @@ on:
       - "**.psm1"
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
+      - "install.conf.yaml"
       - ".github/workflows/lint-format-test.yml"
       - ".github/workflows/lint.yml"
   pull_request:
@@ -298,7 +299,7 @@ jobs:
   summary:
     name: CI Summary
     runs-on: ubuntu-latest
-    needs: [lint, format, test]
+    needs: [lint, format, test, deploy-dry-run]
     if: always()
     steps:
       - name: Summary
@@ -310,9 +311,10 @@ jobs:
           echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if (needs.lint.result == 'failure' || needs.format.result == 'failure' || needs.test.result == 'failure') {
+          if (needs.lint.result == 'failure' || needs.format.result == 'failure' || needs.test.result == 'failure' || needs.deploy-dry-run.result == 'failure') {
             echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
             exit 1
           } else {
