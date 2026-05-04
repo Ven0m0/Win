@@ -63,7 +63,7 @@ jobs:
         run: |
             Register-PSRepository -Name 'OttoMatt' -publishlocation='https://www.myget.org/F/ottomatt/api/v2/package' -sourcelocation='https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'trusted'
       - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.2.1
+        uses: potatoqualitee/psmodulecache@v6
         with:
           modules-to-cache: PSScriptAnalyzer,OptimizationRules,powershell-yaml
 
@@ -78,12 +78,15 @@ jobs:
       - name: Run PSScriptAnalyzer
         shell: pwsh
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           PSANALYZER_SETTINGS: ./PSScriptAnalyzerSettings.psd1
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Continue'
 
-          $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS } else { $null }
+          $settingsPath = if (Test-Path $env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: truePSANALYZER_SETTINGS) { $env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: truePSANALYZER_SETTINGS } else { $null }
           $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
 
           $issues = @()
@@ -254,6 +257,7 @@ jobs:
       - name: Run Pester tests
         shell: pwsh
         env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           DOTFILES_ROOT: ${{ github.workspace }}
         run: |
           Set-StrictMode -Version Latest

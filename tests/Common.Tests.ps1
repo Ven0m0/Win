@@ -114,7 +114,8 @@ Describe "VDF Parsing and Converting" {
         $convertedStr = $converted -join ''
         $normalizedConverted = $convertedStr -replace "`r`n", "`n"
 
-        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t" +
+            "`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
 
         $normalizedConverted | Should -Be $expected
     }
@@ -174,7 +175,9 @@ Describe "Show-RestartRequired" {
 
         Show-RestartRequired
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow"
+        }
         Should -Invoke -CommandName Wait-ForKeyPress -Times 1
     }
 
@@ -185,7 +188,9 @@ Describe "Show-RestartRequired" {
         $msg = "Custom Restart Message"
         Show-RestartRequired -CustomMessage $msg
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq $msg -and $ForegroundColor -eq "Yellow"
+        }
         Should -Invoke -CommandName Wait-ForKeyPress -Times 1
     }
 }
@@ -199,8 +204,12 @@ Describe "Invoke-BuildOperation" {
         $result = Invoke-BuildOperation -Name "TestOp" -Action $action
 
         $result | Should -Be $true
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "  [RUNNING] TestOp" -and $ForegroundColor -eq 'Cyan' }
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "  [OK] TestOp" -and $ForegroundColor -eq 'Green' }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "  [RUNNING] TestOp" -and $ForegroundColor -eq 'Cyan'
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "  [OK] TestOp" -and $ForegroundColor -eq 'Green'
+        }
     }
 
     It "Should return true and output SKIP when action succeeds with SKIP status" {
@@ -211,8 +220,12 @@ Describe "Invoke-BuildOperation" {
         $result = Invoke-BuildOperation -Name "TestOpSkip" -Action $action -SuccessStatus 'SKIP'
 
         $result | Should -Be $true
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "  [RUNNING] TestOpSkip" -and $ForegroundColor -eq 'Cyan' }
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "  [SKIP] TestOpSkip" -and $ForegroundColor -eq 'Yellow' }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "  [RUNNING] TestOpSkip" -and $ForegroundColor -eq 'Cyan'
+        }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "  [SKIP] TestOpSkip" -and $ForegroundColor -eq 'Yellow'
+        }
     }
 
     It "Should return false and output FAIL when action throws" {
@@ -223,7 +236,9 @@ Describe "Invoke-BuildOperation" {
         $result = Invoke-BuildOperation -Name "TestOpFail" -Action $action
 
         $result | Should -Be $false
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "  [RUNNING] TestOpFail" -and $ForegroundColor -eq 'Cyan' }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "  [RUNNING] TestOpFail" -and $ForegroundColor -eq 'Cyan'
+        }
         Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -match '\[FAIL\] TestOpFail' }
     }
 }
