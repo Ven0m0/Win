@@ -114,7 +114,11 @@ Describe "VDF Parsing and Converting" {
         $convertedStr = $converted -join ''
         $normalizedConverted = $convertedStr -replace "`r`n", "`n"
 
-        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{
+		`"228989`"		`"228980`"
+	}
+}
+"
 
         $normalizedConverted | Should -Be $expected
     }
@@ -132,7 +136,7 @@ Describe "ConvertFrom-VDF edge cases" {
 
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.appid | Should -Be '"730"'
@@ -159,7 +163,7 @@ Describe "ConvertFrom-VDF values with spaces" {
             "path" "C:\Program Files (x86)\Steam"
 
         }
-        "@
+"@
         $lines = $vdf -split "`n"
         $result = ConvertFrom-VDF -Content $lines
         $result.AppState.name | Should -Be '"Counter-Strike Global Offensive"'
@@ -168,24 +172,24 @@ Describe "ConvertFrom-VDF values with spaces" {
 }
 
 Describe "Show-RestartRequired" {
-    It "Should call Write-Host and Wait-ForKeyPress" {
-        Mock Write-Host
+    It "Should call Write-Console and Wait-ForKeyPress" {
+        Mock Write-Console
         Mock Wait-ForKeyPress
 
         Show-RestartRequired
 
-        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $F
+        Should -Invoke Write-Console -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
         Should -Invoke Wait-ForKeyPress -Times 1
     }
 
-    It "Should call Write-Host with custom message" {
-        Mock Write-Host
+    It "Should call Write-Console with custom message" {
+        Mock Write-Console
         Mock Wait-ForKeyPress
 
         $msg = "Custom Restart Message"
         Show-RestartRequired -CustomMessage $msg
 
-        Should -Invoke Write-Host -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke Write-Console -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
         Should -Invoke Wait-ForKeyPress -Times 1
     }
 }
