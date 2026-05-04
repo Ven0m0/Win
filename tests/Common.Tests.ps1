@@ -114,7 +114,10 @@ Describe "VDF Parsing and Converting" {
         $convertedStr = $converted -join ''
         $normalizedConverted = $convertedStr -replace "`r`n", "`n"
 
-        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
+        $expected = "`"AppState`"`n{`n`t`"appid`"`t`t`"730`"`n`t`"name`"`t`t`"Counter-Strike 2`"`n" +
+            "`t`"SharedDepots`"`n`t{`n`t`t`"228989`"`t`t`"228980`"`n`t}`n}`n"
+             `
+
 
         $normalizedConverted | Should -Be $expected
     }
@@ -174,7 +177,9 @@ Describe "Show-RestartRequired" {
 
         Show-RestartRequired
 
-        Should -Invoke Write-ColorOutput -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke Write-ColorOutput -Times 1 -ParameterFilter {
+            $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow"
+        }
         Should -Invoke Wait-ForKeyPress -Times 1
     }
 
@@ -185,7 +190,9 @@ Describe "Show-RestartRequired" {
         $msg = "Custom Restart Message"
         Show-RestartRequired -CustomMessage $msg
 
-        Should -Invoke Write-ColorOutput -Times 1 -ParameterFilter { $Object -eq $msg -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke Write-ColorOutput -Times 1 -ParameterFilter {
+            $Object -eq $msg -and $ForegroundColor -eq "Yellow"
+        }
         Should -Invoke Wait-ForKeyPress -Times 1
     }
 }

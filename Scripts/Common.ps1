@@ -433,7 +433,8 @@ function Set-NvidiaSignatureOverride {
     $value = if ($Enabled) { "on" } else { "off" }
     $regData = if ($Enabled) { "01" } else { "00" }
 
-    Write-ColorOutput "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." -ForegroundColor Cyan
+    $status = if ($Enabled) { 'Enabling' } else { 'Disabling' }
+    Write-ColorOutput "$status Driver Signature Override..." -ForegroundColor Cyan
 
     # BCDEDIT settings
     $bcdNoIntegrityOutput = & bcdedit.exe /set nointegritychecks $value 2>&1
@@ -944,8 +945,8 @@ function Remove-AppxPackageSafe {
             try {
                 Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
             } catch {
-                Write-ColorOutput "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
-                    -ForegroundColor Red
+                $msg = "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)"
+                Write-ColorOutput $msg -ForegroundColor Red
             }
         }
     }
