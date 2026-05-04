@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -702,6 +702,7 @@ function Set-MultiPlaneOverlay {
 
 function Show-GamingDisplayStatus {
     [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Displays current gaming display settings
@@ -1158,6 +1159,7 @@ function Add-Log {
 
 function Get-Log {
     [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Returns the accumulated log entries
