@@ -30,6 +30,7 @@ project_name: "agent_cd859fc6-ee3f-4a87-af10-5de83e966fac"
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 languages:
 - powershell
+- python_ty
 - python
 - yaml
 - json
