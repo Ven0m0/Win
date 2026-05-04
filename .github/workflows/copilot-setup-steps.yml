@@ -6,8 +6,8 @@ on:
     paths:
       - '.github/workflows/copilot-setup-steps.yml'
       - '.github/copilot-instructions.md'
-      - '.github/instructions/**'
-      - '.github/skills/**'
+      - '.kilo/rules/**'
+      - '.kilo/skills/**'
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
@@ -16,8 +16,8 @@ on:
     paths:
       - '.github/workflows/copilot-setup-steps.yml'
       - '.github/copilot-instructions.md'
-      - '.github/instructions/**'
-      - '.github/skills/**'
+      - '.kilo/rules/**'
+      - '.kilo/skills/**'
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
@@ -43,12 +43,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.14'
+          python-version: '3.12'
 
       - name: Set up PowerShell
-        uses: ./.github/actions/setup-pwsh
-        with:
-          modules: 'PSScriptAnalyzer Pester'
+        shell: bash
+        run: |
+          if ! command -v pwsh &> /dev/null; then
+            sudo apt-get update -y
+            sudo apt-get install -y wget apt-transport-https software-properties-common
+            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+            sudo dpkg -i packages-microsoft-prod.deb
+            sudo apt-get update -y
+            sudo apt-get install -y powershell
+          fi
+          pwsh -Command "Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck; Install-Module Pester -Scope CurrentUser -Force -SkipPublisherCheck"
 
       - name: Install dotbot
         shell: bash
@@ -63,10 +71,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $requiredPaths = @(
             '.github/copilot-instructions.md',
-            '.github/instructions/powershell.instructions.md',
-            '.github/instructions/windows-11-setup.instructions.md',
-            '.github/skills/win-patterns/SKILL.md',
-            '.github/skills/bootstrap-deployment/SKILL.md',
+            '.kilo/rules/powershell.md',
+            '.kilo/rules/windows-os.md',
+            '.kilo/skills/win-patterns/SKILL.md',
+            '.kilo/skills/bootstrap-deployment/SKILL.md',
             'install.conf.yaml',
             'Scripts/Setup-Dotfiles.ps1',
             '.github/scripts/bootstrap.ps1'

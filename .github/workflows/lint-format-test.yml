@@ -83,7 +83,7 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Continue'
 
-          $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS else $null }
+          $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS } else { $null }
           $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
 
           $issues = @()
@@ -114,7 +114,7 @@ jobs:
             Write-Host ""
             $issues | Sort-Object Severity, File, Line | Format-Table -AutoSize -Wrap
             exit 1
-          else
+          } else {
             Write-Host "## No lint issues found" -ForegroundColor Green
             exit 0
           }
@@ -171,7 +171,10 @@ jobs:
               if (-not $hasBom) {
                 $issues += "[$($file.Name)]: Missing UTF-8 BOM"
               }
-            else
+            } else {
+              $issues += "[$($file.Name)]: Missing UTF-8 BOM"
+            }
+            } else {
               $issues += "[$($file.Name)]: Missing UTF-8 BOM"
             }
 
@@ -218,7 +221,7 @@ jobs:
             Write-Host "## Formatting Issues Found ($($issues.Count))" -ForegroundColor Red
             $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
             exit 1
-          else
+          } else {
             Write-Host "## No formatting issues found" -ForegroundColor Green
             exit 0
           }
@@ -280,7 +283,7 @@ jobs:
           if ($result.FailedCount -gt 0) {
             Write-Host "Tests failed: $($result.FailedCount) of $($result.TotalCount)" -ForegroundColor Red
             exit 1
-          else
+          } else {
             Write-Host "All tests passed: $($result.PassedCount)" -ForegroundColor Green
             exit 0
           }
@@ -320,16 +323,7 @@ jobs:
           else
             echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
             exit 0
-          }
-
-      - name: Check PSD1 validity
-        run: |
-          Get-ChildItem -Path Scripts -File -Filter *.psd1 -Recurse | ForEach-Object -Process {
-              $File = $_.FullName
-              try
-              {
-                  $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content -Path $File -Raw), [ref]$null)
-              }
+          fi
               catch
               {
                   Write-Verbose -Message "PSD1 parse error: $File - $_" -Verbose

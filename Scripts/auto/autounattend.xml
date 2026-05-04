@@ -1095,7 +1095,7 @@ fsutil behavior set encryptpagingfile 0
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
 
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
 Start-Transcript -Path 'C:\Windows\Setup\Scripts\install.log' -Append
 
@@ -1222,6 +1222,20 @@ shutdown /r /t 0
 		</File>
 <File path="C:\Windows\Setup\Scripts\stage2.ps1">
 #Requires -Version 5.1
+#Requires -RunAsAdministrator
+
+function Wait-ForWinget {
+    param(
+        [string]$ExePath = "$env:LOCALAPPDATA\Microsoft\WindowsApps\winget.exe",
+        [int]$TimeoutMinutes = 5
+    )
+    $deadline = [datetime]::Now.AddMinutes($TimeoutMinutes)
+    while (-not (Test-Path $ExePath)) {
+        if ([datetime]::Now -gt $deadline) { throw "winget not found within $TimeoutMinutes m" }
+        Start-Sleep -Seconds 1
+    }
+    return $ExePath
+}
 
 Start-Transcript -Path 'C:\Windows\Setup\Scripts\stage2.log' -Append
 

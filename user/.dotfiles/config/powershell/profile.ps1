@@ -15,11 +15,8 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 if (Get-Module -ListAvailable -Name Terminal-Icons) {
     Import-Module -Name Terminal-Icons
 }
-# Terminal icons
-if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    Import-Module -Name Terminal-Icons
-}
-(&mise activate pwsh) | Out-String | Invoke-Expression
+$miseInit = (& mise activate pwsh) | Out-String
+if ($miseInit) { . ([scriptblock]::Create($miseInit)) }
 
 #region UI Configuration
 # Set window title
@@ -43,10 +40,10 @@ $localBin = Join-Path $HOME ".local\bin"
 if ((Test-Path $localBin) -and ($env:Path -notlike "*$localBin*")) {
     $env:Path = "$env:Path;$localBin"
 }
-{
-    $EDITOR = if (Test-CommandExists code) { 'code' }
-          elseif (Test-CommandExists codium) { 'codium' }
-          elseif (Test-CommandExists notepad++) { 'notepad++' }
+if (-not $EDITOR) {
+    $EDITOR = if (Get-Command code -ErrorAction SilentlyContinue) { 'code' }
+          elseif (Get-Command codium -ErrorAction SilentlyContinue) { 'codium' }
+          elseif (Get-Command notepad++ -ErrorAction SilentlyContinue) { 'notepad++' }
           else { 'notepad' }
     Set-Alias -Name vim -Value $EDITOR
 }
