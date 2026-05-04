@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 # Windows Setup Script - Comprehensive automated installation and configuration
 # Combines software installation, system optimization, bloatware removal, and privacy tweaks
