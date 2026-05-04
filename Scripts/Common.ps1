@@ -1,9 +1,40 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
-# Suppress Write-Host warnings for UI helper functions
-#pragma warning disable PSAvoidUsingWriteHost
+# Suppress Write-ColorOutput warnings for UI helper functions
+
+#region Internal Helpers
+function Write-ColorOutput {
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0, ValueFromPipeline=$true)]
+        [System.Object]$Object,
+        [System.ConsoleColor]$ForegroundColor,
+        [System.ConsoleColor]$BackgroundColor,
+        [switch]$NoNewline
+    )
+    $oldFg = $host.UI.RawUI.ForegroundColor
+    $oldBg = $host.UI.RawUI.BackgroundColor
+    try {
+        if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+            $host.UI.RawUI.ForegroundColor = $ForegroundColor
+        }
+        if ($PSBoundParameters.ContainsKey('BackgroundColor')) {
+            $host.UI.RawUI.BackgroundColor = $BackgroundColor
+        }
+        $text = if ($null -ne $Object) { $Object.ToString() } else { "" }
+        if ($NoNewline) {
+            $host.UI.Write($text)
+        } else {
+            $host.UI.WriteLine($text)
+        }
+    } finally {
+        $host.UI.RawUI.ForegroundColor = $oldFg
+        $host.UI.RawUI.BackgroundColor = $oldBg
+    }
+}
+#endregion
 
 #region Admin Elevation
 function Request-AdminElevation {
@@ -61,14 +92,14 @@ function Show-Menu {
 
     Clear-Host
     if ($Title) {
-        Write-Host $Title -ForegroundColor Cyan
-        Write-Host ""
+        Write-ColorOutput $Title -ForegroundColor Cyan
+        Write-ColorOutput ""
     }
 
     for ($i = 0; $i -lt $Options.Count; $i++) {
-        Write-Host "$($i + 1). $($Options[$i])"
+        Write-ColorOutput "$($i + 1). $($Options[$i])"
     }
-    Write-Host ""
+    Write-ColorOutput ""
 }
 
 function Get-MenuChoice {
@@ -92,7 +123,7 @@ function Get-MenuChoice {
             $num = [int]$choice
             if ($num -ge $Min -and $num -le $Max) { return $num }
         }
-        Write-Host "Invalid input. Please select a valid option ($Min-$Max)." -ForegroundColor Red
+        Write-ColorOutput "Invalid input. Please select a valid option ($Min-$Max)." -ForegroundColor Red
     }
 }
 
@@ -112,7 +143,7 @@ function Wait-ForKeyPress {
     )
 
     if ($Message) {
-        Write-Host $Message -NoNewline
+        Write-ColorOutput $Message -NoNewline
     }
 
     if ($UseReadHost) {
@@ -134,7 +165,7 @@ function Show-RestartRequired {
         [string]$CustomMessage = "Restart required to apply changes..."
     )
 
-    Write-Host $CustomMessage -ForegroundColor Yellow
+    Write-ColorOutput $CustomMessage -ForegroundColor Yellow
     Wait-ForKeyPress
 }
 #endregion
@@ -327,30 +358,30 @@ function Show-NvidiaGpuSetting {
 
     $settings = Get-NvidiaGpuSetting -Setting $Setting -GpuPaths $GpuPaths
 
-    Write-Host ""
-    Write-Host $Title -ForegroundColor Yellow
-    Write-Host ""
+    Write-ColorOutput ""
+    Write-ColorOutput $Title -ForegroundColor Yellow
+    Write-ColorOutput ""
 
     foreach ($item in $settings) {
-        Write-Host "GPU: $($item.GpuName)" -ForegroundColor Cyan
+        Write-ColorOutput "GPU: $($item.GpuName)" -ForegroundColor Cyan
 
         if ($Setting -eq "All" -or $Setting -eq "P0State") {
             if ($null -ne $item.P0State) {
-                Write-Host "  P0 State (DisableDynamicPstate): $($item.P0State)" -ForegroundColor Green
+                Write-ColorOutput "  P0 State (DisableDynamicPstate): $($item.P0State)" -ForegroundColor Green
             } else {
-                Write-Host "  P0 State: Not configured" -ForegroundColor Gray
+                Write-ColorOutput "  P0 State: Not configured" -ForegroundColor Gray
             }
         }
 
         if ($Setting -eq "All" -or $Setting -eq "HDCP") {
             if ($null -ne $item.HDCP) {
-                Write-Host "  HDCP (RMHdcpKeyglobZero): $($item.HDCP)" -ForegroundColor Green
+                Write-ColorOutput "  HDCP (RMHdcpKeyglobZero): $($item.HDCP)" -ForegroundColor Green
             } else {
-                Write-Host "  HDCP: Not configured" -ForegroundColor Gray
+                Write-ColorOutput "  HDCP: Not configured" -ForegroundColor Gray
             }
         }
 
-        Write-Host ""
+        Write-ColorOutput ""
     }
 }
 
@@ -402,7 +433,7 @@ function Set-NvidiaSignatureOverride {
     $value = if ($Enabled) { "on" } else { "off" }
     $regData = if ($Enabled) { "01" } else { "00" }
 
-    Write-Host "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." -ForegroundColor Cyan
+    Write-ColorOutput "$(if ($Enabled) { 'Enabling' } else { 'Disabling' }) Driver Signature Override..." -ForegroundColor Cyan
 
     # BCDEDIT settings
     $bcdNoIntegrityOutput = & bcdedit.exe /set nointegritychecks $value 2>&1
@@ -412,18 +443,18 @@ function Set-NvidiaSignatureOverride {
     $bcdTestSigningExitCode = $LASTEXITCODE
 
     if (($bcdNoIntegrityExitCode -eq 0) -and ($bcdTestSigningExitCode -eq 0)) {
-        Write-Host "  [OK] BCDEDIT settings updated ($value)" -ForegroundColor Green
+        Write-ColorOutput "  [OK] BCDEDIT settings updated ($value)" -ForegroundColor Green
     } else {
-        Write-Host "  [WARN] Failed to update BCDEDIT settings `
+        Write-ColorOutput "  [WARN] Failed to update BCDEDIT settings `
             (may require Secure Boot disabled or elevated PowerShell)" `
             -ForegroundColor Yellow
         if ($bcdNoIntegrityExitCode -ne 0 -and $bcdNoIntegrityOutput) {
-            Write-Host "    nointegritychecks error (exit code $bcdNoIntegrityExitCode):" -ForegroundColor Yellow
-            Write-Host "      $bcdNoIntegrityOutput"
+            Write-ColorOutput "    nointegritychecks error (exit code $bcdNoIntegrityExitCode):" -ForegroundColor Yellow
+            Write-ColorOutput "      $bcdNoIntegrityOutput"
         }
         if ($bcdTestSigningExitCode -ne 0 -and $bcdTestSigningOutput) {
-            Write-Host "    testsigning error (exit code $bcdTestSigningExitCode):" -ForegroundColor Yellow
-            Write-Host "      $bcdTestSigningOutput"
+            Write-ColorOutput "    testsigning error (exit code $bcdTestSigningExitCode):" -ForegroundColor Yellow
+            Write-ColorOutput "      $bcdTestSigningOutput"
         }
     }
 
@@ -441,9 +472,9 @@ function Set-NvidiaSignatureOverride {
     }
 
     if (-not $regError) {
-        Write-Host "  [OK] NVIDIA signature registry keys updated" -ForegroundColor Green
+        Write-ColorOutput "  [OK] NVIDIA signature registry keys updated" -ForegroundColor Green
     } else {
-        Write-Host "  [WARN] Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
+        Write-ColorOutput "  [WARN] Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
     }
 }
 
@@ -519,7 +550,7 @@ function Get-FileFromWeb {
         if ($psISE) {
             Write-Progress "$ProgressText" -id 0 -percentComplete $percentComplete
         } else {
-            Write-Host -NoNewLine `
+            Write-ColorOutput -NoNewLine `
                 "`r$ProgressText $($(''.PadRight($BarSize * $percent, [char]9608)).PadRight($BarSize, [char]9617)) " `
                 "$($percentComplete.ToString('##0.00').PadLeft(6)) % "
         }
@@ -596,7 +627,7 @@ function Get-MonitorInstance {
             $script:CachedMonitorInstances = (Get-WmiObject -Namespace root\wmi -Class WmiMonitorID `
                 -ErrorAction Stop).InstanceName -replace '_0', ''
         } catch {
-            Write-Host "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
+            Write-ColorOutput "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
             $script:CachedMonitorInstances = @()
         }
     }
@@ -627,7 +658,7 @@ function Set-FullscreenMode {
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name `
             "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "0"
 
-        Write-Host "Fullscreen Optimizations (FSO) enabled." -ForegroundColor Green
+        Write-ColorOutput "Fullscreen Optimizations (FSO) enabled." -ForegroundColor Green
     } else {
         # Fullscreen Exclusive
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name `
@@ -637,16 +668,16 @@ function Set-FullscreenMode {
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name `
             "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "1"
 
-        Write-Host "Fullscreen Exclusive (FSE) enabled." -ForegroundColor Green
-        Write-Host ""
-        Write-Host "Additional steps may be required:" -ForegroundColor Yellow
-        Write-Host "  1. Right-click game.exe"
-        Write-Host "  2. Select Properties"
-        Write-Host "  3. Go to Compatibility tab"
-        Write-Host "  4. Check 'Disable fullscreen optimizations'"
-        Write-Host "  5. Click Apply"
-        Write-Host ""
-        Write-Host "Note: DX12 engines do not support fullscreen exclusive mode." -ForegroundColor Cyan
+        Write-ColorOutput "Fullscreen Exclusive (FSE) enabled." -ForegroundColor Green
+        Write-ColorOutput ""
+        Write-ColorOutput "Additional steps may be required:" -ForegroundColor Yellow
+        Write-ColorOutput "  1. Right-click game.exe"
+        Write-ColorOutput "  2. Select Properties"
+        Write-ColorOutput "  3. Go to Compatibility tab"
+        Write-ColorOutput "  4. Check 'Disable fullscreen optimizations'"
+        Write-ColorOutput "  5. Click Apply"
+        Write-ColorOutput ""
+        Write-ColorOutput "Note: DX12 engines do not support fullscreen exclusive mode." -ForegroundColor Cyan
     }
 }
 
@@ -671,8 +702,8 @@ function Set-MultiPlaneOverlay {
             Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name `
                 "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
 
-            Write-Host "Multiplane Overlay: Enabled" -ForegroundColor Green
-            Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
+            Write-ColorOutput "Multiplane Overlay: Enabled" -ForegroundColor Green
+            Write-ColorOutput "Windowed Game Optimizations: Enabled" -ForegroundColor Green
         }
         'Disabled' {
             # Disable multiplane overlay
@@ -683,8 +714,8 @@ function Set-MultiPlaneOverlay {
             Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name `
                 "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
 
-            Write-Host "Multiplane Overlay: Disabled" -ForegroundColor Yellow
-            Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
+            Write-ColorOutput "Multiplane Overlay: Disabled" -ForegroundColor Yellow
+            Write-ColorOutput "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
         }
         'Default' {
             # Enable multiplane overlay (default)
@@ -694,8 +725,8 @@ function Set-MultiPlaneOverlay {
             Set-RegistryValue -Path "HKCU\Software\Microsoft\DirectX\UserGpuPreferences" -Name `
                 "DirectXUserGlobalSettings" -Type REG_SZ -Data "VRROptimizeEnable=0;SwapEffectUpgradeEnable=0;"
 
-            Write-Host "Multiplane Overlay: Default (Enabled)" -ForegroundColor Cyan
-            Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Cyan
+            Write-ColorOutput "Multiplane Overlay: Default (Enabled)" -ForegroundColor Cyan
+            Write-ColorOutput "Windowed Game Optimizations: Disabled" -ForegroundColor Cyan
         }
     }
 }
@@ -706,32 +737,33 @@ function Show-GamingDisplayStatus {
     .SYNOPSIS
         Displays current gaming display settings
     #>
+    param()
     Clear-Host
-    Write-Host "Current Gaming Display Settings:" -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "Current Gaming Display Settings:" -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     # Check FSO/FSE settings
     $fseMode = Get-RegistryValueSafe -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode"
     if ($null -ne $fseMode) {
         if ($fseMode -eq 2) {
-            Write-Host "Fullscreen Mode: FSE (Fullscreen Exclusive)" -ForegroundColor Green
+            Write-ColorOutput "Fullscreen Mode: FSE (Fullscreen Exclusive)" -ForegroundColor Green
         } else {
-            Write-Host "Fullscreen Mode: FSO (Fullscreen Optimizations)" -ForegroundColor Green
+            Write-ColorOutput "Fullscreen Mode: FSO (Fullscreen Optimizations)" -ForegroundColor Green
         }
     } else {
-        Write-Host "Fullscreen Mode: Not configured" -ForegroundColor Gray
+        Write-ColorOutput "Fullscreen Mode: Not configured" -ForegroundColor Gray
     }
 
     # Check MPO settings
     $mpoTest = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode"
     if ($null -ne $mpoTest) {
         if ($mpoTest -eq 5) {
-            Write-Host "Multiplane Overlay: Disabled" -ForegroundColor Yellow
+            Write-ColorOutput "Multiplane Overlay: Disabled" -ForegroundColor Yellow
         } else {
-            Write-Host "Multiplane Overlay: Enabled" -ForegroundColor Green
+            Write-ColorOutput "Multiplane Overlay: Enabled" -ForegroundColor Green
         }
     } else {
-        Write-Host "Multiplane Overlay: Default (Enabled)" -ForegroundColor Green
+        Write-ColorOutput "Multiplane Overlay: Default (Enabled)" -ForegroundColor Green
     }
 
     # Check DirectX settings
@@ -740,15 +772,15 @@ function Show-GamingDisplayStatus {
             -Name "DirectXUserGlobalSettings"
     if ($null -ne $dxSettings) {
         if ($dxSettings -like '*SwapEffectUpgradeEnable=1*') {
-            Write-Host "Windowed Game Optimizations: Enabled" -ForegroundColor Green
+            Write-ColorOutput "Windowed Game Optimizations: Enabled" -ForegroundColor Green
         } else {
-            Write-Host "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
+            Write-ColorOutput "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
         }
     } else {
-        Write-Host "Windowed Game Optimizations: Not configured" -ForegroundColor Gray
+        Write-ColorOutput "Windowed Game Optimizations: Not configured" -ForegroundColor Gray
     }
 
-    Write-Host ""
+    Write-ColorOutput ""
 }
 #endregion
 
@@ -857,7 +889,7 @@ function New-RestorePoint {
         [string]$Description = "Before Optimization"
     )
 
-    Write-Host "Creating System Restore Point..." -ForegroundColor Yellow
+    Write-ColorOutput "Creating System Restore Point..." -ForegroundColor Yellow
     try {
         # Enable System Restore if not enabled
         Enable-ComputerRestore -Drive "$($env:SystemDrive)\" -ErrorAction SilentlyContinue
@@ -866,11 +898,11 @@ function New-RestorePoint {
         Checkpoint-Computer -Description "$Description $(Get-Date -Format 'yyyy-MM-dd HH:mm')" `
             -RestorePointType "MODIFY_SETTINGS" `
             -ErrorAction Stop
-        Write-Host "  Restore point created successfully" -ForegroundColor Green
+        Write-ColorOutput "  Restore point created successfully" -ForegroundColor Green
     } catch {
-        Write-Host "  Warning: Could not create restore point" -ForegroundColor Yellow
-        Write-Host "  Error: $_" -ForegroundColor DarkGray
-        Write-Host "  Continuing anyway..." -ForegroundColor Yellow
+        Write-ColorOutput "  Warning: Could not create restore point" -ForegroundColor Yellow
+        Write-ColorOutput "  Error: $_" -ForegroundColor DarkGray
+        Write-ColorOutput "  Continuing anyway..." -ForegroundColor Yellow
     }
 }
 #endregion
@@ -892,14 +924,14 @@ function Remove-AppxPackageSafe {
     $packages = Get-AppxPackage -Name $AppName -AllUsers 2>$null
     if ($packages) {
         foreach ($package in $packages) {
-            Write-Host "  Removing: $($package.Name)" -ForegroundColor Yellow
+            Write-ColorOutput "  Removing: $($package.Name)" -ForegroundColor Yellow
             try {
                 Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
             } catch {
                 try {
                     Remove-AppxPackage -Package $package.PackageFullName 2>$null
                 } catch {
-                    Write-Host "    Failed to remove $($package.Name)" -ForegroundColor Red
+                    Write-ColorOutput "    Failed to remove $($package.Name)" -ForegroundColor Red
                 }
             }
         }
@@ -908,11 +940,11 @@ function Remove-AppxPackageSafe {
     $provisioned = Get-AppxProvisionedPackage -Online 2>$null | Where-Object { $_.PackageName -like "*$AppName*" }
     if ($provisioned) {
         foreach ($package in $provisioned) {
-            Write-Host "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
+            Write-ColorOutput "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
             try {
                 Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
             } catch {
-                Write-Host "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
+                Write-ColorOutput "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)" `
                     -ForegroundColor Red
             }
         }
@@ -935,22 +967,22 @@ function Set-EDIDOverride {
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
-        Write-Host "No monitors detected!" -ForegroundColor Yellow
+        Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Applying EDID Override..." -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "Applying EDID Override..." -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     foreach ($monitor in $monitors) {
         $name = $monitor -split '\\'
-        Write-Host "  Applying override for: $($name[1])" -ForegroundColor Green
+        Write-ColorOutput "  Applying override for: $($name[1])" -ForegroundColor Green
         $regPath = "$regLocation$monitor\Device Parameters\EDID_OVERRIDE"
         Set-RegistryValue -Path $regPath -Name '1' -Type REG_BINARY -Data $edidHex
     }
 
-    Write-Host ""
-    Write-Host "EDID override applied successfully to $($monitors.Count) monitor(s)." -ForegroundColor Green
+    Write-ColorOutput ""
+    Write-ColorOutput "EDID override applied successfully to $($monitors.Count) monitor(s)." -ForegroundColor Green
 }
 
 function Remove-EDIDOverride {
@@ -963,22 +995,22 @@ function Remove-EDIDOverride {
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
-        Write-Host "No monitors detected!" -ForegroundColor Yellow
+        Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Removing EDID Override..." -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "Removing EDID Override..." -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     foreach ($monitor in $monitors) {
         $name = $monitor -split '\\'
-        Write-Host "  Removing override for: $($name[1])" -ForegroundColor Green
+        Write-ColorOutput "  Removing override for: $($name[1])" -ForegroundColor Green
         $regPath = "$regLocation$monitor\Device Parameters\EDID_OVERRIDE"
         Remove-RegistryValue -Path $regPath
     }
 
-    Write-Host ""
-    Write-Host "EDID override removed successfully from $($monitors.Count) monitor(s)." -ForegroundColor Green
+    Write-ColorOutput ""
+    Write-ColorOutput "EDID override removed successfully from $($monitors.Count) monitor(s)." -ForegroundColor Green
 }
 
 function Show-EDIDStatus {
@@ -990,31 +1022,31 @@ function Show-EDIDStatus {
     $monitors = Get-MonitorInstances
 
     if ($monitors.Count -eq 0) {
-        Write-Host "No monitors detected!" -ForegroundColor Yellow
+        Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Current EDID Override Status:" -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "Current EDID Override Status:" -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     foreach ($monitor in $monitors) {
         $name = $monitor -split '\\'
         $regPath = "HKLM:\SYSTEM\CurrentControlSet\Enum\$monitor\Device Parameters\EDID_OVERRIDE"
 
-        Write-Host "Monitor: $($name[1])" -ForegroundColor Yellow
+        Write-ColorOutput "Monitor: $($name[1])" -ForegroundColor Yellow
 
         if (Test-Path $regPath) {
             try {
                 $null = Get-ItemProperty -Path $regPath -Name '1' -ErrorAction Stop
-                Write-Host "  Status: Override applied" -ForegroundColor Green
-                Write-Host "  Value: Present" -ForegroundColor Green
+                Write-ColorOutput "  Status: Override applied" -ForegroundColor Green
+                Write-ColorOutput "  Value: Present" -ForegroundColor Green
             } catch {
-                Write-Host "  Status: No override" -ForegroundColor Gray
+                Write-ColorOutput "  Status: No override" -ForegroundColor Gray
             }
         } else {
-            Write-Host "  Status: No override" -ForegroundColor Gray
+            Write-ColorOutput "  Status: No override" -ForegroundColor Gray
         }
-        Write-Host ""
+        Write-ColorOutput ""
     }
 }
 #endregion
@@ -1035,15 +1067,15 @@ function Set-MSIMode {
     $gpuDevices = Get-PnpDevice -Class Display -ErrorAction SilentlyContinue
 
     if ($gpuDevices.Count -eq 0) {
-        Write-Host "No display adapters found!" -ForegroundColor Yellow
+        Write-ColorOutput "No display adapters found!" -ForegroundColor Yellow
         return
     }
 
     $msiValue = if ($Enable) { "1" } else { "0" }
     $status = if ($Enable) { "Enabling" } else { "Disabling" }
 
-    Write-Host "$status MSI Mode for all GPUs..." -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "$status MSI Mode for all GPUs..." -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
@@ -1052,26 +1084,26 @@ function Set-MSIMode {
         Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
     }
 
-    Write-Host "MSI Mode Status:" -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "MSI Mode Status:" -ForegroundColor Cyan
+    Write-ColorOutput ""
 
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
         $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management" +
             "\MessageSignaledInterruptProperties"
 
-        Write-Host "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
-        Write-Host "  Instance ID: $instanceID" -ForegroundColor Gray
+        Write-ColorOutput "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
+        Write-ColorOutput "  Instance ID: $instanceID" -ForegroundColor Gray
 
         try {
             $msiSupported = (Get-ItemProperty -Path $regPath -Name "MSISupported" -ErrorAction Stop).MSISupported
             $statusColor = if ($msiSupported -eq 1) { "Green" } else { "Yellow" }
             $statusText = if ($msiSupported -eq 1) { "Enabled (1)" } else { "Disabled (0)" }
-            Write-Host "  MSI Mode: $statusText" -ForegroundColor $statusColor
+            Write-ColorOutput "  MSI Mode: $statusText" -ForegroundColor $statusColor
         } catch {
-            Write-Host "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
+            Write-ColorOutput "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
         }
-        Write-Host ""
+        Write-ColorOutput ""
     }
 }
 #endregion
@@ -1086,9 +1118,9 @@ function Write-Header {
         The header text to display
     #>
     param([string]$Text)
-    Write-Host "`n$('='*60)" -ForegroundColor Cyan
-    Write-Host " $Text" -ForegroundColor Cyan
-    Write-Host "$('='*60)`n" -ForegroundColor Cyan
+    Write-ColorOutput "`n$('='*60)" -ForegroundColor Cyan
+    Write-ColorOutput " $Text" -ForegroundColor Cyan
+    Write-ColorOutput "$('='*60)`n" -ForegroundColor Cyan
 }
 
 function Write-Success {
@@ -1100,7 +1132,7 @@ function Write-Success {
         The success message
     #>
     param([string]$Text)
-    Write-Host "[OK] $Text" -ForegroundColor Green
+    Write-ColorOutput "[OK] $Text" -ForegroundColor Green
 }
 
 function Write-Fail {
@@ -1112,7 +1144,7 @@ function Write-Fail {
         The failure message
     #>
     param([string]$Text)
-    Write-Host "[FAIL] $Text" -ForegroundColor Red
+    Write-ColorOutput "[FAIL] $Text" -ForegroundColor Red
 }
 
 function Write-Warn {
@@ -1124,7 +1156,7 @@ function Write-Warn {
         The warning message
     #>
     param([string]$Text)
-    Write-Host "[WARN] $Text" -ForegroundColor Yellow
+    Write-ColorOutput "[WARN] $Text" -ForegroundColor Yellow
 }
 
 function Write-Info {
@@ -1136,7 +1168,7 @@ function Write-Info {
         The info message
     #>
     param([string]$Text)
-    Write-Host "[INFO] $Text" -ForegroundColor White
+    Write-ColorOutput "[INFO] $Text" -ForegroundColor White
 }
 #endregion
 
@@ -1162,6 +1194,7 @@ function Get-Log {
     .SYNOPSIS
         Returns the accumulated log entries
     #>
+    param()
     return $script:LogOutput
 }
 
@@ -1171,6 +1204,7 @@ function Clear-Log {
     .SYNOPSIS
         Clears all log entries
     #>
+    param()
     $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 }
 #endregion
@@ -1544,24 +1578,24 @@ function Show-Summary {
             $partialCount++
         }
 
-        Write-Host "  $($key.PadRight(25)) : " -NoNewline
-        Write-Host $status -ForegroundColor $color
+        Write-ColorOutput "  $($key.PadRight(25)) : " -NoNewline
+        Write-ColorOutput $status -ForegroundColor $color
     }
 
-    Write-Host "`n  Results: " -NoNewline
-    Write-Host "$successCount succeeded" -ForegroundColor Green -NoNewline
-    Write-Host ", " -NoNewline
-    Write-Host "$failCount failed" -ForegroundColor Red -NoNewline
-    Write-Host ", " -NoNewline
-    Write-Host "$skipCount skipped" -ForegroundColor Yellow
+    Write-ColorOutput "`n  Results: " -NoNewline
+    Write-ColorOutput "$successCount succeeded" -ForegroundColor Green -NoNewline
+    Write-ColorOutput ", " -NoNewline
+    Write-ColorOutput "$failCount failed" -ForegroundColor Red -NoNewline
+    Write-ColorOutput ", " -NoNewline
+    Write-ColorOutput "$skipCount skipped" -ForegroundColor Yellow
     if ($partialCount -gt 0) {
-        Write-Host ", " -NoNewline
-        Write-Host "$partialCount partial" -ForegroundColor Cyan
+        Write-ColorOutput ", " -NoNewline
+        Write-ColorOutput "$partialCount partial" -ForegroundColor Cyan
     }
 
-    Write-Host "`n  Duration: $($durationInfo.Duration)" -ForegroundColor Cyan
-    Write-Host "  End Time: $($durationInfo.EndTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Cyan
-    Write-Host ""
+    Write-ColorOutput "`n  Duration: $($durationInfo.Duration)" -ForegroundColor Cyan
+    Write-ColorOutput "  End Time: $($durationInfo.EndTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor Cyan
+    Write-ColorOutput ""
 }
 #endregion
 
@@ -1644,19 +1678,19 @@ function Install-WingetPackage {
     }
 
     if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
-        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        Write-ColorOutput "  Installing $Name..." -ForegroundColor Gray -NoNewline
         try {
             $argList = "install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg"
             $proc = Start-Process -FilePath $winget -ArgumentList $argList -NoNewWindow -Wait -PassThru
             $ec = $proc.ExitCode
             if ($ec -eq 0 -or $ec -eq -1978335189) {
-                Write-Host " [OK]" -ForegroundColor Green
+                Write-ColorOutput " [OK]" -ForegroundColor Green
             } else {
-                Write-Host ""
+                Write-ColorOutput ""
                 Write-Warning "  [WARN] $Name - winget exit code: $ec"
             }
         } catch {
-            Write-Host ""
+            Write-ColorOutput ""
             Write-Warning "  [WARN] $Name - $_"
         }
     }
@@ -1690,15 +1724,15 @@ function Invoke-BuildOperation {
     )
 
     $statusColor = 'Cyan'
-    Write-Host "  [RUNNING] $Name" -ForegroundColor $statusColor
+    Write-ColorOutput "  [RUNNING] $Name" -ForegroundColor $statusColor
     try {
         $result = & $Action
         $color = switch ($SuccessStatus) { 'OK' { 'Green' } 'SKIP' { 'Yellow' } default { 'Green' } }
-        Write-Host "  [$SuccessStatus] $Name" -ForegroundColor $color
+        Write-ColorOutput "  [$SuccessStatus] $Name" -ForegroundColor $color
         return $true
     }
     catch {
-        Write-Host "  [FAIL] $Name - $($_.Exception.Message)" -ForegroundColor Red
+        Write-ColorOutput "  [FAIL] $Name - $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
@@ -1773,22 +1807,22 @@ function Invoke-Winget {
     $scopeArg = if ($isAdmin) { '--scope machine' } else { '' }
 
     if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
-        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        Write-ColorOutput "  Installing $Name..." -ForegroundColor Gray -NoNewline
         try {
             $fullArgs = "install --id $Id --silent --accept-source-agreements",
                 "--accept-package-agreements $scopeArg $Arguments" -join ' '
             $proc = Start-Process -FilePath $winget -ArgumentList $fullArgs -NoNewWindow -Wait -PassThru
             $ec = $proc.ExitCode
             if ($ec -eq 0 -or $ec -eq -1978335189) {
-                Write-Host " [OK]" -ForegroundColor Green
+                Write-ColorOutput " [OK]" -ForegroundColor Green
             }
             else {
-                Write-Host ""
+                Write-ColorOutput ""
                 throw "winget exit code: $ec"
             }
         }
         catch {
-            Write-Host ""
+            Write-ColorOutput ""
             throw "Failed to install $Name`: $($_.Exception.Message)"
         }
     }
@@ -1816,7 +1850,6 @@ function Invoke-RegImport {
 }
 #endregion
 
-#pragma warning restore PSAvoidUsingWriteHost
 
 function Ensure-Directory {
     [CmdletBinding(SupportsShouldProcess)]
