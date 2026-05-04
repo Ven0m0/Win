@@ -7,7 +7,7 @@
 
 #region Admin Elevation
 function Request-AdminElevation {
-    <#
+        <#
     .SYNOPSIS
         Ensures the script is running with administrator privileges
     .DESCRIPTION
@@ -25,12 +25,14 @@ function Request-AdminElevation {
 
 #region UI Configuration
 function Initialize-ConsoleUI {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Initializes console UI with consistent styling
     .PARAMETER Title
         The window title to set
     #>
+    [CmdletBinding()]
     param(
         [string]$Title = $myInvocation.MyCommand.Definition + " (Administrator)"
     )
@@ -43,7 +45,7 @@ function Initialize-ConsoleUI {
 }
 
 function Show-Menu {
-    <#
+        <#
     .SYNOPSIS
         Displays a formatted menu
     .PARAMETER Title
@@ -51,6 +53,7 @@ function Show-Menu {
     .PARAMETER Options
         Array of menu options
     #>
+    [CmdletBinding()]
     param(
         [string]$Title,
         [string[]]$Options
@@ -69,7 +72,7 @@ function Show-Menu {
 }
 
 function Get-MenuChoice {
-    <#
+        <#
     .SYNOPSIS
         Gets and validates user menu choice
     .PARAMETER Min
@@ -77,6 +80,7 @@ function Get-MenuChoice {
     .PARAMETER Max
         Maximum valid choice
     #>
+    [CmdletBinding()]
     param(
         [int]$Min = 1,
         [int]$Max
@@ -93,7 +97,7 @@ function Get-MenuChoice {
 }
 
 function Wait-ForKeyPress {
-    <#
+        <#
     .SYNOPSIS
         Waits for user to press any key
     .PARAMETER Message
@@ -101,6 +105,7 @@ function Wait-ForKeyPress {
     .PARAMETER UseReadHost
         Use Read-Host instead of RawUI.ReadKey (useful for specific prompts)
     #>
+    [CmdletBinding()]
     param(
         [string]$Message = "",
         [switch]$UseReadHost
@@ -118,12 +123,13 @@ function Wait-ForKeyPress {
 }
 
 function Show-RestartRequired {
-    <#
+        <#
     .SYNOPSIS
         Displays a restart required message and waits for user acknowledgment
     .PARAMETER CustomMessage
         Optional custom message (defaults to standard restart message)
     #>
+    [CmdletBinding()]
     param(
         [string]$CustomMessage = "Restart required to apply changes..."
     )
@@ -135,7 +141,7 @@ function Show-RestartRequired {
 
 #region Registry Helpers
 function Set-RegistryValue {
-    <#
+        <#
     .SYNOPSIS
         Sets a registry value with error suppression
     .PARAMETER Path
@@ -147,6 +153,7 @@ function Set-RegistryValue {
     .PARAMETER Data
         Value data
     #>
+    [CmdletBinding()]
     param(
         [string]$Path,
         [string]$Name,
@@ -158,7 +165,7 @@ function Set-RegistryValue {
 }
 
 function Remove-RegistryValue {
-    <#
+        <#
     .SYNOPSIS
         Removes a registry value with error suppression
     .PARAMETER Path
@@ -166,6 +173,7 @@ function Remove-RegistryValue {
     .PARAMETER Name
         Value name
     #>
+    [CmdletBinding()]
     param(
         [string]$Path,
         [string]$Name = $null
@@ -179,7 +187,7 @@ function Remove-RegistryValue {
 }
 
 function Get-NvidiaGpuRegistryPath {
-    <#
+        <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
     .DESCRIPTION
@@ -193,12 +201,14 @@ function Get-NvidiaGpuRegistryPath {
 $script:CachedNvidiaGpuPaths = $null
 
 function Get-NvidiaGpuPath {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Returns cached NVIDIA GPU registry paths
     .PARAMETER ForceRefresh
         Forces refresh of cached GPU registry paths
     #>
+    [CmdletBinding()]
     param([switch]$ForceRefresh)
 
     if ($ForceRefresh -or -not $script:CachedNvidiaGpuPaths) {
@@ -209,7 +219,7 @@ function Get-NvidiaGpuPath {
 }
 
 function Set-NvidiaGpuRegistryValue {
-    <#
+        <#
     .SYNOPSIS
         Sets a registry value for all NVIDIA GPUs
     .PARAMETER Name
@@ -221,6 +231,7 @@ function Set-NvidiaGpuRegistryValue {
     .PARAMETER GpuPaths
         Optional GPU registry paths (uses cached paths when omitted)
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$Name,
@@ -243,7 +254,7 @@ function Set-NvidiaGpuRegistryValue {
 }
 
 function Get-NvidiaGpuSetting {
-    <#
+        <#
     .SYNOPSIS
         Retrieves NVIDIA GPU registry settings for display
     .PARAMETER Setting
@@ -251,6 +262,7 @@ function Get-NvidiaGpuSetting {
     .PARAMETER GpuPaths
         Optional GPU registry paths (uses cached paths when omitted)
     #>
+    [CmdletBinding()]
     param(
         [string]$Setting = "All",
         [string[]]$GpuPaths
@@ -296,7 +308,7 @@ function Get-NvidiaGpuSetting {
 }
 
 function Show-NvidiaGpuSetting {
-    <#
+        <#
     .SYNOPSIS
         Displays NVIDIA GPU settings for all detected GPUs
     .PARAMETER Title
@@ -306,6 +318,7 @@ function Show-NvidiaGpuSetting {
     .PARAMETER GpuPaths
         Optional GPU registry paths (uses cached paths when omitted)
     #>
+    [CmdletBinding()]
     param(
         [string]$Title = "Current NVIDIA GPU Settings:",
         [string]$Setting = "All",
@@ -342,7 +355,7 @@ function Show-NvidiaGpuSetting {
 }
 
 function Get-RegistryValueSafe {
-    <#
+        <#
     .SYNOPSIS
         Safely retrieves a registry value with fallback
     .DESCRIPTION
@@ -357,6 +370,7 @@ function Get-RegistryValueSafe {
     .EXAMPLE
         $value = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\Test" -Name "Setting"
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$Path,
@@ -376,12 +390,13 @@ function Get-RegistryValueSafe {
 }
 
 function Set-NvidiaSignatureOverride {
-    <#
+        <#
     .SYNOPSIS
         Enables or disables NVIDIA driver signature override
     .PARAMETER Enabled
         $true to enable, $false to disable
     #>
+    [CmdletBinding()]
     param([Parameter(Mandatory)][bool]$Enabled)
 
     $value = if ($Enabled) { "on" } else { "off" }
@@ -433,7 +448,7 @@ function Set-NvidiaSignatureOverride {
 }
 
 function Get-NvidiaSignatureStatus {
-    <#
+        <#
     .SYNOPSIS
         Returns status of NVIDIA signature override settings
     #>
@@ -470,6 +485,7 @@ function Get-NvidiaSignatureStatus {
 
 #region File Download
 function Get-FileFromWeb {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Downloads a file from the web with progress indicator
@@ -478,6 +494,7 @@ function Get-FileFromWeb {
     .PARAMETER File
         The destination file path
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$URL,
@@ -487,6 +504,7 @@ function Get-FileFromWeb {
     )
 
     function Show-Progress {
+    [CmdletBinding()]
         param(
             [Parameter(Mandatory)][Single]$TotalValue,
             [Parameter(Mandatory)][Single]$CurrentValue,
@@ -560,7 +578,7 @@ function Get-FileFromWeb {
 $script:CachedMonitorInstances = $null
 
 function Get-MonitorInstance {
-    <#
+        <#
     .SYNOPSIS
         Retrieves all monitor instance paths from WMI
     .DESCRIPTION
@@ -570,6 +588,7 @@ function Get-MonitorInstance {
     .EXAMPLE
         $monitors = Get-MonitorInstance
     #>
+    [CmdletBinding()]
     param([switch]$ForceRefresh)
 
     if ($ForceRefresh -or -not $script:CachedMonitorInstances) {
@@ -588,12 +607,13 @@ function Get-MonitorInstance {
 
 #region Gaming Display Settings
 function Set-FullscreenMode {
-    <#
+        <#
     .SYNOPSIS
         Configures fullscreen mode (FSO or FSE)
     .PARAMETER Mode
         'FSO' for Fullscreen Optimizations or 'FSE' for Fullscreen Exclusive
     #>
+    [CmdletBinding()]
     param([string]$Mode)
 
     Clear-Host
@@ -631,12 +651,13 @@ function Set-FullscreenMode {
 }
 
 function Set-MultiPlaneOverlay {
-    <#
+        <#
     .SYNOPSIS
         Configures Multiplane Overlay and windowed game optimizations
     .PARAMETER Mode
         'Enabled', 'Disabled', or 'Default'
     #>
+    [CmdletBinding()]
     param([string]$Mode)
 
     Clear-Host
@@ -680,7 +701,7 @@ function Set-MultiPlaneOverlay {
 }
 
 function Show-GamingDisplayStatus {
-    <#
+        <#
     .SYNOPSIS
         Displays current gaming display settings
     #>
@@ -732,6 +753,7 @@ function Show-GamingDisplayStatus {
 
 #region VDF Parsing (for Steam scripts)
 function ConvertFrom-VDF {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Parses Valve Data Format (VDF) files
@@ -740,6 +762,7 @@ function ConvertFrom-VDF {
     .PARAMETER line
         Reference to the current line index used for recursive parsing
     #>
+    [CmdletBinding()]
     param(
         [string[]]$Content,
         [ref]$line = ([ref]0)
@@ -761,7 +784,7 @@ function ConvertFrom-VDF {
 }
 
 function ConvertTo-VDF {
-    <#
+        <#
     .SYNOPSIS
         Converts hashtable to VDF format
     .PARAMETER Data
@@ -769,6 +792,7 @@ function ConvertTo-VDF {
     .PARAMETER Indent
         Current indentation level
     #>
+    [CmdletBinding()]
     param($Data, [ref]$Indent = ([ref]0))
 
     if ($Data -isnot [System.Collections.Specialized.OrderedDictionary] -and $Data -isnot [hashtable]) {
@@ -793,12 +817,13 @@ function ConvertTo-VDF {
 
 #region Cleanup Helpers
 function Clear-DirectorySafe {
-    <#
+        <#
     .SYNOPSIS
         Safely clears directory contents using robocopy or fallback
     .PARAMETER Path
         Directory to clear
     #>
+    [CmdletBinding()]
     param([string]$Path)
 
     if (!(Test-Path $Path)) { return }
@@ -821,12 +846,13 @@ function Clear-DirectorySafe {
 
 #region System Management
 function New-RestorePoint {
-    <#
+        <#
     .SYNOPSIS
         Creates a system restore point
     .PARAMETER Description
         Restore point description
     #>
+    [CmdletBinding()]
     param(
         [string]$Description = "Before Optimization"
     )
@@ -851,12 +877,13 @@ function New-RestorePoint {
 
 #region App Management
 function Remove-AppxPackageSafe {
-    <#
+        <#
     .SYNOPSIS
         Safely removes an Appx package for all users and its provisioned counterpart
     .PARAMETER AppName
         Name or wildcard for the Appx package
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string]$AppName
@@ -895,7 +922,7 @@ function Remove-AppxPackageSafe {
 
 #region EDID Override Management
 function Set-EDIDOverride {
-    <#
+        <#
     .SYNOPSIS
         Applies EDID override to all monitors to fix display driver stuttering
     #>
@@ -926,6 +953,8 @@ function Set-EDIDOverride {
 }
 
 function Remove-EDIDOverride {
+    [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Removes EDID override from all monitors
@@ -953,6 +982,8 @@ function Remove-EDIDOverride {
 }
 
 function Show-EDIDStatus {
+    [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Displays current EDID override status for all monitors
@@ -991,12 +1022,14 @@ function Show-EDIDStatus {
 
 #region MSI Mode
 function Set-MSIMode {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Enables or disables MSI mode for all display adapters
     .PARAMETER Enable
         $true to enable MSI mode, $false to disable
     #>
+    [CmdletBinding()]
     param([bool]$Enable)
 
     Clear-Host
@@ -1047,12 +1080,13 @@ function Set-MSIMode {
 
 #region UI Helpers
 function Write-Header {
-    <#
+        <#
     .SYNOPSIS
         Displays a formatted section header
     .PARAMETER Text
         The header text to display
     #>
+    [CmdletBinding()]
     param([string]$Text)
     Write-Host "`n$('='*60)" -ForegroundColor Cyan
     Write-Host " $Text" -ForegroundColor Cyan
@@ -1060,45 +1094,49 @@ function Write-Header {
 }
 
 function Write-Success {
-    <#
+        <#
     .SYNOPSIS
         Displays a success message
     .PARAMETER Text
         The success message
     #>
+    [CmdletBinding()]
     param([string]$Text)
     Write-Host "[OK] $Text" -ForegroundColor Green
 }
 
 function Write-Fail {
-    <#
+        <#
     .SYNOPSIS
         Displays a failure message
     .PARAMETER Text
         The failure message
     #>
+    [CmdletBinding()]
     param([string]$Text)
     Write-Host "[FAIL] $Text" -ForegroundColor Red
 }
 
 function Write-Warn {
-    <#
+        <#
     .SYNOPSIS
         Displays a warning message
     .PARAMETER Text
         The warning message
     #>
+    [CmdletBinding()]
     param([string]$Text)
     Write-Host "[WARN] $Text" -ForegroundColor Yellow
 }
 
 function Write-Info {
-    <#
+        <#
     .SYNOPSIS
         Displays an informational message
     .PARAMETER Text
         The info message
     #>
+    [CmdletBinding()]
     param([string]$Text)
     Write-Host "[INFO] $Text" -ForegroundColor White
 }
@@ -1108,19 +1146,20 @@ function Write-Info {
 $script:LogOutput = [System.Collections.Generic.List[string]]::new()
 
 function Add-Log {
-    <#
+        <#
     .SYNOPSIS
         Adds a timestamped entry to the script log
     .PARAMETER Text
         Log message text
     #>
+    [CmdletBinding()]
     param([string]$Text)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $script:LogOutput.Add("[$timestamp] $Text")
 }
 
 function Get-Log {
-    <#
+        <#
     .SYNOPSIS
         Returns the accumulated log entries
     #>
@@ -1128,6 +1167,8 @@ function Get-Log {
 }
 
 function Clear-Log {
+    [CmdletBinding()]
+    param()
     <#
     .SYNOPSIS
         Clears all log entries
@@ -1138,6 +1179,7 @@ function Clear-Log {
 
 #region File Size Utilities
 function Get-FolderSize {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Calculates the total size of a folder
@@ -1146,6 +1188,7 @@ function Get-FolderSize {
     .PARAMETER Unit
         Output unit: B, KB, MB, GB (default: MB)
     #>
+    [CmdletBinding()]
     param(
         [string]$Path,
         [string]$Unit = 'MB'
@@ -1168,7 +1211,7 @@ function Get-FolderSize {
 }
 
 function Format-Size {
-    <#
+        <#
     .SYNOPSIS
         Formats a byte count into human-readable string
     .PARAMETER Bytes
@@ -1176,6 +1219,7 @@ function Format-Size {
     .PARAMETER DecimalPlaces
         Number of decimal places (default: 2)
     #>
+    [CmdletBinding()]
     param(
         [long]$Bytes,
         [int]$DecimalPlaces = 2
@@ -1194,7 +1238,7 @@ function Format-Size {
 #endregion
 
 function Invoke-Operation {
-    <#
+        <#
     .SYNOPSIS
         Executes an operation with consistent DryRun, error handling, and result tracking
     .DESCRIPTION
@@ -1219,6 +1263,7 @@ function Invoke-Operation {
     .EXAMPLE
         Invoke-Operation -Name 'ClearTemp' -Action { Remove-Item -Path $temp -Recurse -Force }
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][scriptblock]$Action,
@@ -1294,7 +1339,7 @@ function Invoke-Operation {
 }
 
 function Clear-PathSafe {
-    <#
+        <#
     .SYNOPSIS
         Safely clears a directory, file, or file pattern with error suppression
     .PARAMETER Path
@@ -1308,6 +1353,7 @@ function Clear-PathSafe {
         Clear-PathSafe -Path "C:\Logs\old.log"
         Clear-PathSafe -Path "C:\Cache" -Recurse
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Path,
         [switch]$Recurse,
@@ -1336,7 +1382,7 @@ function Clear-PathSafe {
 }
 
 function Invoke-ServiceOperation {
-    <#
+        <#
     .SYNOPSIS
         Executes an action with a service stopped and optionally restarts it
     .PARAMETER Name
@@ -1350,6 +1396,7 @@ function Invoke-ServiceOperation {
     .EXAMPLE
         Invoke-ServiceOperation -Name 'FontCache' -Action { Remove-Item $cachePath -Recurse }
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][scriptblock]$Action,
@@ -1380,7 +1427,7 @@ function Invoke-ServiceOperation {
 }
 
 function Stop-SteamGracefully {
-    <#
+        <#
     .SYNOPSIS
         Stops Steam process gracefully (shutdown then force kill)
     .PARAMETER TimeoutSeconds
@@ -1392,6 +1439,7 @@ function Stop-SteamGracefully {
         Stop-SteamGracefully -TimeoutSeconds 15
         Stop-SteamGracefully -AppStopArgs "+app_stop 730 +app_stop 980"
     #>
+    [CmdletBinding()]
     param(
         [int]$TimeoutSeconds = 10,
         [string]$AppStopArgs = ''
@@ -1427,7 +1475,7 @@ function Stop-SteamGracefully {
 
 #region Execution Timing
 function Measure-Execution {
-    <#
+        <#
     .SYNOPSIS
         Measures and formats script execution time
     .DESCRIPTION
@@ -1437,6 +1485,7 @@ function Measure-Execution {
     .OUTPUTS
         Returns formatted duration string and updates script scope variables
     #>
+    [CmdletBinding()]
     param([datetime]$StartTime)
 
     $endTime = Get-Date
@@ -1452,7 +1501,7 @@ function Measure-Execution {
 
 #region Summary Display
 function Show-Summary {
-    <#
+        <#
     .SYNOPSIS
         Displays a formatted summary of operation results
     .PARAMETER Results
@@ -1462,6 +1511,7 @@ function Show-Summary {
     .EXAMPLE
         Show-Summary -Results $Results -StartTime $StartTime
     #>
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)][hashtable]$Results,
         [datetime]$StartTime
