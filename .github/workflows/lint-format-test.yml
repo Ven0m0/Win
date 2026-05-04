@@ -113,10 +113,10 @@ jobs:
             Write-Host ""
             $issues | Sort-Object Severity, File, Line | Format-Table -AutoSize -Wrap
             exit 1
-          } else {
+          else
             Write-Host "## No lint issues found" -ForegroundColor Green
             exit 0
-          }
+          fi
 
       - name: Upload lint results
         if: failure()
@@ -170,7 +170,7 @@ jobs:
               if (-not $hasBom) {
                 $issues += "[$($file.Name)]: Missing UTF-8 BOM"
               }
-            } else {
+            else
               $issues += "[$($file.Name)]: Missing UTF-8 BOM"
             }
 
@@ -217,10 +217,10 @@ jobs:
             Write-Host "## Formatting Issues Found ($($issues.Count))" -ForegroundColor Red
             $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
             exit 1
-          } else {
+          else
             Write-Host "## No formatting issues found" -ForegroundColor Green
             exit 0
-          }
+          fi
 
   # ===========================================================================
   # Job 3: Pester tests
@@ -262,7 +262,7 @@ jobs:
           if ($testFiles.Count -eq 0) {
             Write-Host "No test files found"
             exit 0
-          }
+          fi
 
           Write-Host "Running $($testFiles.Count) test file(s)..."
 
@@ -279,10 +279,10 @@ jobs:
           if ($result.FailedCount -gt 0) {
             Write-Host "Tests failed: $($result.FailedCount) of $($result.TotalCount)" -ForegroundColor Red
             exit 1
-          } else {
+          else
             Write-Host "All tests passed: $($result.PassedCount)" -ForegroundColor Green
             exit 0
-          }
+          fi
 
       - name: Upload test results
         if: always()
@@ -312,13 +312,13 @@ jobs:
           echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if (needs.lint.result == 'failure' || needs.format.result == 'failure' || needs.test.result == 'failure') {
+          if [ "${{ needs.lint.result }}" == "failure" ] || [ "${{ needs.format.result }}" == "failure" ] || [ "${{ needs.test.result }}" == "failure" ]; then
             echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
             exit 1
-          } else {
+          else
             echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
             exit 0
-          }
+          fi
 
       - name: Check PSD1 validity
         run: |
