@@ -175,8 +175,9 @@ Describe "Show-RestartRequired" {
 
         Show-RestartRequired
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -eq "Restart required to apply changes..." `
-            -and $ForegroundColor -eq "Yellow" }
+        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+            $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow"
+        }
         Should -Invoke -CommandName Wait-ForKeyPress -Times 1
     }
 
@@ -211,7 +212,8 @@ Describe "Invoke-ServiceOperation" {
         Invoke-ServiceOperation -Name "NonExistentService" -Action $action
 
         Should -Invoke -CommandName Get-Service -Times 1 -ParameterFilter { $Name -eq "NonExistentService" }
-        Should -Invoke -CommandName Write-Warn -Times 1 -ParameterFilter { $Message -eq "Service 'NonExistentService' not found" `
+        Should -Invoke -CommandName Write-Warn -Times 1 -ParameterFilter {
+            $Message -eq "Service 'NonExistentService' not found"
         }
         $global:actionExecuted | Should -Be $false
     }
