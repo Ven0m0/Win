@@ -4,7 +4,6 @@ root=true
 # Default Settings for All Files
 # =============================================================================
 [*]
-end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
@@ -35,11 +34,20 @@ end_of_line = lf
 shell_variant = posix
 end_of_line = lf
 
-# Windows Scripts
-[**.{bat,cmd,ps1,psm1,psd1}]
+# Cmd
+[**.{bat,cmd}]
 indent_style = space
 indent_size = 2
+tab_width = 2
 end_of_line = crlf
+
+# Powershell
+[**.{ps1,psm1,psd1}]
+end_of_line = crlf
+max_line_length = 115
+indent_style = space
+indent_size = 2
+tab_width = 2
 
 # =============================================================================
 # Programming Languages
