@@ -1,0 +1,41 @@
+Windows Registry Editor Version 5.00
+
+; Steam Configuration Mockup Registry File
+; Generated from Steam-Config.ps1 — these settings are normally stored in localconfig.vdf (Valve Data Format),
+; not the Windows Registry. This .reg is a mockup representation of the modifications made by the script.
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\Broadcast]
+"Permissions"="0"
+"FirstTimeComplete"="1"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\system]
+"displayratesasbits"="0"
+"EnableGameOverlay"="0"
+"InGameOverlayRestoreBrowserTabs"="0"
+"InGameOverlayScreenshotNotification"="0"
+"InGameOverlayScreenshotPlaySound"="0"
+"NetworkingAllowShareIP"="1"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\streaming_v2]
+"EnableStreaming"="0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\friends]
+"SignIntoFriends"="0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\GameRecording]
+"BackgroundRecordMode"="0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\news]
+"NotifyAvailableGames"="0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\root]
+"LibraryLowBandwidthMode"="1"
+"LibraryLowPerfMode"="1"
+"LibraryDisableCommunityContent"="1"
+"ReadyToPlayIncludesStreaming"="0"
+"SteamController_Enable_Chord"="0"
+"Controller_CheckGuideButton"="0"
+"SteamController_PSSupport"="0"
+
+[HKEY_CURRENT_USER\SOFTWARE\Valve\Steam\Config\Accessibility]
+"ReduceMotion"="1"
