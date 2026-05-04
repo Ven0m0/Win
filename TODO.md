@@ -12,4 +12,7 @@ dism /Online /Cleanup-Image /StartComponentCleanup /ResetBase /RestoreHealth
 - https://github.com/emylfy/Winrift
 
 
-Add "PowerShell-Beautifier" module and use it to format ps1 files: `Install-Module -Name PowerShell-Beautifier`
+- Add "PowerShell-Beautifier" module and use it to format ps1 files: `Install-Module -Name PowerShell-Beautifier`
+- Consider "PSParallel" for bulk operations
+- "Refactor" When you need to rename functions/commands across multiple script files
+- 
