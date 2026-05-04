@@ -303,7 +303,7 @@ param (
 | Warning | `Write-Warning` | Non-fatal conditions callers should know about |
 | Error | `Write-Error` | Recoverable errors (use `throw` for terminating) |
 | Progress | `Write-Progress` | Long-loop progress indicators |
-| Host | `Write-Host` | **Interactive UI only** — bypasses all streams, cannot be captured |
+| Host | `Write-Host` | **Interactive UI only** — writes to Information stream (6), intended for display only |
 
 ### Write-Host Restriction
 Do not use `Write-Host` for general output. It bypasses all output streams and cannot be redirected or captured by callers. Use it only for:
