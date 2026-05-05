@@ -32,3 +32,5 @@ Line |
      |                    ~~~~
      | Unexpected token 'Path' in expression or statement.
 ```
+
+fix .github/workflows/powershell.yml and ensure psscriptanalyzer hasno issues or warnings for the repo
