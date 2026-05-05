@@ -6,6 +6,7 @@
 .SYNOPSIS
     Arc Raiders pre-launch: clear logs/crashes/temp, trim memory, optimize SSD, restart Steam minimal.
 #>
+$ProgressPreference = 'SilentlyContinue'
 
 # ── Options ───────────────────────────────────────────────────────────────────
 $FriendsSignIn = 0
