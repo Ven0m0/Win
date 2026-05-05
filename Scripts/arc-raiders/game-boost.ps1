@@ -1,4 +1,5 @@
 ﻿#Requires -Version 5.1
+#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Arc Raiders — Game Boost
@@ -37,7 +38,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Continue'
-
+$ProgressPreference = 'SilentlyContinue'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 # ─────────────────────────────────────────────────────────────────────────────
 #  Constants
 # ─────────────────────────────────────────────────────────────────────────────
