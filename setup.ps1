@@ -3,7 +3,7 @@
 #Requires -RunAsAdministrator
 # Windows Setup Script - Comprehensive automated installation and configuration
 # Combines software installation, system optimization, bloatware removal, and privacy tweaks
-
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Set-SetupStep {
   param(
