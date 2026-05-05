@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 
-# === QoS PowerShell equivalent ===
+# === QoS PowerShell equivalent === TODO: fix broken Qos commands
 New-NetQosPolicy -Name "ArcRaiders" -AppPathNameMatchCondition "PioneerGame.exe" -DSCPAction 46
 New-NetQosPolicy -Name "BlackOps6" -AppPathNameMatchCondition "cod24-cod.exe" -DSCPAction 46
 New-NetQosPolicy -Name "Fortnite" -AppPathNameMatchCondition "FortniteClient-Win64-Shipping.exe" -DSCPAction 46
