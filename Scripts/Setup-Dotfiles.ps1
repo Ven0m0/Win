@@ -1,5 +1,4 @@
 #!/usr/bin/env pwsh
-
 #Requires -Version 5.1
 
 <#
@@ -21,6 +20,11 @@ param(
     [switch]$SkipWSL,
     [string[]]$Target
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 # ---------------------------------------------------------------------------
 # Helper functions
 # ---------------------------------------------------------------------------
