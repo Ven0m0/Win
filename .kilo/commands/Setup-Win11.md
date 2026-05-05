@@ -48,7 +48,7 @@ pwsh -File Scripts\Setup-Win11.ps1
 
 **One-liner from internet** (downloads and runs bootstrap):
 ```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
 ## Exit Codes
@@ -71,4 +71,4 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.
 - `Scripts/Setup-Win11.ps1` — executable implementation
 - `Scripts/shell-setup.ps1` — prerequisite installer
 - `install.conf.yaml` — dotbot configuration
-- `.github/scripts/bootstrap.ps1` — internet bootstrap variant
+- `bootstrap.ps1` — internet bootstrap variant

@@ -383,10 +383,9 @@ function Install-WingetTool {
   if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
     Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
     try {
-      $scopeArg = ''
-      if ($isAdmin) { $scopeArg = '--scope machine' }
-      & $winget install --id $Id --silent --accept-source-agreements `
-        --accept-package-agreements $scopeArg *>$null
+      $wingetArgs = @('install', '--id', $Id, '--silent', '--accept-source-agreements', '--accept-package-agreements')
+      if ($isAdmin) { $wingetArgs += @('--scope', 'machine') }
+      & $winget @wingetArgs *>$null
       $ec = $LASTEXITCODE
       # 0 = success, -1978335189 (0x8A150021) = already installed at required version
       if ($ec -eq 0 -or $ec -eq -1978335189) {
@@ -432,7 +431,7 @@ function Start-Bootstrap {
     return
   }
 
-  $configRoot = Join-Path $HOME 'user\.dotfiles\config'
+  $configRoot = Join-Path $PSScriptRoot 'user\.dotfiles\config'
 
   # ---------------------------------------------------------------------------
   # Phase 1: Prerequisites & execution policy
@@ -560,12 +559,64 @@ function Start-Bootstrap {
       GetSkipReason      = { "Call of Duty players directory not found: $callOfDutyPlayersPath" }
     },
     @{
-      Path               = 'games\bo7'
+      Path               = 'games\arc-raiders'
       Mode               = 'directory'
-      Label              = 'Call of Duty Black Ops 7 configs'
+      Label              = 'Arc Raiders configs'
       Filter             = '*'
-      ResolveDestination = { Get-CallOfDutyPlayersPath }
-      GetSkipReason      = { "Call of Duty players directory not found: $callOfDutyPlayersPath" }
+      ResolveDestination = {
+        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'ArcRaiders\Saved\Config\WindowsNoEditor'
+        if (Test-Path $arcPath) { return $arcPath }
+        $arcPath = Join-Path $env:LOCALAPPDATA 'ArcRaiders\Saved\Config\WindowsNoEditor'
+        if (Test-Path $arcPath) { return $arcPath }
+        return $null
+      }
+      GetSkipReason      = { 'Arc Raiders config directory not found' }
+    },
+    @{
+      Path   = 'cursors'
+      Mode   = 'manual'
+      Label  = 'Custom cursor set'
+      Note   = 'manual deployment required; run setup-cursors.cmd as admin after placing files in a suitable directory.'
+    },
+    @{
+      Path  = 'mise\config.toml'
+      Mode  = 'file'
+      Label = 'mise config'
+      ResolveDestination = { Join-Path $HOME '.config\mise\config.toml' }
+      GetSkipReason      = { 'mise not installed or .config directory missing' }
+    },
+    @{
+      Path   = 'scoop\config.json'
+      Mode   = 'file'
+      Label  = 'Scoop config'
+      ResolveDestination = { Join-Path $HOME '.config\scoop\config.json' }
+      GetSkipReason      = { 'Scoop not installed or .config directory missing' }
+    },
+    @{
+      Path   = 'winget-configs\settings.json'
+      Mode   = 'file'
+      Label  = 'Winget settings'
+      ResolveDestination = { Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json' }
+      GetSkipReason      = { 'Winget local state directory not found' }
+    },
+    @{
+      Path   = 'DDU\Settings.xml'
+      Mode   = 'file'
+      Label  = 'DDU settings'
+      ResolveDestination = { Join-Path $env:PROGRAMDATA 'DDU\Settings.xml' }
+      GetSkipReason      = { 'DDU program data directory not found' }
+    },
+    @{
+      Path   = 'nvidia-inspector'
+      Mode   = 'manual'
+      Label  = 'NVIDIA Inspector settings'
+      Note   = 'manual deployment required; import via NVIDIA Inspector GUI or apply the bundled .nip profile.'
+    },
+    @{
+      Path   = 'msi-afterburner'
+      Mode   = 'manual'
+      Label  = 'MSI Afterburner skin'
+      Note   = 'manual deployment required; copy skin files to MSI Afterburner Skins directory.'
     }
   )
 

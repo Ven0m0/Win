@@ -20,7 +20,7 @@
 **Stack:** PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget, dotbot.
 
 **Bootstrap layers:**
-1. **Internet** (`.github/scripts/bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
+1. **Internet** (`bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
 2. **Repo** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — winget packages, hash-based config deployment, PATH setup
 3. **Unattended USB** (`Scripts/auto/autounattend.xml`) — fully self-contained; no companion flat files
 
@@ -306,7 +306,7 @@ pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTo
 mise run bootstrap
 
 # One-command fresh Windows 11 install
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 
 # Validate guidance files
 npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes

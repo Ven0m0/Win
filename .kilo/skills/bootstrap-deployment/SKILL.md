@@ -13,7 +13,7 @@ Use this skill when working on the Ven0m0/Win bootstrap flow: `bootstrap.ps1`, `
 
 ## Bootstrap Overview (Three Layers)
 
-1. **Internet bootstrap** — `.github/scripts/bootstrap.ps1`
+1. **Internet bootstrap** — `bootstrap.ps1`
    - One-command entry point (fresh Windows 11)
    - Self-elevates to admin
    - Installs prerequisites: winget, Git, PowerShell 7+, Python, dotbot
@@ -41,7 +41,7 @@ When any bootstrap file changes, review these together:
 |---|---|
 | `install.conf.yaml` | `Scripts/Setup-Dotfiles.ps1`, `README.md`, `AGENTS.md` |
 | `Scripts/Setup-Dotfiles.ps1` | `install.conf.yaml`, affected configs under `user/.dotfiles/config/` |
-| `.github/scripts/bootstrap.ps1` | `install.conf.yaml`, repo README instructions |
+| `bootstrap.ps1` | `install.conf.yaml`, repo README instructions |
 | `README.md` (setup sections) | `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, bootstrap.ps1 |
 
 ## dotbot Configuration Patterns

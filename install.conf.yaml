@@ -50,6 +50,11 @@
     # Target:  ~/Documents/Call of Duty/players/
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Call of Duty Black Ops 6 configs' -SkipWingetTools -SkipWSL
       description: "CoD BO6 configs → ~/Documents/Call of Duty/players/"
+    # ── Arc Raiders configs ─────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/arc-raiders/
+    # Target:  %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Arc Raiders configs' -SkipWingetTools -SkipWSL
+      description: "Arc Raiders configs → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor"
     # ── NVIDIA assets (manual) ──────────────────────────────────────────────
     # Source:  user/.dotfiles/config/nvidia/
     # Target:  manual — contains mixed scripts, .reg, .nip files for selective use

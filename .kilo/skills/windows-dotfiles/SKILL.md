@@ -15,7 +15,7 @@ Load this skill for any task involving PowerShell scripts, Windows optimization,
 **Primary stack:** PowerShell 5.1+/7+, CMD/Batch, AutoHotkey v2, registry files, Windows Terminal, winget, dotbot.
 
 **Three-layer bootstrap:**
-1. Internet bootstrap (`.github/scripts/bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
+1. Internet bootstrap (`bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
 2. Repo bootstrap (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs packages, deploys configs by hash, configures PATH
 3. Unattended USB install (`Scripts/auto/autounattend.xml`) — self-contained XML; `ExtractScript` embeds all scripts
 

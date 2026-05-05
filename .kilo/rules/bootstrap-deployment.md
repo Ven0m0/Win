@@ -4,7 +4,7 @@ These rules apply to bootstrap and deployment scripts: `**/Setup-Win11.ps1`, `**
 
 ## Bootstrap Layers
 
-1. **Internet bootstrap** (`.github/scripts/bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo
+1. **Internet bootstrap** (`bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs (winget, Git, pwsh, Python, dotbot), clones repo
 2. **Repo bootstrap** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — installs winget packages, deploys configs via SHA256 hash, configures PATH, creates directories
 3. **Unattended USB** (`Scripts/auto/autounattend.xml`) — fully self-contained; no companion flat files
 
@@ -33,7 +33,7 @@ $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 A clean Windows 11 installation can be fully automated with a single command:
 
 ```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
 This script performs a complete hands-free setup:
@@ -48,7 +48,7 @@ This script performs a complete hands-free setup:
 
 ```powershell
 # Download and run with no prompts
-& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing).Content)) -Unattended
+& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing).Content)) -Unattended
 ```
 
 The `-Unattended` flag skips all user prompts, accepts default options, and suppresses optional features.

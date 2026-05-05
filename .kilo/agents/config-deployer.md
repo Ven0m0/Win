@@ -82,7 +82,7 @@ Use this agent for any work involving dotfile deployment, tracked config changes
 | `Scripts/Setup-Dotfiles.ps1` | PowerShell driver: loads dotbot, runs pre/post tasks, PATH, dirs |
 | `user/.dotfiles/config/**` | All tracked configuration content |
 | `README.md` setup section | User-facing bootstrap instructions |
-| `.github/scripts/bootstrap.ps1` | Internet bootstrap (invokes install.conf.yaml indirectly) |
+| `bootstrap.ps1` | Internet bootstrap (invokes install.conf.yaml indirectly) |
 
 ## Working with install.conf.yaml
 
