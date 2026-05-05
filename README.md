@@ -33,7 +33,7 @@ For a clean Windows 11 system, use the complete setup script that installs all p
 
 ```powershell
 # Download and execute the setup script (runs as admin)
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
 The script will:
@@ -46,7 +46,7 @@ The script will:
 **Unattended mode**: Append `-Unattended` for zero prompts (e.g., for automated deployments):
 
 ```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex -Unattended
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex -Unattended
 ```
 
 Alternatively, clone the repo manually first and run the local setup script:
@@ -66,7 +66,7 @@ mise run bootstrap
 The fastest way to set up on a fresh Windows 11 install:
 
 ```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
 
 This single command will automatically:

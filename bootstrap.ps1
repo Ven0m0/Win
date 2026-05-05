@@ -9,7 +9,7 @@
 
     Usage from PowerShell (run as admin or script will self-elevate):
     ```powershell
-    iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+    iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
     ```
 .PARAMETER Unattended
     Skip prompts and use defaults automatically.

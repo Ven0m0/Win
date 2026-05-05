@@ -11,7 +11,7 @@ on:
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
-      - '.github/scripts/bootstrap.ps1'
+      - 'bootstrap.ps1'
   pull_request:
     paths:
       - '.github/workflows/copilot-setup-steps.yml'
@@ -21,7 +21,7 @@ on:
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
-      - '.github/scripts/bootstrap.ps1'
+      - 'bootstrap.ps1'
 
 permissions:
   contents: read
@@ -77,7 +77,7 @@ jobs:
             '.kilo/skills/bootstrap-deployment/SKILL.md',
             'install.conf.yaml',
             'Scripts/Setup-Dotfiles.ps1',
-            '.github/scripts/bootstrap.ps1'
+            'bootstrap.ps1'
           )
 
           foreach ($path in $requiredPaths) {

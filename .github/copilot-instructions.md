@@ -19,5 +19,5 @@ Keep these guardrails in mind:
 Fresh Windows 11 bootstrap entry point:
 
 ```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/.github/scripts/bootstrap.ps1 -UseBasicParsing | iex
+iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
