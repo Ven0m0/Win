@@ -1,5 +1,4 @@
 ﻿#!/usr/bin/env pwsh
-
 #Requires -Version 5.1
 
 <#
@@ -92,6 +91,7 @@ function Start-SetupWin11 {
         return $true
     }
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     # ---------------------------------------------------------------------------
     # Phase 1: Prerequisites (winget, Git, PowerShell 7)
     # ---------------------------------------------------------------------------
