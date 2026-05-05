@@ -5,6 +5,8 @@
     Arc Raiders + system cleanup: caches, logs, temp files, shader caches,
     DNS flush, memory trim, disk optimization.
 #>
+$ErrorActionPreference = 'Continue'
+$ProgressPreference = 'SilentlyContinue'
 
 $totalSize  = 0
 $totalCount = 0
