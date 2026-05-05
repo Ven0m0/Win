@@ -1095,7 +1095,7 @@ fsutil behavior set encryptpagingfile 0
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
 
-$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Continue'
 $ProgressPreference    = 'SilentlyContinue'
 Start-Transcript -Path 'C:\Windows\Setup\Scripts\install.log' -Append
 
