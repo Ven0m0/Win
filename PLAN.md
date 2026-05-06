@@ -29,7 +29,7 @@ This plan converts TODO.md items into an execution-ready implementation roadmap 
 
   # Fix options:
   # Option A: Remove backtick, keep on one line
-  $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop |
+  $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop
 
   # Option B: Use splatting
   $params = @{ Path = 'HKLM:\Software\Wow6432Node\Valve\Steam'; Name = 'InstallPath'; ErrorAction = 'Stop' }
