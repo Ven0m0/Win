@@ -33,7 +33,7 @@ This plan converts TODO.md items into an execution-ready implementation roadmap 
 
   # Option B: Use splatting
   $params = @{ Path = 'HKLM:\Software\Wow6432Node\Valve\Steam'; Name = 'InstallPath'; ErrorAction = 'Stop' }
-  $steamPath = Get-ItemProperty @params |
+  $steamPath = Get-ItemProperty @params
   ```
 - **Validation:** `pwsh -Command "Get-Command Scripts/arc-raiders/SkipVideosMod.ps1"` should succeed
 
