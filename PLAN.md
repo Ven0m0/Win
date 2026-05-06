@@ -7,7 +7,7 @@ This plan converts TODO.md items into an execution-ready implementation roadmap 
 ## Assumptions
 
 - Repository targets PowerShell 5.1+ and PowerShell 7+
-- CI runs on ubuntu-latest with PowerShell/Pester available
+- CI on `ubuntu-latest` validates PowerShell 7+ with PowerShell/Pester available; PowerShell 5.1 compatibility requires a separate `windows-latest` job if it must be enforced in CI
 - PSScriptAnalyzer settings are defined in `PSScriptAnalyzerSettings.psd1`
 - All scripts must pass ScriptAnalyzer with no errors (warnings acceptable per config)
 - Existing test structure uses Pester (26 test files in `tests/`)
