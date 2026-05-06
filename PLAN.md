@@ -39,10 +39,10 @@ This plan converts TODO.md items into an execution-ready implementation roadmap 
 
 ### Task 1.2: Fix Network-Tweaker.ps1 Parser Error
 - **File:** `Scripts/Network-Tweaker.ps1`
-- **Issue:** Line 2398 - "Unexpected token 'Path' in expression or statement"
-- **Root Cause:** Missing closing quote on string at line 2396: `$KeyPath = "HKLM:\SYSTEM\...` is truncated
+- **Issue:** Line 2396 - "Unexpected token 'Path' in expression or statement"
+- **Root Cause:** Missing closing quote on string at line 2395: `$KeyPath = "HKLM:\SYSTEM\...` is truncated
 - **Fix:** Complete the string literal properly
-- **Code Reference:** Line 2396 shows `$AdapterDevic` (truncated), needs closing `"`
+- **Code Reference:** Line 2395 shows `$AdapterDevic` (truncated), needs closing "
 - **Validation:** `pwsh -Command "Get-Command Scripts/Network-Tweaker.ps1"` should succeed
 
 ### Task 1.3: Verify Parser Fixes
