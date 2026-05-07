@@ -628,17 +628,31 @@ function Start-Bootstrap {
       Label  = 'WSL config'
       Invoke = {
         param($sourceDir, $label)
-        # Deploy .wslconfig to Windows host
+        # Deploy .wslconfig to Windows host (controls WSL2 VM resources)
         $wslConfigHost = Join-Path $HOME '.wslconfig'
+        $wslConfHostFile = Join-Path $sourceDir '.wslconfig'
+        if (Test-Path $wslConfHostFile) {
+          if ($PSCmdlet.ShouldProcess($wslConfigHost, "Deploy WSL2 host config")) {
+            Copy-Item $wslConfHostFile $wslConfigHost -Force
+            Write-Host "  [OK] WSL2 host config deployed to ~\.wslconfig" -ForegroundColor Green
+          }
+        } else {
+          Write-Warning "  WSL2 host config (.wslconfig) not found in source"
+        }
+        # Deploy wsl.conf to user's WSL directory for manual transfer
         $wslConfFile = Join-Path $sourceDir 'wsl.conf'
+        $wslDeployPath = Join-Path $HOME '.config\wsl.conf'
         if (Test-Path $wslConfFile) {
-          if ($PSCmdlet.ShouldProcess($wslConfigHost, "Deploy WSL2 config")) {
-            Copy-Item $wslConfFile $wslConfigHost -Force
-            Write-Host "  [OK] WSL2 config deployed to ~\.wslconfig" -ForegroundColor Green
+          if ($PSCmdlet.ShouldProcess($wslDeployPath, "Stage WSL distro config")) {
+            $wslConfigDir = Split-Path $wslDeployPath -Parent
+            if (-not (Test-Path $wslConfigDir)) {
+              New-Item -ItemType Directory -Path $wslConfigDir -Force | Out-Null
+            }
+            Copy-Item $wslConfFile $wslDeployPath -Force
+            Write-Host "  [OK] WSL distro config staged to ~/.config/wsl.conf" -ForegroundColor Green
+            Write-Host "  [INFO] To apply: copy ~/.config/wsl.conf to /etc/wsl.conf inside WSL" -ForegroundColor Yellow
           }
         }
-        # Notify that /etc/wsl.conf needs to be applied inside WSL
-        Write-Host "  [INFO] /etc/wsl.conf in WSL must be applied manually or via mount" -ForegroundColor Yellow
       }
     }
   )

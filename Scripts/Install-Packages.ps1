@@ -139,7 +139,7 @@ function Start-InstallPackages {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'SkipWinget','SkipScoop','SkipChoco','SkipSystemFeatures','ApplyPostInstall') {
+        foreach ($p in 'SkipWinget','SkipScoop','SkipChoco','SkipSystemFeatures','SkipPowerShellModules','SkipNotepadReplacer','ApplyPostInstall') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }

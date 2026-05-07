@@ -86,13 +86,18 @@ jobs:
 
           $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
 
+          $allResults = @()
           $issues = @()
+          $hasErrors = $false
+
           foreach ($file in $psFiles) {
             try {
-              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1
+              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
+              $allResults += $results
               foreach ($result in $results) {
                 if ($result.Severity -eq 'Error') {
                   $issues += "[$($file.Name):$($result.Line)] $($result.RuleName): $($result.Message)"
+                  $hasErrors = $true
                 }
               }
             } catch {
@@ -100,7 +105,7 @@ jobs:
             }
           }
 
-          if ($issues.Count -gt 0) {
+          if ($hasErrors) {
             Write-Host "## PSScriptAnalyzer found $($issues.Count) error(s):" -ForegroundColor Red
             $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
             exit 1

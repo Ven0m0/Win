@@ -107,14 +107,23 @@ function Invoke-InstallNoSteamWebHelper {
 
     if ($PSCmdlet.ShouldProcess("Download NoSteamWebHelper DLL")) {
         Write-Host "Downloading NoSteamWebHelper DLL..." -ForegroundColor Cyan
+        Write-Warning "This modifies Steam's Web Helper DLL. Steam features (Store, Community) may not work afterward."
         $ProgressPreference = 'SilentlyContinue'
 
         try {
             $url = "https://github.com/Aetopia/NoSteamWebHelper/releases/latest/download/umpdc.dll"
             $tempDll = Join-Path $env:TEMP "umpdc.dll"
 
-            # Download the DLL
+            # Download the DLL with TLS 1.2+ enforced
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -Uri $url -OutFile $tempDll -UseBasicParsing -ErrorAction Stop
+
+            # Validate file was downloaded (not empty)
+            $fileSize = (Get-Item $tempDll).Length
+            if ($fileSize -lt 100kb) {
+                Remove-Item $tempDll -Force -ErrorAction SilentlyContinue
+                throw "Downloaded file is too small ($fileSize bytes) - download may have failed"
+            }
 
             # Backup existing DLL if present
             if ((Test-Path $targetDll) -and -not (Test-Path $backupDll)) {
