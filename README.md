@@ -18,6 +18,10 @@ The following package managers are recommended for Windows:
   ```pwsh
   irm "https://christitus.com/windev" | iex
   ```
+  or in powershell 7:
+  ```pwsh
+  & ([scriptblock]::Create((irm https://christitus.com/windev)))
+  ```
 
 ## Features
 
@@ -31,9 +35,9 @@ The following package managers are recommended for Windows:
 
 For a clean Windows 11 system, use the complete setup script that installs all prerequisites, clones the repository, and runs bootstrap automatically:
 
-```powershell
+```pwsh
 # Download and execute the setup script (runs as admin)
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
+iwr -useb "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1" | iex
 ```
 
 The script will:
@@ -45,16 +49,15 @@ The script will:
 
 **Unattended mode**: Append `-Unattended` for zero prompts (e.g., for automated deployments):
 
-```powershell
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex -Unattended
+```pwsh
+iwr -useb "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1"| iex -Unattended
 ```
 
 Alternatively, clone the repo manually first and run the local setup script:
 
-```powershell
+```pwsh
 # Clone using git
-git clone https://github.com/Ven0m0/Win.git
-
+git clone --depth 1 https://github.com/Ven0m0/Win.git
 # One-command local setup
 mise run bootstrap
 ```
@@ -65,10 +68,9 @@ mise run bootstrap
 
 The fastest way to set up on a fresh Windows 11 install:
 
-```powershell
+```pwsh
 iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
 ```
-
 This single command will automatically:
 - Install [winget](https://winstall.app) (Windows Package Manager) if missing
 - Install Git, PowerShell 7+, and dotbot
@@ -77,28 +79,20 @@ This single command will automatically:
 - Optionally set up WSL2
 
 ### Option 2: Manual Setup
-
 If you prefer explicit control or the one-command script fails, install prerequisites manually:
 
 1. **Install dotbot** (the dotfile manager):
-
-   ```powershell
+   ```pwsh
    pip install dotbot
    ```
-
    Or via mise:
-
-   ```powershell
+   ```pwsh
    mise install dotbot
    ```
 
 2. **Recommended tools** (bootstrap will install these if missing, but you can pre-install):
-
-   ```powershell
-   winget install Git.Git
-   winget install Microsoft.PowerShell
-   winget install Microsoft.WindowsTerminal
-   winget install Microsoft.VisualStudioCode
+   ```pwsh
+   winget install -h Git.Git Microsoft.PowerShell Microsoft.WindowsTerminal
    ```
 
 The bootstrap script will:
@@ -112,14 +106,12 @@ The bootstrap script will:
 ### Manual Setup (if bootstrap doesn't run)
 
 1. **PowerShell Profile**:
-
-   ```powershell
+   ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\powershell\profile.ps1" $PROFILE -Force
    ```
 
 2. **Windows Terminal Settings**:
-
-   ```powershell
+   ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
@@ -128,27 +120,22 @@ Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settin
 If automatic bootstrap fails, configure manually:
 
 1. **Enable script execution**:
-
-   ```powershell
-   cd $HOME\Scripts
-   .\allow-scripts.ps1
+   ```pwsh
+   pwsh -nop -nol "$HOME\Scripts\allow-scripts.ps1"
    ```
 
 2. **PowerShell Profile**:
-
-   ```powershell
+   ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\powershell\profile.ps1" $PROFILE -Force
    ```
 
 3. **Windows Terminal Settings**:
-
-   ```powershell
+   ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
 4. **Git Config**:
-
-   ```powershell
+   ```pwsh
    Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
    notepad $HOME\.gitconfig
    ```
@@ -258,7 +245,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Basic Commands
 
-```powershell
+```pwsh
 # Deploy dotfiles
 mise run deploy
 # or
@@ -268,7 +255,7 @@ dotbot -c install.conf.yaml
 mise run bootstrap
 
 # Check git status
-git status
+git status --long
 
 # Commit changes
 git commit -m "Update configuration"
@@ -281,7 +268,7 @@ git push
 
 To track a new configuration file:
 
-```powershell
+```pwsh
 # Add the file to git
 git add $HOME\.my-new-config
 
@@ -294,7 +281,7 @@ git push
 
 ### Updating on Another Machine
 
-```powershell
+```pwsh
 # Pull latest changes
 git pull
 
@@ -345,7 +332,7 @@ The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
 
 Create `~/.config/powershell/local.ps1` for machine-specific configuration that won't be tracked by git:
 
-```powershell
+```pwsh
 # ~/.config/powershell/local.ps1
 # This file is ignored by git
 
@@ -385,7 +372,7 @@ Run `Scripts\allow-scripts.ps1` as administrator to enable script execution.
 
 Manually run:
 
-```powershell
+```pwsh
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 mise run bootstrap
 # or
@@ -396,7 +383,7 @@ dotbot -c install.conf.yaml
 
 Manually copy:
 
-```powershell
+```pwsh
 Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
 ```
 
@@ -449,7 +436,7 @@ Check these locations for debugging:
 
 Make sure dotbot is installed:
 
-```powershell
+```pwsh
 where.exe dotbot
 ```
 
