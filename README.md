@@ -10,13 +10,13 @@ The following package managers are recommended for Windows:
 
 - [Winget](https://winstall.app) — Windows Package Manager (built-in)
 - [Scoop](https://scoop.sh) — Command-line installer
-  ```powershell
+  ```pwsh
   iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
   ```
 - [Chocolatey](https://chocolatey.org) — Package manager for Windows
 - **CCT (Chris Titus Tech)**: Use the `winutil` function defined in the PowerShell profile
-  ```powershell
-  iwr -useb https://christitus.com/win | iex
+  ```pwsh
+  irm "https://christitus.com/windev" | iex
   ```
 
 ## Features
