@@ -150,7 +150,7 @@ zprofile text eol=lf
 # =============================================================================
 *.[zZ][iI][pP] binary
 *.[rR][aA][rR] binary
-*.[7zZ] binary
+*.[7][zZ] binary
 *.[tT][aA][rR] binary
 *.[gG][zZ] binary
 *.[zZ][sS][tT][dD] binary
