@@ -16,7 +16,7 @@ The following package managers are recommended for Windows:
 - [Chocolatey](https://chocolatey.org) — Package manager for Windows
 - **CCT (Chris Titus Tech)**: Use the `winutil` function defined in the PowerShell profile
   ```pwsh
-  irm "https://christitus.com/windev" | iex
+  irm -useb "https://christitus.com/windev" | iex
   ```
   or in powershell 7:
   ```pwsh
