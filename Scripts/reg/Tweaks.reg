@@ -1,0 +1,122 @@
+Windows Registry Editor Version 5.00
+
+; 100% DPI & Disable fix scaling for apps
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"LogPixels"="00000096"
+"Win8DpiScaling"="00000000"
+"EnablePerProcessSystemDPI"="00000000"
+"MenuShowDelay"="0"
+
+[HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics]
+"AppliedDPI"="00000096"
+
+; MOUSE
+; Turn off enhance pointer precision
+[HKEY_CURRENT_USER\Control Panel\Mouse]
+"MouseSensitivity"="10"
+"SmoothMouseXCurve"=hex:\
+	00,00,00,00,00,00,00,00,\
+	C0,CC,0C,00,00,00,00,00,\
+	80,99,19,00,00,00,00,00,\
+	40,66,26,00,00,00,00,00,\
+	00,33,33,00,00,00,00,00
+"SmoothMouseYCurve"=hex:\
+	00,00,00,00,00,00,00,00,\
+	00,00,38,00,00,00,00,00,\
+	00,00,70,00,00,00,00,00,\
+	00,00,A8,00,00,00,00,00,\
+	00,00,E0,00,00,00,00,00
+
+[HKEY_USERS\.DEFAULT\Control Panel\Mouse]
+"MouseSpeed"="0"
+"MouseThreshold1"="0"
+"MouseThreshold2"="0"
+
+; Filterkeys Setter
+[HKEY_CURRENT_USER\Control Panel\Accessibility\Keyboard Response]
+"DelayBeforeAcceptance"="0" 
+"BounceTime"="0"
+
+; OTHER
+; Disable nvidia tray icon
+[HKEY_CURRENT_USER\Software\NVIDIA Corporation\NvTray]
+"StartOnLogin"=dword:00000000
+
+; Turn off notifications network usage
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications]
+"NoCloudApplicationNotification"=dword:00000001
+
+; Always unload dlls
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer]
+"AlwaysUnloadDLL"=dword:00000001
+
+; Use the latest NET Framework version
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework]
+"OnlyUseLatestCLR"=dword:00000001
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework]
+"OnlyUseLatestCLR"=dword:00000001
+
+; Nvidia enable old sharpening
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableGR535"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\VideoSettings]
+"VideoQualityOnBattery"=dword:00000001
+
+;Resolves a memory leak in windows 10 through Registry.
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Ndu]
+"Start"=dword:00000004
+
+;Disable mitigations
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management]
+"FeatureSettings"=dword:00000001
+"FeatureSettingsOverrideMask"=dword:00000003
+"FeatureSettingsOverride"=dword:00000003
+
+; Turn on Game Mode registry
+[HKEY_CURRENT_USER\Software\Microsoft\GameBar]
+"AllowAutoGameMode"=dword:00000001
+"AutoGameModeEnabled"=dword:00000001
+
+; HW scheduling on
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+"HwSchMode"=dword:00000002
+
+;Prefer IPv4 over IPv6
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters]
+"DisabledComponents"=dword:00000020
+
+; Enable Network card onboard processor
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters]
+"DisableTaskOffload"=dword:00000000
+
+; SSD Tweaks
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NvCache]
+"OptimizeBootAndResume"=dword:00000001
+"EnablePowerModeState"=dword:00000000
+"EnableNvCache"=dword:00000001
+"EnableSolidStateMode"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Policies]
+"NtfsDisableCompression"=dword:00000001
+"NtfsDisableEncryption"=dword:00000001
+"NtfsEncryptPagingFile"=dword:00000000
+"NtfsDefaultTier"=dword:00000002
+"NtfsForceNonPagedPoolAllocation"=dword:00000001
+"NtfsParallelFlushWorkers"=dword:00000000
+"NtfsDisable8dot3NameCreation"=dword:00000001
+"NtfsEnableTxfDeprecatedFunctionality"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Psched]
+"NonBestEffortLimit"=dword:00000000
+"TimerResolution"=dword:00000001
+
+; Prefetch and logging
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters]
+"EnablePrefetcher"=dword:00000000
+"EnableBoottrace"=dword:00000000
+"SfTracingState"=dword:00000000
+
+; Disable “- shortcut” text for shortcuts
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer]
+"link"=hex:00,00,00,00
