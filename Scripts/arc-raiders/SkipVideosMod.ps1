@@ -30,8 +30,7 @@ function Find-ArcRaiders {
     } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
-            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' `
-    -Name InstallPath -ErrorAction Stop |
+            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop
         } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     }
     if ($steamPath) {

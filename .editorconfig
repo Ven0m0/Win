@@ -1,7 +1,11 @@
-# EditorConfig: https://editorconfig.org
-root=true
+# EditorConfig - Ven0m0/Win
+# Optimized for Windows 10/11 PowerShell development
+# https://editorconfig.org
+
+root = true
+
 # =============================================================================
-# Default Settings for All Files
+# Default Settings
 # =============================================================================
 [*]
 charset = utf-8
@@ -13,36 +17,8 @@ tab_width = 2
 max_line_length = 120
 
 # =============================================================================
-# Shell Scripts
+# PowerShell (Windows)
 # =============================================================================
-[**.{sh,bash},bash_*,PKGBUILD,.bash*,.profile]
-shell_variant = bash
-spaces_around_operators = true
-spaces_around_brackets = false
-keep_padding = false
-space_redirects = false
-switch_case_indent = false
-function_next_line = false
-binary_next_line = true
-end_of_line = lf
-
-[*.{bashrc,bash_profile,bash_logout,zshrc,zshenv,zprofile}]
-shell_variant = bash
-end_of_line = lf
-
-[*.profile]
-shell_variant = posix
-end_of_line = lf
-
-# Cmd
-[**.{bat,cmd}]
-indent_style = space
-charset = utf-8-bom
-indent_size = 2
-tab_width = 2
-end_of_line = crlf
-
-# Powershell
 [**.{ps1,psm1,psd1}]
 end_of_line = crlf
 charset = utf-8-bom
@@ -51,43 +27,52 @@ indent_style = space
 indent_size = 2
 tab_width = 2
 
-[**.{csv,sln,vcxproj,csproj}]
+# =============================================================================
+# Windows Shell Scripts
+# =============================================================================
+[**.{bat,cmd}]
 end_of_line = crlf
 charset = utf-8-bom
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+[**.{reg}]
+end_of_line = crlf
+charset = utf-8-bom
+indent_style = space
+indent_size = 2
 
 # =============================================================================
-# Programming Languages
+# Unix Shell Scripts (WSL/Linux)
 # =============================================================================
-# Python
-[**.{py,pyw,pyi}]
-indent_size = 4
-quote_type = double
+[**.{sh,bash}]
+end_of_line = lf
+charset = utf-8
+shell_variant = bash
 
-# JavaScript/TypeScript
-[**.{js,mjs,cjs,jsx}]
-quote_type = single
+[bashrc]
+end_of_line = lf
+shell_variant = bash
 
-[**.{ts,mts,cts,tsx}]
-quote_type = single
+[.profile]
+end_of_line = lf
+shell_variant = posix
 
 # =============================================================================
-# Configuration Files
+# Windows Terminal/VS Code Settings
 # =============================================================================
-# XML
-[*.xml]
-indent_size = 4
-
-[*.{json,jsonc}]
+[{*.json,*.jsonc}]
 indent_size = 2
 tab_width = 2
 indent_style = space
 
-[.kilo/kilo.json]
+[{.kilo/kilo.json,.kilo/kilo.jsonc}]
 indent_size = 2
 tab_width = 2
 indent_style = space
 
-[.kilo/kilo.jsonc]
+[*.yaml,*.yml]
 indent_size = 2
 tab_width = 2
 indent_style = space
@@ -104,18 +89,46 @@ trim_trailing_whitespace = false
 insert_final_newline = false
 
 # =============================================================================
-# Build Systems & Package Managers
+# Web Assets
 # =============================================================================
-[{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
+[**.{css,scss,sass,less}]
+indent_size = 2
+
+[**.{js,jsx,mjs,cjs}]
+indent_size = 2
+quote_type = single
+
+[**.{ts,tsx,mts,cts}]
+indent_size = 2
+quote_type = single
+
+# =============================================================================
+# Config Files
+# =============================================================================
+[*.xml]
 indent_size = 4
+
+[*.ini,*.cfg,*.conf]
+indent_size = 2
+
+# =============================================================================
+# Development Files
+# =============================================================================
+[*.{py,pyw,pyi}]
+indent_size = 4
+quote_type = double
+
+[*.nix]
+indent_size = 2
 
 # =============================================================================
 # Special Cases
 # =============================================================================
-# Minified files
 [**.min.{js,css}]
 insert_final_newline = false
 
-# SVG
 [**.svg]
 insert_final_newline = false
+
+[{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
+indent_size = 4

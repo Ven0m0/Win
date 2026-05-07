@@ -1,0 +1,14 @@
+# WSL2 Advanced Configuration
+# Applied to %USERPROFILE%\.wslconfig on Windows host
+
+[wsl2]
+memory=4GB
+processors=2
+localhostForwarding=true
+
+# Nested virtualization for VMs inside WSL
+nestedVirtualization=true
+
+# Enable experimental features
+experimental.autoMemoryReclaim=true
+experimental.sparseVhd=true
