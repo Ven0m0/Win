@@ -2392,7 +2392,7 @@ function Initialize-AdapterUI {
         $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID
     $ErrorActionPreference = 'Continue'
 
-    $Global:KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}\$AdapterDevice"
+    $Global:KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}\$AdapterDeviceNumber"
     If(Test-Path -Path $KeyPath)
     {
       Write-Host "Path found at ($KeyPath)."
