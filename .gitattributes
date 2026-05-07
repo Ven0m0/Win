@@ -1,79 +1,97 @@
+# GitAttributes - Ven0m0/Win
+# Optimized for Windows 10/11 with cross-platform support
+# =============================================================================
+# Core Settings
+# =============================================================================
 * text=auto eol=crlf whitespace=blank-at-eol,-blank-at-eof,-space-before-tab,tabwidth=2
 
 # =============================================================================
-# Shell Scripts
+# PowerShell (Windows Primary)
 # =============================================================================
-*.{sh,bash,bashrc,bash_profile,bash_logout} text eol=lf diff=bash
+*.{ps1,psm1,psd1} text eol=crlf linguist-language=PowerShell
+
+# =============================================================================
+# Windows Scripts
+# =============================================================================
+*.[cC][mM][dD] text eol=crlf
+*.[bB][aA][tT] text eol=crlf
+*.ahk text eol=crlf
+*.[rR][eE][gG] text eol=crlf
+
+# =============================================================================
+# Unix Scripts (WSL/Cross-Platform)
+# =============================================================================
+*.[sS][hH] text eol=lf diff=bash
+*.[bB][aA][sS][hH] text eol=lf diff=bash
+bashrc text eol=lf
+bash_profile text eol=lf
+bash_logout text eol=lf
+zshrc text eol=lf
+zshenv text eol=lf
+zprofile text eol=lf
+.profile text eol=lf
+
+# =============================================================================
+# Configuration Files
+# =============================================================================
+*.json text diff=json linguist-language=JSON
+*.jsonc text diff=json linguist-language=JSONC
+*.yaml text diff=yaml linguist-language=YAML
+*.yml text diff=yaml linguist-language=YAML
+*.toml text diff=toml linguist-language=TOML
+*.xml text diff=xml
+*.ini text
+*.cfg text
+*.conf text
+*.config text
+*.service text
+*.rules text
+
+# Winget configs (YAML-based)
+*.winget diff=yaml linguist-language=YAML
+
+# =============================================================================
+# Documentation
+# =============================================================================
+*.md text diff=markdown linguist-detectable linguist-documentation
+*.txt text linguist-documentation
+*.rst text
+*.adoc text
+
+# =============================================================================
+# Web Assets
+# =============================================================================
+*.css text diff=css
+*.scss text diff=css
+*.sass text diff=css
+*.less text diff=css
+*.html text diff=html
+*.htm text diff=html
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.vue text
+*.svg text
 
 # =============================================================================
 # Programming Languages
 # =============================================================================
-*.py diff=python
-*.{js,java} diff=java
-*.lua linguist-language=Lua
-*.nix linguist-language=Nix
+*.py text diff=python linguist-language=Python
+*.pyw text linguist-language=Python
+*.java text diff=java linguist-language=Java
+*.lua text linguist-language=Lua
+*.nix text linguist-language=Nix
+*.cs text diff=csharp linguist-language=C#
+*.fs text diff=tex linguist-language=F#
+*.go text diff=golang linguist-language=Go
+*.rs text diff=rust linguist-language=Rust
+*.rb text diff=ruby linguist-language=Ruby
+*.php text diff=php linguist-language=PHP
 
 # =============================================================================
-# Configuration & Data Formats
+# Build/Project Files
 # =============================================================================
-*.json text diff=json linguist-language=json
-*.jsonc diff=json linguist-language=JSONC
-*.yaml diff=yaml
-*.yml diff=yaml
-*.toml diff=toml linguist-language=TOML
-*.ron linguist-language=RON
-*.xml diff=xml
-*.html diff=html
-*.css diff=css
-*.md diff=markdown linguist-detectable linguist-documentation
-*.txt linguist-documentation
-*.{ini,cfg,conf,service,rules} text
-*.winget diff=yaml linguist-language=yaml
-.editorconfig text
-
-# =============================================================================
-# Binary Files
-# =============================================================================
-# Images
-*.{jpg,jpeg,webp,avif,jxl,png,gif,bmp,ico,ogg,opus,mp3,mp4,avi,mkv,flac,wav} binary diff=exif
-*.svg text
-
-# Fonts
-*.ttf binary
-
-*.{exe,dll,so} binary
-
-*.{7z,zip,rar,tar,gz,zstd,bz2} binary
-*.pdf binary
-
-# =============================================================================
-# Special Cases
-# =============================================================================
-# Patches
-*.{patch,diff} diff=patch
-
-# Git files
-.{gitignore,gitattributes,gitconfig,gitmodules,editorconfig} text
-
-# =============================================================================
-# Windows
-# =============================================================================
-*.ahk text eol=crlf
-*.{ps1,psm1,psd1} text eol=crlf linguist-language=PowerShell
-*.{cmd,[cC][mM][dD]} text eol=crlf
-*.{bat,[bB][aA][tT]} text eol=crlf
-
-*.cs diff=csharp
-*.doc diff=astextplain
-*.DOC diff=astextplain
-*.docx diff=astextplain
-*.DOCX diff=astextplain
-*.dot diff=astextplain
-*.DOT diff=astextplain
-*.pdf diff=astextplain
-*.PDF diff=astextplain
-*.rtf diff=astextplain
-*.RTF diff=astextplain
 *.sln merge=binary
 *.csproj merge=binary
 *.vbproj merge=binary
@@ -85,3 +103,115 @@
 *.wixproj merge=binary
 *.modelproj merge=binary
 *.sqlproj merge=binary
+*.props text
+*.targets text
+
+# =============================================================================
+# Data Files
+# =============================================================================
+*.db text
+*.sqlite text
+*.mdf text
+*.ldf text
+
+# =============================================================================
+# Images & Media (Binary)
+# =============================================================================
+*.[jJ][pP][gG] binary diff=exif
+*.[jJ][pP][eE][gG] binary diff=exif
+*.[pP][nN][gG] binary
+*.[gG][iI][fF] binary
+*.[wW][eE][bB][pP] binary
+*.[aA][vV][iI][fF] binary
+*.[jJ][xX][lL] binary
+*.[bB][mM][pP] binary
+*.[iI][cC][oO] binary
+*.[sS][vV][gG] text
+*.[oO][gG][gG] binary
+*.[oO][pP][uU][sS] binary
+*.[mM][pP][3] binary
+*.[mM][pP][4] binary
+*.[aA][vV][iI] binary
+*.[mM][kK][vV] binary
+*.[fF][lL][aA][cC] binary
+*.[wW][aA][vV] binary
+
+# =============================================================================
+# Fonts (Binary)
+# =============================================================================
+*.[tT][tT][fF] binary
+*.[oO][tT][fF] binary
+*.[wW][oO][fF][fF] binary
+*.[wW][oO][fF] binary
+*.[eE][oO][tT] binary
+
+# =============================================================================
+# Archives & Compressed (Binary)
+# =============================================================================
+*.[zZ][iI][pP] binary
+*.[rR][aA][rR] binary
+*.[7zZ] binary
+*.[tT][aA][rR] binary
+*.[gG][zZ] binary
+*.[zZ][sS][tT][dD] binary
+*.[bB][zZ]2 binary
+*.[xX][zZ] binary
+
+# =============================================================================
+# Executables & Libraries (Binary)
+# =============================================================================
+*.[eE][xX][eE] binary
+*.[dD][lL][lL] binary
+*.[sS][oO] binary
+*.[aA] binary
+*.[lL][iI][bB] binary
+*.[oO][bB][jJ] binary
+*.[cC][lL][aA][sS][sS] binary
+
+# Documents
+*.[pP][dD][fF] binary
+*.[dD][oO][cC] diff=astextplain
+*.[dD][oO][cC][xX] diff=astextplain
+*.[dD][oO][T] diff=astextplain
+*.[dD][O][T] diff=astextplain
+*.[rR][tT][fF] diff=astextplain
+*.[R][T][F] diff=astextplain
+*.[xX][lL][sS] binary
+*.[xX][lL][sS][xX] binary
+
+# =============================================================================
+# Game Configs (often JSON/YAML/text)
+# =============================================================================
+*.ini text
+*.cfg text
+*.config text
+*.vdf text
+*.nip text
+
+# =============================================================================
+# Special Files
+# =============================================================================
+.gitignore text
+.gitattributes text
+.gitconfig text
+.editorconfig text
+.dockerignore text
+.dockerfile text eol=lf
+
+# Patches
+*.[pP][aA][tT][cC][hH] diff=patch
+*.[dD][iI][fF] diff=patch
+
+# =============================================================================
+# Repository-Specific
+# =============================================================================
+# Dotbot config
+install.conf.yaml text eol=lf
+
+# CI/CD
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text
+
+# Scripts auto-extracted from XML
+*.ps1 text eol=crlf
