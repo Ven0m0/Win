@@ -621,6 +621,25 @@ function Start-Bootstrap {
       Mode   = 'manual'
       Label  = 'MSI Afterburner skin'
       Note   = 'manual deployment required; copy skin files to MSI Afterburner Skins directory.'
+    },
+    @{
+      Path   = 'wsl'
+      Mode   = 'script'
+      Label  = 'WSL config'
+      Invoke = {
+        param($sourceDir, $label)
+        # Deploy .wslconfig to Windows host
+        $wslConfigHost = Join-Path $HOME '.wslconfig'
+        $wslConfFile = Join-Path $sourceDir 'wsl.conf'
+        if (Test-Path $wslConfFile) {
+          if ($PSCmdlet.ShouldProcess($wslConfigHost, "Deploy WSL2 config")) {
+            Copy-Item $wslConfFile $wslConfigHost -Force
+            Write-Host "  [OK] WSL2 config deployed to ~\.wslconfig" -ForegroundColor Green
+          }
+        }
+        # Notify that /etc/wsl.conf needs to be applied inside WSL
+        Write-Host "  [INFO] /etc/wsl.conf in WSL must be applied manually or via mount" -ForegroundColor Yellow
+      }
     }
   )
 

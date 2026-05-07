@@ -37,6 +37,8 @@ param(
     [switch]$SkipScoop,
     [switch]$SkipChoco,
     [switch]$SkipSystemFeatures,
+    [switch]$SkipPowerShellModules,
+    [switch]$SkipNotepadReplacer,
     [switch]$ApplyPostInstall,
     [string]$PostInstallComputerName = 'PC',
     [string]$PostInstallTimeZone = 'W. Europe Standard Time',
@@ -52,6 +54,8 @@ function Start-InstallPackages {
         [switch]$SkipScoop,
         [switch]$SkipChoco,
         [switch]$SkipSystemFeatures,
+        [switch]$SkipPowerShellModules,
+        [switch]$SkipNotepadReplacer,
         [switch]$ApplyPostInstall,
         [string]$PostInstallComputerName = 'PC',
         [string]$PostInstallTimeZone = 'W. Europe Standard Time',
@@ -241,6 +245,35 @@ function Start-InstallPackages {
     }
 
     # ============================================================================
+    # Phase 4.5: Notepad Replacer (requires Notepad++ installed first)
+    # ============================================================================
+    if (-not $SkipNotepadReplacer) {
+        Write-Host ''
+        Write-Host '[4.5/8] Setting up Notepad Replacer...' -ForegroundColor Cyan
+
+        # Check if Notepad++ is installed
+        $notepadPlusPlus = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
+
+        if (-not $notepadPlusPlus) {
+            Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'
+        } else {
+            try {
+                $url = 'https://www.binaryfortress.com/Data/Download/?Package=notepadreplacer&Log=100'
+                $tempInstaller = Join-Path $env:TEMP 'NotepadReplacer-Setup.exe'
+
+                if ($PSCmdlet.ShouldProcess('Notepad Replacer', 'Download and install')) {
+                    Invoke-WebRequest -Uri $url -OutFile $tempInstaller -UseBasicParsing -ErrorAction Stop
+                    Start-Process -FilePath $tempInstaller -ArgumentList '/S' -Wait -NoNewWindow
+                    Remove-Item $tempInstaller -Force -ErrorAction SilentlyContinue
+                    Write-Status 'Notepad Replacer installed' -Status 'OK'
+                }
+            } catch {
+                Write-Status "Notepad Replacer - $($_.Exception.Message)" -Status 'FAIL'
+            }
+        }
+    }
+
+    # ============================================================================
     # Phase 5: Scoop installation and packages
     # ============================================================================
     if (-not $SkipScoop) {
@@ -335,11 +368,38 @@ function Start-InstallPackages {
     }
 
     # ============================================================================
+    # Phase 7.5: PowerShell modules
+    # ============================================================================
+    if (-not $SkipPowerShellModules) {
+        Write-Host ''
+        Write-Host '[7.5/8] Installing PowerShell modules...' -ForegroundColor Cyan
+
+        $psModules = @(
+            @{ Name = 'PSIni';              Purpose = 'INI file parsing and editing' },
+            @{ Name = 'Pester';             Purpose = 'Unit testing framework' },
+            @{ Name = 'PowerShell-Beautifier'; Purpose = 'Code formatting' }
+        )
+
+        foreach ($mod in $psModules) {
+            if (-not (Get-Module -ListAvailable -Name $mod.Name)) {
+                try {
+                    Install-Module -Name $mod.Name -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+                    Write-Status "PowerShell module '$($mod.Name)' installed" -Status 'OK'
+                } catch {
+                    Write-Status "PowerShell module '$($mod.Name)' - $($_.Exception.Message)" -Status 'FAIL'
+                }
+            } else {
+                Write-Status "PowerShell module '$($mod.Name)' already installed" -Status 'OK'
+            }
+        }
+    }
+
+    # ============================================================================
     # Phase 8: Post-Install Windows Setup (from autounattend.xml)
     # ============================================================================
     if ($ApplyPostInstall -and $isAdmin) {
         Write-Host ''
-        Write-Host '[8/7] Applying post-install Windows configuration...' -ForegroundColor Cyan
+        Write-Host '[8/8] Applying post-install Windows configuration...' -ForegroundColor Cyan
 
         # Set timezone
         try {

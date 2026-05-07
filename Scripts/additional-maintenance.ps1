@@ -60,6 +60,14 @@ function Start-AdditionalMaintenance {
     Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
         -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
 
+    # 2.5 DISM Full Cleanup (aggressive - use when system corruption or update issues occur)
+    # WARNING: This operation can take 30+ minutes and requires a reboot
+    # Only run this if you are experiencing system issues, not for regular maintenance
+    Write-Info "=== DISM Full Component Cleanup ==="
+    Write-Warn "NOTE: /ResetBase /RestoreHealth operations may take 30+ minutes and require a reboot."
+    Invoke-Operation -Name 'DISM_FullCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
+        -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup /ResetBase /RestoreHealth'
+
     # 3. Clear Windows Store Cache
     Invoke-Operation -Name 'StoreCacheClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' `
         -Action {} -Command 'wsreset.exe' -ArgumentList '-i'

@@ -60,6 +60,11 @@
     # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA assets' -SkipWingetTools -SkipWSL
       description: "NVIDIA assets → manual (skipped — apply selectively from user/.dotfiles/config/nvidia/)"
+    # ── WSL2 configuration ─────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/wsl/
+    # Target:  %USERPROFILE%\.wslconfig (Windows host) and /etc/wsl.conf (WSL)
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'WSL config' -SkipWingetTools -SkipWSL
+      description: "WSL2 config → %USERPROFILE%\\.wslconfig and /etc/wsl.conf"
 - plugin: dotbot-firefox
   source: dotbot-plugins/firefox
 - plugin: dotbot-windows
