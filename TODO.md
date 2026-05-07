@@ -34,3 +34,11 @@ Line |
 ```
 
 fix .github/workflows/powershell.yml and ensure psscriptanalyzer hasno issues or warnings for the repo
+
+---
+
+clean steam redist installers:
+```text
+C:\Program Files (x86)\Steam\steamapps\common\Steamworks Shared\_CommonRedist\DirectX
+C:\Program Files (x86)\Steam\steamapps\common\Steamworks Shared\_CommonRedist\vcredist
+```
