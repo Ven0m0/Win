@@ -25,8 +25,7 @@ function Find-ArcRaiders {
     # 1. Steam registry
     $steamPath = $null
     try {
-        $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop `
-    | Select-Object -Ex
+        $steamPath = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop).SteamPath
     } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {

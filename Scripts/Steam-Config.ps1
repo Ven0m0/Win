@@ -1,4 +1,5 @@
-﻿# Steam Configuration
+﻿#Requires -Version 5.1
+# Steam Configuration
 # Copyright (C) 2026 Noverse
 
 param([string[]]$paths)

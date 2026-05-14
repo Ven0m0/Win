@@ -1,3 +1,4 @@
+#Requires -Version 5.1
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS

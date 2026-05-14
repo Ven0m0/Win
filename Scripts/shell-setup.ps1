@@ -92,8 +92,8 @@ function Download-CustomApp {
     [Parameter(Mandatory)][string]$Link,
     [Parameter(Mandatory)][string]$Folder
   )
-  if ((curl -sIL "$Link" | Select-String -Pattern "Content-Disposition")) {
-    $Package = (curl -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" |
+  if ((curl.exe -sIL "$Link" | Select-String -Pattern "Content-Disposition")) {
+    $Package = (curl.exe -sIL "$Link" | Select-String -Pattern "filename=" | Split-String -Separator "=" |
     Select-Object -Last 1).Trim('"')
   } else {
     $Package = $Link.Split("/") | Select-Object -Last 1
