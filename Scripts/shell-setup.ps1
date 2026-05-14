@@ -16,7 +16,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $VerbosePreference = 'Continue'
 
-function Run-Elevated {
+function Invoke-Elevated {
   param(
     [Parameter(Mandatory)] [string]$FilePath,
     [Parameter()] [string[]]$ArgumentList = @(),
@@ -60,13 +60,13 @@ function Install-ChocoApp {
   $listApp = choco list --local $Package
   if ($listApp -like "0 packages installed.") {
     Write-Verbose "Installing $Package"
-    Run-Elevated -FilePath "PowerShell" -ArgumentList "choco","install","$Package","-y"
+    Invoke-Elevated -FilePath "PowerShell" -ArgumentList "choco","install","$Package","-y"
   } else {
     Write-Verbose "Package $Package already installed; skipping."
   }
 }
 
-function Extract-Download {
+function Expand-Download {
   param(
     [Parameter(Mandatory)][string]$Folder,
     [Parameter(Mandatory)][string]$File
@@ -87,7 +87,7 @@ function Extract-Download {
   }
 }
 
-function Download-CustomApp {
+function Get-CustomApp {
   param(
     [Parameter(Mandatory)][string]$Link,
     [Parameter(Mandatory)][string]$Folder
@@ -108,15 +108,15 @@ function Install-CustomApp {
     [Parameter(Mandatory)][string]$URL,
     [string]$Folder
   )
-  $Package = Download-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
+  $Package = Get-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
   $downloadPath = Join-Path $Env:UserProfile\Downloads $Package
   if (Test-Path -LiteralPath $downloadPath -PathType Leaf) {
     if ($PSBoundParameters.ContainsKey('Folder')) {
       $target = Join-Path "$Env:UserProfile\bin" $Folder
       if (-not (Test-Path -LiteralPath $target)) { New-Item -Path $target -ItemType Directory | Out-Null }
-      Extract-Download -Folder $target -File $downloadPath
+      Expand-Download -Folder $target -File $downloadPath
     } else {
-      Extract-Download -Folder "$Env:UserProfile\bin\" -File $downloadPath
+      Expand-Download -Folder "$Env:UserProfile\bin\" -File $downloadPath
     }
     Remove-Item -LiteralPath $downloadPath -Force
   }
@@ -124,10 +124,10 @@ function Install-CustomApp {
 
 function Install-CustomPackage {
   param([Parameter(Mandatory)][string]$URL)
-  $Package = Download-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
+  $Package = Get-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
   $downloadPath = Join-Path $Env:UserProfile\Downloads $Package
   if (Test-Path -LiteralPath $downloadPath -PathType Leaf) {
-    Run-Elevated -FilePath ".\$Package" -ArgumentList "/S" -NoWait:$false -Hidden
+    Invoke-Elevated -FilePath ".\$Package" -ArgumentList "/S" -NoWait:$false -Hidden
     Remove-Item -LiteralPath $downloadPath -Force
   }
 }
@@ -148,7 +148,7 @@ function Start-MainFunction {
 # ExecutionPolicy: CurrentUser -> RemoteSigned
 if ((Get-ExecutionPolicy -Scope CurrentUser) -notcontains "RemoteSigned") {
   Write-Verbose "Setting Execution Policy for Current User..."
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy",
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "Set-ExecutionPolicy",
     "-Scope",
     "CurrentUser",
     "-ExecutionPolicy",
@@ -189,7 +189,7 @@ finally {
   }
 }
 '@ > $Env:Temp\choco.ps1
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\choco.ps1"
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\choco.ps1"
   Remove-Item -LiteralPath $Env:Temp\choco.ps1 -Force
 }
 
@@ -205,7 +205,7 @@ $releases = Invoke-RestMethod -uri $releases_url
 $latestRelease = $releases.assets | Where { $_.browser_download_url.EndsWith('msixbundle') } | Select-Object -First 1
 Add-AppxPackage -Path $latestRelease.browser_download_url
 '@ > $Env:Temp\winget.ps1
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\winget.ps1"
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\winget.ps1"
   Remove-Item -LiteralPath $Env:Temp\winget.ps1 -Force
 }
 
@@ -218,7 +218,7 @@ if ((Get-WindowsCapability -Online -Name OpenSSH.Client*).State -ne "Installed")
     Add-WindowsCapability -Online -Name OpenSSH.Client*
 }
 '@ > "${Env:Temp}\openssh.ps1"
-Run-Elevated -FilePath "PowerShell" -ArgumentList "${Env:Temp}\openssh.ps1" -Hidden
+Invoke-Elevated -FilePath "PowerShell" -ArgumentList "${Env:Temp}\openssh.ps1" -Hidden
 Remove-Item -LiteralPath "${Env:Temp}\openssh.ps1" -Force
 
 # Git
@@ -234,7 +234,7 @@ if (-not $Env:GIT_SSH) {
   [System.Environment]::SetEnvironmentVariable('GIT_SSH', (Resolve-Path (scoop which ssh)), 'USER')
 }
 if ((Get-Service -Name ssh-agent).Status -ne "Running") {
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "Set-Service","ssh-agent","-StartupType","Manual" -Hidden
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "Set-Service","ssh-agent","-StartupType","Manual" -Hidden
 }
 
 # Aria2
@@ -251,7 +251,7 @@ $Principal = New-ScheduledTaskPrincipal -UserID "$Env:ComputerName\$Env:Username
 $Settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName "Aria2RPC" -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings
 '@ > $Env:Temp\aria2.ps1
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\aria2.ps1"
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\aria2.ps1"
   Remove-Item -LiteralPath $Env:Temp\aria2.ps1 -Force
 }
 
@@ -401,7 +401,7 @@ Install-CustomApp -URL "https://code.kliu.org/misc/winisoutils/eicfg_removal_uti
 Install-CustomPackage `
     -URL "https://downloads.sourceforge.net/project/catacombae/HFSExplorer/2021.10.9/hfsexplorer-2021.10.9-setup.exe"
 New-Item -Path "$Env:UserProfile\bin\RipMe" -ItemType Directory -ErrorAction Ignore | Out-Null
-Download-CustomApp `
+Get-CustomApp `
     -Link "https://github.com/RipMeApp/ripme/releases/download/1.7.95/ripme.jar" `
     -Folder "$Env:UserProfile\bin\RipMe" |
   Out-Null
@@ -428,7 +428,7 @@ if ($HomeWorkstation) {
     -URL "https://github.com/KirovAir/TwilightBoxart/releases/download/0.7/TwilightBoxart-Windows-UX.zip" `
     -Folder "TwilightMenuBoxArt"
   New-Item -Path "$Env:UserProfile\bin\ISOToolkit" -ItemType Directory -ErrorAction Ignore | Out-Null
-  Download-CustomApp `
+  Get-CustomApp `
     -Link "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/ISOToolKit.exe" `
     -Folder "$Env:UserProfile\bin\ISOToolkit" |
   Out-Null
@@ -439,7 +439,7 @@ if ($HomeWorkstation) {
     -Folder "MBCord"
   Install-CustomApp `
     -URL "https://github.com/extramaster/bchunk/releases/download/v1.2.1_repub.1/bchunk.v1.2.1_repub.1.zip"
-  $Package = Download-CustomApp `
+  $Package = Get-CustomApp `
     -Link "https://github.com/mamedev/mame/releases/download/mame0242/mame0242b_64bit.exe" `
     -Folder "$Env:UserProfile\Downloads\"
   7z e -o"$Env:UserProfile\bin\" -y "$Env:UserProfile\Downloads\$Package" chdman.exe | Out-Null
@@ -482,7 +482,7 @@ Start-Process -FilePath "cmd" -ArgumentList "/c","concfg","import","solarized-da
 
 # Pin Chrome to taskbar
 Write-Verbose "Pin Google Chrome to Taskbar..."
-Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
+Invoke-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
     "'$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Google Chrome.lnk'",
     "c:5386"
 
@@ -501,7 +501,7 @@ New-Item `
     -Path $Env:UserProfile\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 -ItemType SymbolicLink `
       -Target $Env:UserProfile\dotposh\profile.ps1
 '@ > $Env:Temp\dotposh.ps1
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\dotposh.ps1"
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\dotposh.ps1"
   Remove-Item -LiteralPath $Env:Temp\dotposh.ps1 -Force
 @'
 cd $Env:UserProfile\dotposh
@@ -513,7 +513,7 @@ git submodule update
 }
 
 # Pin PowerShell to Taskbar
-Run-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
+Invoke-Elevated -FilePath "PowerShell" -ArgumentList "syspin",
     "'$Env:AppData\Microsoft\Windows\Start Menu\Programs\Windows PowerShell\Windows PowerShell.lnk'",
     "c:5386"
 
@@ -533,7 +533,7 @@ finally {
   }
 }
 '@ > $Env:Temp\ps7.ps1
-  Run-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
+  Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\ps7.ps1" -Hidden
   Remove-Item -LiteralPath $Env:Temp\ps7.ps1 -Force
 }
 

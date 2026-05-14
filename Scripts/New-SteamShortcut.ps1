@@ -35,11 +35,11 @@ function Get-SteamPath {
     try {
         $regPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction SilentlyContinue
         if ($regPath) { return $regPath.InstallPath }
-    } catch { }
+    } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     try {
         $regPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction SilentlyContinue
         if ($regPath) { return $regPath.SteamPath }
-    } catch { }
+    } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     return "${env:ProgramFiles(x86)}\Steam"
 }
 

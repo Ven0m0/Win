@@ -10,7 +10,7 @@
 . "$PSScriptRoot\Common.ps1"
 
 #region Performance Settings
-function Set-PerformanceSettings {
+function Set-PerformanceSetting {
   <#
   .SYNOPSIS
       Applies optimized performance settings for gaming

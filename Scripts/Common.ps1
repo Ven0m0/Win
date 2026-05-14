@@ -72,7 +72,7 @@ function Initialize-ConsoleUI {
 
     # Use parameter to prevent unused variable warnings while maintaining backward compatibility
     $null = $Title
-    try { $Host.UI.RawUI.WindowTitle = $Title } catch {}
+    try { $Host.UI.RawUI.WindowTitle = $Title } catch { Write-Verbose "WindowTitle not supported on this host: $_" }
     $Host.UI.RawUI.BackgroundColor = "Black"
     $Host.PrivateData.ProgressBackgroundColor = "Black"
     $Host.PrivateData.ProgressForegroundColor = "White"
