@@ -48,7 +48,7 @@ param(
 )
 
 
-function Start-InstallPackages {
+function Start-InstallPackage {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [switch]$SkipWinget,
@@ -504,7 +504,7 @@ function Start-InstallPackages {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    Start-InstallPackages @PSBoundParameters
+    Start-InstallPackage @PSBoundParameters
     $exitCode = $LASTEXITCODE
     if ($null -ne $exitCode) { exit $exitCode }
 }

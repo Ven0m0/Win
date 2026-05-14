@@ -67,7 +67,7 @@ function Set-PerformanceSetting {
   Write-Host "Note: Some settings require a system restart to take effect." -ForegroundColor Yellow
 }
 
-function Restore-DefaultPerformanceSettings {
+function Restore-DefaultPerformanceSetting {
   <#
   .SYNOPSIS
       Restores default Windows performance settings
@@ -124,7 +124,7 @@ function Restore-DefaultPerformanceSettings {
 #endregion
 
 #region Keyboard Shortcuts
-function Disable-KeyboardShortcuts {
+function Disable-KeyboardShortcut {
   <#
   .SYNOPSIS
       Disables all keyboard shortcuts for gaming
@@ -159,7 +159,7 @@ function Disable-KeyboardShortcuts {
   Write-Host "Keyboard shortcuts disabled successfully!" -ForegroundColor Green
 }
 
-function Enable-KeyboardShortcuts {
+function Enable-KeyboardShortcut {
   <#
   .SYNOPSIS
       Restores default keyboard shortcuts
@@ -203,11 +203,11 @@ function Show-PerformanceMenu {
 
   switch ($choice) {
     1 {
-      Set-PerformanceSettings
+      Set-PerformanceSetting
       Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
     }
     2 {
-      Restore-DefaultPerformanceSettings
+      Restore-DefaultPerformanceSetting
       Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
     }
     3 { return }
@@ -225,12 +225,12 @@ function Show-KeyboardMenu {
 
   switch ($choice) {
     1 {
-      Disable-KeyboardShortcuts
+      Disable-KeyboardShortcut
       Write-Host ""
       Show-RestartRequired
     }
     2 {
-      Enable-KeyboardShortcuts
+      Enable-KeyboardShortcut
       Write-Host ""
       Show-RestartRequired
     }

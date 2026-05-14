@@ -270,7 +270,7 @@ function Set-CmdAliasAutoRun {
   }
 }
 
-function Deploy-StarWarsBattlefrontIIConfigs {
+function Deploy-StarWarsBattlefrontIIConfig {
   <#
   .SYNOPSIS
       Deploys Star Wars Battlefront II (2017) configs into the root config folder and active profile.
@@ -551,7 +551,7 @@ function Start-Bootstrap {
       Label  = 'Star Wars Battlefront II (2017) configs'
       Invoke = {
         param($sourceDir, $label)
-        Deploy-StarWarsBattlefrontIIConfigs -SourceDir $sourceDir -Label $label
+        Deploy-StarWarsBattlefrontIIConfig -SourceDir $sourceDir -Label $label
       }
     },
     @{

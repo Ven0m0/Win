@@ -1862,6 +1862,7 @@ function Invoke-RegImport {
 
 
 function Ensure-Directory {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
@@ -1884,6 +1885,7 @@ function vdf_mkdir {
 }
 
 function sc-nonew {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification='Intentional terse internal helper')]
     [CmdletBinding()]
     param($fn, $txt)
     if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
