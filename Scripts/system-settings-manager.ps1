@@ -9,8 +9,13 @@
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+
 #region Performance Settings
 function Set-PerformanceSetting {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   <#
   .SYNOPSIS
       Applies optimized performance settings for gaming
@@ -68,6 +73,8 @@ function Set-PerformanceSetting {
 }
 
 function Restore-DefaultPerformanceSetting {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   <#
   .SYNOPSIS
       Restores default Windows performance settings
@@ -125,6 +132,8 @@ function Restore-DefaultPerformanceSetting {
 
 #region Keyboard Shortcuts
 function Disable-KeyboardShortcut {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   <#
   .SYNOPSIS
       Disables all keyboard shortcuts for gaming
@@ -160,6 +169,8 @@ function Disable-KeyboardShortcut {
 }
 
 function Enable-KeyboardShortcut {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   <#
   .SYNOPSIS
       Restores default keyboard shortcuts
@@ -185,6 +196,8 @@ function Enable-KeyboardShortcut {
 
 #region Menu System
 function Show-MainMenu {
+  [CmdletBinding()]
+  param()
   Show-Menu -Title "System Settings Manager - Select Category" -Options @(
     "Performance Optimizations"
     "Keyboard Shortcuts"
@@ -193,6 +206,8 @@ function Show-MainMenu {
 }
 
 function Show-PerformanceMenu {
+  [CmdletBinding()]
+  param()
   Show-Menu -Title "Performance Optimizations" -Options @(
     "Apply Performance Optimizations"
     "Restore Default Settings"
@@ -215,6 +230,8 @@ function Show-PerformanceMenu {
 }
 
 function Show-KeyboardMenu {
+  [CmdletBinding()]
+  param()
   Show-Menu -Title "Keyboard Shortcuts" -Options @(
     "Keyboard Shortcuts: Off"
     "Keyboard Shortcuts: Default"
@@ -240,6 +257,8 @@ function Show-KeyboardMenu {
 #endregion
 
 function Start-SystemSettingsManager {
+  [CmdletBinding()]
+  param()
   # Request admin elevation
   Request-AdminElevation
 
