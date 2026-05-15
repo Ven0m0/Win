@@ -80,6 +80,7 @@ catch {
 }
 
 $ErrorActionPreference = 'Continue'
+$ProgressPreference    = 'SilentlyContinue'
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.
 $startTime = Get-Date
 $script:IsSimulation = $DryRun -or $WhatIfPreference

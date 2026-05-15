@@ -2,8 +2,12 @@
 # Steam Configuration
 # Copyright (C) 2026 Noverse
 
+[CmdletBinding()]
 param([string[]]$paths)
 #[console]::Title = "Noverse Steam Configuration"
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 class vdfnode { [System.Collections.Generic.List[object]]$entries = [System.Collections.Generic.List[object]]::new() }
 

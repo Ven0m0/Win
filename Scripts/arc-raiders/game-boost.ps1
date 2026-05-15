@@ -30,6 +30,7 @@
     .\game-boost.ps1 -NoLaunch    # Boost only (game already running)
     .\game-boost.ps1 -DryRun      # Preview mode
 #>
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [switch]$NoLaunch,
     [switch]$NoRestore,

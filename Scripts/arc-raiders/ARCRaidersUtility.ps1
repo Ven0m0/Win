@@ -18,12 +18,14 @@
     Config path auto-detected; override with -ConfigPath.
     Backups stored next to the INI in a .\Backups\ sub-folder.
 #>
+[CmdletBinding()]
 param(
     [string]$ConfigPath = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths

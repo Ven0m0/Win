@@ -7,6 +7,8 @@
 
 . "$PSScriptRoot\Common.ps1"
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 function Enable-ScriptExecution {
   <#

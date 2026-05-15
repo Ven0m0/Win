@@ -46,6 +46,9 @@ param(
     [int]$PostInstallGeoId = 94
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 function Start-InstallPackage {
     [CmdletBinding(SupportsShouldProcess)]
@@ -91,6 +94,7 @@ function Start-InstallPackage {
     }
 
     function Install-WingetTool {
+        [CmdletBinding(SupportsShouldProcess)]
         param([string]$Id, [string]$Name)
         if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
             $winget = Wait-ForWinget

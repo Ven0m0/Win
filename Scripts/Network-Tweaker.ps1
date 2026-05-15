@@ -5,6 +5,9 @@
     Tweaking Adapter
 #>
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 

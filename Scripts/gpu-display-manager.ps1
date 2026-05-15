@@ -9,6 +9,9 @@
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Request admin elevation
 if ($MyInvocation.InvocationName -ne '.') {
   Request-AdminElevation

@@ -18,10 +18,14 @@ $NoShaders = 1
 $NoGPU = if ($Mode -eq 'ArcRaiders') { 0 } else { 1 }
 $SmallMode = if ($Mode -eq 'ArcRaiders') { '0' } else { '1' }
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import shared helpers
 . "$PSScriptRoot\Common.ps1"
 
 function Invoke-SteamOptimization {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [string]$SteamMode = $Mode
     )

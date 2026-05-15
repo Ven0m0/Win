@@ -2,6 +2,8 @@
 
 #Requires -RunAsAdministrator
 
+$ProgressPreference = 'SilentlyContinue'
+
 <#
 .SYNOPSIS
     Additional Safe Windows Maintenance Script

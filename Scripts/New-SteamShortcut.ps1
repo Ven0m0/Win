@@ -29,6 +29,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 function Get-SteamPath {
     if ($SteamPath) { return $SteamPath }

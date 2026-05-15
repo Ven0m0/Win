@@ -2,6 +2,9 @@
 # Requires Administrator privileges
 # This script enables global timer resolution and sets up a scheduled task to persist the timer resolution on logon
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Configuration
 $ExePath = "C:\SetTimerResolution.exe"
 $DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/" + `
