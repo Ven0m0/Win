@@ -14,9 +14,11 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 $VerbosePreference = 'Continue'
 
 function Invoke-Elevated {
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory)] [string]$FilePath,
     [Parameter()] [string[]]$ArgumentList = @(),
@@ -35,6 +37,7 @@ function Invoke-Elevated {
 }
 
 function Install-ScoopApp {
+  [CmdletBinding()]
   param([Parameter(Mandatory)][string]$Package)
   Write-Verbose "Preparing to install $Package"
   if (-not (scoop info $Package).Installed) {
@@ -46,6 +49,7 @@ function Install-ScoopApp {
 }
 
 function Install-WinGetApp {
+  [CmdletBinding()]
   param([Parameter(Mandatory)][string]$PackageID)
   Write-Verbose "Installing $PackageID"
   winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
@@ -55,6 +59,7 @@ function Install-WinGetApp {
 }
 
 function Install-ChocoApp {
+  [CmdletBinding()]
   param([Parameter(Mandatory)][string]$Package)
   Write-Verbose "Preparing to install $Package"
   $listApp = choco list --local $Package
@@ -67,6 +72,7 @@ function Install-ChocoApp {
 }
 
 function Expand-Download {
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory)][string]$Folder,
     [Parameter(Mandatory)][string]$File
@@ -88,6 +94,7 @@ function Expand-Download {
 }
 
 function Get-CustomApp {
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory)][string]$Link,
     [Parameter(Mandatory)][string]$Folder
@@ -104,6 +111,7 @@ function Get-CustomApp {
 }
 
 function Install-CustomApp {
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory)][string]$URL,
     [string]$Folder
@@ -123,6 +131,7 @@ function Install-CustomApp {
 }
 
 function Install-CustomPackage {
+  [CmdletBinding()]
   param([Parameter(Mandatory)][string]$URL)
   $Package = Get-CustomApp -Link $URL -Folder "$Env:UserProfile\Downloads\"
   $downloadPath = Join-Path $Env:UserProfile\Downloads $Package
@@ -133,6 +142,7 @@ function Install-CustomPackage {
 }
 
 function Enable-Bucket {
+  [CmdletBinding()]
   param([Parameter(Mandatory)][string]$Bucket)
   if (-not ((scoop bucket list).Name -eq "$Bucket")) {
     Write-Verbose "Adding bucket $Bucket"
