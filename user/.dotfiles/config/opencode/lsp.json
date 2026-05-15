@@ -60,7 +60,9 @@
             ".js": "javascript",
             ".jsx": "javascriptreact",
             ".mjs": "javascript",
-            ".cjs": "javascript"
+            ".cjs": "javascript",
+            ".mts": "typescript",
+            ".cts": "typescript"
         },
         "transport": "stdio",
         "initializationOptions": {},
