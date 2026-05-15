@@ -120,11 +120,11 @@
 			"command": ["bash-language-server", "start"],
 			"extensions": [".sh", ".bash", ".zsh", ".ksh"]
 		},
-		"vtsls": {
+    "vtsls": {
       "command": ["vtsls", "--stdio"],
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
       "initialization": { "preferences": { "importModuleSpecifierPreference": "relative" } }
-		},
+    },
     "ty": {
       "command": ["ty", "server"],
       "extensions": [".py", ".pyi", ".pyw"]
