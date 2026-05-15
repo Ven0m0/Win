@@ -159,7 +159,8 @@ $Label7.ForeColor                = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_rssbaseproc                  = New-Object system.Windows.Forms.ComboBox
 $cb_rssbaseproc.width            = 108
 $cb_rssbaseproc.height           = 20
-[void] $cb_rssbaseproc.Items.AddRange([object[]]@('0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
+[void] $cb_rssbaseproc.Items.AddRange([object[]]@(
+  '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'))
 $cb_rssbaseproc.location         = New-Object System.Drawing.Point(117,89)
 $cb_rssbaseproc.Font             = New-Object System.Drawing.Font('Calibri',9)
 $cb_rssbaseproc.ForeColor        = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")

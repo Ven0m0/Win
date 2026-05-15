@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
@@ -140,7 +140,8 @@ function Start-InstallPackage {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'SkipWinget','SkipScoop','SkipChoco','SkipSystemFeatures','SkipPowerShellModules','SkipNotepadReplacer','ApplyPostInstall') {
+        foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
+          'SkipPowerShellModules', 'SkipNotepadReplacer', 'ApplyPostInstall') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -253,7 +254,10 @@ function Start-InstallPackage {
         Write-Host '[4.5/8] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
         # Check if Notepad++ is installed
-        $notepadPlusPlus = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
+        $notepadPlusPlus = Get-ItemProperty `
+          'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', `
+          'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+          -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
 
         if (-not $notepadPlusPlus) {
             Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'

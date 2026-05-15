@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 #Requires -RunAsAdministrator
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup

@@ -68,7 +68,10 @@ Describe "steam.ps1" {
         Mock -CommandName Set-Content -MockWith { }
 
         # Override the function globally to prevent IO operations
-        function global:sc-nonew($fn, $txt) { }
+        function global:sc-nonew {
+            [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '')]
+            param($fn, $txt)
+        }
     }
 
     Context "Steam is not found" {
