@@ -118,16 +118,24 @@
 		},
 		"bash": {
 			"command": ["bash-language-server", "start"],
-			"extensions": [".sh", ".bash", ".zsh"]
+			"extensions": [".sh", ".bash", ".zsh", ".ksh"]
 		},
-		"vtsls": {
+    "vtsls": {
       "command": ["vtsls", "--stdio"],
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
       "initialization": { "preferences": { "importModuleSpecifierPreference": "relative" } }
-		},
+    },
+    "ty": {
+      "command": ["ty", "server"],
+      "extensions": [".py", ".pyi", ".pyw"]
+    },
     "rust": {
       "command": ["rust-analyzer"],
       "extensions": [".rs"]
+    },
+    "eslint": {
+      "command": ["vscode-eslint-language-server", "--stdio"],
+      "extensions": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".vue", ".svelte", ".astro"]
     },
 		"yaml-ls": {
 			"command": ["yaml-language-server", "--stdio"],
