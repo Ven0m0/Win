@@ -29,7 +29,7 @@
     },
     "css-ls": {
         "command": ["vscode-css-language-server", "--stdio"],
-        "extensions": [".css", ".scss", ".less", ".sass"]
+        "extensions": [".css", ".scss", ".less"]
     },
     "bash": {
         "command": ["bash-language-server", "start"],
