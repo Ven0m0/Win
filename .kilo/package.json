@@ -12,7 +12,10 @@
     "@opencode-ai/sdk": "^1.14.33",
     "@kilocode/sdk": "^7.1.23",
     "@types/bun": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "@biomejs/biome": "*",
+    "oxfmt": "*",
+    "oxlint": "*"
   },
   "packageManager": "bun@*"
 }
