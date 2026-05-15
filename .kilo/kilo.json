@@ -125,10 +125,6 @@
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
       "initialization": { "preferences": { "importModuleSpecifierPreference": "relative" } }
     },
-    "ty": {
-      "command": ["ty", "server"],
-      "extensions": [".py", ".pyi", ".pyw"]
-    },
     "rust": {
       "command": ["rust-analyzer"],
       "extensions": [".rs"]
