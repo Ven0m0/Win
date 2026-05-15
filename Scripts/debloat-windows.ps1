@@ -18,11 +18,16 @@ param(
   [switch]$NoRestorePoint
 )
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import common functions
 . "$PSScriptRoot/Common.ps1"
 
 #region Phase 1: App Removal
 function Remove-BloatwareApp {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 1: Removing Bloatware Apps ===" -ForegroundColor Cyan
 
   $appsToRemove = @(
@@ -65,6 +70,8 @@ function Remove-BloatwareApp {
 
 #region Phase 2: Service Management
 function Disable-UnnecessaryService {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 2: Disabling Unnecessary Services ===" -ForegroundColor Cyan
 
   $servicesToDisable = @(
@@ -120,6 +127,8 @@ function Disable-UnnecessaryService {
 
 #region Phase 3: Windows Features
 function Disable-WindowsFeature {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 3: Disabling Windows Optional Features ===" -ForegroundColor Cyan
 
   $featuresToDisable = @(
@@ -143,6 +152,8 @@ function Disable-WindowsFeature {
 
 #region Phase 4: Scheduled Tasks
 function Invoke-ScheduledTaskCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 4: Disabling Scheduled Tasks ===" -ForegroundColor Cyan
 
   $tasksToDisable = @(
@@ -213,6 +224,8 @@ function Invoke-ScheduledTaskCleanup {
 
 #region Phase 5: Registry Tweaks
 function Invoke-RegistryTweak {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 5: Applying Registry Tweaks ===" -ForegroundColor Cyan
 
   $tweaks = @(
@@ -264,6 +277,8 @@ function Invoke-RegistryTweak {
 
 #region Phase 6: System Cleanup
 function Invoke-SystemCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 6: System Cleanup ===" -ForegroundColor Cyan
   $freedSpace = 0
 
@@ -310,6 +325,8 @@ function Invoke-SystemCleanup {
 #endregion
 
 function Restore-DisabledService {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Re-enabling previously disabled services ===" -ForegroundColor Cyan
   $servicesToEnable = @(
     "DiagTrack","dmwappushservice","XblAuthManager","XblGameSave","XboxGipSvc","XboxNetApiSvc",
@@ -334,6 +351,8 @@ function Restore-DisabledService {
 }
 
 function Restore-ScheduledTask {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Re-enabling previously disabled scheduled tasks ===" -ForegroundColor Cyan
   $tasksToEnable = @(
     "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"
@@ -355,6 +374,8 @@ function Restore-ScheduledTask {
 }
 
 function Restore-RegistryTweak {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Reverting registry tweaks ===" -ForegroundColor Cyan
   # Telemetry
   $telemetryPolicyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
@@ -381,6 +402,8 @@ function Restore-RegistryTweak {
 }
 
 function Restore-AllPhase {
+  [CmdletBinding()]
+  param()
   Restore-DisabledService
   Restore-ScheduledTask
   Restore-RegistryTweak
@@ -388,6 +411,8 @@ function Restore-AllPhase {
 }
 
 function Invoke-AllPhase {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   if (-not $NoRestorePoint) { New-RestorePoint -Description "Before Debloating" }
   Remove-BloatwareApp
   Disable-UnnecessaryService
