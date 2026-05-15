@@ -270,6 +270,24 @@ function Set-CmdAliasAutoRun {
   }
 }
 
+function Deploy-StarWarsBattlefrontIIConfigs {
+  <#
+  .SYNOPSIS
+      Backward-compatible wrapper for Deploy-StarWarsBattlefrontIIConfig.
+  .PARAMETER SourceDir
+      Full path to the tracked Star Wars Battlefront II (2017) config directory.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+  [CmdletBinding()]
+  param(
+    [string]$SourceDir,
+    [string]$Label
+  )
+
+  Deploy-StarWarsBattlefrontIIConfig -SourceDir $SourceDir -Label $Label
+}
+
 function Deploy-StarWarsBattlefrontIIConfig {
   <#
   .SYNOPSIS
