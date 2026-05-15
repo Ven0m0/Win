@@ -20,12 +20,12 @@ Describe "shell-setup.ps1" {
         }
 
         It "Should define required functions" {
-            Get-Command Run-Elevated -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Invoke-Elevated -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-ScoopApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-WinGetApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-ChocoApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command Extract-Download -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command Download-CustomApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Expand-Download -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Get-CustomApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-CustomApp -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-CustomPackage -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Enable-Bucket -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty

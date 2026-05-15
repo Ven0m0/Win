@@ -12,9 +12,9 @@ Describe "SkipVideosMod Script Initialization" {
 
     It "Should export the expected functions" {
         $expectedFunctions = @(
-            "Find-ArcRaiders",
+            "Find-ArcRaider",
             "Remove-VideoFile",
-            "Remove-QuestFiles",
+            "Remove-QuestFile",
             "Show-Menu",
             "Show-Diagnostics",
             "Show-Credit"
@@ -39,7 +39,7 @@ Describe "SkipVideosMod Functions" {
     It "Should return null when Arc Raiders is not found" {
         Mock Test-Path { return $false }
         Mock Get-ItemProperty {}
-        $result = Find-ArcRaiders
+        $result = Find-ArcRaider
         $result | Should -Be $null
     }
 

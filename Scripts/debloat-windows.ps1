@@ -142,7 +142,7 @@ function Disable-WindowsFeature {
 #endregion
 
 #region Phase 4: Scheduled Tasks
-function Disable-ScheduledTask {
+function Invoke-ScheduledTaskCleanup {
   Write-Host "=== Phase 4: Disabling Scheduled Tasks ===" -ForegroundColor Cyan
 
   $tasksToDisable = @(
@@ -392,7 +392,7 @@ function Invoke-AllPhase {
   Remove-BloatwareApp
   Disable-UnnecessaryService
   Disable-WindowsFeature
-  Disable-ScheduledTask
+  Invoke-ScheduledTaskCleanup
   Invoke-RegistryTweak
   Invoke-SystemCleanup
   Show-RestartRequired -CustomMessage "Debloating complete. Restart recommended to apply all changes."
@@ -448,7 +448,7 @@ if ($MyInvocation.InvocationName -ne '.') {
       2 { Remove-BloatwareApp }
       3 { Disable-UnnecessaryService }
       4 { Disable-WindowsFeature }
-      5 { Disable-ScheduledTask }
+      5 { Invoke-ScheduledTaskCleanup }
       6 { Invoke-RegistryTweak }
       7 { Invoke-SystemCleanup }
       8 { exit }

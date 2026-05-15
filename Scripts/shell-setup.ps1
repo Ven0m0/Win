@@ -94,8 +94,7 @@ function Get-CustomApp {
   )
   $headers = curl.exe -sIL "$Link"
   if ($headers | Select-String -Pattern "Content-Disposition") {
-    $Package = ($headers | Select-String -Pattern "filename=" | Split-String -Separator "=" |
-    Select-Object -Last 1).Trim('"')
+    $Package = (($headers | Select-String -Pattern "filename=").Line -split "=")[-1].Trim('"').Trim()
   } else {
     $Package = $Link.Split("/") | Select-Object -Last 1
   }

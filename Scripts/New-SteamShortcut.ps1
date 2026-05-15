@@ -33,7 +33,8 @@ $ErrorActionPreference = 'Stop'
 function Get-SteamPath {
     if ($SteamPath) { return $SteamPath }
     try {
-        $regPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction SilentlyContinue
+        $regPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' `
+          -Name InstallPath -ErrorAction SilentlyContinue
         if ($regPath) { return $regPath.InstallPath }
     } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     try {
@@ -82,7 +83,9 @@ if (-not (Test-Path $steamExe)) {
 # -cef-disable-js-logging: Disable JavaScript console logging
 # -noconsole: Don't show console window
 # +open steam://open/minigameslist: Open in mini mode
-$launchArgs = "-nofriendsui -nointro -nobigpicture -cef-single-process -cef-disable-breakpad -cef-disable-gpu-compositing -cef-disable-gpu -cef-disable-js-logging -noconsole +open steam://open/minigameslist"
+$launchArgs = "-nofriendsui -nointro -nobigpicture -cef-single-process -cef-disable-breakpad" + `
+  " -cef-disable-gpu-compositing -cef-disable-gpu -cef-disable-js-logging -noconsole" + `
+  " +open steam://open/minigameslist"
 
 Write-Host "Steam Shortcut Creator" -ForegroundColor Cyan
 Write-Host "Steam path: $steamPath"

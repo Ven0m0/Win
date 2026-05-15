@@ -280,7 +280,7 @@ function Invoke-ApplyPreset([string]$iniPath, [string]$presetName) {
     return $true
 }
 
-function Action-Backup([string]$iniPath) {
+function Invoke-Backup([string]$iniPath) {
     $dir     = Split-Path $iniPath
     $backDir = Join-Path $dir 'Backups'
     $null    = New-Item -ItemType Directory -Path $backDir -Force
@@ -290,7 +290,7 @@ function Action-Backup([string]$iniPath) {
     return $dest
 }
 
-function Action-NetFix {
+function Invoke-NetFix {
     Write-Info "Flushing DNS and resetting Winsock..."
     if (-not (Test-IsAdmin)) {
         Write-Err "Administrator required — right-click and Run as Administrator"
@@ -302,7 +302,7 @@ function Action-NetFix {
     return $true
 }
 
-function Action-Optimize([string]$iniPath) {
+function Invoke-Optimize([string]$iniPath) {
     Write-Info "Applying full game optimizations..."
     # Set ARC.exe + pioneergame.exe to High priority (live processes)
     foreach ($name in @('ARC','pioneergame')) {
@@ -319,7 +319,7 @@ function Action-Optimize([string]$iniPath) {
     return $true
 }
 
-function Action-CpuBoost {
+function Invoke-CpuBoost {
     Write-Info "Applying CPU Boost (High Performance power state)..."
     if (-not (Test-IsAdmin)) { Write-Err "Administrator required"; return $false }
 
@@ -338,7 +338,7 @@ function Action-CpuBoost {
     return $true
 }
 
-function Action-ClearCaches([string[]]$keys) {
+function Invoke-ClearCaches([string[]]$keys) {
     Write-Info "Clearing selected caches..."
     foreach ($key in $keys) {
         [array]$paths = $CACHE_PATHS[$key]
@@ -362,7 +362,7 @@ function Action-ClearCaches([string[]]$keys) {
     }
 }
 
-function Action-Rollback([string]$iniPath, [string]$backupPath) {
+function Invoke-Rollback([string]$iniPath, [string]$backupPath) {
     if (-not (Test-Path $backupPath)) { Write-Err "Backup not found: $backupPath"; return $false }
     if (-not (Test-Path $iniPath))    { Write-Err "Config not found: $iniPath";    return $false }
     Copy-Item -LiteralPath $backupPath -Destination $iniPath -Force
@@ -374,7 +374,7 @@ function Action-Rollback([string]$iniPath, [string]$backupPath) {
 # ─────────────────────────────────────────────────────────────────────────────
 #  UI — file picker (no WPF, use shell COM)
 # ─────────────────────────────────────────────────────────────────────────────
-function Pick-File([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', [string]$initial = '') {
+function Select-IniFile([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', [string]$initial = '') {
     Add-Type -AssemblyName System.Windows.Forms
     $dlg = New-Object System.Windows.Forms.OpenFileDialog
     $dlg.Title  = $title
@@ -384,7 +384,7 @@ function Pick-File([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', 
     return $null
 }
 
-function Pick-BackupFile([string]$backupDir) {
+function Select-BackupFile([string]$backupDir) {
     if (-not (Test-Path $backupDir)) { return $null }
     $files = Get-ChildItem $backupDir -Filter '*.ini' | Sort-Object LastWriteTime -Descending
     if ($files.Count -eq 0) { return $null }
@@ -477,11 +477,11 @@ while ($true) {
 
     switch -Regex ($key) {
         '^C$'  {
-            $picked = Pick-File "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
+            $picked = Select-IniFile "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
             if ($picked) { $iniPath = $picked; Write-Log "Config selected: $iniPath" }
         }
         '^B$'  {
-            $picked = Pick-File "Select Backup INI" "INI files (*.ini)|*.ini"
+            $picked = Select-IniFile "Select Backup INI" "INI files (*.ini)|*.ini"
             if ($picked) { $backupPath = $picked; Write-Log "Backup selected: $backupPath" }
         }
         '^R$'  { $chkRTX      = -not $chkRTX }
@@ -520,7 +520,7 @@ while ($true) {
             if ($chkRTX) { Invoke-RtxDetect ([ref]$iniPath) | Out-Null }
 
             # Backup before any changes
-            $newBackup = Action-Backup $iniPath
+            $newBackup = Invoke-Backup $iniPath
             $backupPath = $newBackup
 
             # Apply preset
@@ -528,15 +528,15 @@ while ($true) {
             Invoke-ApplyPreset $iniPath $selectedPreset | Out-Null
 
             # Options
-            if ($chkNetFix)   { Write-H "NETWORK FIX";    Action-NetFix        | Out-Null }
-            if ($chkOptimize) { Write-H "GAME OPTIMIZE";  Action-Optimize $iniPath | Out-Null }
-            if ($chkCpuBoost) { Write-H "CPU BOOST";      Action-CpuBoost      | Out-Null }
+            if ($chkNetFix)   { Write-H "NETWORK FIX";    Invoke-NetFix        | Out-Null }
+            if ($chkOptimize) { Write-H "GAME OPTIMIZE";  Invoke-Optimize $iniPath | Out-Null }
+            if ($chkCpuBoost) { Write-H "CPU BOOST";      Invoke-CpuBoost      | Out-Null }
 
             # Caches
             $toClean = $cacheChecks.GetEnumerator() | Where-Object { $_.Value } | ForEach-Object { $_.Key }
             if ($toClean) {
                 Write-H "CACHE CLEAN"
-                Action-ClearCaches @($toClean)
+                Invoke-ClearCaches @($toClean)
             }
 
             Write-Host ""
@@ -551,9 +551,9 @@ while ($true) {
             if (-not $backupPath) {
                 # Try to pick from backup dir
                 if ($backDir -and (Test-Path $backDir)) {
-                    $backupPath = Pick-BackupFile $backDir
+                    $backupPath = Select-BackupFile $backDir
                 } else {
-                    $backupPath = Pick-File "Select backup to restore" "INI files (*.ini)|*.ini"
+                    $backupPath = Select-IniFile "Select backup to restore" "INI files (*.ini)|*.ini"
                 }
             }
             if (-not $backupPath) { Write-Warn "No backup selected."; Invoke-PauseBack; continue }
@@ -561,7 +561,7 @@ while ($true) {
                 Write-Err "Select a config file first with [C]."; Invoke-PauseBack; continue
             }
             Write-Info "Restoring: $(Split-Path $backupPath -Leaf) → $(Split-Path $iniPath -Leaf)"
-            Action-Rollback $iniPath $backupPath | Out-Null
+            Invoke-Rollback $iniPath $backupPath | Out-Null
             $backupPath = ''  # reset after use
             Invoke-PauseBack
         }

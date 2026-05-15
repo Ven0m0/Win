@@ -586,7 +586,8 @@ function Start-Bootstrap {
       Label              = 'Arc Raiders configs'
       Filter             = '*'
       ResolveDestination = {
-        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'ArcRaiders\Saved\Config\WindowsNoEditor'
+        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) `
+          'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
         $arcPath = Join-Path $env:LOCALAPPDATA 'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
@@ -618,7 +619,9 @@ function Start-Bootstrap {
       Path   = 'winget-configs\settings.json'
       Mode   = 'file'
       Label  = 'Winget settings'
-      ResolveDestination = { Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json' }
+      ResolveDestination = {
+        Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'
+      }
       GetSkipReason      = { 'Winget local state directory not found' }
     },
     @{

@@ -1862,7 +1862,8 @@ function Invoke-RegImport {
 
 
 function Ensure-Directory {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '', Justification='Ensure- is a widely-used configuration management convention; renaming would break callers.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
+      Justification='Ensure- is a widely-used configuration management convention; renaming would break callers.')]
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]

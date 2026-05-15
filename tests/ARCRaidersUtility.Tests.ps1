@@ -12,11 +12,13 @@ BeforeAll {
 
     $definitions = New-Object System.Collections.Generic.List[string]
 
-    foreach ($functionAst in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }, $true)) {
+    $isFuncAst = { param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }
+    foreach ($functionAst in $ast.FindAll($isFuncAst, $true)) {
         $definitions.Add($functionAst.Extent.Text)
     }
 
-    foreach ($assignmentAst in $ast.FindAll({ param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }, $true)) {
+    $isAssignAst = { param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }
+    foreach ($assignmentAst in $ast.FindAll($isAssignAst, $true)) {
         if ($assignmentAst.Left -is [System.Management.Automation.Language.VariableExpressionAst]) {
             $variableName = $assignmentAst.Left.VariablePath.UserPath
             if ($variableName -in @('PRESETS', 'CACHE_PATHS')) {
@@ -37,17 +39,17 @@ Describe "ARCRaidersUtility Script Initialization" {
     It "Should export the expected helper functions" {
         $expectedFunctions = @(
             "Write-Log",
-            "Is-Admin",
-            "Detect-RTX",
+            "Test-IsAdmin",
+            "Find-RtxGpu",
             "Set-IniValue",
-            "Action-RTXDetect",
-            "Action-ApplyPreset",
-            "Action-Backup",
-            "Action-NetFix",
-            "Action-Optimize",
-            "Action-CpuBoost",
-            "Action-ClearCaches",
-            "Action-Rollback"
+            "Invoke-RtxDetect",
+            "Invoke-ApplyPreset",
+            "Invoke-Backup",
+            "Invoke-NetFix",
+            "Invoke-Optimize",
+            "Invoke-CpuBoost",
+            "Invoke-ClearCaches",
+            "Invoke-Rollback"
         )
 
         foreach ($funcName in $expectedFunctions) {
@@ -69,7 +71,7 @@ Describe "ARCRaidersUtility Functions" {
     }
 
     It "Should not throw when detecting RTX" {
-        { Detect-RTX } | Should -Not -Throw
+        { Find-RtxGpu } | Should -Not -Throw
     }
 
     It "Should validate preset names" {

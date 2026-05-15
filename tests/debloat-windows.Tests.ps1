@@ -16,13 +16,13 @@ Describe "Debloat-Windows Script Initialization" {
 
     It "Should export the expected phase functions" {
         $expectedFunctions = @(
-            "Remove-BloatwareApps",
-            "Disable-UnnecessaryServices",
-            "Disable-WindowsFeatures",
-            "Disable-ScheduledTasks",
-            "Apply-RegistryTweaks",
-            "Run-SystemCleanup",
-            "Run-AllPhases"
+            "Remove-BloatwareApp",
+            "Disable-UnnecessaryService",
+            "Disable-WindowsFeature",
+            "Invoke-ScheduledTaskCleanup",
+            "Invoke-RegistryTweak",
+            "Invoke-SystemCleanup",
+            "Invoke-AllPhase"
         )
 
         foreach ($funcName in $expectedFunctions) {
@@ -45,7 +45,7 @@ Describe "Phase Functions Execution" {
         function Get-WindowsOptionalFeature {}
         function Disable-WindowsOptionalFeature {}
         function Get-ScheduledTask {}
-        function Disable-ScheduledTask {}
+        function Invoke-ScheduledTaskCleanup {}
         function Set-RegistryValue {}
         function Get-FolderSize {}
         function Clear-PathSafe {}
@@ -69,7 +69,7 @@ Describe "Phase Functions Execution" {
         Mock Get-WindowsOptionalFeature { return $null }
         Mock Disable-WindowsOptionalFeature { return $null }
         Mock Get-ScheduledTask { return @() }
-        Mock Disable-ScheduledTask {}
+        Mock Invoke-ScheduledTaskCleanup {}
         Mock Set-RegistryValue {}
         Mock Get-FolderSize { return 100 }
         Mock Clear-PathSafe {}
@@ -80,30 +80,30 @@ Describe "Phase Functions Execution" {
         function ipconfig { return $null }
     }
 
-    It "Should run Remove-BloatwareApps without errors" {
-        { Remove-BloatwareApps } | Should -Not -Throw
+    It "Should run Remove-BloatwareApp without errors" {
+        { Remove-BloatwareApp } | Should -Not -Throw
     }
 
-    It "Should run Disable-UnnecessaryServices without errors" {
-        { Disable-UnnecessaryServices } | Should -Not -Throw
+    It "Should run Disable-UnnecessaryService without errors" {
+        { Disable-UnnecessaryService } | Should -Not -Throw
     }
 
-    It "Should run Disable-WindowsFeatures without errors" {
-        { Disable-WindowsFeatures } | Should -Not -Throw
+    It "Should run Disable-WindowsFeature without errors" {
+        { Disable-WindowsFeature } | Should -Not -Throw
     }
 
-    It "Should run Disable-ScheduledTasks without errors" {
-        { Disable-ScheduledTasks } | Should -Not -Throw
+    It "Should run Invoke-ScheduledTaskCleanup without errors" {
+        { Invoke-ScheduledTaskCleanup } | Should -Not -Throw
     }
 
-    It "Should run Apply-RegistryTweaks without errors" {
-        { Apply-RegistryTweaks } | Should -Not -Throw
+    It "Should run Invoke-RegistryTweak without errors" {
+        { Invoke-RegistryTweak } | Should -Not -Throw
     }
 
-    It "Should run Run-SystemCleanup without errors" {
-        # Run-SystemCleanup uses ipconfig /flushdns, we should mock ipconfig if we want to avoid execution.
+    It "Should run Invoke-SystemCleanup without errors" {
+        # Invoke-SystemCleanup uses ipconfig /flushdns, we should mock ipconfig if we want to avoid execution.
         # Pester mocks PowerShell commands/functions, but ipconfig is an external executable.
         # We can mock ipconfig by creating a function override, or by trusting it won't break things.
-        { Run-SystemCleanup } | Should -Not -Throw
+        { Invoke-SystemCleanup } | Should -Not -Throw
     }
 }
