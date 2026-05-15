@@ -1,1 +1,0 @@
-../../.kilo/rules/shell-strategy.md

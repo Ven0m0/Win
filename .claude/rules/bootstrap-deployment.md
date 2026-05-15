@@ -1,1 +1,0 @@
-../../.kilo/rules/bootstrap-deployment.md

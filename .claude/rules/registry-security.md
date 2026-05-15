@@ -1,1 +1,0 @@
-../../.kilo/rules/registry-security.md
