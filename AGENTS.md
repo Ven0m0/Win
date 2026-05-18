@@ -12,6 +12,8 @@
 | Debloat Windows | `Scripts/debloat-windows.ps1` |
 | Validate PS file | `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` |
 | Run tests | `Invoke-Pester -Path tests/ -Output Minimal` |
+| Run single test | `Invoke-Pester -Path tests/<File>.Tests.ps1 -Output Detailed` |
+| Full bootstrap | `mise run bootstrap` |
 
 ## Repository Identity
 
@@ -253,6 +255,7 @@ Every enabled MCP server adds tokens to context. Prefer built-in tools for simpl
 | `script-merge-guide` | Merge and consolidate PowerShell scripts safely |
 | `test-relocation` | Move and reorganize Pester test files |
 | `dead-code-cleanup` | Identify and remove unused code |
+| `windows-dotfiles` | Windows dotfiles conventions and deployment patterns |
 
 ## Commands (`.kilo/commands/`)
 
@@ -283,34 +286,6 @@ Commit format: `<type>: <subject>` — types: `feat`, `fix`, `docs`, `refactor`,
 Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handling (#52)`
 
 **Never** commit: credentials, tokens, private keys, machine-specific overrides, exported hive `.reg` files, hardcoded user paths (`C:\Users\...` — use `$HOME`, `$env:USERPROFILE`).
-
-## Commands Reference
-
-```powershell
-# Lint a PowerShell file
-Invoke-ScriptAnalyzer -Path Scripts\<file>.ps1 -Settings PSScriptAnalyzerSettings.psd1
-
-# Run Pester tests
-Invoke-Pester -Path tests/ -Output Minimal
-
-# Validate autounattend.xml
-$xml = [xml]::new(); $xml.Load("$PWD\Scripts\auto\autounattend.xml")
-
-# Deploy all dotfiles
-mise run deploy
-
-# Deploy single config
-pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTools -SkipWSL
-
-# Full bootstrap
-mise run bootstrap
-
-# One-command fresh Windows 11 install
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
-
-# Validate guidance files
-npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes
-```
 
 ## Related
 
