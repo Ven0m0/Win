@@ -1,7 +1,7 @@
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+    rev: v0.15.13
     hooks:
       # Run linter and auto-fix issues
       - id: ruff
@@ -12,7 +12,7 @@ repos:
         types_or: [python, pyi]
         stages: [pre-commit]
   - repo: https://github.com/DetachHead/basedpyright-prek-mirror
-    rev: 1.39.4
+    rev: 1.39.5
     hooks:
       - id: basedpyright
   - repo: https://github.com/asottile/pyupgrade
