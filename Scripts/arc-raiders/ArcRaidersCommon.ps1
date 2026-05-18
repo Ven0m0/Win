@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Shared helpers for Arc Raiders scripts (game-boost, cleanup, start, skip-videos).
@@ -173,7 +173,7 @@ public class $TypeName {
 
 # ── Process / Game Helpers ────────────────────────────────────────────────────
 
-function Is-RunningAsAdmin {
+function Test-RunningAsAdmin {
     <#
     .SYNOPSIS
         Check if the current process is elevated.
@@ -265,7 +265,7 @@ function Set-VdfValue {
 
 # ── Disk Optimization ─────────────────────────────────────────────────────────
 
-function Optimize-FixedVolumes {
+function Optimize-FixedVolume {
     <#
     .SYNOPSIS
         Issue ReTrim (SSD/NVMe) or Defrag (HDD) on all fixed volumes.

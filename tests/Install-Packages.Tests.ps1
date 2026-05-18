@@ -17,7 +17,7 @@ Describe "Install-Packages" {
 
     Context "Initialization" {
         It "Should load the module and functions without execution" {
-            Get-Command Start-InstallPackages -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
+            Get-Command Start-InstallPackage -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
     }
 
@@ -53,36 +53,36 @@ Describe "Install-Packages" {
         }
 
         It "Should bypass winget when SkipWinget is provided" {
-            Start-InstallPackages -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall:$false
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall:$false
             Assert-MockCalled winget -Times 0
         }
 
         It "Should bypass scoop when SkipScoop is provided" {
-            Start-InstallPackages -SkipScoop -ApplyPostInstall:$false
+            Start-InstallPackage -SkipScoop -ApplyPostInstall:$false
             Assert-MockCalled scoop -Times 0
             Assert-MockCalled Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'scoop' }
         }
 
         It "Should bypass choco when SkipChoco is provided" {
-            Start-InstallPackages -SkipChoco -ApplyPostInstall:$false
+            Start-InstallPackage -SkipChoco -ApplyPostInstall:$false
             Assert-MockCalled choco -Times 0
             Assert-MockCalled Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'chocolatey' }
         }
 
         It "Should bypass system features when SkipSystemFeatures is provided" {
-            Start-InstallPackages -SkipSystemFeatures -ApplyPostInstall:$false
+            Start-InstallPackage -SkipSystemFeatures -ApplyPostInstall:$false
             Assert-MockCalled DISM -Times 0
         }
 
         It "Should not apply post-install when ApplyPostInstall is missing" {
-            Start-InstallPackages -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures
             Assert-MockCalled Set-TimeZone -Times 0
             Assert-MockCalled Set-Culture -Times 0
             Assert-MockCalled fsutil.exe -Times 0
         }
 
         It "Should apply post-install when ApplyPostInstall is provided" {
-            Start-InstallPackages -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall
             Assert-MockCalled Set-TimeZone -Times 1
             Assert-MockCalled Set-Culture -Times 1
             Assert-MockCalled fsutil.exe -Times 2

@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Standalone bootstrap: installs dotbot if missing, clones repo, runs full setup.
@@ -61,7 +61,9 @@ function Install-Winget {
         $releasesUrl = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
         try {
             $releases = Invoke-RestMethod -Uri $releasesUrl -UseBasicParsing
-            $asset = $releases.assets | Where-Object { $_.browser_download_url -like '*msixbundle' } | Select-Object -First 1
+            $asset = $releases.assets |
+              Where-Object { $_.browser_download_url -like '*msixbundle' } |
+              Select-Object -First 1
             if ($asset) {
                 Write-Info "Downloading winget from $($asset.browser_download_url)..."
                 $tempFile = Join-Path $env:TEMP "winget.msixbundle"
@@ -100,7 +102,8 @@ if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
     # Ensure Python is available via winget
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
         Write-Info 'Installing Python via winget...'
-        winget install --id Python.Python.3.12 --silent --accept-source-agreements --accept-package-agreements | Out-Null
+        winget install --id Python.Python.3.12 --silent `
+          --accept-source-agreements --accept-package-agreements | Out-Null
         if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne -1978335189) {
             Write-Fail "Failed to install Python: Exit code: $LASTEXITCODE"
             exit 1

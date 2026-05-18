@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Arc Raiders - Skip Videos Mod (PowerShell)
@@ -21,12 +21,11 @@ param(
 $script:Warn = '[!]'
 $script:Esc  = [char]27
 
-function Find-ArcRaiders {
+function Find-ArcRaider {
     # 1. Steam registry
     $steamPath = $null
     try {
-        $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop `
-    | Select-Object -Ex
+        $steamPath = (Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop).SteamPath
     } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
@@ -88,7 +87,7 @@ function Remove-VideoFile {
     }
 }
 
-function Remove-QuestFiles {
+function Remove-QuestFile {
     $qDir = Join-Path $MoviesPath 'Quests'
     if (-not (Test-Path $qDir)) {
         Write-Host "  ${esc}[91m[X]${esc}[0m Skip Quest Videos - Directory not found" -ForegroundColor Red
@@ -128,7 +127,7 @@ function Remove-QuestFiles {
             try {
                 Remove-Item $fp -Force -ErrorAction Stop
                 $deleted++
-            } catch { Write-Verbose "Remove-QuestFiles item failed: $_" }
+            } catch { Write-Verbose "Remove-QuestFile item failed: $_" }
         }
     }
 
@@ -306,7 +305,7 @@ function Show-Credit {
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-$CurrentDir = Find-ArcRaiders
+$CurrentDir = Find-ArcRaider
 if (-not $CurrentDir) {
     Write-Host ""
     Write-Host "      [X] ARC RAIDERS NOT FOUND" -ForegroundColor Red
@@ -329,11 +328,11 @@ if ($Option) {
     switch ($Option) {
         '1' { Remove-VideoFile (Join-Path $MoviesPath 'FTUE') 'GAME_INTRO_SPERANZA_DESCEND_V5.bk2' 'Skip Intro Video' }
         '2' { Remove-VideoFile (Join-Path $MoviesPath 'Frontend') 'LaunchSequence_ToBlack_4k.bk2' 'Skip Match Video' }
-        '3' { Remove-QuestFiles }
+        '3' { Remove-QuestFile }
         '4' {
             Remove-VideoFile (Join-Path $MoviesPath 'FTUE') 'GAME_INTRO_SPERANZA_DESCEND_V5.bk2' 'Skip Intro Video'
             Remove-VideoFile (Join-Path $MoviesPath 'Frontend') 'LaunchSequence_ToBlack_4k.bk2' 'Skip Match Video'
-            Remove-QuestFiles
+            Remove-QuestFile
         }
         '5' { Show-Diagnostics; return }
         '6' { Show-Credit; return }
@@ -396,7 +395,7 @@ while ($true) {
                 Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP QUEST VIDEOS MOD  
                 Write-Host "  +===============================================================+"
                 Write-Host ""
-                Remove-QuestFiles
+                Remove-QuestFile
                 Write-Host ""
                 Write-Host "  +===============================================================+"
                 Write-Host ""
@@ -428,7 +427,7 @@ while ($true) {
                 Write-Host ""
                 Remove-VideoFile (Join-Path $MoviesPath 'FTUE') 'GAME_INTRO_SPERANZA_DESCEND_V5.bk2' 'Skip Intro Video'
                 Remove-VideoFile (Join-Path $MoviesPath 'Frontend') 'LaunchSequence_ToBlack_4k.bk2' 'Skip Match Video'
-                Remove-QuestFiles
+                Remove-QuestFile
                 Write-Host ""
                 Write-Host "  +===============================================================+"
                 Write-Host ""

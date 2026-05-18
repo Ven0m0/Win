@@ -1,5 +1,9 @@
 ﻿ # clear_shader_cache.ps1 - Clears Steam/game/log/shader/GPU caches. AveYo, 2025-07-10
 #Requires -RunAsAdministrator
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import common functions
 if ($MyInvocation.InvocationName -ne '.') { . "$PSScriptRoot\Common.ps1" }
 # Request admin elevation

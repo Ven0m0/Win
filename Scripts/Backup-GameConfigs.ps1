@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
@@ -10,11 +10,13 @@
     .\Backup-GameConfigs.ps1
 #>
 
+[CmdletBinding()]
 param(
     [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
 )
 
 $ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 function Write-BackupStatus {
     param([string]$Message, [string]$Color = 'White')

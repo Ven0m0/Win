@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 # gpu-display-manager.ps1 - Unified GPU and Display Settings Manager
 # Combines NVIDIA GPU settings, EDID overrides, gaming display optimizations, and MSI mode
@@ -8,6 +8,9 @@
 
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 # Request admin elevation
 if ($MyInvocation.InvocationName -ne '.') {

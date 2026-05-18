@@ -35,7 +35,7 @@ Describe "System Settings Manager" {
 
     Context "Performance Settings" {
         It "Should call Set-RegistryValue multiple times for gaming optimization" {
-            Set-PerformanceSettings
+            Set-PerformanceSetting
 
             # Check a few specific registry values
             Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "HibernateEnabled" -and $Data -eq "0" }
@@ -48,7 +48,7 @@ Describe "System Settings Manager" {
         }
 
         It "Should call Set-RegistryValue to restore defaults" {
-            Restore-DefaultPerformanceSettings
+            Restore-DefaultPerformanceSetting
 
             Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "HibernateEnabled" -and $Data -eq "1" }
             Should -Invoke Remove-RegistryValue -ParameterFilter { $Name -eq "PowerThrottlingOff" }
@@ -60,7 +60,7 @@ Describe "System Settings Manager" {
 
     Context "Keyboard Shortcuts" {
         It "Should disable keyboard shortcuts" {
-            Disable-KeyboardShortcuts
+            Disable-KeyboardShortcut
 
             Should -Invoke Set-RegistryValue -ParameterFilter { $Path -match "hidserv$" -and $Data -eq "4" }
             Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "NoWinKeys" -and $Data -eq "1" }
@@ -69,7 +69,7 @@ Describe "System Settings Manager" {
         }
 
         It "Should enable keyboard shortcuts" {
-            Enable-KeyboardShortcuts
+            Enable-KeyboardShortcut
 
             Should -Invoke Set-RegistryValue -ParameterFilter { $Path -match "hidserv$" -and $Data -eq "3" }
             Should -Invoke Remove-RegistryValue -ParameterFilter { $Name -eq "NoWinKeys" }

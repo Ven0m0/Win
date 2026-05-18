@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -12,14 +12,14 @@ Describe "Game-Boost Script Initialization" {
 
     It "Should export the expected functions" {
         $expectedFunctions = @(
-            "Is-Admin",
-            "Self-Elevate",
+            "Test-IsAdmin",
+            "Invoke-SelfElevation",
             "Get-PowerPlan",
             "Format-MB",
             "Get-GameProcess",
-            "Load-MemApi",
+            "Import-MemApi",
             "Save-State",
-            "Load-State",
+            "Import-State",
             "Clear-State",
             "Restore-All"
         )

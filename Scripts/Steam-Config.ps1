@@ -1,8 +1,13 @@
-﻿# Steam Configuration
+﻿#Requires -Version 5.1
+# Steam Configuration
 # Copyright (C) 2026 Noverse
 
+[CmdletBinding()]
 param([string[]]$paths)
 #[console]::Title = "Noverse Steam Configuration"
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 class vdfnode { [System.Collections.Generic.List[object]]$entries = [System.Collections.Generic.List[object]]::new() }
 
@@ -79,7 +84,9 @@ function writenode([vdfnode]$node, [int]$depth) {
     $lines = [System.Collections.Generic.List[string]]::new(); $pad = "`t" * $depth
     foreach ($entry in $node.entries) {
         $name = esc $entry.name
-        if ($entry.kind -eq 'value') { $lines.Add($pad + '"' + $name + '"' + "`t`t" + '"' + (esc $entry.value) + '"'); continue }
+        if ($entry.kind -eq 'value') {
+          $lines.Add($pad + '"' + $name + '"' + "`t`t" + '"' + (esc $entry.value) + '"'); continue
+        }
         $lines.Add($pad + '"' + $name + '"'); $lines.Add($pad + '{')
         foreach ($line in writenode $entry.node ($depth + 1)) { $lines.Add($line) }
         $lines.Add($pad + '}')
@@ -172,7 +179,8 @@ $proc = Get-Process steam* -ErrorAction SilentlyContinue
 if ($proc) { $proc | Stop-Process -Force }
 
 if (-not $paths) {
-    $paths = Get-ChildItem ((Join-Path (steamroot) 'userdata\*\config\localconfig.vdf')) -File -ErrorAction SilentlyContinue | ForEach-Object FullName
+    $paths = Get-ChildItem ((Join-Path (steamroot) 'userdata\*\config\localconfig.vdf')) `
+      -File -ErrorAction SilentlyContinue | ForEach-Object FullName
 }
 
 foreach ($path in $paths) {

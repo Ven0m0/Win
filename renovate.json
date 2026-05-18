@@ -1,116 +1,119 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":configMigration",
-    "abandonments:recommended",
-    "group:all",
-    "packages:linters",
-    "schedule:weekly",
-    ":automergeMinor",
-    ":ignoreModulesAndTests",
-    ":enablePreCommit",
-    ":preserveSemverRanges"
-  ],
-  "automerge": true,
-  "automergeStrategy": "squash",
-  "forkProcessing": "enabled",
-  "abandonmentThreshold": "2 years",
-  "lockFileMaintenance": {
-    "enabled": true,
-    "automerge": true,
-    "extends": ["schedule:monthly"]
-  },
-  "labels": ["dependencies"],
-  "timezone": "Europe/Berlin",
-  "platformAutomerge": true,
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 0,
-  "rangeStrategy": "bump",
-  "constraints": {
-    "python": ">=3.14 <3.15"
-  },
-  "pep621": {
-    "enabled": true
-  },
-  "pep723": {
-    "enabled": true
-  },
-  "pip_requirements": {
-    "enabled": false
-  },
-  "poetry": {
-    "enabled": false
-  },
-  "pipenv": {
-    "enabled": false
-  },
-  "npm": {
-    "managerFilePatterns": ["/.kilo/package.json/"]
-  },
-  "postUpdateOptions": ["uvLockUpdate"],
-  "packageRules": [
-    {
-      "description": "Disable GitHub Actions digest pinning",
-      "matchManagers": ["github-actions"],
-      "pinDigests": false
-    },
-    {
-      "description": "Disable Docker digest pinning",
-      "matchDatasources": ["docker"],
-      "pinDigests": false
-    },
-    {
-      "description": "Require dashboard approval for 0.x major bumps",
-      "matchCurrentVersion": "/^0/",
-      "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true,
-      "automerge": false
-    },
-    {
-      "description": "Automerge linters at any time, bypassing weekly schedule",
-      "matchCategories": ["linters"],
-      "schedule": ["at any time"],
-      "automerge": true
-    },
-    {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions",
-      "groupSlug": "github-actions"
-    },
-    {
-      "description": "Group pre-commit hooks updates",
-      "matchManagers": ["pre-commit"],
-      "groupName": "Pre-commit hooks",
-      "groupSlug": "pre-commit-hooks"
-    },
-    {
-      "description": "Group mise tool updates",
-      "matchManagers": ["mise"],
-      "groupName": "mise tools",
-      "groupSlug": "mise-tools"
-    },
-    {
-      "description": "Group Python package dependencies",
-      "matchDatasources": ["pypi"],
-      "groupName": "Python dependencies",
-      "groupSlug": "python-deps"
-    },
-    {
-      "description": "Restrict mise Python to 3.14.x patch releases only",
-      "matchManagers": ["mise"],
-      "matchPackageNames": ["python"],
-      "allowedVersions": "3.14.x"
-    }
-  ],
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["**/.github/workflows/*.yml", "**/.github/workflows/*.yaml"],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: version=[^\\s]+)?\\s+[A-Za-z0-9_]+_VERSION:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
-      ]
-    }
-  ]
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:best-practices",
+		":configMigration",
+		"abandonments:recommended",
+		"group:all",
+		"packages:linters",
+		"schedule:weekly",
+		":automergeMinor",
+		":ignoreModulesAndTests",
+		":enablePreCommit",
+		":preserveSemverRanges"
+	],
+	"automerge": true,
+	"automergeStrategy": "squash",
+	"forkProcessing": "enabled",
+	"abandonmentThreshold": "2 years",
+	"lockFileMaintenance": {
+		"enabled": true,
+		"automerge": true,
+		"extends": ["schedule:monthly"]
+	},
+	"labels": ["dependencies"],
+	"timezone": "Europe/Berlin",
+	"platformAutomerge": true,
+	"prConcurrentLimit": 5,
+	"prHourlyLimit": 0,
+	"rangeStrategy": "bump",
+	"constraints": {
+		"python": ">=3.14 <3.15"
+	},
+	"pep621": {
+		"enabled": true
+	},
+	"pep723": {
+		"enabled": true
+	},
+	"pip_requirements": {
+		"enabled": false
+	},
+	"poetry": {
+		"enabled": false
+	},
+	"pipenv": {
+		"enabled": false
+	},
+	"npm": {
+		"managerFilePatterns": ["/.kilo/package.json/"]
+	},
+	"postUpdateOptions": ["uvLockUpdate"],
+	"packageRules": [
+		{
+			"description": "Disable GitHub Actions digest pinning",
+			"matchManagers": ["github-actions"],
+			"pinDigests": false
+		},
+		{
+			"description": "Disable Docker digest pinning",
+			"matchDatasources": ["docker"],
+			"pinDigests": false
+		},
+		{
+			"description": "Require dashboard approval for 0.x major bumps",
+			"matchCurrentVersion": "/^0/",
+			"matchUpdateTypes": ["major"],
+			"dependencyDashboardApproval": true,
+			"automerge": false
+		},
+		{
+			"description": "Automerge linters at any time, bypassing weekly schedule",
+			"matchCategories": ["linters"],
+			"schedule": ["at any time"],
+			"automerge": true
+		},
+		{
+			"description": "Group GitHub Actions updates",
+			"matchManagers": ["github-actions"],
+			"groupName": "GitHub Actions",
+			"groupSlug": "github-actions"
+		},
+		{
+			"description": "Group pre-commit hooks updates",
+			"matchManagers": ["pre-commit"],
+			"groupName": "Pre-commit hooks",
+			"groupSlug": "pre-commit-hooks"
+		},
+		{
+			"description": "Group mise tool updates",
+			"matchManagers": ["mise"],
+			"groupName": "mise tools",
+			"groupSlug": "mise-tools"
+		},
+		{
+			"description": "Group Python package dependencies",
+			"matchDatasources": ["pypi"],
+			"groupName": "Python dependencies",
+			"groupSlug": "python-deps"
+		},
+		{
+			"description": "Restrict mise Python to 3.14.x patch releases only",
+			"matchManagers": ["mise"],
+			"matchPackageNames": ["python"],
+			"allowedVersions": "3.14.x"
+		}
+	],
+	"customManagers": [
+		{
+			"customType": "regex",
+			"managerFilePatterns": [
+				"**/.github/workflows/*.yml",
+				"**/.github/workflows/*.yaml"
+			],
+			"matchStrings": [
+				"# renovate: datasource=(?<datasource>[^\\s]+) depName=(?<depName>[^\\s]+)(?: version=[^\\s]+)?\\s+[A-Za-z0-9_]+_VERSION:\\s*['\"]?(?<currentValue>[^'\"\\s]+)['\"]?"
+			]
+		}
+	]
 }

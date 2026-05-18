@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -46,8 +46,11 @@ param(
     [int]$PostInstallGeoId = 94
 )
 
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
-function Start-InstallPackages {
+function Start-InstallPackage {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [switch]$SkipWinget,
@@ -91,6 +94,7 @@ function Start-InstallPackages {
     }
 
     function Install-WingetTool {
+        [CmdletBinding(SupportsShouldProcess)]
         param([string]$Id, [string]$Name)
         if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
             $winget = Wait-ForWinget
@@ -139,7 +143,8 @@ function Start-InstallPackages {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'SkipWinget','SkipScoop','SkipChoco','SkipSystemFeatures','SkipPowerShellModules','SkipNotepadReplacer','ApplyPostInstall') {
+        foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
+          'SkipPowerShellModules', 'SkipNotepadReplacer', 'ApplyPostInstall') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -252,7 +257,10 @@ function Start-InstallPackages {
         Write-Host '[4.5/8] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
         # Check if Notepad++ is installed
-        $notepadPlusPlus = Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
+        $notepadPlusPlus = Get-ItemProperty `
+          'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', `
+          'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+          -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
 
         if (-not $notepadPlusPlus) {
             Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'
@@ -503,7 +511,7 @@ function Start-InstallPackages {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    Start-InstallPackages @PSBoundParameters
+    Start-InstallPackage @PSBoundParameters
     $exitCode = $LASTEXITCODE
     if ($null -ne $exitCode) { exit $exitCode }
 }

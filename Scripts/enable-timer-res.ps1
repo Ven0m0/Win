@@ -1,9 +1,14 @@
-# Requires: PowerShell 5.1 or later with Administrator privileges
+﻿#Requires -Version 5.1
+# Requires Administrator privileges
 # This script enables global timer resolution and sets up a scheduled task to persist the timer resolution on logon
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 # Configuration
 $ExePath = "C:\SetTimerResolution.exe"
-$DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/SetTimerResolution-v1.0.0/SetTimerResolution.exe"
+$DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/" + `
+  "SetTimerResolution-v1.0.0/SetTimerResolution.exe"
 $TaskName = "SetTimerResolution-AutoStart"
 $Resolution = 5040  # 0.504ms in 100ns units (0.504 * 10000 = 5040)
 
@@ -84,13 +89,15 @@ function Set-TimerResolutionTask {
         $trigger = New-ScheduledTaskTrigger -AtLogon
         
         # Create settings: allow start on demand, run whether user is logged on or not
-        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+        $settings = New-ScheduledTaskSettingsSet `
+          -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
         
         # Create principal: run with highest privileges
         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
         
         # Register the task
-        $null = Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop
+        $null = Register-ScheduledTask -TaskName $TaskName -Action $action `
+          -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop
         
         Write-StatusMessage "Scheduled task '$TaskName' created successfully" "Success"
         Write-StatusMessage "Task will run at: At Logon" "Info"
@@ -134,7 +141,8 @@ function Start-TimerResolutionNow {
             return $true
         }
         
-        $process = Start-Process -FilePath $ExePath -ArgumentList "--resolution $Resolution --no-console" -WindowStyle Hidden -PassThru
+        $process = Start-Process -FilePath $ExePath `
+          -ArgumentList "--resolution $Resolution --no-console" -WindowStyle Hidden -PassThru
         Write-StatusMessage "SetTimerResolution started directly (PID: $($process.Id))" "Success"
         return $true
     } catch {
@@ -150,7 +158,10 @@ function Get-TimerResolutionStatus {
     
     # Check registry setting
     try {
-        $globalEnabled = (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" -Name "GlobalTimerResolutionRequests" -ErrorAction SilentlyContinue).GlobalTimerResolutionRequests
+        $globalEnabled = (Get-ItemProperty `
+          -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
+          -Name "GlobalTimerResolutionRequests" `
+          -ErrorAction SilentlyContinue).GlobalTimerResolutionRequests
         if ($globalEnabled -eq 1) {
             Write-StatusMessage "Global Timer Resolution: ENABLED" "Success"
         } else {
@@ -180,7 +191,8 @@ function Get-TimerResolutionStatus {
 # ==================== MAIN EXECUTION ====================
 
 # Check admin rights
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+  [Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-StatusMessage "This script requires Administrator privileges. Please run as administrator." "Error"
     exit 1
@@ -192,7 +204,9 @@ Write-StatusMessage "" "Info"
 # Step 1: Enable registry key for global timer resolution
 Write-StatusMessage "Step 1: Configuring registry for global timer resolution..." "Info"
 try {
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" -Name "GlobalTimerResolutionRequests" -Value 1 -Type DWord -Force -ErrorAction Stop
+    Set-ItemProperty `
+      -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
+      -Name "GlobalTimerResolutionRequests" -Value 1 -Type DWord -Force -ErrorAction Stop
     Write-StatusMessage "Registry configured (GlobalTimerResolutionRequests = 1)" "Success"
 } catch {
     Write-StatusMessage "Failed to configure registry: $($_.Exception.Message)" "Error"

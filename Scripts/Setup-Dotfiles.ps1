@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
 <#
@@ -270,7 +270,7 @@ function Set-CmdAliasAutoRun {
   }
 }
 
-function Deploy-StarWarsBattlefrontIIConfigs {
+function Deploy-StarWarsBattlefrontIIConfig {
   <#
   .SYNOPSIS
       Deploys Star Wars Battlefront II (2017) configs into the root config folder and active profile.
@@ -551,7 +551,7 @@ function Start-Bootstrap {
       Label  = 'Star Wars Battlefront II (2017) configs'
       Invoke = {
         param($sourceDir, $label)
-        Deploy-StarWarsBattlefrontIIConfigs -SourceDir $sourceDir -Label $label
+        Deploy-StarWarsBattlefrontIIConfig -SourceDir $sourceDir -Label $label
       }
     },
     @{
@@ -568,7 +568,8 @@ function Start-Bootstrap {
       Label              = 'Arc Raiders configs'
       Filter             = '*'
       ResolveDestination = {
-        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'ArcRaiders\Saved\Config\WindowsNoEditor'
+        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) `
+          'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
         $arcPath = Join-Path $env:LOCALAPPDATA 'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
@@ -600,7 +601,9 @@ function Start-Bootstrap {
       Path   = 'winget-configs\settings.json'
       Mode   = 'file'
       Label  = 'Winget settings'
-      ResolveDestination = { Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json' }
+      ResolveDestination = {
+        Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json'
+      }
       GetSkipReason      = { 'Winget local state directory not found' }
     },
     @{

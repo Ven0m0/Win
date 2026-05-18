@@ -1,4 +1,5 @@
-﻿# steam.ps1 - Steam optimization: restarts Steam with reduced RAM/CPU usage
+﻿#Requires -Version 5.1
+# steam.ps1 - Steam optimization: restarts Steam with reduced RAM/CPU usage
 # Supports two modes: Default (SmallMode=1, NoGPU=1) and Arc Raiders (SmallMode=0, NoGPU=0)
 
 [CmdletBinding()]
@@ -17,10 +18,14 @@ $NoShaders = 1
 $NoGPU = if ($Mode -eq 'ArcRaiders') { 0 } else { 1 }
 $SmallMode = if ($Mode -eq 'ArcRaiders') { '0' } else { '1' }
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import shared helpers
 . "$PSScriptRoot\Common.ps1"
 
 function Invoke-SteamOptimization {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [string]$SteamMode = $Mode
     )

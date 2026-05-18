@@ -2,6 +2,8 @@
 
 #Requires -RunAsAdministrator
 
+$ProgressPreference = 'SilentlyContinue'
+
 <#
 .SYNOPSIS
     Windows System Repair Script - runs DISM, SFC, CHKDSK, network, WMI, and cleanup.

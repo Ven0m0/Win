@@ -37,13 +37,14 @@ $ProgressPreference = 'SilentlyContinue'
 function Get-SteamPath {
     if ($SteamPath) { return $SteamPath }
     try {
-        $regPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction SilentlyContinue
+        $regPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' `
+          -Name InstallPath -ErrorAction SilentlyContinue
         if ($regPath) { return $regPath.InstallPath }
-    } catch { }
+    } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     try {
         $regPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction SilentlyContinue
         if ($regPath) { return $regPath.SteamPath }
-    } catch { }
+    } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     return "${env:ProgramFiles(x86)}\Steam"
 }
 
@@ -67,7 +68,8 @@ function Invoke-CleanRedist {
     $totalFreed = 0
     foreach ($path in $redistPaths) {
         if (Test-Path $path) {
-            $beforeSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            $beforeSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue |
+              Measure-Object -Property Length -Sum).Sum
             $filesRemoved = 0
 
             Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
@@ -77,12 +79,14 @@ function Invoke-CleanRedist {
                 }
             }
 
-            $afterSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            $afterSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue |
+              Measure-Object -Property Length -Sum).Sum
             $freed = $beforeSize - ($afterSize -or 0)
             $totalFreed += $freed
 
             if ($filesRemoved -gt 0) {
-                Write-Host "  Removed $filesRemoved file(s) from $($path.Split('\')[-2,-1] -join '\')" -ForegroundColor Green
+                Write-Host "  Removed $filesRemoved file(s) from $($path.Split('\')[-2,-1] -join '\')" `
+                  -ForegroundColor Green
                 if ($freed -gt 1MB) {
                     Write-Host "    Freed $([math]::Round($freed/1MB, 2)) MB" -ForegroundColor Gray
                 }

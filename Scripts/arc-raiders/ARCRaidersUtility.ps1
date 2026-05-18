@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     ARC Raiders — PRO Utility (PowerShell port of ARCRaidersUtility.exe v5.3)
@@ -18,12 +18,14 @@
     Config path auto-detected; override with -ConfigPath.
     Backups stored next to the INI in a .\Backups\ sub-folder.
 #>
+[CmdletBinding()]
 param(
     [string]$ConfigPath = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths
@@ -200,12 +202,12 @@ function Write-Log([string]$msg) {
         Add-Content -LiteralPath $LOG_FILE -Encoding UTF8
 }
 
-function Is-Admin {
+function Test-IsAdmin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-function Detect-RTX {
+function Find-RtxGpu {
     $gpu = (Get-CimInstance -ClassName Win32_VideoController | Select-Object -First 1).Name
     $supported = $gpu -match 'RTX|Radeon RX [6-9]\d{3}'
     return $supported, ($gpu -replace '^\s+|\s+$','')
@@ -232,7 +234,7 @@ function Write-Warn([string]$msg) { Write-Host "  [!] $msg" -ForegroundColor Yel
 function Write-Err([string]$msg)  { Write-Host "  [X] $msg" -ForegroundColor Red;    Write-Log "[ERR] $msg" }
 function Write-Info([string]$msg) { Write-Host "  $msg"     -ForegroundColor Gray;   Write-Log "      $msg" }
 
-function Pause-Back {
+function Invoke-PauseBack {
     Write-Host ""
     Write-Host "  Press any key to return..." -ForegroundColor DarkGray
     $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -253,16 +255,16 @@ function Set-IniValue([ref]$text, [string]$key, [string]$value) {
 # ─────────────────────────────────────────────────────────────────────────────
 #  Core actions
 # ─────────────────────────────────────────────────────────────────────────────
-function Action-RTXDetect([ref]$iniPath) {
+function Invoke-RtxDetect([ref]$iniPath) {
     Write-Info "Detecting DXR / RTX support..."
-    $rtx, $gpu = Detect-RTX
+    $rtx, $gpu = Find-RtxGpu
     Write-Info "Adapter found: $gpu"
     if ($rtx) { Write-Ok "RTX GPU detected — RTX preset options enabled" }
     else       { Write-Warn "No RTX GPU detected — Cinematic RTX ON may not perform well" }
     return $rtx
 }
 
-function Action-ApplyPreset([string]$iniPath, [string]$presetName) {
+function Invoke-ApplyPreset([string]$iniPath, [string]$presetName) {
     Write-Info "Applying graphics preset: $presetName"
     if (-not (Test-Path $iniPath)) {
         Write-Err "Config file missing: $iniPath"; return $false
@@ -280,7 +282,7 @@ function Action-ApplyPreset([string]$iniPath, [string]$presetName) {
     return $true
 }
 
-function Action-Backup([string]$iniPath) {
+function Invoke-Backup([string]$iniPath) {
     $dir     = Split-Path $iniPath
     $backDir = Join-Path $dir 'Backups'
     $null    = New-Item -ItemType Directory -Path $backDir -Force
@@ -290,9 +292,9 @@ function Action-Backup([string]$iniPath) {
     return $dest
 }
 
-function Action-NetFix {
+function Invoke-NetFix {
     Write-Info "Flushing DNS and resetting Winsock..."
-    if (-not (Is-Admin)) {
+    if (-not (Test-IsAdmin)) {
         Write-Err "Administrator required — right-click and Run as Administrator"
         return $false
     }
@@ -302,7 +304,7 @@ function Action-NetFix {
     return $true
 }
 
-function Action-Optimize([string]$iniPath) {
+function Invoke-Optimize([string]$iniPath) {
     Write-Info "Applying full game optimizations..."
     # Set ARC.exe + pioneergame.exe to High priority (live processes)
     foreach ($name in @('ARC','pioneergame')) {
@@ -319,9 +321,9 @@ function Action-Optimize([string]$iniPath) {
     return $true
 }
 
-function Action-CpuBoost {
+function Invoke-CpuBoost {
     Write-Info "Applying CPU Boost (High Performance power state)..."
-    if (-not (Is-Admin)) { Write-Err "Administrator required"; return $false }
+    if (-not (Test-IsAdmin)) { Write-Err "Administrator required"; return $false }
 
     # Ultimate Performance (GUID e9a42b02-d5df-448d-aa00-03f14749eb61) or High Performance
     $list = powercfg /list 2>&1
@@ -338,7 +340,7 @@ function Action-CpuBoost {
     return $true
 }
 
-function Action-ClearCaches([string[]]$keys) {
+function Invoke-ClearCaches([string[]]$keys) {
     Write-Info "Clearing selected caches..."
     foreach ($key in $keys) {
         [array]$paths = $CACHE_PATHS[$key]
@@ -362,7 +364,7 @@ function Action-ClearCaches([string[]]$keys) {
     }
 }
 
-function Action-Rollback([string]$iniPath, [string]$backupPath) {
+function Invoke-Rollback([string]$iniPath, [string]$backupPath) {
     if (-not (Test-Path $backupPath)) { Write-Err "Backup not found: $backupPath"; return $false }
     if (-not (Test-Path $iniPath))    { Write-Err "Config not found: $iniPath";    return $false }
     Copy-Item -LiteralPath $backupPath -Destination $iniPath -Force
@@ -374,7 +376,7 @@ function Action-Rollback([string]$iniPath, [string]$backupPath) {
 # ─────────────────────────────────────────────────────────────────────────────
 #  UI — file picker (no WPF, use shell COM)
 # ─────────────────────────────────────────────────────────────────────────────
-function Pick-File([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', [string]$initial = '') {
+function Select-IniFile([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', [string]$initial = '') {
     Add-Type -AssemblyName System.Windows.Forms
     $dlg = New-Object System.Windows.Forms.OpenFileDialog
     $dlg.Title  = $title
@@ -384,7 +386,7 @@ function Pick-File([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', 
     return $null
 }
 
-function Pick-BackupFile([string]$backupDir) {
+function Select-BackupFile([string]$backupDir) {
     if (-not (Test-Path $backupDir)) { return $null }
     $files = Get-ChildItem $backupDir -Filter '*.ini' | Sort-Object LastWriteTime -Descending
     if ($files.Count -eq 0) { return $null }
@@ -429,8 +431,8 @@ function BackupLabel { if ($backupPath) { Split-Path $backupPath -Leaf } else { 
 
 while ($true) {
     Write-H "v5.3"
-    $adminTag = if (Is-Admin) { "[Administrator]" } else { "[not Administrator]" }
-    $adminCol = if (Is-Admin) { 'Green' } else { 'Yellow' }
+    $adminTag = if (Test-IsAdmin) { "[Administrator]" } else { "[not Administrator]" }
+    $adminCol = if (Test-IsAdmin) { 'Green' } else { 'Yellow' }
     Write-Host "  $adminTag" -ForegroundColor $adminCol
     Write-Host ""
 
@@ -477,11 +479,11 @@ while ($true) {
 
     switch -Regex ($key) {
         '^C$'  {
-            $picked = Pick-File "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
+            $picked = Select-IniFile "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
             if ($picked) { $iniPath = $picked; Write-Log "Config selected: $iniPath" }
         }
         '^B$'  {
-            $picked = Pick-File "Select Backup INI" "INI files (*.ini)|*.ini"
+            $picked = Select-IniFile "Select Backup INI" "INI files (*.ini)|*.ini"
             if ($picked) { $backupPath = $picked; Write-Log "Backup selected: $backupPath" }
         }
         '^R$'  { $chkRTX      = -not $chkRTX }
@@ -512,37 +514,37 @@ while ($true) {
                 } else {
                     Write-Err "No config file selected and default not found."
                     Write-Err "Use [C] to select GameUserSettings.ini"
-                    Pause-Back; continue
+                    Invoke-PauseBack; continue
                 }
             }
 
             # RTX detect
-            if ($chkRTX) { Action-RTXDetect ([ref]$iniPath) | Out-Null }
+            if ($chkRTX) { Invoke-RtxDetect ([ref]$iniPath) | Out-Null }
 
             # Backup before any changes
-            $newBackup = Action-Backup $iniPath
+            $newBackup = Invoke-Backup $iniPath
             $backupPath = $newBackup
 
             # Apply preset
             Write-H "APPLYING PRESET: $selectedPreset"
-            Action-ApplyPreset $iniPath $selectedPreset | Out-Null
+            Invoke-ApplyPreset $iniPath $selectedPreset | Out-Null
 
             # Options
-            if ($chkNetFix)   { Write-H "NETWORK FIX";    Action-NetFix        | Out-Null }
-            if ($chkOptimize) { Write-H "GAME OPTIMIZE";  Action-Optimize $iniPath | Out-Null }
-            if ($chkCpuBoost) { Write-H "CPU BOOST";      Action-CpuBoost      | Out-Null }
+            if ($chkNetFix)   { Write-H "NETWORK FIX";    Invoke-NetFix        | Out-Null }
+            if ($chkOptimize) { Write-H "GAME OPTIMIZE";  Invoke-Optimize $iniPath | Out-Null }
+            if ($chkCpuBoost) { Write-H "CPU BOOST";      Invoke-CpuBoost      | Out-Null }
 
             # Caches
             $toClean = $cacheChecks.GetEnumerator() | Where-Object { $_.Value } | ForEach-Object { $_.Key }
             if ($toClean) {
                 Write-H "CACHE CLEAN"
-                Action-ClearCaches @($toClean)
+                Invoke-ClearCaches @($toClean)
             }
 
             Write-Host ""
             Write-Ok "=== RUN COMPLETED ==="
             Write-Log "=== RUN COMPLETED ==="
-            Pause-Back
+            Invoke-PauseBack
         }
         '^K$' {
             # Rollback
@@ -551,19 +553,19 @@ while ($true) {
             if (-not $backupPath) {
                 # Try to pick from backup dir
                 if ($backDir -and (Test-Path $backDir)) {
-                    $backupPath = Pick-BackupFile $backDir
+                    $backupPath = Select-BackupFile $backDir
                 } else {
-                    $backupPath = Pick-File "Select backup to restore" "INI files (*.ini)|*.ini"
+                    $backupPath = Select-IniFile "Select backup to restore" "INI files (*.ini)|*.ini"
                 }
             }
-            if (-not $backupPath) { Write-Warn "No backup selected."; Pause-Back; continue }
+            if (-not $backupPath) { Write-Warn "No backup selected."; Invoke-PauseBack; continue }
             if (-not $iniPath -or -not (Test-Path $iniPath)) {
-                Write-Err "Select a config file first with [C]."; Pause-Back; continue
+                Write-Err "Select a config file first with [C]."; Invoke-PauseBack; continue
             }
             Write-Info "Restoring: $(Split-Path $backupPath -Leaf) → $(Split-Path $iniPath -Leaf)"
-            Action-Rollback $iniPath $backupPath | Out-Null
+            Invoke-Rollback $iniPath $backupPath | Out-Null
             $backupPath = ''  # reset after use
-            Pause-Back
+            Invoke-PauseBack
         }
         '^Q$' { Write-Log "=== EXIT ==="; exit 0 }
         default { Write-Warn "Unknown command. Use letters/numbers shown above." ; Start-Sleep -Milliseconds 600 }

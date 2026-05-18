@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -29,7 +29,7 @@ Describe "Setup-Dotfiles.ps1" {
             Get-Command Get-StarWarsBattlefrontIIActiveProfilePath -ErrorAction SilentlyContinue | `
                 Should -Not -BeNullOrEmpty
             Get-Command Set-CmdAliasAutoRun -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
-            Get-Command Deploy-StarWarsBattlefrontIIConfigs -ErrorAction SilentlyContinue | `
+            Get-Command Deploy-StarWarsBattlefrontIIConfig -ErrorAction SilentlyContinue | `
                 Should -Not -BeNullOrEmpty
             Get-Command Invoke-ConfigManifestEntry -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-WingetTool -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty

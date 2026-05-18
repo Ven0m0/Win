@@ -2,6 +2,8 @@
 
 #Requires -RunAsAdministrator
 
+$ProgressPreference = 'SilentlyContinue'
+
 <#
 .SYNOPSIS
     Additional Safe Windows Maintenance Script
@@ -66,7 +68,8 @@ function Start-AdditionalMaintenance {
     Write-Info "=== DISM Full Component Cleanup ==="
     Write-Warn "NOTE: /ResetBase /RestoreHealth operations may take 30+ minutes and require a reboot."
     Invoke-Operation -Name 'DISM_FullCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-        -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup /ResetBase /RestoreHealth'
+        -Action {} -Command 'DISM' `
+        -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup /ResetBase /RestoreHealth'
 
     # 3. Clear Windows Store Cache
     Invoke-Operation -Name 'StoreCacheClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' `

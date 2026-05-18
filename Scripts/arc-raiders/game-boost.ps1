@@ -30,6 +30,7 @@
     .\game-boost.ps1 -NoLaunch    # Boost only (game already running)
     .\game-boost.ps1 -DryRun      # Preview mode
 #>
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [switch]$NoLaunch,
     [switch]$NoRestore,
@@ -119,13 +120,13 @@ $PROTECTED = @(
 # ─────────────────────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────────────────────
-function Is-Admin {
+function Test-IsAdmin {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-function Self-Elevate {
-    if (-not (Is-Admin)) {
+function Invoke-SelfElevation {
+    if (-not (Test-IsAdmin)) {
         Write-Host "  Requesting administrator privileges..." -ForegroundColor Yellow
         $args_ = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath)
         if ($NoLaunch)  { $args_ += '-NoLaunch' }
@@ -174,7 +175,7 @@ function Get-GameProcess {
 }
 
 # Load Win32 APIs for working set trimming
-function Load-MemApi {
+function Import-MemApi {
     Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -230,10 +231,10 @@ function Save-State([string]$powerPlan, [string[]]$killedProcesses) {
             'FullControl', 'Allow')
         $acl.AddAccessRule($rule)
         Set-Acl $STATE_FILE $acl
-    } catch { <# ACL hardening best-effort #> }
+    } catch { Write-Verbose "ACL hardening best-effort, skipped: $_" }
 }
 
-function Load-State {
+function Import-State {
     if (Test-Path $STATE_FILE) {
         return (Get-Content $STATE_FILE -Raw | ConvertFrom-Json)
     }
@@ -288,13 +289,13 @@ function Restore-All([string]$originalPlan, [hashtable]$killedPaths, [switch]$dr
 # ─────────────────────────────────────────────────────────────────────────────
 #  Main
 # ─────────────────────────────────────────────────────────────────────────────
-Self-Elevate
+Invoke-SelfElevation
 
 Write-H "STARTING"
 if ($DryRun) { Write-Warn "DRY RUN MODE — no changes will be made" }
 
 # ── Check for existing state (previous run didn't clean up)
-$existingState = Load-State
+$existingState = Import-State
 if ($existingState) {
     Write-Warn "Found state from a previous boost session ($(($existingState.timestamp)))."
     Write-Host "  [R] Restore previous session    [C] Continue new boost    [Q] Quit" -ForegroundColor White
@@ -408,7 +409,7 @@ Write-H "MEMORY TRIM"
 if ($DryRun) {
     Write-Dry "Would trim working sets of all processes and purge standby list"
 } else {
-    Load-MemApi
+    Import-MemApi
     try {
         $trimmed = [ArcBoostMem]::TrimAll()
         Write-Ok "Working sets trimmed ($trimmed processes)"

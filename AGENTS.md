@@ -55,8 +55,8 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Guidance splits**:
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
-  - `.kilo/rules/` — narrow coding and system standards
-  - `.kilo/skills/` — reusable workflow knowledge
+  - `.kilo/rules/` and `.claude/rules/` — narrow coding and system standards (symlinked)
+  - `.kilo/skills/` and `.claude/skills/` — reusable workflow knowledge (symlinked)
   - `.kilo/agents/` — agent identity and handoff rules
   - `.kilo/commands/` — documented command workflows
 

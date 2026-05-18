@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -72,7 +72,7 @@ function Initialize-ConsoleUI {
 
     # Use parameter to prevent unused variable warnings while maintaining backward compatibility
     $null = $Title
-    try { $Host.UI.RawUI.WindowTitle = $Title } catch {}
+    try { $Host.UI.RawUI.WindowTitle = $Title } catch { Write-Verbose "WindowTitle not supported on this host: $_" }
     $Host.UI.RawUI.BackgroundColor = "Black"
     $Host.PrivateData.ProgressBackgroundColor = "Black"
     $Host.PrivateData.ProgressForegroundColor = "White"
@@ -1862,6 +1862,8 @@ function Invoke-RegImport {
 
 
 function Ensure-Directory {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
+      Justification='Ensure- is a widely-used configuration management convention; renaming would break callers.')]
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
@@ -1884,6 +1886,8 @@ function vdf_mkdir {
 }
 
 function sc-nonew {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
+        Justification='Intentional terse internal helper')]
     [CmdletBinding()]
     param($fn, $txt)
     if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }

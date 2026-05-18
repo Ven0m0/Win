@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -80,6 +80,7 @@ catch {
 }
 
 $ErrorActionPreference = 'Continue'
+$ProgressPreference    = 'SilentlyContinue'
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.
 $startTime = Get-Date
 $script:IsSimulation = $DryRun -or $WhatIfPreference
@@ -841,7 +842,8 @@ $managers = @(
                 $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade'
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
-                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } catch { Write-Verbose "Post-upgrade hook failed: $_" }
+                try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } `
+                catch { Write-Verbose "Post-upgrade hook failed: $_" }
 
                 $script:stepChanged = $anyInstalled
                 if (-not $anyFailed) {
@@ -1481,8 +1483,9 @@ else {
         catch { Write-Verbose "Captured output read failed: $_" }
     }
 
-    try { Clear-DnsClientCache `
-    -ErrorAction SilentlyContinue; Write-Status "DNS cache flushed" -Type Success } catch { Write-Verbose "Captured output read failed: $_" }
+    try { Clear-DnsClientCache -ErrorAction SilentlyContinue
+      Write-Status "DNS cache flushed" -Type Success
+    } catch { Write-Verbose "Captured output read failed: $_" }
     try { Clear-RecycleBin -Force `
     -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catc
 

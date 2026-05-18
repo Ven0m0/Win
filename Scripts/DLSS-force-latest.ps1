@@ -2,6 +2,9 @@
 
 #Requires -RunAsAdministrator
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
 

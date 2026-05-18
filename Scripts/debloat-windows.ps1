@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 #Requires -RunAsAdministrator
 <#
@@ -18,11 +18,16 @@ param(
   [switch]$NoRestorePoint
 )
 
+$ErrorActionPreference = 'Stop'
+$ProgressPreference    = 'SilentlyContinue'
+
 # Import common functions
 . "$PSScriptRoot/Common.ps1"
 
 #region Phase 1: App Removal
-function Remove-BloatwareApps {
+function Remove-BloatwareApp {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 1: Removing Bloatware Apps ===" -ForegroundColor Cyan
 
   $appsToRemove = @(
@@ -64,7 +69,9 @@ function Remove-BloatwareApps {
 #endregion
 
 #region Phase 2: Service Management
-function Disable-UnnecessaryServices {
+function Disable-UnnecessaryService {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 2: Disabling Unnecessary Services ===" -ForegroundColor Cyan
 
   $servicesToDisable = @(
@@ -119,7 +126,9 @@ function Disable-UnnecessaryServices {
 #endregion
 
 #region Phase 3: Windows Features
-function Disable-WindowsFeatures {
+function Disable-WindowsFeature {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 3: Disabling Windows Optional Features ===" -ForegroundColor Cyan
 
   $featuresToDisable = @(
@@ -142,7 +151,9 @@ function Disable-WindowsFeatures {
 #endregion
 
 #region Phase 4: Scheduled Tasks
-function Disable-ScheduledTasks {
+function Invoke-ScheduledTaskCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 4: Disabling Scheduled Tasks ===" -ForegroundColor Cyan
 
   $tasksToDisable = @(
@@ -212,7 +223,9 @@ function Disable-ScheduledTasks {
 #endregion
 
 #region Phase 5: Registry Tweaks
-function Apply-RegistryTweaks {
+function Invoke-RegistryTweak {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 5: Applying Registry Tweaks ===" -ForegroundColor Cyan
 
   $tweaks = @(
@@ -263,7 +276,9 @@ function Apply-RegistryTweaks {
 #endregion
 
 #region Phase 6: System Cleanup
-function Run-SystemCleanup {
+function Invoke-SystemCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "=== Phase 6: System Cleanup ===" -ForegroundColor Cyan
   $freedSpace = 0
 
@@ -309,7 +324,9 @@ function Run-SystemCleanup {
 }
 #endregion
 
-function Restore-DisabledServices {
+function Restore-DisabledService {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Re-enabling previously disabled services ===" -ForegroundColor Cyan
   $servicesToEnable = @(
     "DiagTrack","dmwappushservice","XblAuthManager","XblGameSave","XboxGipSvc","XboxNetApiSvc",
@@ -333,7 +350,9 @@ function Restore-DisabledServices {
   }
 }
 
-function Restore-ScheduledTasks {
+function Restore-ScheduledTask {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Re-enabling previously disabled scheduled tasks ===" -ForegroundColor Cyan
   $tasksToEnable = @(
     "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser"
@@ -354,7 +373,9 @@ function Restore-ScheduledTasks {
   }
 }
 
-function Restore-RegistryTweaks {
+function Restore-RegistryTweak {
+  [CmdletBinding()]
+  param()
   Write-Host "=== Restore: Reverting registry tweaks ===" -ForegroundColor Cyan
   # Telemetry
   $telemetryPolicyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
@@ -380,21 +401,25 @@ function Restore-RegistryTweaks {
   Write-Host "=== Registry restore complete ===" -ForegroundColor Green
 }
 
-function Restore-AllPhases {
-  Restore-DisabledServices
-  Restore-ScheduledTasks
-  Restore-RegistryTweaks
+function Restore-AllPhase {
+  [CmdletBinding()]
+  param()
+  Restore-DisabledService
+  Restore-ScheduledTask
+  Restore-RegistryTweak
   Write-Host "`nRestore complete. Restart recommended." -ForegroundColor Cyan
 }
 
-function Run-AllPhases {
+function Invoke-AllPhase {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   if (-not $NoRestorePoint) { New-RestorePoint -Description "Before Debloating" }
-  Remove-BloatwareApps
-  Disable-UnnecessaryServices
-  Disable-WindowsFeatures
-  Disable-ScheduledTasks
-  Apply-RegistryTweaks
-  Run-SystemCleanup
+  Remove-BloatwareApp
+  Disable-UnnecessaryService
+  Disable-WindowsFeature
+  Invoke-ScheduledTaskCleanup
+  Invoke-RegistryTweak
+  Invoke-SystemCleanup
   Show-RestartRequired -CustomMessage "Debloating complete. Restart recommended to apply all changes."
 }
 
@@ -412,10 +437,10 @@ if ($MyInvocation.InvocationName -ne '.') {
     )
     $rChoice = Get-MenuChoice -Min 1 -Max 5
     switch ($rChoice) {
-      1 { Restore-AllPhases }
-      2 { Restore-DisabledServices }
-      3 { Restore-ScheduledTasks }
-      4 { Restore-RegistryTweaks }
+      1 { Restore-AllPhase }
+      2 { Restore-DisabledService }
+      3 { Restore-ScheduledTask }
+      4 { Restore-RegistryTweak }
       5 { exit }
     }
     if ($rChoice -ne 5) { Wait-ForKeyPress }
@@ -444,13 +469,13 @@ if ($MyInvocation.InvocationName -ne '.') {
     $choice = Get-MenuChoice -Min 1 -Max 8
 
     switch ($choice) {
-      1 { Run-AllPhases }
-      2 { Remove-BloatwareApps }
-      3 { Disable-UnnecessaryServices }
-      4 { Disable-WindowsFeatures }
-      5 { Disable-ScheduledTasks }
-      6 { Apply-RegistryTweaks }
-      7 { Run-SystemCleanup }
+      1 { Invoke-AllPhase }
+      2 { Remove-BloatwareApp }
+      3 { Disable-UnnecessaryService }
+      4 { Disable-WindowsFeature }
+      5 { Invoke-ScheduledTaskCleanup }
+      6 { Invoke-RegistryTweak }
+      7 { Invoke-SystemCleanup }
       8 { exit }
     }
 
