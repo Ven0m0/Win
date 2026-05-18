@@ -129,5 +129,8 @@
         ]
       }
     ]
-  }
+  },
+  "model": "claude-sonnet-4-6",
+  "theme": "dark",
+  "effortLevel": "medium"
 }
