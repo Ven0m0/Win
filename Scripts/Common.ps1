@@ -547,8 +547,7 @@ function Get-FileFromWeb {
             [Parameter(Mandatory)][Single]$TotalValue,
             [Parameter(Mandatory)][Single]$CurrentValue,
             [Parameter(Mandatory)][string]$ProgressText,
-            [Parameter()][int]$BarSize = 10,
-            [Parameter()][switch]$Complete
+            [Parameter()][int]$BarSize = 10
         )
 
         $percent = $CurrentValue / $TotalValue
