@@ -92,7 +92,7 @@ jobs:
 
           foreach ($file in $psFiles) {
             try {
-              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
+              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1
               $allResults += $results
               foreach ($result in $results) {
                 if ($result.Severity -eq 'Error') {
@@ -113,8 +113,3 @@ jobs:
             Write-Host "## No PSScriptAnalyzer errors found" -ForegroundColor Green
             exit 0
           }
-
-      - name: Upload SARIF results
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: results.sarif
