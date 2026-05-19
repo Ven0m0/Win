@@ -1,10 +1,43 @@
 ﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 
-# === QoS PowerShell equivalent === TODO: fix broken Qos commands
-New-NetQosPolicy -Name "ArcRaiders" -AppPathNameMatchCondition "PioneerGame.exe" -DSCPAction 46
-New-NetQosPolicy -Name "BlackOps6" -AppPathNameMatchCondition "cod24-cod.exe" -DSCPAction 46
-New-NetQosPolicy -Name "Fortnite" -AppPathNameMatchCondition "FortniteClient-Win64-Shipping.exe" -DSCPAction 46
+# === QoS Registry Implementation (Home/Pro compatible) ===
+$qosPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\QoS'
+if (-not (Test-Path -Path $qosPath)) {
+    New-Item -Path $qosPath -Force | Out-Null
+}
+
+$qosGames = @{
+    'ArcRaiders' = 'PioneerGame.exe'
+    'BlackOps6'  = 'cod24-cod.exe'
+    'Fortnite'   = 'FortniteClient-Win64-Shipping.exe'
+}
+
+foreach ($game in $qosGames.GetEnumerator()) {
+    $gamePath = Join-Path -Path $qosPath -ChildPath $game.Name
+    if (-not (Test-Path -Path $gamePath)) {
+        New-Item -Path $gamePath -Force | Out-Null
+    }
+
+    $props = @{
+        'Version'                 = '1.0'
+        'Application Name'        = $game.Value
+        'Protocol'                = '*'
+        'Local Port'              = '*'
+        'Remote Port'             = '*'
+        'Local IP'                = '*'
+        'Remote IP'               = '*'
+        'Local IP Prefix Length'  = '*'
+        'Remote IP Prefix Length' = '*'
+        'DSCP Value'              = '46'
+        'Throttle Rate'           = '-1'
+    }
+
+    foreach ($prop in $props.GetEnumerator()) {
+        Set-ItemProperty -Path $gamePath -Name $prop.Name -Value $prop.Value -Type String | Out-Null
+    }
+}
+
 gpupdate /force
 
 # === Windows Defender Exclusions ===

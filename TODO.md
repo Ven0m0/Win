@@ -5,7 +5,7 @@
 ### Script Quality
 - [ ] Verify `Scripts/Network-Tweaker.ps1` for remaining PSScriptAnalyzer issues (4,233 lines — needs full lint run)
 - [ ] Fix `Scripts/enable-timer-res.ps1` hardcoded `C:\SetTimerResolution.exe` path → use `$env:SystemDrive`
-- [ ] Fix `Scripts/reg/priority.ps1` line 4 TODO: broken QoS `netsh` commands need replacement
+- [x] Fix `Scripts/reg/priority.ps1` line 4 TODO: broken QoS `netsh` commands need replacement
 
 ### Test Coverage (no Pester tests exist)
 - [ ] `tests/New-SteamShortcut.Tests.ps1`
