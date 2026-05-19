@@ -20,32 +20,22 @@ $NoGPU         = 1
 $totalSize  = 0
 $totalCount = 0
 
-function Remove-Glob {
-    param([string]$Pattern)
+function Invoke-GlobClean([string]$Pattern) {
     Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
 }
 
-    if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
-    else { [IO.File]::WriteAllText($fn, $txt -join [char]10) }
-}
 
-    param($vdf, [string]$path = '')
-    $s = $path -split '\\', 2
-    $key, $recurse = $s[0], ($s.Count -gt 1 ? $s[1] : $null)
-    if ($key -and $vdf.Keys -notcontains $key) { $vdf[$key] = [ordered]@{} }
-    if ($recurse) { vdf_mkdir $vdf[$key] $recurse }
-}
 
 # ── Arc Raiders: logs + crashes ───────────────────────────────────────────────
 Write-Host "`n[Arc Raiders]"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Logs\*"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes\*"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Config\CrashReportClient\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Logs\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Config\CrashReportClient\*"
 
 # ── Windows temp ──────────────────────────────────────────────────────────────
 Write-Host "`n[Temp]"
-Remove-Glob "$env:TEMP\*"
-Remove-Glob "$env:windir\Temp\*"
+Invoke-GlobClean "$env:TEMP\*"
+Invoke-GlobClean "$env:windir\Temp\*"
 
 # ── Memory: trim working sets + purge standby list ────────────────────────────
 Write-Host "`n[Memory] Trimming..."
@@ -81,7 +71,7 @@ public class MemUtil2 {
 "@ -ErrorAction SilentlyContinue
 
 try { [MemUtil2]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_
+try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."
@@ -150,16 +140,16 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
         $ui = $ui.Replace('bSignIntoFriends\":true', 'bSignIntoFriends\":false')
         $ui = $ui.Replace('PersonaNotifications\":1', 'PersonaNotifications\":0'); $write = $true
     }
-    if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*'))
+    if ($FriendsAnimed -eq 0 -and ($ui -like '*bAnimatedAvatars\":true*' -or $ui -like '*bDisableRoomEffects\":false*')) {
         $ui = $ui.Replace('bAnimatedAvatars\":true', 'bAnimatedAvatars\":false')
         $ui = $ui.Replace('bDisableRoomEffects\":false', 'bDisableRoomEffects\":true'); $write = $true
     }
     $key["FriendsUI"]["FriendsUIJSON"] = $ui
-    if ($write) { sc-nonew $file (ConvertTo-VDF -Data $vdf); Write-Host "  Updated $file" }
+    if ($write) { Set-ContentNoNewline -Path $file -Content (ConvertTo-VDF -Data $vdf); Write-Host "  Updated $file" }
 }
 
 # ── Steam: update localconfig.vdf ─────────────────────────────────────────────
-$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList
+$opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
 if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
 Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
     $file  = $_.FullName
@@ -176,7 +166,7 @@ Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Obje
         $key = $vdf.Item(0)["friends"]
         if ($key["SignIntoFriends"] -ne '"0"') { $key["SignIntoFriends"] = '"0"'; $write = $true }
     }
-    if ($write) { sc-nonew $file (ConvertTo-VDF -Data $vdf); Write-Host "  Updated $file" }
+    if ($write) { Set-ContentNoNewline -Path $file -Content (ConvertTo-VDF -Data $vdf); Write-Host "  Updated $file" }
 }
 
 # ── Steam: refresh desktop shortcut ──────────────────────────────────────────

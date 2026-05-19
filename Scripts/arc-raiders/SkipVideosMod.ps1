@@ -29,7 +29,7 @@ function Find-ArcRaider {
     } catch { Write-Verbose "HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
-            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop
+            $steamPath = (Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop).InstallPath
         } catch { Write-Verbose "HKLM Steam lookup failed: $_" }
     }
     if ($steamPath) {
@@ -142,7 +142,7 @@ function Show-Menu {
     Clear-Host
     Write-Host ""
     Write-Host "  +===============================================================+"
-    Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m ARC RAIDERS - SKIP VIDEOS MOD by TinyStormCl
+    Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m ARC RAIDERS - SKIP VIDEOS MOD by TinyStormCloud       |"
     Write-Host "  +===============================================================+"
     Write-Host "  |                                                               |"
     Write-Host "  |   1. Skip Intro Video                                         |"
@@ -161,7 +161,7 @@ function Show-Menu {
     Write-Host ""
 }
 
-function Show-Diagnostics {
+function Show-Diagnostic {
     Clear-Host
     Write-Host ""
     Write-Host "  +===============================================================+"
@@ -210,7 +210,7 @@ function Show-Diagnostics {
         Write-Host "      ${esc}[91m[X]${esc}[0m Cannot check write permissions - path missing" -ForegroundColor Red
     }
 
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Secur
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if ($isAdmin) {
         Write-Host "      ${esc}[92m[v]${esc}[0m Running as Administrator" -ForegroundColor Green
     } else {
@@ -334,7 +334,7 @@ if ($Option) {
             Remove-VideoFile (Join-Path $MoviesPath 'Frontend') 'LaunchSequence_ToBlack_4k.bk2' 'Skip Match Video'
             Remove-QuestFile
         }
-        '5' { Show-Diagnostics; return }
+        '5' { Show-Diagnostic; return }
         '6' { Show-Credit; return }
         '0' { exit 0 }
     }
@@ -350,7 +350,7 @@ while ($true) {
             Clear-Host
             Write-Host ""
             Write-Host "  +===============================================================+"
-            Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP INTRO VIDEO MOD       
+            Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP INTRO VIDEO MOD                          |"
             Write-Host "  +===============================================================+"
             Write-Host ""
             Remove-VideoFile (Join-Path $MoviesPath 'FTUE') 'GAME_INTRO_SPERANZA_DESCEND_V5.bk2' 'Skip Intro Video'
@@ -364,7 +364,7 @@ while ($true) {
             Clear-Host
             Write-Host ""
             Write-Host "  +===============================================================+"
-            Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP MATCH VIDEO MOD       
+            Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP MATCH VIDEO MOD                          |"
             Write-Host "  +===============================================================+"
             Write-Host ""
             Remove-VideoFile (Join-Path $MoviesPath 'Frontend') 'LaunchSequence_ToBlack_4k.bk2' 'Skip Match Video'
@@ -392,7 +392,7 @@ while ($true) {
                 Clear-Host
                 Write-Host ""
                 Write-Host "  +===============================================================+"
-                Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP QUEST VIDEOS MOD  
+                Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING SKIP QUEST VIDEOS MOD                         |"
                 Write-Host "  +===============================================================+"
                 Write-Host ""
                 Remove-QuestFile
@@ -422,7 +422,7 @@ while ($true) {
                 Clear-Host
                 Write-Host ""
                 Write-Host "  +===============================================================+"
-                Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING ALL MODS               
+                Write-Host "  |   ${esc}[96m)${esc}[92m\${esc}[93m\${esc}[91m\${esc}[0m APPLYING ALL MODS                                      |"
                 Write-Host "  +===============================================================+"
                 Write-Host ""
                 Remove-VideoFile (Join-Path $MoviesPath 'FTUE') 'GAME_INTRO_SPERANZA_DESCEND_V5.bk2' 'Skip Intro Video'
@@ -435,7 +435,7 @@ while ($true) {
             Write-Host "  Press Enter to go back to menu..."
             Read-Host
         }
-        '5' { Show-Diagnostics }
+        '5' { Show-Diagnostic }
         '6' { Show-Credit }
         '0' { exit 0 }
         default {

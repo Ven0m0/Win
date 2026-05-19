@@ -39,7 +39,7 @@ tab_width = 2
 
 [**.{reg}]
 end_of_line = crlf
-charset = utf-8-bom
+charset = utf-8
 indent_style = space
 indent_size = 2
 

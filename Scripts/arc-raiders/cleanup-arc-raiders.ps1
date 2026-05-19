@@ -146,9 +146,9 @@ public class MemUtil {
             try {
                 IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
                 if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-} catch { Write-Verbose "TrimAll process failed: $_" }
+            } catch { }
         }
-        // SystemMemoryListInformation=80, command 4=purge standby list
+    }
     public static void PurgeStandby() {
         IntPtr buf = Marshal.AllocHGlobal(4);
         Marshal.WriteInt32(buf, 4);
@@ -159,7 +159,7 @@ public class MemUtil {
 "@ -ErrorAction SilentlyContinue
 
 try { [MemUtil]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_"
+try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
 
 rundll32.exe advapi32.dll,ProcessIdleTasks
 Write-Host "  Idle tasks queued."

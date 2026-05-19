@@ -317,7 +317,7 @@ The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
 - `Get-PublicIP` / `myip` - Get public IP address
 - `touch <file>` - Create/update file
 - `mkcd <dir>` - Create directory and cd into it
-- `Clear-TempFiles` - Clean temporary files
+- `Clear-TempFile` - Clean temporary files
 
 ### PSReadLine Configuration
 

@@ -1,7 +1,10 @@
 {
   "powershell": {
     "command": [
-      "pwsh", "-NoLogo", "-NoProfile", "-Command",
+      "pwsh",
+      "-NoLogo",
+      "-NoProfile",
+      "-Command",
       "$module = Get-Module -ListAvailable PowerShellEditorServices | Sort-Object Version -Descending | Select-Object -First 1; if (-not $module) { throw 'PowerShellEditorServices is not installed. Run: Install-Module -Name PowerShellEditorServices -Scope CurrentUser' }; Import-Module $module.Path; Start-EditorServices -HostName 'Claude Code' -HostProfileId 'ClaudeCode' -HostVersion '1.0.0' -Stdio -BundledModulesPath (Split-Path $module.Path) -LogPath '/dev/null' -LogLevel 'None' -EnableConsoleRepl"
     ],
     "extensions": [".ps1", ".psm1", ".psd1"]
@@ -12,12 +15,33 @@
   },
   "vtsls": {
     "command": ["vtsls", "--stdio"],
-    "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
-    "initialization": { "preferences": { "importModuleSpecifierPreference": "relative" } }
+    "extensions": [
+      ".js",
+      ".jsx",
+      ".ts",
+      ".tsx",
+      ".mjs",
+      ".cjs",
+      ".mts",
+      ".cts"
+    ],
+    "initialization": {
+      "preferences": { "importModuleSpecifierPreference": "relative" }
+    }
   },
   "eslint": {
     "command": ["vscode-eslint-language-server", "--stdio"],
-    "extensions": [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".vue", ".svelte", ".astro"]
+    "extensions": [
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".cjs",
+      ".ts",
+      ".tsx",
+      ".vue",
+      ".svelte",
+      ".astro"
+    ]
   },
   "html-ls": {
     "command": ["vscode-html-language-server", "--stdio"],

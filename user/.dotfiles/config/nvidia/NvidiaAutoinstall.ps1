@@ -7,41 +7,8 @@ if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
 }
 
-If `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    (!([Security.Principal.WindowsPrincipal]`
-    [Security.Principal.WindowsIdentity]::GetCurrent())`
-    .IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
-    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`""
-    -f $PSCommandPath) -Verb RunAs
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
     Exit
 }
 
@@ -87,7 +54,7 @@ function Edit-Nip {
 
 
 
-function Run-Trusted([String]$command) {
+function Invoke-Trusted([String]$command) {
 
     Stop-Service -Name TrustedInstaller -Force -ErrorAction SilentlyContinue
     #get bin path to revert later
@@ -180,8 +147,7 @@ if (!(Check-Internet)) {
                 Start-process bcdedit.exe -ArgumentList '/set {current} safeboot minimal'
 
                 #create script to run on safe mode startup
-                $currentValue = (Get-ItemProperty
-    -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
+                $currentValue = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit').Userinit
                 $safeModeScript = "
                 Start-process bcdedit.exe -ArgumentList '/deletevalue safeboot'
                 Start-Process -FilePath `"$env:TEMP\DDU v18.0.8.6\Display Driver Uninstaller.exe`"
@@ -193,8 +159,7 @@ if (!(Check-Internet)) {
                 [void](New-Item "$env:TEMP\safemodescript.ps1" -Value $safeModeScript -Force)
                 #create winlogon key
                 $scriptRun = "powershell.exe -nop -ep bypass -f $env:TEMP\safemodescript.ps1"
-                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
-    -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
+                Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name 'Userinit' -Value "$currentValue, $scriptRun" -Force
                 shutdown /f /r /t 0
             }
             else {
@@ -678,9 +643,7 @@ if (!(Check-Internet)) {
         }
 
         #disabling hdcp
-        $subkeys = (Get-ChildItem
-    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
-    -Force -ErrorAction SilentlyContinue).Name
+        $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
 
         foreach ($key in $subkeys) {
             if ($key -notlike '*Configuration') {
@@ -718,8 +681,7 @@ if (!(Check-Internet)) {
 
         if ($stripDriver) {
             #removing a dll file needed to communicate with a telemetry server
-            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*"
-    -Directory).FullName | ForEach-Object {
+            (Get-ChildItem -Path "$env:windir\System32\DriverStore\FileRepository\nv_dispi*" -Directory).FullName | ForEach-Object {
                 takeown /f "$_\NvTelemetry64.dll" *>$null
                 icacls "$_\NvTelemetry64.dll" /grant administrators:F /t *>$null
                 Remove-Item "$_\NvTelemetry64.dll" -Force
@@ -1340,9 +1302,7 @@ if (!(Check-Internet)) {
         if ($checkbox4.Checked) {
             Write-Status -Message 'Disabling P0 State...'  -Type Output
             #disable p0 state
-            $subkeys = (Get-ChildItem
-    -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}'
-    -Force -ErrorAction SilentlyContinue).Name
+            $subkeys = (Get-ChildItem -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}' -Force -ErrorAction SilentlyContinue).Name
 
             foreach ($key in $subkeys) {
                 if ($key -notlike '*Configuration') {
@@ -1369,7 +1329,7 @@ if (!(Check-Internet)) {
                 Write-Status -message 'Applying Digital Vibrance...' -type output
                 $path = $paths[$i]
                 $command = "Reg.exe add $path /v `"SaturationRegistryKey`" /t REG_DWORD /d $value /f"
-                Run-Trusted -command $command
+                Invoke-Trusted -command $command
                 Start-Sleep 1
                 $i++
             }
@@ -1391,14 +1351,14 @@ if (!(Check-Internet)) {
                     $colorConfig[16] = 3
                     $hexValue = ($colorConfig | ForEach-Object { '{0:X2}' -f $_ }) -join ''
                     $command = "Reg.exe add $path /v `"ColorformatConfig`" /t REG_BINARY /d `"$hexValue`" /f"
-                    Run-Trusted -command $command
+                    Invoke-Trusted -command $command
                     Start-Sleep 1
                 }
                 catch {
                     #value has not been set yet
                     $value = 'db02000014000000000a00080000000003010000'
                     $command = "Reg.exe add $path /v `"ColorformatConfig`" /t REG_BINARY /d `"$value`" /f"
-                    Run-Trusted -command $command
+                    Invoke-Trusted -command $command
                     Start-Sleep 1
                 }
 

@@ -21,9 +21,7 @@
   },
   "basedpyright": {
     "command": "basedpyright-langserver",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".py": "python",
       ".pyi": "python",
@@ -36,9 +34,7 @@
   },
   "typescript": {
     "command": "vtsls",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".ts": "typescript",
       ".tsx": "typescriptreact",
@@ -56,9 +52,7 @@
   },
   "html": {
     "command": "vscode-html-language-server",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".html": "html",
       ".htm": "html"
@@ -70,9 +64,7 @@
   },
   "css": {
     "command": "vscode-css-language-server",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".css": "css",
       ".scss": "scss",
@@ -85,9 +77,7 @@
   },
   "eslint": {
     "command": "vscode-eslint-language-server",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".js": "javascript",
       ".jsx": "javascriptreact",
@@ -131,9 +121,7 @@
   },
   "bash": {
     "command": "bash-language-server",
-    "args": [
-      "start"
-    ],
+    "args": ["start"],
     "extensionToLanguage": {
       ".sh": "shellscript",
       ".bash": "shellscript",
@@ -147,9 +135,7 @@
   },
   "yaml": {
     "command": "yaml-language-server",
-    "args": [
-      "--stdio"
-    ],
+    "args": ["--stdio"],
     "extensionToLanguage": {
       ".yaml": "yaml",
       ".yml": "yaml"

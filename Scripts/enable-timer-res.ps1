@@ -10,7 +10,21 @@ $ExePath = "C:\SetTimerResolution.exe"
 $DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/" + `
   "SetTimerResolution-v1.0.0/SetTimerResolution.exe"
 $TaskName = "SetTimerResolution-AutoStart"
-$Resolution = 5040  # 0.504ms in 100ns units (0.504 * 10000 = 5040)
+$Resolution = 5040  # fallback default (0.504ms); overridden by Select-OptimalResolution at runtime
+$ResolutionMinHns = 5000  # 0.5ms in 100ns units
+$ResolutionMaxHns = 6000  # 0.6ms in 100ns units
+
+# P/Invoke bindings for NtDll timer resolution API
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public class NtTimer {
+    [DllImport("ntdll.dll")]
+    public static extern int NtSetTimerResolution(uint DesiredResolution, bool SetResolution, out uint CurrentResolution);
+    [DllImport("ntdll.dll")]
+    public static extern int NtQueryTimerResolution(out uint MinimumResolution, out uint MaximumResolution, out uint CurrentResolution);
+}
+'@
 
 # Function to write colored messages
 function Write-StatusMessage {
@@ -31,6 +45,68 @@ function Write-StatusMessage {
         "Error"   = "[ERROR]"
     }
     Write-Host "$($prefix[$Status]) $Message" -ForegroundColor $colors[$Status]
+}
+
+# Measures sleep accuracy for a given timer resolution (in 100ns units).
+# Returns a PSCustomObject with Resolution, MeanMs, StdDevMs, and Score (lower = better).
+function Measure-TimerResolutionAccuracy {
+    param(
+        [uint32]$Resolution,
+        [int]$Samples = 50
+    )
+    $current = [uint32]0
+    $null = [NtTimer]::NtSetTimerResolution($Resolution, $true, [ref]$current)
+    Start-Sleep -Milliseconds 15  # allow resolution to stabilize
+
+    $measurements = [System.Collections.Generic.List[double]]::new()
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    for ($i = 0; $i -lt $Samples; $i++) {
+        $sw.Restart()
+        [System.Threading.Thread]::Sleep(1)
+        $sw.Stop()
+        $measurements.Add($sw.Elapsed.TotalMilliseconds)
+    }
+
+    $null = [NtTimer]::NtSetTimerResolution($Resolution, $false, [ref]$current)
+
+    $mean = ($measurements | Measure-Object -Average).Average
+    $variance = ($measurements | ForEach-Object { [Math]::Pow($_ - $mean, 2) } | Measure-Object -Average).Average
+    $stdDev = [Math]::Sqrt($variance)
+    $score = [Math]::Abs($mean - 1.0) + $stdDev
+
+    return [PSCustomObject]@{
+        Resolution   = $Resolution
+        ResolutionMs = [Math]::Round($Resolution / 10000.0, 4)
+        MeanMs       = [Math]::Round($mean, 4)
+        StdDevMs     = [Math]::Round($stdDev, 4)
+        Score        = [Math]::Round($score, 6)
+    }
+}
+
+# Tests all resolution values in [$MinHns..$MaxHns] with $Step increments and returns
+# the uint32 value with the lowest sleep-accuracy score.
+function Select-OptimalResolution {
+    param(
+        [uint32]$MinHns  = $ResolutionMinHns,
+        [uint32]$MaxHns  = $ResolutionMaxHns,
+        [uint32]$Step    = 100
+    )
+    Write-StatusMessage "Measuring sleep accuracy across $(($MaxHns - $MinHns) / $Step + 1) resolution values ($($MinHns/10000.0)ms - $($MaxHns/10000.0)ms)..." "Info"
+
+    $results = [System.Collections.Generic.List[object]]::new()
+    $value = $MinHns
+    while ($value -le $MaxHns) {
+        $r = Measure-TimerResolutionAccuracy -Resolution $value
+        Write-StatusMessage ("  {0,6} ({1}ms)  mean={2}ms  stddev={3}ms  score={4}" -f `
+            $r.Resolution, $r.ResolutionMs, $r.MeanMs, $r.StdDevMs, $r.Score) "Info"
+        $results.Add($r)
+        $value += $Step
+    }
+
+    $best = $results | Sort-Object Score | Select-Object -First 1
+    Write-StatusMessage ("Optimal resolution: {0} ({1}ms)  mean={2}ms  stddev={3}ms" -f `
+        $best.Resolution, $best.ResolutionMs, $best.MeanMs, $best.StdDevMs) "Success"
+    return [uint32]$best.Resolution
 }
 
 # Function to download SetTimerResolution.exe
@@ -80,9 +156,6 @@ function Set-TimerResolutionTask {
     Write-StatusMessage "Creating scheduled task '$TaskName'..." "Info"
     
     try {
-        # Create the action to run SetTimerResolution.exe with parameters
-        # --resolution 5040 = 0.504ms (in 100ns units)
-        # --no-console = run without showing console window
         $action = New-ScheduledTaskAction -Execute $ExePath -Argument "--resolution $Resolution --no-console"
         
         # Create trigger: at logon, for any user
@@ -101,7 +174,7 @@ function Set-TimerResolutionTask {
         
         Write-StatusMessage "Scheduled task '$TaskName' created successfully" "Success"
         Write-StatusMessage "Task will run at: At Logon" "Info"
-        Write-StatusMessage "Timer resolution: 0.504ms (5040 * 100ns)" "Info"
+        Write-StatusMessage ("Timer resolution: {0}ms ({1} * 100ns)" -f ($Resolution / 10000.0), $Resolution) "Info"
         Write-StatusMessage "Executable path: $ExePath" "Info"
         
         return $true
@@ -201,8 +274,17 @@ if (-not $isAdmin) {
 Write-StatusMessage "=== Enabling Global Timer Resolution for Windows ===" "Info"
 Write-StatusMessage "" "Info"
 
-# Step 1: Enable registry key for global timer resolution
-Write-StatusMessage "Step 1: Configuring registry for global timer resolution..." "Info"
+# Step 1: Select optimal timer resolution by measuring sleep accuracy
+Write-StatusMessage "Step 1: Selecting optimal timer resolution (0.5ms – 0.6ms range)..." "Info"
+try {
+    $Resolution = Select-OptimalResolution
+} catch {
+    Write-StatusMessage "Resolution measurement failed: $($_.Exception.Message). Using default $Resolution." "Warning"
+}
+Write-StatusMessage "" "Info"
+
+# Step 2: Enable registry key for global timer resolution
+Write-StatusMessage "Step 2: Configuring registry for global timer resolution..." "Info"
 try {
     Set-ItemProperty `
       -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
@@ -214,26 +296,26 @@ try {
 
 # Step 2: Download/verify executable
 Write-StatusMessage "" "Info"
-Write-StatusMessage "Step 2: Checking/Downloading SetTimerResolution.exe..." "Info"
+Write-StatusMessage "Step 3: Checking/Downloading SetTimerResolution.exe..." "Info"
 if (-not (Get-TimerResolutionExe)) {
     exit 1
 }
 
 # Step 3: Setup scheduled task
 Write-StatusMessage "" "Info"
-Write-StatusMessage "Step 3: Setting up scheduled task for autostart..." "Info"
-if (-not (Set-TimerResolutionTask)) {
+Write-StatusMessage "Step 4: Setting up scheduled task for autostart..." "Info"
+if (-not (Set-TimerResolutionTask -Force)) {
     exit 1
 }
 
 # Step 4: Start timer resolution now
 Write-StatusMessage "" "Info"
-Write-StatusMessage "Step 4: Starting timer resolution now..." "Info"
+Write-StatusMessage "Step 5: Starting timer resolution now..." "Info"
 Start-TimerResolutionNow | Out-Null
 
 # Step 5: Check status
 Get-TimerResolutionStatus
 
 Write-StatusMessage "" "Info"
-Write-StatusMessage "Setup complete! Timer resolution (0.504ms) will be applied at every logon." "Success"
+Write-StatusMessage ("Setup complete! Timer resolution ({0}ms / {1} * 100ns) will be applied at every logon." -f ($Resolution / 10000.0), $Resolution) "Success"
 Write-StatusMessage "Executable location: C:\SetTimerResolution.exe" "Info"

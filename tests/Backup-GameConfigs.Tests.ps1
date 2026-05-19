@@ -93,4 +93,7 @@ Describe "Backup-GameConfigs.ps1" {
 
     Context "Arc Raiders backup" {
         BeforeAll {
-   
+            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
+        }
+    }
+}

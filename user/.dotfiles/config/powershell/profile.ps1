@@ -9,7 +9,7 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
 }
 
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Invoke-Expression
+    & ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml"))))
 }
 # Terminal icons
 if (Get-Module -ListAvailable -Name Terminal-Icons) {
@@ -61,7 +61,7 @@ Set-Alias -Name grep -Value Select-String
 function su { powershell Start-Process powershell -Verb runAs }
 function pwdd { $("$PWD".replace($HOME, '~')) }
 
-function ln-s ($target, $link) {
+function New-Symlink ($target, $link) {
     New-Item -Path $link -ItemType SymbolicLink -Value $target
 }
 # ls coloring
@@ -334,7 +334,7 @@ function admin {
 }
 Set-Alias -Name sudo -Value admin
 Set-Alias -Name su -Value admin
-function reload-profile {
+function Update-Profile {
     & $profile
 }
 function unzip ($file) {
@@ -502,7 +502,7 @@ function Get-CommandPath {
     (Get-Command $Command -ErrorAction SilentlyContinue).Source
 }
 
-function Clear-TempFiles {
+function Clear-TempFile {
     <#
     .SYNOPSIS
         Clear temporary files

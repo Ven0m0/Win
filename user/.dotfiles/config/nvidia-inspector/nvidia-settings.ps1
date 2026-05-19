@@ -4,42 +4,10 @@ if (Test-Path "$PSScriptRoot\..\..\..\..\Scripts\Common.ps1") {
 } elseif (Test-Path "$PSScriptRoot\..\..\..\Scripts\Common.ps1") {
   . "$PSScriptRoot\..\..\..\Scripts\Common.ps1"
 }
-    If `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    `
-    (!([Security.Principal.WindowsPrincipal]`
-    [Security.Principal.WindowsIdentity]::GetCurrent())`
-    .IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))
-    {Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`""
-    -f $PSCommandPath) -Verb RunAs
-    Exit}
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"{0}`"" -f $PSCommandPath) -Verb RunAs
+    Exit
+}
     $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + " (Administrator)"
     $Host.UI.RawUI.BackgroundColor = "Black"
   $Host.PrivateData.ProgressBackgroundColor = "Black"

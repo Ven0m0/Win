@@ -278,7 +278,7 @@ function Invoke-ApplyPreset([string]$iniPath, [string]$presetName) {
     }
     Set-Content -LiteralPath $iniPath -Value $ini -Encoding UTF8 -NoNewline
     Write-Ok "Preset '$presetName' applied to config"
-    Write-Info "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMod
+    Write-Info "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMode']) RTX=$($p['RTXGIQuality'])"
     return $true
 }
 
@@ -340,7 +340,7 @@ function Invoke-CpuBoost {
     return $true
 }
 
-function Invoke-ClearCaches([string[]]$keys) {
+function Invoke-ClearCache([string[]]$keys) {
     Write-Info "Clearing selected caches..."
     foreach ($key in $keys) {
         [array]$paths = $CACHE_PATHS[$key]
@@ -538,7 +538,7 @@ while ($true) {
             $toClean = $cacheChecks.GetEnumerator() | Where-Object { $_.Value } | ForEach-Object { $_.Key }
             if ($toClean) {
                 Write-H "CACHE CLEAN"
-                Invoke-ClearCaches @($toClean)
+                Invoke-ClearCache @($toClean)
             }
 
             Write-Host ""
