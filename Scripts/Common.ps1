@@ -1456,7 +1456,7 @@ function Invoke-ServiceOperation {
 
     try {
         if ($wasRunning) {
-            Stop-Service -Name $Name -Force:$Force -ErrorAction SilentlyContinue
+            Stop-Service -Name $Name -Force:$Force -ErrorAction Stop
         }
 
         & $Action
