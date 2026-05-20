@@ -255,7 +255,8 @@ Describe "Get-NvidiaGpuRegistryPath" {
         $null = Get-NvidiaGpuRegistryPath
 
         Should -Invoke -CommandName Get-ChildItem -Times 1 -ParameterFilter {
-            $Path -match "Registry::HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\\{4d36e968-e325-11ce-bfc1-08002be10318\}"
+            $expected = "Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+            $Path -match [regex]::Escape($expected)
         }
     }
 
