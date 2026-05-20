@@ -90,23 +90,74 @@ jobs:
           $issues = @()
           $hasErrors = $false
 
+          $sarifLog = @{
+            version = "2.1.0"
+            "`$schema" = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+            runs = @(
+              @{
+                tool = @{
+                  driver = @{
+                    name = "PSScriptAnalyzer"
+                    informationUri = "https://github.com/PowerShell/PSScriptAnalyzer"
+                    rules = @()
+                  }
+                }
+                results = @()
+              }
+            )
+          }
+
+          $rules = @{}
+
           foreach ($file in $psFiles) {
             try {
               $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1
-              $allResults += $results
-              foreach ($result in $results) {
-                if ($result.Severity -eq 'Error') {
-                  $issues += "[$($file.Name):$($result.Line)] $($result.RuleName): $($result.Message)"
-                  $hasErrors = $true
-                }
+              if ($null -ne $results) {
+                  $allResults += $results
+                  foreach ($result in $results) {
+                    if (-not $rules.ContainsKey($result.RuleName)) {
+                      $rules[$result.RuleName] = @{
+                        id = $result.RuleName
+                        name = $result.RuleName
+                      }
+                      $sarifLog.runs[0].tool.driver.rules += $rules[$result.RuleName]
+                    }
+
+                    $level = "none"
+                    if ($result.Severity -eq 'Error') {
+                      $level = "error"
+                      $issues += "[$($file.Name):$($result.Line)] $($result.RuleName): $($result.Message)"
+                      $hasErrors = $true
+                    } elseif ($result.Severity -eq 'Warning') {
+                      $level = "warning"
+                    } elseif ($result.Severity -eq 'Information') {
+                      $level = "note"
+                    }
+
+                    $sarifLog.runs[0].results += @{
+                      ruleId = $result.RuleName
+                      level = $level
+                      message = @{ text = $result.Message }
+                      locations = @(
+                        @{
+                          physicalLocation = @{
+                            artifactLocation = @{ uri = $file.FullName.Replace("$PWD/", "").Replace('\', '/') }
+                            region = @{
+                              startLine = if ($result.Line) { $result.Line } else { 1 }
+                              startColumn = if ($result.Column) { $result.Column } else { 1 }
+                            }
+                          }
+                        }
+                      )
+                    }
+                  }
               }
             } catch {
               Write-Warning "Error analyzing $($file.FullName): $_"
             }
           }
 
-
-          '{"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}]}' | Out-File -FilePath "$PWD/results.sarif" -Encoding utf8
+          $sarifLog | ConvertTo-Json -Depth 100 | Out-File -FilePath "results.sarif" -Encoding utf8
 
           if ($hasErrors) {
             Write-Host "## PSScriptAnalyzer found $($issues.Count) error(s):" -ForegroundColor Red
