@@ -1240,8 +1240,8 @@ function Get-FolderSize {
     if (!(Test-Path $Path)) { return 0 }
 
     $total = 0
-    Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue | ForEach-Object {
-        $total += $_.Length
+    foreach ($file in Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue) {
+        $total += $file.Length
     }
 
     switch ($Unit) {
