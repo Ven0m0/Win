@@ -407,8 +407,12 @@ Describe "Clear-PathSafe" {
 
         Clear-PathSafe -Path "C:\Temp\MyFolder"
 
-        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFolder" -and (-not $PathType) }
-        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFolder" -and $PathType -eq 'Container' }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFolder" -and (-not $PathType)
+        }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFolder" -and $PathType -eq 'Container'
+        }
         Should -Invoke -CommandName Clear-DirectorySafe -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFolder" }
         Should -Invoke -CommandName Remove-Item -Times 0
     }
@@ -423,8 +427,12 @@ Describe "Clear-PathSafe" {
 
         Clear-PathSafe -Path "C:\Temp\MyFile.txt"
 
-        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFile.txt" -and (-not $PathType) }
-        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFile.txt" -and $PathType -eq 'Container' }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFile.txt" -and (-not $PathType)
+        }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFile.txt" -and $PathType -eq 'Container'
+        }
         Should -Invoke -CommandName Remove-Item -Times 1 -ParameterFilter {
             $Path -eq "C:\Temp\MyFile.txt" -and $Force
         }
