@@ -495,7 +495,9 @@ function Start-Bootstrap {
   Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
   $appData = if ($env:APPDATA) { $env:APPDATA } else { "/tmp/AppData" }
-  $docs = if ([Environment]::GetFolderPath('MyDocuments')) { [Environment]::GetFolderPath('MyDocuments') } else { "/tmp/Docs" }
+  $docs = if ([Environment]::GetFolderPath('MyDocuments')) { `
+    [Environment]::GetFolderPath('MyDocuments') `
+  } else { "/tmp/Docs" }
   $callOfDutyPlayersPath = Join-Path $docs 'Call of Duty\players'
   $firefoxProfilesRoot = Join-Path $appData 'Mozilla\Firefox'
 
@@ -739,5 +741,6 @@ function Start-Bootstrap {
 
 if ($MyInvocation.InvocationName -ne '.') {
   Start-Bootstrap @PSBoundParameters
-  $ec = Get-Variable LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue; if ($null -ne $ec) { exit $ec } else { exit 0 }
+  $ec = Get-Variable LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue; `
+  if ($null -ne $ec) { exit $ec } else { exit 0 }
 }
