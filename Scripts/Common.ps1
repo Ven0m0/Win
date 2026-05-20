@@ -812,7 +812,10 @@ function ConvertFrom-VDF {
         if ($Content[$line.Value] -match $re) {
             if ($matches.ContainsKey('k')) { $key = $matches['k'] }
             if ($matches.ContainsKey('v')) { $obj[$key] = $matches['v'] }
-            elseif ($matches.ContainsKey('b') -and $matches['b'] -eq '{') { $line.Value++; $obj[$key] = ConvertFrom-VDF -Content $Content -line $line }
+            elseif ($matches.ContainsKey('b') -and $matches['b'] -eq '{') {
+                $line.Value++
+                $obj[$key] = ConvertFrom-VDF -Content $Content -line $line
+            }
             elseif ($matches.ContainsKey('b') -and $matches['b'] -eq '}') { break }
         }
         $line.Value++
