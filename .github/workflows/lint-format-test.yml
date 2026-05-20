@@ -174,9 +174,6 @@ jobs:
             } else {
               $issues += "[$($file.Name)]: Missing UTF-8 BOM"
             }
-            } else {
-              $issues += "[$($file.Name)]: Missing UTF-8 BOM"
-            }
 
             # Check 2: Indentation
             for ($i = 0; $i -lt $lines.Count; $i++) {

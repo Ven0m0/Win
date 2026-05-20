@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -810,12 +810,10 @@ function ConvertFrom-VDF {
 
     while ($line.Value -lt $Content.Count) {
         if ($Content[$line.Value] -match $re) {
-            if ($matches.ContainsKey('k')) { $key = $matches.k }
-            if ($matches.ContainsKey('v')) { $obj[$key] = $matches.v }
-            elseif ($matches.ContainsKey('b') -and $matches.b -eq '{') { `
-              $line.Value++; $obj[$key] = ConvertFrom-VDF -Content $Content -line $line `
-            }
-            elseif ($matches.ContainsKey('b') -and $matches.b -eq '}') { break }
+            if ($matches.ContainsKey('k')) { $key = $matches['k'] }
+            if ($matches.ContainsKey('v')) { $obj[$key] = $matches['v'] }
+            elseif ($matches.ContainsKey('b') -and $matches['b'] -eq '{') { $line.Value++; $obj[$key] = ConvertFrom-VDF -Content $Content -line $line }
+            elseif ($matches.ContainsKey('b') -and $matches['b'] -eq '}') { break }
         }
         $line.Value++
     }
