@@ -327,6 +327,7 @@ jobs:
           fi
 
       - name: Check YAML validity
+        shell: pwsh
         run: |
           Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
               $File = $_.FullName
