@@ -113,20 +113,14 @@ jobs:
             Write-Host "## Lint Issues Found ($($issues.Count))" -ForegroundColor Red
             Write-Host ""
             $issues | Sort-Object Severity, File, Line | Format-Table -AutoSize -Wrap
+            $issues | ConvertTo-Json -Depth 5 | Out-File "lint-output.json" -Encoding utf8
             exit 1
           } else {
             Write-Host "## No lint issues found" -ForegroundColor Green
             exit 0
           }
 
-      - name: Upload lint results
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: lint-results
-          path: |
-            lint-output.json
-          retention-days: 7
+
 
   # ===========================================================================
   # Job 2: Formatting validation
@@ -320,21 +314,21 @@ jobs:
       - name: Summary
         shell: bash
         run: |
-          echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## PowerShell CI Results" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $env:GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
 
-          if [ "${{ needs.lint.result }}" == 'failure' ] || [ "${{ needs.format.result }}" == 'failure' ] || [ "${{ needs.test.result }}" == 'failure' ] || [ "${{ needs.deploy-dry-run.result }}" == 'failure' ]; then
-            echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
+          if ('${{ needs.lint.result }}' -eq 'failure' -or '${{ needs.format.result }}' -eq 'failure' -or '${{ needs.test.result }}' -eq 'failure' -or '${{ needs.deploy-dry-run.result }}' -eq 'failure') {
+            echo "### :x: Some checks failed. Please review the logs above." >> $env:GITHUB_STEP_SUMMARY
             exit 1
-          else
-            echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
+          } else {
+            echo "### :white_check_mark: All checks passed!" >> $env:GITHUB_STEP_SUMMARY
             exit 0
           fi
 
