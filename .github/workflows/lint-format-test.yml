@@ -84,7 +84,7 @@ jobs:
           $ErrorActionPreference = 'Continue'
 
           $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS } else { $null }
-          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
+          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git|user|\.dotfiles' }
 
           $issues = @()
           foreach ($file in $psFiles) {
@@ -161,7 +161,7 @@ jobs:
 
           foreach ($file in $psFiles) {
             # Skip files in ignored directories
-            if ($file.FullName -match 'node_modules|\.git') { continue }
+            if ($file.FullName -match 'node_modules|\.git|user|\.dotfiles') { continue }
 
             # Read as bytes to check BOM
             $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
@@ -267,7 +267,7 @@ jobs:
         run: |
           Set-StrictMode -Version Latest
 
-          $testFiles = Get-ChildItem -Path . -Recurse -Include *.Tests.ps1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
+          $testFiles = Get-ChildItem -Path . -Recurse -Include *.Tests.ps1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git|user|\.dotfiles' }
 
           if ($testFiles.Count -eq 0) {
             Write-Host "No test files found"
@@ -340,7 +340,7 @@ jobs:
       - name: Check YAML validity
         shell: pwsh
         run: |
-          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
+          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git|user|\.dotfiles' } | ForEach-Object -Process {
               $File = $_.FullName
               try
               {
