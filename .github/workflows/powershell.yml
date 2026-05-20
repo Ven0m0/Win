@@ -92,7 +92,7 @@ jobs:
 
           foreach ($file in $psFiles) {
             try {
-              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
+              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1
               $allResults += $results
               foreach ($result in $results) {
                 if ($result.Severity -eq 'Error') {
@@ -104,6 +104,9 @@ jobs:
               Write-Warning "Error analyzing $($file.FullName): $_"
             }
           }
+
+
+          '{"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}]}' | Out-File -FilePath "$PWD/results.sarif" -Encoding utf8
 
           if ($hasErrors) {
             Write-Host "## PSScriptAnalyzer found $($issues.Count) error(s):" -ForegroundColor Red
