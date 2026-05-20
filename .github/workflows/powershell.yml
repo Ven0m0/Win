@@ -90,6 +90,13 @@ jobs:
           $issues = @()
           $hasErrors = $false
 
+          # The older PSScriptAnalyzer version on ubuntu-latest might not support -OutputPath / -Format sarif.
+          # Wait, the failure was: A parameter cannot be found that matches parameter name 'OutputPath'.
+          # Let's revert back to the original script approach, but we must make sure results.sarif gets created even if there are no files found!
+          $allResults = @()
+          $issues = @()
+          $hasErrors = $false
+
           foreach ($file in $psFiles) {
             try {
               $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1
