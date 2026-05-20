@@ -61,7 +61,7 @@ jobs:
       - name: Setting additional PSRepositories
         shell: pwsh
         run: |
-            Register-PSRepository -Name 'OttoMatt' -publishlocation='https://www.myget.org/F/ottomatt/api/v2/package' -sourcelocation='https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'trusted'
+            Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted'
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
         with:
@@ -277,13 +277,18 @@ jobs:
           Write-Host "Running $($testFiles.Count) test file(s)..."
 
           $config = New-PesterConfiguration
-          $config.Run.Path = $testFiles.FullName
+          $config.Run.Container = @($testFiles | ForEach-Object { New-PesterContainer -Path $_.FullName })
           $config.Output.Verbosity = 'Detailed'
           $config.TestResult.Enabled = $true
           $config.TestResult.OutputPath = ".agents_tmp/test-results.xml"
           $config.TestResult.OutputFormat = 'NUnitXml'
 
-          $result = Invoke-Pester -Configuration $config
+          $result = Invoke-Pester -Configuration $config -PassThru
+
+          if (-not $result) {
+            Write-Host "Pester did not return a result object. This can happen if tests crash or timeout." -ForegroundColor Red
+            exit 1
+          }
 
           Write-Host ""
           if ($result.FailedCount -gt 0) {
