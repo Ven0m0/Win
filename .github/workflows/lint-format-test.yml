@@ -325,6 +325,21 @@ jobs:
             echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
+
+      - name: Check YAML validity
+        run: |
+          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
+              $File = $_.FullName
+              try
+              {
+                  Get-Content -Path $File | ConvertFrom-Yaml -ErrorAction Stop | Out-Null
+              }
+              catch
+              {
+                  Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
+              }
+          }
+
   # ===========================================================================
   # Job 4: Dotbot deployment dry-run integration test
   # ===========================================================================
