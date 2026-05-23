@@ -68,21 +68,24 @@ function Invoke-CleanRedist {
     $totalFreed = 0
     foreach ($path in $redistPaths) {
         if (Test-Path $path) {
-            $beforeSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue |
-              Measure-Object -Property Length -Sum).Sum
-            $filesRemoved = 0
+            $files = @(Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue)
+            if ($files.Count -gt 0) {
+                $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum
+                $filesRemoved = 0
 
-            Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
-                if ($PSCmdlet.ShouldProcess($_.FullName, "Remove installer file")) {
-                    Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue
-                    $filesRemoved++
+                foreach ($file in $files) {
+                    if ($PSCmdlet.ShouldProcess($file.FullName, "Remove installer file")) {
+                        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
+                        $filesRemoved++
+                    }
                 }
-            }
 
             $afterSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue |
               Measure-Object -Property Length -Sum).Sum
             $freed = $beforeSize - ($afterSize -or 0)
             $totalFreed += $freed
+
+            }
 
             if ($filesRemoved -gt 0) {
                 Write-Host "  Removed $filesRemoved file(s) from $($path.Split('\')[-2,-1] -join '\')" `
