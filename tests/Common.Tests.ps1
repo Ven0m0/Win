@@ -170,25 +170,25 @@ Describe "ConvertFrom-VDF values with spaces" {
 
 Describe "Show-RestartRequired" {
     It "Should call Write-Host and Wait-ForKeyPress" {
-        Mock Write-Host
+        Mock Write-ColorOutput
         Mock Wait-ForKeyPress
 
         Show-RestartRequired
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "Restart required to apply changes..." -and $ForegroundColor -eq "Yellow"
         }
         Should -Invoke -CommandName Wait-ForKeyPress -Times 1
     }
 
     It "Should call Write-Host with custom message" {
-        Mock Write-Host
+        Mock Write-ColorOutput
         Mock Wait-ForKeyPress
 
         $msg = "Custom Restart Message"
         Show-RestartRequired -CustomMessage $msg
 
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq $msg -and $ForegroundColor -eq "Yellow"
         }
         Should -Invoke -CommandName Wait-ForKeyPress -Times 1
@@ -197,49 +197,96 @@ Describe "Show-RestartRequired" {
 
 Describe "Invoke-BuildOperation" {
     It "Should return true and output OK when action succeeds" {
-        Mock Write-Host
+        Mock Write-ColorOutput
 
         $action = { return $true }
 
         $result = Invoke-BuildOperation -Name "TestOp" -Action $action
 
         $result | Should -Be $true
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "  [RUNNING] TestOp" -and $ForegroundColor -eq 'Cyan'
         }
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "  [OK] TestOp" -and $ForegroundColor -eq 'Green'
         }
     }
 
     It "Should return true and output SKIP when action succeeds with SKIP status" {
-        Mock Write-Host
+        Mock Write-ColorOutput
 
         $action = { return $true }
 
         $result = Invoke-BuildOperation -Name "TestOpSkip" -Action $action -SuccessStatus 'SKIP'
 
         $result | Should -Be $true
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "  [RUNNING] TestOpSkip" -and $ForegroundColor -eq 'Cyan'
         }
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "  [SKIP] TestOpSkip" -and $ForegroundColor -eq 'Yellow'
         }
     }
 
     It "Should return false and output FAIL when action throws" {
-        Mock Write-Host
+        Mock Write-ColorOutput
 
         $action = { throw [System.Exception]::new("Simulated failure") }
 
         $result = Invoke-BuildOperation -Name "TestOpFail" -Action $action
 
         $result | Should -Be $false
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter {
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
             $Object -eq "  [RUNNING] TestOpFail" -and $ForegroundColor -eq 'Cyan'
         }
-        Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -match '\[FAIL\] TestOpFail' }
+        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter { $Object -match '\[FAIL\] TestOpFail' }
+    }
+}
+
+
+
+
+Describe "Get-NvidiaGpuRegistryPath" {
+    It "Should call Get-ChildItem with correct registry path" {
+        Mock Get-ChildItem {
+            return @()
+        }
+
+        $null = Get-NvidiaGpuRegistryPath
+
+        Should -Invoke -CommandName Get-ChildItem -Times 1 -ParameterFilter {
+            $expected = "Registry::HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
+            $Path -match [regex]::Escape($expected)
+        }
+    }
+
+    It "Should return subkeys excluding those ending in 'Configuration'" {
+        Mock Get-ChildItem {
+            return @(
+                [pscustomobject]@{Name="0000"}
+                [pscustomobject]@{Name="0001"}
+                [pscustomobject]@{Name="Configuration"}
+                [pscustomobject]@{Name="VideoConfiguration"}
+            )
+        }
+
+        $result = Get-NvidiaGpuRegistryPath
+
+        $result | Should -HaveCount 2
+        $result | Should -Contain "0000"
+        $result | Should -Contain "0001"
+        $result | Should -Not -Contain "Configuration"
+        $result | Should -Not -Contain "VideoConfiguration"
+    }
+
+    It "Should handle null output from Get-ChildItem" {
+        Mock Get-ChildItem {
+            return $null
+        }
+
+        $result = Get-NvidiaGpuRegistryPath
+
+        $result | Should -BeNullOrEmpty
     }
 }
 
