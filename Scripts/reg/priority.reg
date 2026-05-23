@@ -13,12 +13,29 @@ Windows Registry Editor Version 5.00
 "IoPriority"=dword:00000003
 
 [HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences]
-"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
+"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame-e.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
+"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame-d.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Call of Duty HQ\\cod24\\cod24-cod.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
 "C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe"="GpuPreference=2;VRROptimizeEnable=0;AutoHDREnable=0;SwapEffectUpgradeEnable=1;"
 "DirectXUserGlobalSettings"="VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe]
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-e.exe]
+"UseLargePages"=dword:00000001
+"MitigationOptions"=hex:22,22,22,22,22,22,22,02,20,02,22,22,20,22,00,20,00,00,\
+  00,00,00,00,00,00
+"MitigationAuditOptions"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00
+"EAFModules"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-d.exe]
+"UseLargePages"=dword:00000001
+"MitigationOptions"=hex:22,22,22,22,22,22,22,02,20,02,22,22,20,22,00,20,00,00,\
+  00,00,00,00,00,00
+"MitigationAuditOptions"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00
+"EAFModules"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe]
 "UseLargePages"=dword:00000001
 "MitigationOptions"=hex:22,22,22,22,22,22,22,02,20,02,22,22,20,22,00,20,00,00,\
   00,00,00,00,00,00
@@ -30,13 +47,23 @@ Windows Registry Editor Version 5.00
 "CpuPriorityClass"=dword:00000006
 "IoPriority"=dword:00000003
 
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe]
-"UseLargePages"=dword:00000001
-
 ; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
 "Version"="1.0"
-"Application Name"="PioneerGame.exe"
+"Application Name"="PioneerGame-e.exe"
+"Protocol"="*"
+"Local Port"="*"
+"Remote Port"="*"
+"Local IP"="*"
+"Remote IP"="*"
+"Local IP Prefix Length"="*"
+"Remote IP Prefix Length"="*"
+"DSCP Value"="46"
+"Throttle Rate"="-1"
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders-d]
+"Version"="1.0"
+"Application Name"="PioneerGame-d.exe"
 "Protocol"="*"
 "Local Port"="*"
 "Remote Port"="*"
