@@ -9,7 +9,7 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
 }
 
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    & ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml"))))
+    . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Out-String)))
 }
 # Terminal icons
 if (Get-Module -ListAvailable -Name Terminal-Icons) {
