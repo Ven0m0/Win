@@ -373,3 +373,69 @@ Describe "Get-FolderSize" {
         $result | Should -Be 2
     }
 }
+
+Describe "Clear-PathSafe" {
+    It "Should use Remove-Item with Recurse for wildcard paths" {
+        Mock Remove-Item { }
+
+        Clear-PathSafe -Path "C:\Temp\*"
+
+        Should -Invoke -CommandName Remove-Item -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\*" -and $Recurse -and $Force
+        }
+    }
+
+    It "Should do nothing if non-wildcard path does not exist" {
+        Mock Test-Path { return $false }
+        Mock Remove-Item { }
+        Mock Clear-DirectorySafe { }
+
+        Clear-PathSafe -Path "C:\Temp\NonExistent"
+
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "C:\Temp\NonExistent" }
+        Should -Invoke -CommandName Remove-Item -Times 0
+        Should -Invoke -CommandName Clear-DirectorySafe -Times 0
+    }
+
+    It "Should call Clear-DirectorySafe for directories" {
+        Mock Test-Path {
+            if ($PathType -eq 'Container') { return $true }
+            return $true
+        }
+        Mock Clear-DirectorySafe { }
+        Mock Remove-Item { }
+
+        Clear-PathSafe -Path "C:\Temp\MyFolder"
+
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFolder" -and (-not $PathType)
+        }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFolder" -and $PathType -eq 'Container'
+        }
+        Should -Invoke -CommandName Clear-DirectorySafe -Times 1 -ParameterFilter { $Path -eq "C:\Temp\MyFolder" }
+        Should -Invoke -CommandName Remove-Item -Times 0
+    }
+
+    It "Should use Remove-Item without Recurse for single files" {
+        Mock Test-Path {
+            if ($PathType -eq 'Container') { return $false }
+            return $true
+        }
+        Mock Remove-Item { }
+        Mock Clear-DirectorySafe { }
+
+        Clear-PathSafe -Path "C:\Temp\MyFile.txt"
+
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFile.txt" -and (-not $PathType)
+        }
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFile.txt" -and $PathType -eq 'Container'
+        }
+        Should -Invoke -CommandName Remove-Item -Times 1 -ParameterFilter {
+            $Path -eq "C:\Temp\MyFile.txt" -and $Force
+        }
+        Should -Invoke -CommandName Clear-DirectorySafe -Times 0
+    }
+}
