@@ -113,7 +113,7 @@ Scripts with no Pester tests:
 - [x] `#Requires -Version 5.1` present on all root-level scripts
 - [ ] Network-Tweaker.ps1 PSScriptAnalyzer clean
 - [ ] enable-timer-res.ps1 hardcoded path replaced
-- [ ] reg/priority.ps1 QoS TODO resolved
+- [x] reg/priority.ps1 QoS TODO resolved
 - [ ] Notepad Replacer added to package installation
 - [ ] Steam VDF consolidation complete
 - [ ] Test coverage added for New-SteamShortcut, Optimize-Steam, Steam-Config, enable-timer-res
