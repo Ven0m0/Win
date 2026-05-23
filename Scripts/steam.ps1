@@ -57,8 +57,8 @@ function Invoke-SteamOptimization {
     if ($focus) { $QUICK += " -foreground" }
 
     # --- Update sharedconfig.vdf: main UI/friends/game list tweaks
-    Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
-        $file = $_.FullName
+    foreach ($fileObj in Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse) {
+        $file = $fileObj.FullName
         $write = $false
         $vdf = ConvertFrom-VDF -Content (Get-Content $file -Force)
         if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"', '{', '}') }
@@ -88,8 +88,8 @@ function Invoke-SteamOptimization {
             LibraryDisplayIconInGameList =0
     }
     if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
-    Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
-        $file = $_.FullName
+    foreach ($fileObj in Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse) {
+        $file = $fileObj.FullName
         $write = $false
         $vdf = ConvertFrom-VDF -Content (Get-Content $file -Force)
         if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"', '{', '}') }
@@ -116,7 +116,7 @@ function Invoke-SteamOptimization {
         [pscustomobject]@{
             Description = ""; IconLocation = ""; WindowStyle = 7
             TargetPath = ""; Arguments = ""
-        } | Add-Member -MemberType ScriptMethod -Name Save -Value {}; return $x
+        } | Add-Member -MemberType ScriptMethod -Name Save -Value {} -PassThru
     } -PassThru
     }
     else { & { New-Object -ComObject WScript.Shell } }
