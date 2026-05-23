@@ -242,3 +242,87 @@ Describe "Invoke-BuildOperation" {
         Should -Invoke -CommandName Write-Host -Times 1 -ParameterFilter { $Object -match '\[FAIL\] TestOpFail' }
     }
 }
+
+Describe "Get-FolderSize" {
+    It "Should return 0 if path does not exist" {
+        Mock Test-Path { return $false }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath"
+
+        $result | Should -Be 0
+        Should -Invoke -CommandName Test-Path -Times 1 -ParameterFilter { $Path -eq "/tmp/FakePath" }
+    }
+
+    It "Should return correct size in B" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem {
+            param($Path, [switch]$Recurse, [switch]$File, [switch]$Force, $ErrorAction)
+            return @(
+                [pscustomobject]@{ Length = 500 },
+                [pscustomobject]@{ Length = 524 }
+            )
+        }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath" -Unit 'B'
+
+        $result | Should -Be 1024
+        Should -Invoke -CommandName Get-ChildItem -Times 1 -ParameterFilter { $Path -eq "/tmp/FakePath" }
+    }
+
+    It "Should return correct size in KB" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem {
+            param($Path, [switch]$Recurse, [switch]$File, [switch]$Force, $ErrorAction)
+            return @(
+                [pscustomobject]@{ Length = 1024 },
+                [pscustomobject]@{ Length = 1024 }
+            )
+        }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath" -Unit 'KB'
+
+        $result | Should -Be 2
+    }
+
+    It "Should return correct size in MB" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem {
+            param($Path, [switch]$Recurse, [switch]$File, [switch]$Force, $ErrorAction)
+            return @(
+                [pscustomobject]@{ Length = 1048576 }
+            )
+        }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath" -Unit 'MB'
+
+        $result | Should -Be 1
+    }
+
+    It "Should return correct size in GB" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem {
+            param($Path, [switch]$Recurse, [switch]$File, [switch]$Force, $ErrorAction)
+            return @(
+                [pscustomobject]@{ Length = 1073741824 }
+            )
+        }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath" -Unit 'GB'
+
+        $result | Should -Be 1
+    }
+
+    It "Should return correct size in MB by default" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem {
+            param($Path, [switch]$Recurse, [switch]$File, [switch]$Force, $ErrorAction)
+            return @(
+                [pscustomobject]@{ Length = 2097152 }
+            )
+        }
+
+        $result = Get-FolderSize -Path "/tmp/FakePath"
+
+        $result | Should -Be 2
+    }
+}

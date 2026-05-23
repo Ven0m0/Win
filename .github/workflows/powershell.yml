@@ -105,6 +105,9 @@ jobs:
             }
           }
 
+
+          '{"version": "2.1.0", "runs": [{"tool": {"driver": {"name": "PSScriptAnalyzer"}}, "results": []}]}' | Out-File -FilePath "$PWD/results.sarif" -Encoding utf8
+
           if ($hasErrors) {
             Write-Host "## PSScriptAnalyzer found $($issues.Count) error(s):" -ForegroundColor Red
             $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }

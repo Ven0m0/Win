@@ -422,10 +422,15 @@ function Start-Bootstrap {
   # ---------------------------------------------------------------------------
   # Admin elevation
   # ---------------------------------------------------------------------------
-  $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator
-  )
-  if (-not $isAdmin) {
+  $isAdmin = $false
+  try {
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+      [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+  } catch {
+    # Non-Windows or unsupported platform
+  }
+  if (-not $isAdmin -and (Get-Variable IsWindows -ValueOnly -ErrorAction SilentlyContinue)) {
     Write-Host 'Relaunching as administrator...' -ForegroundColor Yellow
     $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
     $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
@@ -489,8 +494,13 @@ function Start-Bootstrap {
   Write-Host ''
   Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
-  $callOfDutyPlayersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty\players'
-  $firefoxProfilesRoot = Join-Path $env:APPDATA 'Mozilla\Firefox'
+  $appData = if ($env:APPDATA) { $env:APPDATA } else { "/tmp/AppData" }
+  $docs = if ([Environment]::GetFolderPath('MyDocuments')) { `
+    [Environment]::GetFolderPath('MyDocuments') `
+  } else { "/tmp/Docs" }
+  $callOfDutyPlayersPath = Join-Path $docs 'Call of Duty\players'
+  $firefoxProfilesRoot = Join-Path $appData 'Mozilla\Firefox'
+
   $configManifest = @(
     @{
       Path               = 'powershell\profile.ps1'
@@ -731,5 +741,6 @@ function Start-Bootstrap {
 
 if ($MyInvocation.InvocationName -ne '.') {
   Start-Bootstrap @PSBoundParameters
-  exit $LASTEXITCODE
+  $ec = Get-Variable LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue; `
+  if ($null -ne $ec) { exit $ec } else { exit 0 }
 }

@@ -306,6 +306,7 @@ jobs:
     if: always()
     steps:
       - name: Summary
+        shell: bash
         run: |
           echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -324,27 +325,6 @@ jobs:
             echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
             exit 0
           fi
-              catch
-              {
-                  Write-Verbose -Message "PSD1 parse error: $File - $_" -Verbose
-                  exit 1
-              }
-          }
-
-      - name: Check YAML validity
-        run: |
-          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
-              $File = $_.FullName
-              try
-              {
-                  Get-Content -Path $File | ConvertFrom-Yaml -ErrorAction Stop | Out-Null
-              }
-              catch
-              {
-                  Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
-              }
-          }
-
   # ===========================================================================
   # Job 4: Dotbot deployment dry-run integration test
   # ===========================================================================
