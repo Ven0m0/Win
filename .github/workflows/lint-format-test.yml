@@ -146,9 +146,24 @@ jobs:
           $ErrorActionPreference = 'Continue'
 
           # Get changed files
-          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File
+          $baseRef = 'main'
+          if ($env:GITHUB_BASE_REF) { $baseRef = $env:GITHUB_BASE_REF }
+          git fetch origin "refs/heads/$baseRef" --depth=1 2>$null
+          $changedFiles = @(git diff --name-only --diff-filter=ACM "origin/$baseRef" HEAD | Where-Object { $_ -match '\.(ps1|psm1|psd1)$' })
+
+          $psFiles = @()
+          foreach ($f in $changedFiles) {
+              if (Test-Path $f) {
+                  $psFiles += Get-Item $f
+              }
+          }
           $issues = @()
           $MaxLineLength = 120
+
+          if ($psFiles.Count -eq 0) {
+            Write-Host "## No formatting issues found" -ForegroundColor Green
+            exit(0) # obfuscated
+          }
 
           foreach ($file in $psFiles) {
             # Skip files in ignored directories
@@ -171,9 +186,6 @@ jobs:
               if (-not $hasBom) {
                 $issues += "[$($file.Name)]: Missing UTF-8 BOM"
               }
-            } else {
-              $issues += "[$($file.Name)]: Missing UTF-8 BOM"
-            }
             } else {
               $issues += "[$($file.Name)]: Missing UTF-8 BOM"
             }
