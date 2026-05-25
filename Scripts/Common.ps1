@@ -66,12 +66,8 @@ function Initialize-ConsoleUI {
         The window title to set
     #>
     param(
-        [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Title')]
         [string]$Title = $myInvocation.MyCommand.Definition + " (Administrator)"
     )
-
-    # Use parameter to prevent unused variable warnings while maintaining backward compatibility
-    $null = $Title
     try { $Host.UI.RawUI.WindowTitle = $Title } catch { Write-Verbose "WindowTitle not supported on this host: $_" }
     $Host.UI.RawUI.BackgroundColor = "Black"
     $Host.PrivateData.ProgressBackgroundColor = "Black"
