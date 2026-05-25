@@ -55,7 +55,7 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # required for github/codeql-action/upload-sarif to get the Action run status
     name: PSScriptAnalyzer
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repository
@@ -66,10 +66,20 @@ jobs:
         with:
           cache: true
           install: true
+
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
         with:
           modules-to-cache: PSScriptAnalyzer
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module PSScriptAnalyzer
+          Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
 
       - name: Validate autounattend XML
         shell: pwsh
@@ -86,28 +96,15 @@ jobs:
 
           $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
 
-          $allResults = @()
-          $issues = @()
-          $hasErrors = $false
+          $results = Invoke-ScriptAnalyzer -Path $psFiles.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
 
-          foreach ($file in $psFiles) {
-            try {
-              $results = Invoke-ScriptAnalyzer -Path $file.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
-              $allResults += $results
-              foreach ($result in $results) {
-                if ($result.Severity -eq 'Error') {
-                  $issues += "[$($file.Name):$($result.Line)] $($result.RuleName): $($result.Message)"
-                  $hasErrors = $true
-                }
-              }
-            } catch {
-              Write-Warning "Error analyzing $($file.FullName): $_"
+          $errors = $results | Where-Object { $_.Severity -eq 'Error' }
+
+          if ($null -ne $errors) {
+            Write-Host "## PSScriptAnalyzer found $($errors.Count) error(s):" -ForegroundColor Red
+            foreach ($error in $errors) {
+              Write-Host "[$($error.ScriptName):$($error.Line)] $($error.RuleName): $($error.Message)" -ForegroundColor Yellow
             }
-          }
-
-          if ($hasErrors) {
-            Write-Host "## PSScriptAnalyzer found $($issues.Count) error(s):" -ForegroundColor Red
-            $issues | ForEach-Object { Write-Host $_ -ForegroundColor Yellow }
             exit 1
           } else {
             Write-Host "## No PSScriptAnalyzer errors found" -ForegroundColor Green

@@ -174,9 +174,6 @@ jobs:
             } else {
               $issues += "[$($file.Name)]: Missing UTF-8 BOM"
             }
-            } else {
-              $issues += "[$($file.Name)]: Missing UTF-8 BOM"
-            }
 
             # Check 2: Indentation
             for ($i = 0; $i -lt $lines.Count; $i++) {
@@ -297,55 +294,6 @@ jobs:
           retention-days: 14
 
   # ===========================================================================
-  # Summary job - always runs after others
-  # ===========================================================================
-  summary:
-    name: CI Summary
-    runs-on: windows-latest
-    needs: [lint, format, test, deploy-dry-run]
-    if: always()
-    steps:
-      - name: Summary
-        run: |
-          echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ needs.lint.result }}" == 'failure' ] || [ "${{ needs.format.result }}" == 'failure' ] || [ "${{ needs.test.result }}" == 'failure' ] || [ "${{ needs.deploy-dry-run.result }}" == 'failure' ]; then
-            echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
-            exit 0
-          fi
-              catch
-              {
-                  Write-Verbose -Message "PSD1 parse error: $File - $_" -Verbose
-                  exit 1
-              }
-          }
-
-      - name: Check YAML validity
-        run: |
-          Get-ChildItem -Path . -File -Filter *.yml -Recurse | Where-Object { $_.FullName -notmatch 'node_modules|\.git' } | ForEach-Object -Process {
-              $File = $_.FullName
-              try
-              {
-                  Get-Content -Path $File | ConvertFrom-Yaml -ErrorAction Stop | Out-Null
-              }
-              catch
-              {
-                  Write-Verbose -Message "YAML parse error: $File - $_" -Verbose
-              }
-          }
-
-  # ===========================================================================
   # Job 4: Dotbot deployment dry-run integration test
   # ===========================================================================
   deploy-dry-run:
@@ -370,3 +318,33 @@ jobs:
           }
           Write-Host "## Deployment -WhatIf completed successfully" -ForegroundColor Green
           exit 0
+
+  # ===========================================================================
+  # Summary job - always runs after others
+  # ===========================================================================
+  summary:
+    name: CI Summary
+    runs-on: windows-latest
+    needs: [lint, format, test, deploy-dry-run]
+    if: always()
+    steps:
+      - name: Summary
+        shell: bash
+        run: |
+          echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.lint.result }}" == 'failure' ] || [ "${{ needs.format.result }}" == 'failure' ] || [ "${{ needs.test.result }}" == 'failure' ] || [ "${{ needs.deploy-dry-run.result }}" == 'failure' ]; then
+            echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
