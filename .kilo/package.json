@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@ast-grep/cli": "^0.42.0",
+    "@ast-grep/cli": "^0.43.0",
     "@opencode-ai/plugin": "^1.14.33",
     "@kilocode/plugin": "7.3.1",
     "@ai-sdk/openai-compatible": "*",
