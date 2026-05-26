@@ -1,5 +1,0 @@
-⚡ Optimize Get-ItemProperty performance in Get-NvidiaGpuSetting
-
-💡 **What:** Replaced multiple `Get-ItemProperty` calls (one for each property) inside the loop over GPU paths with a single `Get-ItemProperty` call per registry path in `Scripts/Common.ps1`.
-🎯 **Why:** To resolve the N+1 registry query pattern. Previously, the code fetched `DisableDynamicPstate` and `RMHdcpKeyglobZero` in two separate calls, doing repetitive expensive query operations.
-📊 **Measured Improvement:** Baseline performance of iterating 5 registry paths 50 times was ~650 ms. Optimized version querying paths once and checking properties directly was ~110 ms, yielding an ~83% execution speed improvement on the measured loop path without altering behavior.

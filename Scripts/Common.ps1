@@ -334,7 +334,7 @@ function Get-NvidiaGpuSetting {
                 }
             }
         } catch {
-            # Properties will remain $null as initialized
+            Write-Verbose "Could not access registry path: $($_.Exception.Message)"
         }
 
         $results.Add([pscustomobject]$entry)

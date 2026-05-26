@@ -428,7 +428,7 @@ function Start-Bootstrap {
       [Security.Principal.WindowsBuiltInRole]::Administrator
     )
   } catch {
-    # Non-Windows or unsupported platform
+    Write-Verbose "Could not determine admin status: $($_.Exception.Message)"
   }
   if (-not $isAdmin -and (Get-Variable IsWindows -ValueOnly -ErrorAction SilentlyContinue)) {
     Write-Host 'Relaunching as administrator...' -ForegroundColor Yellow
