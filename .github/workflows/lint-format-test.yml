@@ -61,7 +61,7 @@ jobs:
       - name: Setting additional PSRepositories
         shell: pwsh
         run: |
-            Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted'
+            try { Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted' -ErrorAction Stop } catch { Write-Warning "Failed to register OttoMatt repo: $_" }
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
         continue-on-error: true
@@ -333,10 +333,9 @@ jobs:
           if ('${{ needs.lint.result }}' -eq 'failure' -or '${{ needs.format.result }}' -eq 'failure' -or '${{ needs.test.result }}' -eq 'failure' -or '${{ needs.deploy-dry-run.result }}' -eq 'failure') {
             Write-Output "### :x: Some checks failed. Please review the logs above." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             exit 1
-          } else {
-            Write-Output "### :white_check_mark: All checks passed!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-            exit 0
           }
+          Write-Output "### :white_check_mark: All checks passed!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          exit 0
 
       - name: Check YAML validity
         shell: pwsh
