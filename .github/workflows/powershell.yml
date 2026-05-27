@@ -68,6 +68,7 @@ jobs:
           install: true
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
+        continue-on-error: true
         with:
           modules-to-cache: PSScriptAnalyzer
 
