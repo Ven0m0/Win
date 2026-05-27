@@ -284,7 +284,7 @@ jobs:
           $config.TestResult.OutputPath = ".agents_tmp/test-results.xml"
           $config.TestResult.OutputFormat = 'NUnitXml'
 
-          $result = Invoke-Pester -Configuration $config
+          $result = Invoke-Pester -Configuration $config -PassThru
 
           if (-not $result) {
             Write-Host "Pester did not return a result object. This can happen if tests crash or timeout." -ForegroundColor Red
@@ -318,25 +318,25 @@ jobs:
     if: always()
     steps:
       - name: Summary
-        shell: bash
+        shell: pwsh
         run: |
-          echo "## PowerShell CI Results" >> $env:GITHUB_STEP_SUMMARY
-          echo "" >> $env:GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $env:GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $env:GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
-          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
-          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $env:GITHUB_STEP_SUMMARY
-          echo "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "## PowerShell CI Results" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "| Job | Status |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "|------|--------|" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          Write-Output "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
           if ('${{ needs.lint.result }}' -eq 'failure' -or '${{ needs.format.result }}' -eq 'failure' -or '${{ needs.test.result }}' -eq 'failure' -or '${{ needs.deploy-dry-run.result }}' -eq 'failure') {
-            echo "### :x: Some checks failed. Please review the logs above." >> $env:GITHUB_STEP_SUMMARY
+            Write-Output "### :x: Some checks failed. Please review the logs above." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             exit 1
           } else {
-            echo "### :white_check_mark: All checks passed!" >> $env:GITHUB_STEP_SUMMARY
+            Write-Output "### :white_check_mark: All checks passed!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
             exit 0
-          fi
+          }
 
       - name: Check YAML validity
         shell: pwsh
