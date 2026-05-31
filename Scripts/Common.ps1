@@ -926,7 +926,8 @@ function Remove-AppxPackageSafe {
         [string]$AppName
     )
 
-    $packages = Get-AppxPackage -Name $AppName -AllUsers 2>$null
+    $packages = $null
+    try { $packages = Get-AppxPackage -Name $AppName -AllUsers -ErrorAction SilentlyContinue } catch { Write-Verbose "Get-AppxPackage failed for '$AppName': $_" }
     if ($packages) {
         foreach ($package in $packages) {
             Write-ColorOutput "  Removing: $($package.Name)" -ForegroundColor Yellow
@@ -942,7 +943,8 @@ function Remove-AppxPackageSafe {
         }
     }
 
-    $provisioned = Get-AppxProvisionedPackage -Online 2>$null | Where-Object { $_.PackageName -like "*$AppName*" }
+    $provisioned = $null
+    try { $provisioned = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue 2>$null | Where-Object { $_.PackageName -like "*$AppName*" } } catch { Write-Verbose "Get-AppxProvisionedPackage failed for '$AppName': $_" }
     if ($provisioned) {
         foreach ($package in $provisioned) {
             Write-ColorOutput "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow

@@ -110,7 +110,8 @@ function Start-InstallPackage {
                 & $winget install --id $Id --silent --accept-source-agreements `
                     --accept-package-agreements $scopeArg *>$null
                 $ec = $LASTEXITCODE
-                if ($ec -eq 0 -or $ec -eq -1978335189) {
+                # 0 = success; -1978335189 = already installed; -1978335230 = no applicable upgrade (latest version)
+                if ($ec -eq 0 -or $ec -eq -1978335189 -or $ec -eq -1978335230) {
                     Write-Host " [OK]" -ForegroundColor Green
                 } else {
                     Write-Host ""
@@ -352,9 +353,9 @@ function Start-InstallPackage {
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Chocolatey...' -Status 'RUNNING'
             try {
-                Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+                Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue
                 Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
-                    -OutFile "$env:TEMP\choco-install.ps1"
+                    -OutFile "$env:TEMP\choco-install.ps1" -ErrorAction Stop
                 & "$env:TEMP\choco-install.ps1"
                 Remove-Item "$env:TEMP\choco-install.ps1" -Force -ErrorAction SilentlyContinue
                 Write-Status 'Chocolatey installed' -Status 'OK'
