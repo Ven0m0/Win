@@ -32,9 +32,9 @@ function Remove-BloatwareApp {
   Write-Host "=== Phase 1: Removing Bloatware Apps ===" -ForegroundColor Cyan
 
   $catalog = Import-PowerShellDataFile "$PSScriptRoot\packages.psd1"
-  $appsToRemove = [string[]]$catalog.AppxToRemove
-
-  Remove-AppxPackageSafe -AppName $appsToRemove
+  foreach ($app in $catalog.AppxToRemove) {
+    Remove-AppxPackageSafe -AppName $app
+  }
 
   Write-Host "`n=== Phase 1 Complete ===" -ForegroundColor Green
 }

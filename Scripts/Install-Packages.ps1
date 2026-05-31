@@ -263,10 +263,12 @@ function Start-InstallPackage {
         Write-Host '[7.5/11] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
         # Check if Notepad++ is installed
-        $notepadPlusPlus = Get-ItemProperty `
-          'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*', `
-          'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
-          -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq 'Notepad++' }
+        $notepadPlusPlus = @(
+          Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+            -ErrorAction SilentlyContinue
+          Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+            -ErrorAction SilentlyContinue
+        ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -eq 'Notepad++' }
 
         if (-not $notepadPlusPlus) {
             Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'
