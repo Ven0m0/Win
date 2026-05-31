@@ -1,5 +1,4 @@
 ﻿#Requires -Version 5.1
-. "$PSScriptRoot\Common.ps1"
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -46,6 +45,8 @@ param(
     [string]$PostInstallInputLocale = 'en-US',
     [int]$PostInstallGeoId = 94
 )
+
+. "$PSScriptRoot\Common.ps1"
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

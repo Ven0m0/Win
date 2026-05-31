@@ -15,7 +15,8 @@
 #>
 param(
   [switch]$Restore,
-  [switch]$NoRestorePoint
+  [switch]$NoRestorePoint,
+  [switch]$Unattended
 )
 
 $ErrorActionPreference = 'Stop'
@@ -420,6 +421,14 @@ if ($MyInvocation.InvocationName -ne '.') {
 
   # Request admin elevation
   Request-AdminElevation
+
+  # Unattended mode: run all phases without console UI or menu prompts
+  if ($Unattended) {
+    Write-Host "=== Running all debloat phases (unattended) ===" -ForegroundColor Cyan
+    Invoke-AllPhase
+    Write-Host "=== Debloat complete ===" -ForegroundColor Green
+    exit 0
+  }
 
   # Initialize console UI
   Initialize-ConsoleUI -Title "Windows Debloater (Administrator)"

@@ -200,7 +200,7 @@ function Start-SetupWin11 {
         $debloatScript = Join-Path $repoDir 'Scripts\debloat-windows.ps1'
         if (Test-Path $debloatScript) {
             $null = Invoke-Operation -Name 'Windows debloat' -Action {
-                & $debloatScript -NoRestorePoint
+                & $debloatScript -NoRestorePoint -Unattended
             }
         } else {
             Write-Status 'debloat-windows.ps1 not found - skipping' -Status 'SKIP'
