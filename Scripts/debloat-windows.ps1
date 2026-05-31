@@ -32,8 +32,34 @@ function Remove-BloatwareApp {
   Write-Host "=== Phase 1: Removing Bloatware Apps ===" -ForegroundColor Cyan
 
   $catalog = Import-PowerShellDataFile "$PSScriptRoot\packages.psd1"
-  foreach ($app in $catalog.AppxToRemove) {
-    Remove-AppxPackageSafe -AppName $app
+  $patterns = [string[]]$catalog.AppxToRemove
+
+  # Single bulk query (much faster than one query per pattern)
+  $allPackages = $null
+  $allProvisioned = $null
+  try { $allPackages = Get-AppxPackage -AllUsers -ErrorAction SilentlyContinue } catch {
+    Write-Verbose "Get-AppxPackage -AllUsers failed, trying current user: $_"
+    try { $allPackages = Get-AppxPackage -ErrorAction SilentlyContinue } catch { Write-Verbose "Get-AppxPackage failed: $_" }
+  }
+  try { $allProvisioned = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue } catch { Write-Verbose "Get-AppxProvisionedPackage failed: $_" }
+
+  foreach ($pattern in $patterns) {
+    if ($allPackages) {
+      $matches = @($allPackages | Where-Object { $_.Name -like $pattern })
+      foreach ($pkg in $matches) {
+        Write-Host "  Removing: $($pkg.Name)" -ForegroundColor Yellow
+        try { Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction SilentlyContinue } catch {
+          try { Remove-AppxPackage -Package $pkg.PackageFullName -ErrorAction SilentlyContinue } catch { Write-Verbose "Remove-AppxPackage failed for $($pkg.Name): $_" }
+        }
+      }
+    }
+    if ($allProvisioned) {
+      $provMatches = @($allProvisioned | Where-Object { $_.PackageName -like "*$pattern*" -or $_.DisplayName -like $pattern })
+      foreach ($pkg in $provMatches) {
+        Write-Host "  Removing provisioned: $($pkg.DisplayName)" -ForegroundColor Yellow
+        try { Remove-AppxProvisionedPackage -Online -PackageName $pkg.PackageName -ErrorAction SilentlyContinue | Out-Null } catch { Write-Verbose "Remove-AppxProvisionedPackage failed: $_" }
+      }
+    }
   }
 
   Write-Host "`n=== Phase 1 Complete ===" -ForegroundColor Green
