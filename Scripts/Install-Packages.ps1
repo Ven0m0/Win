@@ -108,8 +108,8 @@ function Start-InstallPackage {
                 # Try without --scope first so packages with only user-scope installers
                 # (eza, fd, bat, ripgrep, starship, mise, etc.) are not rejected.
                 # --scope machine caused exit -1978335230 for those packages.
-                & $winget install --id $Id --silent --accept-source-agreements `
-                    --accept-package-agreements *>$null
+                & $winget install --id $Id --silent --disable-interactivity `
+                    --accept-source-agreements --accept-package-agreements *>$null
                 $ec = $LASTEXITCODE
                 # 0 = success; -1978335189 = already installed; -1978335230 = no applicable installer for scope
                 if ($ec -eq 0 -or $ec -eq -1978335189 -or $ec -eq -1978335230) {
