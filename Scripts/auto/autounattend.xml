@@ -714,7 +714,7 @@ Write-Log "=====================================================================
 
 function Get-TargetUser {
     try {
-        $user = Get-WmiObject Win32_ComputerSystem | Select-Object -ExpandProperty UserName
+        $user = Get-CimInstance Win32_ComputerSystem | Select-Object -ExpandProperty UserName
         if ($user -and $user -ne "NT AUTHORITY\SYSTEM") {
             $username = $user.Split('\')[1]
             if ($username -ne "defaultuser0") {
@@ -1350,7 +1350,7 @@ if ($hasXboxPackages) {
 
         if ($runningAsSystem) {
             Write-Log "Running as SYSTEM - detecting logged-in user..."
-            $loggedInUser = (Get-WmiObject -Class Win32_ComputerSystem -ErrorAction SilentlyContinue).UserName
+            $loggedInUser = (Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction SilentlyContinue).UserName
 
             if ($loggedInUser -and $loggedInUser -ne "NT AUTHORITY\SYSTEM") {
                 $username = $loggedInUser.Split('\\')[1]
@@ -1507,7 +1507,7 @@ function Test-ChromiumEdgeInstalled {
 
     # Fallback: Check installed programs
     try {
-        $edgeApp = Get-WmiObject -Class Win32_InstalledStoreProgram -Filter "Name like '%Microsoft.MicrosoftEdge.Stable%'" -ErrorAction SilentlyContinue
+        $edgeApp = Get-CimInstance -ClassName Win32_InstalledStoreProgram -Filter "Name like '%Microsoft.MicrosoftEdge.Stable%'" -ErrorAction SilentlyContinue
         return $edgeApp -ne $null
     } catch {
         return $false
@@ -2169,7 +2169,7 @@ function Get-TargetUser {
     Write-Log "Get-TargetUser: Starting user detection"
 
     try {
-        $user = Get-WmiObject Win32_ComputerSystem | Select-Object -ExpandProperty UserName
+        $user = Get-CimInstance Win32_ComputerSystem | Select-Object -ExpandProperty UserName
         Write-Log "Get-TargetUser: Win32_ComputerSystem returned: '$user'"
         if ($user -and $user -ne "NT AUTHORITY\SYSTEM") {
             $username = $user.Split('\')[1]
