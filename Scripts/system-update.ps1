@@ -899,7 +899,7 @@ $managers = @(
                         Write-Detail "Updating WSL Distro: $dn"
                         wsl -d $dn -- sh -lc "if command -v apt-get >/dev/null; then sudo apt-get update -qq && sudo apt-get upgrade -y -qq; elif command -v pacman >/dev/null; then sudo pacman -Syu --noconfirm; fi" 2>&1 | Out-Null
                     }
-                    $script:stepMessage += " (Checked inside Distros)"
+                    $script:stepMessage = "$($script:stepMessage) (Checked inside Distros)"
                 }
             }
         }
@@ -960,7 +960,7 @@ if (-not $SkipWindowsUpdate) {
             }
             if (-not $SkipReboot -and (Get-WURebootStatus -Silent -ErrorAction SilentlyContinue)) {
                 Write-Status 'A reboot is required to finish installing updates.' -Type Warning
-                $script:stepMessage += " (Reboot pending)"
+                $script:stepMessage = "$($script:stepMessage) (Reboot pending)"
             }
         }
         catch {

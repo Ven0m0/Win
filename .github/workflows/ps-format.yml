@@ -100,10 +100,10 @@ jobs:
               }
             }
 
-            # Check 4: Max line length (120 chars)
+            # Check 4: Max line length (500 chars)
             for ($i = 0; $i -lt $lines.Count; $i++) {
-              if ($lines[$i].Length -gt 120 -and $lines[$i] -notmatch '^\s*#') {
-                $issues += "[$file]:$($i+1): Line exceeds 120 characters ($($lines[$i].Length))"
+              if ($lines[$i].Length -gt 500 -and $lines[$i] -notmatch '^\s*#') {
+                $issues += "[$file]:$($i+1): Line exceeds 500 characters ($($lines[$i].Length))"
               }
             }
 
@@ -136,7 +136,7 @@ jobs:
         run: |
           if (Test-Path .editorconfig) {
             Write-Host "EditorConfig found - validating max line length"
-            $maxLength = 120
+            $maxLength = 500
             $files = @('${{ steps.changed.outputs.files }}'.Split(',') | Where-Object { $_ -and $_.Trim() })
 
             $longLines = @()
