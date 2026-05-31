@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -315,22 +315,22 @@ function Get-NvidiaGpuSetting {
             HDCP    = $null
         }
 
-        if ($Setting -eq "All" -or $Setting -eq "P0State") {
-            try {
-                $entry.P0State = (Get-ItemProperty -Path "Registry::$path" `
-                    -Name 'DisableDynamicPstate' -ErrorAction Stop).DisableDynamicPstate
-            } catch {
-                $entry.P0State = $null
-            }
-        }
+        try {
+            $props = Get-ItemProperty -Path "Registry::$path" -ErrorAction Stop
 
-        if ($Setting -eq "All" -or $Setting -eq "HDCP") {
-            try {
-                $entry.HDCP = (Get-ItemProperty -Path "Registry::$path" `
-                    -Name 'RMHdcpKeyglobZero' -ErrorAction Stop).RMHdcpKeyglobZero
-            } catch {
-                $entry.HDCP = $null
+            if ($Setting -eq "All" -or $Setting -eq "P0State") {
+                if ($null -ne $props.DisableDynamicPstate) {
+                    $entry.P0State = $props.DisableDynamicPstate
+                }
             }
+
+            if ($Setting -eq "All" -or $Setting -eq "HDCP") {
+                if ($null -ne $props.RMHdcpKeyglobZero) {
+                    $entry.HDCP = $props.RMHdcpKeyglobZero
+                }
+            }
+        } catch {
+            Write-Verbose "Could not access registry path: $($_.Exception.Message)"
         }
 
         $results.Add([pscustomobject]$entry)

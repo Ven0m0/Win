@@ -283,7 +283,8 @@ jobs:
           $config.TestResult.OutputPath = ".agents_tmp/test-results.xml"
           $config.TestResult.OutputFormat = 'NUnitXml'
 
-          $result = Invoke-Pester -Configuration $config -PassThru
+          $config.Run.PassThru = $true
+          $result = Invoke-Pester -Configuration $config
 
           if (-not $result) {
             Write-Host "Pester did not return a result object. This can happen if tests crash or timeout." -ForegroundColor Red
