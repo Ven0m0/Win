@@ -136,12 +136,14 @@ function Disable-WindowsFeature {
   )
 
   foreach ($feature in $featuresToDisable) {
-    $state = Get-WindowsOptionalFeature -Online -FeatureName $feature.Name -ErrorAction SilentlyContinue
-    if ($state -and $state.State -eq "Enabled") {
-      Write-Host "  Disabling: $($feature.Name) ($($feature.Desc))" -ForegroundColor Yellow
-      Disable-WindowsOptionalFeature -Online -FeatureName $feature.Name -NoRestart `
-        -ErrorAction SilentlyContinue | Out-Null
-    }
+    try {
+      $state = Get-WindowsOptionalFeature -Online -FeatureName $feature.Name -ErrorAction SilentlyContinue
+      if ($state -and $state.State -eq "Enabled") {
+        Write-Host "  Disabling: $($feature.Name) ($($feature.Desc))" -ForegroundColor Yellow
+        Disable-WindowsOptionalFeature -Online -FeatureName $feature.Name -NoRestart `
+          -ErrorAction SilentlyContinue | Out-Null
+      }
+    } catch { Write-Verbose "Skipping feature $($feature.Name): $_" }
   }
 
   Write-Host "`n=== Phase 3 Complete ===" -ForegroundColor Green

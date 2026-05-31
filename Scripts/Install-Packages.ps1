@@ -353,7 +353,7 @@ function Start-InstallPackage {
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Chocolatey...' -Status 'RUNNING'
             try {
-                Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+                try { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue } catch { Write-Verbose "ExecutionPolicy: $_" }
                 Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
                     -OutFile "$env:TEMP\choco-install.ps1" -ErrorAction Stop
                 & "$env:TEMP\choco-install.ps1"
