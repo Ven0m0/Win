@@ -130,7 +130,8 @@ function Start-InstallPackage {
     Write-Host '[1/7] Checking prerequisites...' -ForegroundColor Cyan
 
     # Check if running as admin for system-level operations
-    if ($null -eq $script:isAdminOverride) {
+    $adminOverride = Get-Variable -Name 'isAdminOverride' -Scope script -ErrorAction SilentlyContinue
+    if ($null -eq $adminOverride -or $null -eq $adminOverride.Value) {
         $isAdmin = $false
         try {
             $isAdmin = ([Security.Principal.WindowsPrincipal]`
@@ -139,7 +140,7 @@ function Start-InstallPackage {
             )
         } catch { Write-Verbose "Admin role check failed: $_" }
     } else {
-        $isAdmin = $script:isAdminOverride
+        $isAdmin = $adminOverride.Value
     }
 
     if (-not $isAdmin) {
