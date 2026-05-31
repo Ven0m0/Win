@@ -17,17 +17,25 @@
     Skip installing tools via winget (use existing installations).
 .PARAMETER SkipWSL
     Skip WSL2 installation/configuration.
+.PARAMETER SkipPackages
+    Skip the full software installation phase (Install-Packages.ps1).
+.PARAMETER SkipDebloat
+    Skip the Windows debloat phase (debloat-windows.ps1).
 .EXAMPLE
     .\Setup-Win11.ps1
 .EXAMPLE
     .\Setup-Win11.ps1 -Unattended -Force
+.EXAMPLE
+    .\Setup-Win11.ps1 -Unattended -SkipDebloat -SkipPackages
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [switch]$Unattended,
     [switch]$Force,
     [switch]$SkipWingetTools,
-    [switch]$SkipWSL
+    [switch]$SkipWSL,
+    [switch]$SkipPackages,
+    [switch]$SkipDebloat
 )
 
 . "$PSScriptRoot\Common.ps1"
@@ -38,7 +46,9 @@ function Start-SetupWin11 {
         [switch]$Unattended,
         [switch]$Force,
         [switch]$SkipWingetTools,
-        [switch]$SkipWSL
+        [switch]$SkipWSL,
+        [switch]$SkipPackages,
+        [switch]$SkipDebloat
     )
 
     Set-StrictMode -Version Latest
@@ -83,7 +93,7 @@ function Start-SetupWin11 {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended') {
+        foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended','SkipPackages','SkipDebloat') {
             if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -95,7 +105,7 @@ function Start-SetupWin11 {
     # ---------------------------------------------------------------------------
     # Phase 1: Prerequisites (winget, Git, PowerShell 7)
     # ---------------------------------------------------------------------------
-    Write-Host '[1/5] Checking prerequisites...' -ForegroundColor Cyan
+    Write-Host '[1/7] Checking prerequisites...' -ForegroundColor Cyan
 
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         if (Test-Path "$PSScriptRoot\shell-setup.ps1") {
@@ -130,7 +140,7 @@ function Start-SetupWin11 {
     # Phase 2: Clone or update dotfiles repository
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[2/5] Setting up dotfiles repository...' -ForegroundColor Cyan
+    Write-Host '[2/7] Setting up dotfiles repository...' -ForegroundColor Cyan
 
     $repoUrl = 'https://github.com/Ven0m0/Win.git'
     $repoDir = Join-Path $HOME 'Win'
@@ -180,10 +190,46 @@ function Start-SetupWin11 {
     }
 
     # ---------------------------------------------------------------------------
-    # Phase 3: Run bootstrap via dotbot
+    # Phase 3: Debloat Windows
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[3/5] Running bootstrap via dotbot...' -ForegroundColor Cyan
+    Write-Host '[3/7] Debloating Windows...' -ForegroundColor Cyan
+    if ($SkipDebloat) {
+        Write-Status 'Debloat skipped (-SkipDebloat)' -Status 'SKIP'
+    } else {
+        $debloatScript = Join-Path $repoDir 'Scripts\debloat-windows.ps1'
+        if (Test-Path $debloatScript) {
+            $null = Invoke-Operation -Name 'Windows debloat' -Action {
+                & $debloatScript -NoRestorePoint
+            }
+        } else {
+            Write-Status 'debloat-windows.ps1 not found - skipping' -Status 'SKIP'
+        }
+    }
+
+    # ---------------------------------------------------------------------------
+    # Phase 4: Install all software
+    # ---------------------------------------------------------------------------
+    Write-Host ''
+    Write-Host '[4/7] Installing software catalog...' -ForegroundColor Cyan
+    if ($SkipPackages) {
+        Write-Status 'Package install skipped (-SkipPackages)' -Status 'SKIP'
+    } else {
+        $installScript = Join-Path $repoDir 'Scripts\Install-Packages.ps1'
+        if (Test-Path $installScript) {
+            $null = Invoke-Operation -Name 'Full software install' -Action {
+                & $installScript
+            }
+        } else {
+            Write-Status 'Install-Packages.ps1 not found - skipping' -Status 'SKIP'
+        }
+    }
+
+    # ---------------------------------------------------------------------------
+    # Phase 5: Run bootstrap via dotbot
+    # ---------------------------------------------------------------------------
+    Write-Host ''
+    Write-Host '[5/7] Deploying configs via dotbot...' -ForegroundColor Cyan
 
     # Change to repository directory and run dotbot
     pushd $repoDir
@@ -198,11 +244,11 @@ function Start-SetupWin11 {
     popd
 
     # ---------------------------------------------------------------------------
-    # Phase 4: Optional WSL2
+    # Phase 6: Optional WSL2
     # ---------------------------------------------------------------------------
     if (-not $SkipWSL) {
         Write-Host ''
-        Write-Host '[4/5] Optional: WSL2 setup' -ForegroundColor Cyan
+        Write-Host '[6/7] Optional: WSL2 setup' -ForegroundColor Cyan
         $wslState = wsl --status 2>$null
         if ($LASTEXITCODE -eq 0) {
             Write-Status 'WSL is already installed' -Status 'OK'
@@ -223,10 +269,10 @@ function Start-SetupWin11 {
     }
 
     # ---------------------------------------------------------------------------
-    # Phase 5: Summary
+    # Phase 7: Summary
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[5/5] Setup Summary' -ForegroundColor Cyan
+    Write-Host '[7/7] Setup Summary' -ForegroundColor Cyan
     Write-Host ''
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]

@@ -84,13 +84,16 @@ function Deploy-ConfigDirectory {
       File filter pattern (default: *).
   .PARAMETER Label
       Human-readable label for output messages.
+  .PARAMETER Recurse
+      When set, walks subdirectories and preserves relative path structure in destination.
   #>
   [CmdletBinding(SupportsShouldProcess)]
   param(
     [string]$SourceDir,
     [string]$DestDir,
     [string]$Filter = '*',
-    [string]$Label
+    [string]$Label,
+    [switch]$Recurse
   )
 
   if (-not (Test-Path $SourceDir)) {
@@ -98,14 +101,23 @@ function Deploy-ConfigDirectory {
     return
   }
 
-  $files = Get-ChildItem -Path $SourceDir -Filter $Filter -File
+  $getChildArgs = @{ Path = $SourceDir; Filter = $Filter; File = $true }
+  if ($Recurse) { $getChildArgs['Recurse'] = $true }
+  $files = Get-ChildItem @getChildArgs
+
   if ($files.Count -eq 0) {
     Write-Host "  [SKIP] $Label - no files matching '$Filter' in $SourceDir" -ForegroundColor Gray
     return
   }
 
   foreach ($file in $files) {
-    Deploy-Config -Source $file.FullName -Destination (Join-Path $DestDir $file.Name) -Label "$Label/$($file.Name)"
+    if ($Recurse) {
+      $relPath = $file.FullName.Substring($SourceDir.Length).TrimStart('\', '/')
+      $dest = Join-Path $DestDir $relPath
+    } else {
+      $dest = Join-Path $DestDir $file.Name
+    }
+    Deploy-Config -Source $file.FullName -Destination $dest -Label "$Label/$($file.Name)"
   }
 }
 
@@ -248,7 +260,8 @@ function Set-CmdAliasAutoRun {
 
   $commandProcessorKey = 'HKCU:\Software\Microsoft\Command Processor'
   $autoRunSnippet = "if exist `"$AliasScript`" call `"$AliasScript`""
-  $currentAutoRun = (Get-ItemProperty -Path $commandProcessorKey -Name AutoRun -ErrorAction SilentlyContinue).AutoRun
+  $autoRunProp = Get-ItemProperty -Path $commandProcessorKey -Name AutoRun -ErrorAction SilentlyContinue
+  $currentAutoRun = if ($autoRunProp) { $autoRunProp.AutoRun } else { $null }
 
   if ($currentAutoRun -and $currentAutoRun -match [regex]::Escape($AliasScript)) {
     Write-Host "  [UP-TO-DATE] $Label" -ForegroundColor Gray
@@ -348,7 +361,14 @@ function Invoke-ConfigManifestEntry {
     'directory' {
       $destination = & $Entry.ResolveDestination
       if ($destination) {
-        Deploy-ConfigDirectory -SourceDir $sourcePath -DestDir $destination -Filter $Entry.Filter -Label $Entry.Label
+        $dirArgs = @{
+          SourceDir = $sourcePath
+          DestDir   = $destination
+          Filter    = $Entry.Filter
+          Label     = $Entry.Label
+        }
+        if ($Entry.ContainsKey('Recurse') -and $Entry.Recurse) { $dirArgs['Recurse'] = $true }
+        Deploy-ConfigDirectory @dirArgs
       } else {
         Write-Warning "  [SKIP] $($Entry.Label) - $(& $Entry.GetSkipReason)"
       }
@@ -440,7 +460,7 @@ function Start-Bootstrap {
     return
   }
 
-  $configRoot = Join-Path $PSScriptRoot 'user\.dotfiles\config'
+  $configRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'user\.dotfiles\config'
 
   # ---------------------------------------------------------------------------
   # Phase 1: Prerequisites & execution policy
@@ -569,8 +589,9 @@ function Start-Bootstrap {
       Mode               = 'directory'
       Label              = 'Call of Duty Black Ops 6 configs'
       Filter             = '*'
+      Recurse            = $true
       ResolveDestination = { Get-CallOfDutyPlayersPath }
-      GetSkipReason      = { "Call of Duty players directory not found: $callOfDutyPlayersPath" }
+      GetSkipReason      = { 'Call of Duty players directory not found' }
     },
     @{
       Path               = 'games\arc-raiders'
@@ -586,6 +607,19 @@ function Start-Bootstrap {
         return $null
       }
       GetSkipReason      = { 'Arc Raiders config directory not found' }
+    },
+    @{
+      Path               = 'games\fortnite'
+      Mode               = 'directory'
+      Label              = 'Fortnite configs'
+      Filter             = '*.ini'
+      ResolveDestination = {
+        $fortnitePath = Join-Path $env:LOCALAPPDATA `
+          'FortniteGame\Saved\Config\WindowsClient'
+        if (Test-Path $fortnitePath) { return $fortnitePath }
+        return $null
+      }
+      GetSkipReason      = { 'Fortnite config directory not found' }
     },
     @{
       Path   = 'cursors'
@@ -617,7 +651,7 @@ function Start-Bootstrap {
       GetSkipReason      = { 'Winget local state directory not found' }
     },
     @{
-      Path   = 'DDU\Settings.xml'
+      Path   = 'DDU\Settings\Settings.xml'
       Mode   = 'file'
       Label  = 'DDU settings'
       ResolveDestination = { Join-Path $env:PROGRAMDATA 'DDU\Settings.xml' }

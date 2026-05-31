@@ -1,4 +1,5 @@
 ﻿#Requires -Version 5.1
+. "$PSScriptRoot\Common.ps1"
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -69,6 +70,9 @@ function Start-InstallPackage {
     Set-StrictMode -Version Latest
     $ErrorActionPreference = 'Stop'
     $ProgressPreference = 'SilentlyContinue'
+
+    # Load canonical package catalog
+    $catalog = Import-PowerShellDataFile "$PSScriptRoot\packages.psd1"
 
     $script:StartTime = Get-Date
     $script:Results = @{}
@@ -177,17 +181,9 @@ function Start-InstallPackage {
     # ============================================================================
     if (-not $SkipWinget) {
         Write-Host ''
-        Write-Host '[2/7] Installing core tools via winget...' -ForegroundColor Cyan
-
-        $coreTools = @(
-            @{ id = 'Git.Git';                    name = 'Git' },
-            @{ id = 'Microsoft.PowerShell';       name = 'PowerShell 7+' },
-            @{ id = 'Microsoft.WindowsTerminal';  name = 'Windows Terminal' },
-            @{ id = 'Microsoft.VisualStudioCode'; name = 'VS Code' }
-        )
-
-        foreach ($tool in $coreTools) {
-            Install-WingetTool -Id $tool.id -Name $tool.name
+        Write-Host '[2/11] Installing core tools via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetCore) {
+            Install-WingetTool -Id $id -Name $id
         }
     }
 
@@ -196,65 +192,73 @@ function Start-InstallPackage {
     # ============================================================================
     if (-not $SkipWinget) {
         Write-Host ''
-        Write-Host '[3/7] Installing runtimes via winget...' -ForegroundColor Cyan
-
-        $runtimes = @(
-            'Microsoft.VCRedist.2015+.x64',
-            'Microsoft.DotNet.DesktopRuntime.10',
-            'Microsoft.DotNet.DesktopRuntime.9',
-            'Microsoft.DotNet.DesktopRuntime.8',
-            'Microsoft.DotNet.DesktopRuntime.7',
-            'Microsoft.EdgeWebView2Runtime',
-            'Oracle.JavaRuntimeEnvironment',
-            'EclipseAdoptium.Temurin.25.JRE'
-        )
-
-        foreach ($pkg in $runtimes) {
-            Install-WingetTool -Id $pkg -Name $pkg
+        Write-Host '[3/11] Installing runtimes via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetRuntimes) {
+            Install-WingetTool -Id $id -Name $id
         }
     }
 
     # ============================================================================
-    # Phase 4: Install development tools and utilities via winget
+    # Phase 4: Install build toolchains via winget
     # ============================================================================
     if (-not $SkipWinget) {
         Write-Host ''
-        Write-Host '[4/7] Installing development tools via winget...' -ForegroundColor Cyan
-
-        $devTools = @(
-            'OpenJS.NodeJS',
-            'Python.Python.3.13',
-            'GitHub.cli',
-            'Notepad++.Notepad++',
-            'VSCodium.VSCodium',
-            'Rustlang.Rust.MSVC',
-            'astral-sh.uv',
-            'Oven-sh.Bun',
-            'jdx.mise',
-            'topgrade-rs.topgrade',
-            'eza-community.eza',
-            'BurntSushi.ripgrep.MSVC',
-            'sharkdp.fd',
-            'sharkdp.bat',
-            'JanDeDobbeleer.OhMyPosh',
-            '7zip.7zip',
-            'VideoLAN.VLC',
-            'OBSProject.OBSStudio',
-            'MartiCliment.UniGetUI',
-            'Chocolatey.Chocolatey'
-        )
-
-        foreach ($pkg in $devTools) {
-            Install-WingetTool -Id $pkg -Name $pkg
+        Write-Host '[4/11] Installing build toolchains via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetToolchains) {
+            Install-WingetTool -Id $id -Name $id
         }
     }
 
     # ============================================================================
-    # Phase 4.5: Notepad Replacer (requires Notepad++ installed first)
+    # Phase 5: Install development tools via winget
+    # ============================================================================
+    if (-not $SkipWinget) {
+        Write-Host ''
+        Write-Host '[5/11] Installing development tools via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetDevTools) {
+            Install-WingetTool -Id $id -Name $id
+        }
+    }
+
+    # ============================================================================
+    # Phase 6: Install CLI tools via winget
+    # ============================================================================
+    if (-not $SkipWinget) {
+        Write-Host ''
+        Write-Host '[6/11] Installing CLI tools via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetCliTools) {
+            Install-WingetTool -Id $id -Name $id
+        }
+    }
+
+    # ============================================================================
+    # Phase 7: Install applications via winget
+    # ============================================================================
+    if (-not $SkipWinget) {
+        Write-Host ''
+        Write-Host '[7/11] Installing applications via winget...' -ForegroundColor Cyan
+        foreach ($id in $catalog.WingetApplications) {
+            Install-WingetTool -Id $id -Name $id
+        }
+        # Name-based installs (no stable ID)
+        if ($PSCmdlet.ShouldProcess('FFmpeg (Essentials Build)', 'Install via winget')) {
+            $null = Wait-ForWinget
+            winget install 'FFmpeg (Essentials Build)' --silent --accept-source-agreements `
+                --accept-package-agreements *>$null
+        }
+        if ($PSCmdlet.ShouldProcess('ShutterEncoder', 'Install via winget')) {
+            $null = Wait-ForWinget
+            winget install 'PaulPacifico.ShutterEncoder' --silent --accept-source-agreements `
+                --accept-package-agreements *>$null
+        }
+    }
+
+    # ============================================================================
+    # Phase 7.5: Notepad Replacer (requires Notepad++ installed first)
     # ============================================================================
     if (-not $SkipNotepadReplacer) {
         Write-Host ''
-        Write-Host '[4.5/8] Setting up Notepad Replacer...' -ForegroundColor Cyan
+        Write-Host '[7.5/11] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
         # Check if Notepad++ is installed
         $notepadPlusPlus = Get-ItemProperty `
@@ -282,11 +286,11 @@ function Start-InstallPackage {
     }
 
     # ============================================================================
-    # Phase 5: Scoop installation and packages
+    # Phase 8: Scoop installation, buckets, and packages
     # ============================================================================
     if (-not $SkipScoop) {
         Write-Host ''
-        Write-Host '[5/7] Setting up Scoop...' -ForegroundColor Cyan
+        Write-Host '[8/11] Setting up Scoop...' -ForegroundColor Cyan
 
         # Install Scoop if not present
         if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
@@ -295,7 +299,7 @@ function Start-InstallPackage {
                 $guid = [System.Guid]::NewGuid().ToString('N')
                 $scoopInstaller = Join-Path $env:TEMP "install-scoop-$guid.ps1"
                 Invoke-RestMethod -Uri 'https://get.scoop.sh' `
-                -OutFile $scoopInstaller
+                    -OutFile $scoopInstaller
                 & $scoopInstaller
                 Remove-Item $scoopInstaller -Force -ErrorAction SilentlyContinue
                 Write-Status 'Scoop installed' -Status 'OK'
@@ -306,10 +310,9 @@ function Start-InstallPackage {
             Write-Status 'Scoop already installed' -Status 'OK'
         }
 
-        # Add Scoop buckets
         if (Get-Command scoop -ErrorAction SilentlyContinue) {
-            $scoopBuckets = @('extras', 'nerd-fonts', 'java', 'nirsoft')
-            foreach ($bucket in $scoopBuckets) {
+            # Add Scoop buckets
+            foreach ($bucket in $catalog.ScoopBuckets) {
                 try {
                     scoop bucket add $bucket 2>$null
                     Write-Status "Scoop bucket '$bucket' added" -Status 'OK'
@@ -319,19 +322,27 @@ function Start-InstallPackage {
             }
 
             # Configure aria2 for Scoop
-            if (Get-Command scoop -ErrorAction SilentlyContinue) {
-                scoop config aria2-enabled true 2>$null
-                scoop config aria2-warning-enabled false 2>$null
+            scoop config aria2-enabled true 2>$null
+            scoop config aria2-warning-enabled false 2>$null
+
+            # Install Scoop packages
+            foreach ($pkg in $catalog.ScoopPackages) {
+                try {
+                    scoop install $pkg 2>$null
+                    Write-Status "Scoop package '$pkg' installed" -Status 'OK'
+                } catch {
+                    Write-Status "Scoop package '$pkg'" -Status 'SKIP'
+                }
             }
         }
     }
 
     # ============================================================================
-    # Phase 6: Chocolatey installation and packages
+    # Phase 9: Chocolatey installation and packages
     # ============================================================================
     if (-not $SkipChoco) {
         Write-Host ''
-        Write-Host '[6/7] Setting up Chocolatey...' -ForegroundColor Cyan
+        Write-Host '[9/11] Setting up Chocolatey...' -ForegroundColor Cyan
 
         # Install Chocolatey if not present
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
@@ -339,7 +350,7 @@ function Start-InstallPackage {
             try {
                 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
                 Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
-                -OutFile "$env:TEMP\choco-install.ps1"
+                    -OutFile "$env:TEMP\choco-install.ps1"
                 & "$env:TEMP\choco-install.ps1"
                 Remove-Item "$env:TEMP\choco-install.ps1" -Force -ErrorAction SilentlyContinue
                 Write-Status 'Chocolatey installed' -Status 'OK'
@@ -349,23 +360,30 @@ function Start-InstallPackage {
         } else {
             Write-Status 'Chocolatey already installed' -Status 'OK'
         }
+
+        # Install Chocolatey packages
+        if (Get-Command choco -ErrorAction SilentlyContinue) {
+            foreach ($pkg in $catalog.ChocoPackages) {
+                try {
+                    if ($PSCmdlet.ShouldProcess($pkg, 'choco install')) {
+                        choco install $pkg -y --no-progress *>$null
+                        Write-Status "Choco package '$pkg' installed" -Status 'OK'
+                    }
+                } catch {
+                    Write-Status "Choco package '$pkg'" -Status 'SKIP'
+                }
+            }
+        }
     }
 
     # ============================================================================
-    # Phase 7: Windows optional features (if admin)
+    # Phase 10: Windows optional features (if admin)
     # ============================================================================
     if (-not $SkipSystemFeatures -and $isAdmin) {
         Write-Host ''
-        Write-Host '[7/7] Enabling Windows optional features...' -ForegroundColor Cyan
+        Write-Host '[10/11] Enabling Windows optional features...' -ForegroundColor Cyan
 
-        $features = @(
-            'Microsoft-Windows-Subsystem-Linux',
-            'VirtualMachinePlatform',
-            'LegacyComponents',
-            'DirectPlay'
-        )
-
-        foreach ($feature in $features) {
+        foreach ($feature in $catalog.WindowsFeatures) {
             try {
                 DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet *>$null
                 Write-Status "Feature '$feature' enabled" -Status 'OK'
@@ -376,28 +394,22 @@ function Start-InstallPackage {
     }
 
     # ============================================================================
-    # Phase 7.5: PowerShell modules
+    # Phase 11: PowerShell modules
     # ============================================================================
     if (-not $SkipPowerShellModules) {
         Write-Host ''
-        Write-Host '[7.5/8] Installing PowerShell modules...' -ForegroundColor Cyan
+        Write-Host '[11/11] Installing PowerShell modules...' -ForegroundColor Cyan
 
-        $psModules = @(
-            @{ Name = 'PSIni';              Purpose = 'INI file parsing and editing' },
-            @{ Name = 'Pester';             Purpose = 'Unit testing framework' },
-            @{ Name = 'PowerShell-Beautifier'; Purpose = 'Code formatting' }
-        )
-
-        foreach ($mod in $psModules) {
-            if (-not (Get-Module -ListAvailable -Name $mod.Name)) {
+        foreach ($modName in $catalog.PsModules) {
+            if (-not (Get-Module -ListAvailable -Name $modName)) {
                 try {
-                    Install-Module -Name $mod.Name -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-                    Write-Status "PowerShell module '$($mod.Name)' installed" -Status 'OK'
+                    Install-Module -Name $modName -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+                    Write-Status "PowerShell module '$modName' installed" -Status 'OK'
                 } catch {
-                    Write-Status "PowerShell module '$($mod.Name)' - $($_.Exception.Message)" -Status 'FAIL'
+                    Write-Status "PowerShell module '$modName' - $($_.Exception.Message)" -Status 'FAIL'
                 }
             } else {
-                Write-Status "PowerShell module '$($mod.Name)' already installed" -Status 'OK'
+                Write-Status "PowerShell module '$modName' already installed" -Status 'OK'
             }
         }
     }
@@ -506,7 +518,7 @@ function Start-InstallPackage {
     Write-Host ""
     Write-Host "  Total time: $($duration.ToString('hh\:mm\:ss'))" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  Next: Run Deploy-Config.ps1 to deploy configuration files." -ForegroundColor Yellow
+    Write-Host "  Next: Run Setup-Win11.ps1 (or dotbot -c install.conf.yaml) to deploy config files." -ForegroundColor Yellow
     Write-Host ""
 }
 

@@ -33,33 +33,48 @@ The following package managers are recommended for Windows:
 
 ## Fresh Windows 11 Install (One-Command)
 
-For a clean Windows 11 system, use the complete setup script that installs all prerequisites, clones the repository, and runs bootstrap automatically:
+For a clean Windows 11 system, clone the repo and run the full setup script. It chains all phases:
 
 ```pwsh
-# Download and execute the setup script (runs as admin)
+git clone https://github.com/Ven0m0/Win.git "$HOME\Win"
+pwsh -File "$HOME\Win\Scripts\Setup-Win11.ps1"
+```
+
+The script runs these phases:
+1. Install winget, Git, PowerShell 7+ (if missing)
+2. Clone / pull this repository
+3. **Debloat Windows** — removes ~40 bloat appx packages via `packages.psd1`
+4. **Install all software** — ~150 packages: winget (core, runtimes, toolchains, dev tools, CLI tools, ~110 apps), Scoop buckets + packages, Chocolatey packages, Windows features, PowerShell modules
+5. **Deploy all configs** — every tracked config to its correct path via dotbot + `Setup-Dotfiles.ps1`
+6. Optionally install WSL2
+
+**Unattended mode** (zero prompts):
+
+```pwsh
+pwsh -File "$HOME\Win\Scripts\Setup-Win11.ps1" -Unattended
+```
+
+**Skip phases** as needed:
+
+| Flag | Effect |
+|---|---|
+| `-SkipDebloat` | Don't remove bloatware |
+| `-SkipPackages` | Don't run the full software install |
+| `-SkipWSL` | Don't install WSL2 |
+
+**Internet bootstrap** (minimal — prereqs + dotfiles only, no full package catalog):
+
+```pwsh
 iwr -useb "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1" | iex
 ```
 
-The script will:
-1. Install winget (if missing)
-2. Install Git, PowerShell 7+, and dotbot
-3. Clone this repository
-4. Run the full bootstrap to deploy configs
-5. Optionally install WSL2 (recommended)
-
-**Unattended mode**: Append `-Unattended` for zero prompts (e.g., for automated deployments):
-
-```pwsh
-iwr -useb "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1"| iex -Unattended
-```
-
-Alternatively, clone the repo manually first and run the local setup script:
+Alternatively, deploy configs only (no software install):
 
 ```pwsh
 # Clone using git
 git clone --depth 1 https://github.com/Ven0m0/Win.git
-# One-command local setup
-mise run bootstrap
+# Deploy configs only
+mise run deploy
 ```
 
 ## Quick Start
@@ -203,9 +218,12 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Setup & Bootstrap
 
-- **`Setup-Win11.ps1`** — Complete fresh Windows 11 setup (one-command)
-- **`Setup-Dotfiles.ps1`** — Core bootstrap (called via dotbot / `mise run bootstrap`)
-- **`shell-setup.ps1`** — Full toolchain install (Scoop, Chocolatey, apps)
+- **`Setup-Win11.ps1`** — Full fresh Windows 11 setup: debloat → install all software → deploy all configs
+- **`Install-Packages.ps1`** — Install the full software catalog from `packages.psd1` (can run standalone)
+- **`packages.psd1`** — Canonical package catalog (winget/scoop/choco/modules/features/appx-remove lists)
+- **`Setup-Dotfiles.ps1`** — Deploy tracked configs (called by dotbot / `mise run deploy`)
+- **`debloat-windows.ps1`** — Remove bloatware using `packages.psd1` `AppxToRemove` list
+- **`shell-setup.ps1`** — Legacy full toolchain install (superseded by `Install-Packages.ps1` + `packages.psd1`)
 - **`allow-scripts.ps1`** — Enable/disable PowerShell script execution policy
 
 ### System Optimization

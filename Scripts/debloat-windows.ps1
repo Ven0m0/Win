@@ -30,37 +30,8 @@ function Remove-BloatwareApp {
   param()
   Write-Host "=== Phase 1: Removing Bloatware Apps ===" -ForegroundColor Cyan
 
-  $appsToRemove = @(
-    "Clipchamp.Clipchamp"
-    "Microsoft.BingNews"
-    "Microsoft.BingWeather"
-    "Microsoft.BingSearch"
-    "Microsoft.Copilot"
-    "Microsoft.GetHelp"
-    "Microsoft.MicrosoftOfficeHub"
-    "Microsoft.MicrosoftSolitaireCollection"
-    "Microsoft.MicrosoftStickyNotes"
-    "Microsoft.OutlookForWindows"
-    "Microsoft.Todos"
-    "Microsoft.YourPhone"
-    "Microsoft.ZuneMusic"
-    "MicrosoftCorporationII.MicrosoftFamily"
-    "MSTeams"
-    "Microsoft.Xbox.TCUI"
-    "Microsoft.XboxGamingOverlay"
-    "Microsoft.XboxIdentityProvider"
-    "Microsoft.XboxSpeechToTextOverlay"
-    "Microsoft.XboxGameCallableUI"
-    "Microsoft.WindowsAlarms"
-    "Microsoft.WindowsCamera"
-    "Microsoft.WindowsSoundRecorder"
-    "Microsoft.WindowsFeedbackHub"
-    "Microsoft.Edge.GameAssist"
-    "MicrosoftCorporationII.QuickAssist"
-    "Microsoft.People"
-    "Microsoft.Windows.DevHome"
-    "Microsoft.549981C3F5F10"
-  )
+  $catalog = Import-PowerShellDataFile "$PSScriptRoot\packages.psd1"
+  $appsToRemove = $catalog.AppxToRemove
 
   Remove-AppxPackageSafe -AppName $appsToRemove
 

@@ -55,6 +55,31 @@
     # Target:  %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Arc Raiders configs' -SkipWingetTools -SkipWSL
       description: "Arc Raiders configs → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor"
+    # ── Fortnite configs ────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/fortnite/
+    # Target:  %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Fortnite configs' -SkipWingetTools -SkipWSL
+      description: "Fortnite configs → %LOCALAPPDATA%\\FortniteGame\\Saved\\Config\\WindowsClient\\"
+    # ── mise config ─────────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/mise/config.toml
+    # Target:  ~/.config/mise/config.toml
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'mise config' -SkipWingetTools -SkipWSL
+      description: "mise config → ~/.config/mise/config.toml"
+    # ── Scoop config ────────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/scoop/config.json
+    # Target:  ~/.config/scoop/config.json
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Scoop config' -SkipWingetTools -SkipWSL
+      description: "Scoop config → ~/.config/scoop/config.json"
+    # ── winget settings ─────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/winget-configs/settings.json
+    # Target:  %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Winget settings' -SkipWingetTools -SkipWSL
+      description: "Winget settings → %LOCALAPPDATA%\\Packages\\Microsoft.DesktopAppInstaller_*\\LocalState\\settings.json"
+    # ── DDU settings ────────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/DDU/Settings/Settings.xml
+    # Target:  %PROGRAMDATA%\DDU\Settings.xml
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'DDU settings' -SkipWingetTools -SkipWSL
+      description: "DDU settings → %PROGRAMDATA%\\DDU\\Settings.xml"
     # ── NVIDIA assets (manual) ──────────────────────────────────────────────
     # Source:  user/.dotfiles/config/nvidia/
     # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
