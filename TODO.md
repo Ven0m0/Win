@@ -2,11 +2,6 @@
 
 ## In Progress
 
-### Script Quality
-- [ ] Verify `Scripts/Network-Tweaker.ps1` for remaining PSScriptAnalyzer issues (4,233 lines — needs full lint run)
-- [ ] Fix `Scripts/enable-timer-res.ps1` hardcoded `C:\SetTimerResolution.exe` path → use `$env:SystemDrive`
-- [x] Fix `Scripts/reg/priority.ps1` line 4 TODO: broken QoS `netsh` commands need replacement
-
 ### Test Coverage (no Pester tests exist)
 - [ ] `tests/New-SteamShortcut.Tests.ps1`
 - [ ] `tests/Optimize-Steam.Tests.ps1`
@@ -23,6 +18,7 @@
 ### Steam VDF Consolidation
 - [ ] Audit `Scripts/steam.ps1` and `Scripts/Steam-Config.ps1` VDF parsing
 - [ ] Remove redundant VDF logic; ensure all callers use `Common.ps1` `ConvertFrom-VDF`/`ConvertTo-VDF`
+  - Note: `Steam-Config.ps1` uses a more capable custom parser (typed round-trip, `ensureblock`); replacement is a behavioral risk — audit carefully
 
 ### Dotfiles Patterns (chawyehsu reference)
 - [ ] Evaluate [chawyehsu/dotfiles](https://github.com/chawyehsu/dotfiles) patterns:
@@ -38,6 +34,10 @@
 
 ## Completed
 
+- [x] Verify `Scripts/Network-Tweaker.ps1` PSScriptAnalyzer — clean (4,233 lines, no warnings)
+- [x] Fix `Scripts/enable-timer-res.ps1` hardcoded `C:\SetTimerResolution.exe` path → `$env:SystemDrive`; use `Get-FileFromWeb` from Common.ps1
+- [x] Clean `Scripts/Steam-Config.ps1` — removed dead `#[console]::Title` comment, trailing blank lines
+- [x] Fix `Scripts/reg/priority.ps1` line 4 TODO: broken QoS `netsh` commands need replacement
 - [x] Fix `Scripts/arc-raiders/SkipVideosMod.ps1` line 29 — truncated `| Select-Object -Ex` → `.SteamPath`
 - [x] Fix `Scripts/shell-setup.ps1` bare `curl` → `curl.exe` (lines 95-96)
 - [x] Add `#Requires -Version 5.1` to `Deploy-Config.ps1`, `Install-Packages.ps1`, `Steam-Config.ps1`, `steam.ps1`, `enable-timer-res.ps1`
