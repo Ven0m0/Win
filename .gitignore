@@ -319,3 +319,9 @@ results.sarif
 
 ‎.agents_tmp/
 .agents_tmp/*
+
+## CodeGraph (local machine index, not tracked)
+.codegraph/
+
+## Tool UI state (machine-specific)
+Scripts/reg/DeviceCleanup.ini

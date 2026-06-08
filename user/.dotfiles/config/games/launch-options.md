@@ -1,11 +1,16 @@
 Steam:
 ```text
-"C:\Program Files (x86)\Steam\Steam.exe" -nofriendsui -nointro -nobigpicture -cef-single-process -cef-disable-breakpad -cef-disable-gpu-compositing -cef-disable-gpu -cef-disable-js-logging -noconsole +open steam://open/minigameslist
+"C:\Program Files (x86)\Steam\Steam.exe" -nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser +open steam://open/minigameslist
 ```
 
 Steam games:
 ```text
--high -novid -nocrashdialog -noforcemaccel -noforcemspd -useforcedmparms -nomousegrab -nod3d9ex -threads 16 -fullscreen -nomansky -NOTEXTURESTREAMING -noipx -nojoy
+-dx12 -high -novid -nocrashdialog -noforcemaccel -noforcemspd -useforcedmparms -nomousegrab -nod3d9ex -threads 16 -fullscreen -nomansky -NOTEXTURESTREAMING -noipx -nojoy
+```
+
+Arc-Raiders:
+```text
+"C:\Program Files (x86)\Steam\steamapps\common\Arc Raiders\PioneerGame\Binaries\Win64\PioneerGame-d.exe" %command% -dx12 -nojoy -high
 ```
 
 Epicgames:

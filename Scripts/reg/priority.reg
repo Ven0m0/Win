@@ -47,6 +47,14 @@ Windows Registry Editor Version 5.00
 "CpuPriorityClass"=dword:00000006
 "IoPriority"=dword:00000003
 
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-d.exe\PerfOptions]
+"CpuPriorityClass"=dword:00000006
+"IoPriority"=dword:00000003
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-e.exe\PerfOptions]
+"CpuPriorityClass"=dword:00000006
+"IoPriority"=dword:00000003
+
 ; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
 "Version"="1.0"
