@@ -5,8 +5,11 @@
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
 
+# Import shared helpers
+. "$PSScriptRoot\Common.ps1"
+
 # Configuration
-$ExePath = "C:\SetTimerResolution.exe"
+$ExePath = "$env:SystemDrive\SetTimerResolution.exe"
 $DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/" + `
   "SetTimerResolution-v1.0.0/SetTimerResolution.exe"
 $TaskName = "SetTimerResolution-AutoStart"
@@ -113,19 +116,15 @@ function Select-OptimalResolution {
 function Get-TimerResolutionExe {
     Write-StatusMessage "Checking for SetTimerResolution.exe at $ExePath..." "Info"
     if (Test-Path $ExePath) {
-        Write-StatusMessage "SetTimerResolution.exe already exists at C:\" "Success"
+        Write-StatusMessage "SetTimerResolution.exe already exists at $ExePath" "Success"
         return $true
     }
-    
+
     Write-StatusMessage "SetTimerResolution.exe not found. Downloading from GitHub..." "Warning"
     try {
-        # Enable TLS 1.2 for secure download
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $webClient = New-Object System.Net.WebClient
-        $webClient.DownloadFile($DownloadUrl, $ExePath)
-        
+        Get-FileFromWeb -URL $DownloadUrl -File $ExePath
         if (Test-Path $ExePath) {
-            Write-StatusMessage "SetTimerResolution.exe downloaded successfully to C:\" "Success"
+            Write-StatusMessage "SetTimerResolution.exe downloaded successfully to $ExePath" "Success"
             return $true
         } else {
             throw "Download completed but file not found"
@@ -294,28 +293,28 @@ try {
     Write-StatusMessage "Failed to configure registry: $($_.Exception.Message)" "Error"
 }
 
-# Step 2: Download/verify executable
+# Step 3: Download/verify executable
 Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 3: Checking/Downloading SetTimerResolution.exe..." "Info"
 if (-not (Get-TimerResolutionExe)) {
     exit 1
 }
 
-# Step 3: Setup scheduled task
+# Step 4: Setup scheduled task
 Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 4: Setting up scheduled task for autostart..." "Info"
 if (-not (Set-TimerResolutionTask -Force)) {
     exit 1
 }
 
-# Step 4: Start timer resolution now
+# Step 5: Start timer resolution now
 Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 5: Starting timer resolution now..." "Info"
 Start-TimerResolutionNow | Out-Null
 
-# Step 5: Check status
+# Step 6: Check status
 Get-TimerResolutionStatus
 
 Write-StatusMessage "" "Info"
 Write-StatusMessage ("Setup complete! Timer resolution ({0}ms / {1} * 100ns) will be applied at every logon." -f ($Resolution / 10000.0), $Resolution) "Success"
-Write-StatusMessage "Executable location: C:\SetTimerResolution.exe" "Info"
+Write-StatusMessage "Executable location: $ExePath" "Info"

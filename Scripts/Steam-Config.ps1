@@ -4,7 +4,6 @@
 
 [CmdletBinding()]
 param([string[]]$paths)
-#[console]::Title = "Noverse Steam Configuration"
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
@@ -204,6 +203,4 @@ foreach ($path in $paths) {
     [System.IO.File]::WriteAllText($tmp, (writevdf $tree), [System.Text.UTF8Encoding]::new($false))
     Move-Item -LiteralPath $tmp -Destination $path -Force
 }
-
-
 
