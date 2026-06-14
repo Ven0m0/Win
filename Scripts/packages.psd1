@@ -15,7 +15,6 @@
     'Git.Git'
     'Microsoft.PowerShell'
     'Microsoft.WindowsTerminal'
-    'Microsoft.VisualStudioCode'
   )
 
   # ---------------------------------------------------------------------------
@@ -28,7 +27,7 @@
     'Microsoft.DotNet.DesktopRuntime.9'
     'Microsoft.DotNet.DesktopRuntime.8'
     'Microsoft.DotNet.DesktopRuntime.7'
-    'Microsoft.DotNet.Runtime.6'
+    'Microsoft.DotNet.DesktopRuntime.6'
     'Microsoft.DotNet.Framework.DeveloperPack_4'
     'Microsoft.DirectX'
     'KhronosGroup.VulkanRT'
@@ -36,7 +35,6 @@
     'Microsoft.XNARedist'
     'Microsoft.EdgeWebView2Runtime'
     'Oracle.JavaRuntimeEnvironment'
-    'EclipseAdoptium.Temurin.21.JRE'
     'EclipseAdoptium.Temurin.25.JRE'
     'OpenAL.OpenAL'
   )
@@ -46,10 +44,9 @@
   # ---------------------------------------------------------------------------
   WingetToolchains = @(
     'MartinStorsjo.LLVM-MinGW.UCRT'
-    'Rustlang.Rust.MSVC'
+    'Rustlang.Rustup'
     'astral-sh.uv'
     'Oven-sh.Bun'
-    'oxc-project.oxlint'
     'BiomeJS.Biome'
     'koalaman.shellcheck'
     'ast-grep.ast-grep'
@@ -61,7 +58,6 @@
   # ---------------------------------------------------------------------------
   WingetDevTools = @(
     'GitHub.cli'
-    'evilmartians.lefthook'
     'Notepad++.Notepad++'
     'VSCodium.VSCodium'
     'CodeSector.TeraCopy'
@@ -80,11 +76,9 @@
   WingetCliTools = @(
     'eza-community.eza'
     'BurntSushi.ripgrep.MSVC'
-    'Genivia.ugrep'
     'sharkdp.fd'
     'sharkdp.bat'
     'dandavison.delta'
-    'Starship.Starship'
     'JanDeDobbeleer.OhMyPosh'
   )
 
@@ -99,27 +93,15 @@
     'Meltytech.Shotcut'
     'KDE.Kdenlive'
     'Audacity.Audacity'
-    'eibol.FFmpegBatchAVConverter'
     'HandBrake.HandBrake'
-    'Avidemux.Avidemux'
-    'aandrew-me.ytDownloader'
     'GiantPinkRobots.Varia'
     'CodecGuide.K-LiteCodecPack.Basic'
     # Image / graphics
     'GIMP.GIMP'
     'tannerhelland.PhotoDemon'
     'Greenshot.Greenshot'
-    'ShareX.ShareX'
-    'XnSoft.XnViewMP'
     'XnSoft.XnConvert'
-    'Kornelski.DSSIM'
     'SaeraSoft.CaesiumImageCompressor'
-    'OptiPNG.OptiPNG'
-    'fhanau.Efficient-Compression-Tool'
-    'xanderfrangos.crushee'
-    'chaiNNer-org.chaiNNer'
-    'Upscayl.Upscayl'
-    'szTheory.exifcleaner'
     # Compression / files
     '7zip.7zip'
     'Meta.Zstandard'
@@ -134,28 +116,17 @@
     # Gaming
     'Valve.Steam'
     'EpicGames.EpicGamesLauncher'
-    'HeroicGamesLauncher.HeroicGamesLauncher'
     'PrismLauncher.PrismLauncher'
-    'Modrinth.ModrinthApp'
-    'Playnite.Playnite'
-    'Libretro.RetroArch'
-    'Cemu.Cemu'
-    'DevelopedMethods.playit'
-    'GorillaDevs.Ferium'
-    'MoonlightGameStreamingProject.Moonlight'
     'smartfrigde.Legcord'
     # Productivity / utilities
     'Microsoft.PowerToys'
     'voidtools.Everything'
     'DevToys-app.DevToys'
-    'Intel.PresentMon.Beta'
     'AutoHotkey.AutoHotkey'
-    'UPX.UPX'
     'TheDocumentFoundation.LibreOffice'
     'Rainmeter.Rainmeter'
     'Microsoft.Sysinternals.Autoruns'
     'Sysinternals.Autologon'
-    'Microsoft.EdgeDriver'
     # Package managers / install helpers
     'MartiCliment.UniGetUI'
     'Chocolatey.Chocolatey'
@@ -200,22 +171,12 @@
     'nirsoft'
   )
 
-  ScoopPackages = @(
-    'pshazz'
-    'cacert'
-    'colortool'
-  )
+  ScoopPackages = @()
 
   # ---------------------------------------------------------------------------
   # Chocolatey
   # ---------------------------------------------------------------------------
-  ChocoPackages = @(
-    'syspin'
-    'sd-card-formatter'
-    'winimage'
-    'winsetupfromusb'
-    'fluidsynth'
-  )
+  ChocoPackages = @()
 
   # ---------------------------------------------------------------------------
   # PowerShell modules

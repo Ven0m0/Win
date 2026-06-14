@@ -8,50 +8,32 @@
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 
-$totalSize  = 0
-$totalCount = 0
+. "$PSScriptRoot\ArcRaidersCommon.ps1"
 
-function Remove-Glob {
-    param([string]$Pattern)
-    $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
-    foreach ($item in $items) {
-        $sz = 0
-        if ($item.PSIsContainer) {
-            try {
-                foreach ($f in $item.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
-                    $sz += $f.Length
-                }
-            } catch {
-                $sz = (Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
-                    Measure-Object Length -Sum).Sum
-            }
-        } else {
-            $sz = $item.Length
-        }
-        $script:totalSize  += [long]$sz
-        $script:totalCount++
-        Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Host "  DEL  $($item.FullName)"
-    }
+$script:totalSize  = 0
+$script:totalCount = 0
+
+function Invoke-GlobClean([string]$Pattern) {
+    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
 }
 
 # ── Arc Raiders ───────────────────────────────────────────────────────────────
 Write-Host "`n[Arc Raiders]"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\*.upipelinecache"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\CollectedShaderCode\*"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes\*"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Logs\*"
-Remove-Glob "$env:LOCALAPPDATA\PioneerGame\Saved\Config\CrashReportClient\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\*.upipelinecache"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\CollectedShaderCode\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Logs\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\PioneerGame\Saved\Config\CrashReportClient\*"
 
 # ── Windows Logs / Temp / Prefetch ────────────────────────────────────────────
 Write-Host "`n[Windows]"
-Remove-Glob "$env:windir\*.log"
-Remove-Glob "$env:windir\*.tmp"
-Remove-Glob "$env:windir\Temp\*"
-Remove-Glob "$env:windir\Logs\*"
-Remove-Glob "$env:windir\Prefetch\*"
-Remove-Glob "$env:TEMP\*"
-Remove-Glob "$env:LOCALAPPDATA\cache\*"
+Invoke-GlobClean "$env:windir\*.log"
+Invoke-GlobClean "$env:windir\*.tmp"
+Invoke-GlobClean "$env:windir\Temp\*"
+Invoke-GlobClean "$env:windir\Logs\*"
+Invoke-GlobClean "$env:windir\Prefetch\*"
+Invoke-GlobClean "$env:TEMP\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\cache\*"
 
 # ── Steam cache ───────────────────────────────────────────────────────────────
 Write-Host "`n[Steam]"
@@ -72,11 +54,11 @@ foreach ($reg in @('HKCU:\Software\Valve\Steam', 'HKLM:\Software\Wow6432Node\Val
 }
 
 if ($steamPath) {
-    Remove-Glob "$steamPath\appcache\httpcache\*"
-    Remove-Glob "$steamPath\appcache\stats\*"
-    Remove-Glob "$steamPath\logs\*"
-    Remove-Glob "$steamPath\steamapps\shadercache\*"
-    Remove-Glob "$env:LOCALAPPDATA\Steam\htmlcache\*"
+    Invoke-GlobClean "$steamPath\appcache\httpcache\*"
+    Invoke-GlobClean "$steamPath\appcache\stats\*"
+    Invoke-GlobClean "$steamPath\logs\*"
+    Invoke-GlobClean "$steamPath\steamapps\shadercache\*"
+    Invoke-GlobClean "$env:LOCALAPPDATA\Steam\htmlcache\*"
     Write-Host "  Steam path: $steamPath"
 } else {
     Write-Host "  Steam path not found — skipped."
@@ -84,19 +66,19 @@ if ($steamPath) {
 
 # ── NVIDIA Shader / Compute Caches ────────────────────────────────────────────
 Write-Host "`n[NVIDIA caches]"
-Remove-Glob "$env:APPDATA\NVIDIA\ComputeCache\*"
-Remove-Glob "$env:LOCALAPPDATA\NVIDIA\DXCache\*"
-Remove-Glob "$env:LOCALAPPDATA\NVIDIA\GLCache\*"
-Remove-Glob "$env:LOCALAPPDATA\D3DSCache\*"
-Remove-Glob "$env:LOCALAPPDATA\NVIDIA Corporation\NV_Cache\*"
+Invoke-GlobClean "$env:APPDATA\NVIDIA\ComputeCache\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\NVIDIA\DXCache\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\NVIDIA\GLCache\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\D3DSCache\*"
+Invoke-GlobClean "$env:LOCALAPPDATA\NVIDIA Corporation\NV_Cache\*"
 
 $nvidiaLocalLow = [System.IO.Path]::Combine(
     [Environment]::GetFolderPath('UserProfile'),
     'AppData', 'LocalLow', 'NVIDIA'
 )
-Remove-Glob "$nvidiaLocalLow\PerDriverVersion\DXCache\*"
-Remove-Glob "$nvidiaLocalLow\PerDriverVersion\VkCache\*"
-Remove-Glob "$nvidiaLocalLow\*"
+Invoke-GlobClean "$nvidiaLocalLow\PerDriverVersion\DXCache\*"
+Invoke-GlobClean "$nvidiaLocalLow\PerDriverVersion\VkCache\*"
+Invoke-GlobClean "$nvidiaLocalLow\*"
 
 # ── DNS ───────────────────────────────────────────────────────────────────────
 Write-Host "`n[DNS] Flushing..."
@@ -122,8 +104,8 @@ foreach ($exe in @(
 
 # ── Second-pass temp (post-DX rebuild) ────────────────────────────────────────
 Write-Host "`n[Temp 2nd pass]"
-Remove-Glob "$env:windir\Temp\*"
-Remove-Glob "$env:TEMP\*"
+Invoke-GlobClean "$env:windir\Temp\*"
+Invoke-GlobClean "$env:TEMP\*"
 
 # ── Memory: trim working sets + standby list ──────────────────────────────────
 Write-Host "`n[Memory] Trimming..."
@@ -204,10 +186,10 @@ public class LsaUtil {
     [StructLayout(LayoutKind.Sequential)] struct LSA_OBJECT_ATTRIBUTES {
         public int Length, pad1; public IntPtr pad2, pad3, pad4, pad5;
     }
-    [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr sys, ref LSA_OBJECT_ATTRIBUTES attr, uint access
-    [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr pol, IntPtr sid, LSA_UNICODE_STRING[] righ
+    [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr sys, ref LSA_OBJECT_ATTRIBUTES attr, uint access, out IntPtr handle);
+    [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr pol, IntPtr sid, LSA_UNICODE_STRING[] rights, int count);
     [DllImport("advapi32.dll")] static extern uint LsaClose(IntPtr h);
-    [DllImport("advapi32.dll")] static extern bool LookupAccountName(string sys, string name, IntPtr sid, ref int sidLen
+    [DllImport("advapi32.dll")] static extern bool LookupAccountName(string sys, string name, IntPtr sid, ref int sidLen, StringBuilder dom, ref int domLen, out int use);
     [DllImport("kernel32.dll")] static extern IntPtr LocalAlloc(uint flags, int size);
 
     public static string Grant(string account) {

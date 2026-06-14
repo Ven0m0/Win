@@ -197,23 +197,33 @@ $CACHE_PATHS = [ordered]@{
 # ─────────────────────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────────────────────
-function Write-Log([string]$msg) {
-    "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')  $msg" |
+function Write-UtilityLog {
+    [CmdletBinding()]
+    param([string]$Message)
+    "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')  $Message" |
         Add-Content -LiteralPath $LOG_FILE -Encoding UTF8
 }
 
 function Test-IsAdmin {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param()
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 function Find-RtxGpu {
+    [CmdletBinding()]
+    [OutputType([object[]])]
+    param()
     $gpu = (Get-CimInstance -ClassName Win32_VideoController | Select-Object -First 1).Name
     $supported = $gpu -match 'RTX|Radeon RX [6-9]\d{3}'
-    return $supported, ($gpu -replace '^\s+|\s+$','')
+    return $supported, ($gpu -replace '^\s+|\s+$', '')
 }
 
-function Write-H([string]$title) {
+function Write-H {
+    [CmdletBinding()]
+    param([string]$Title)
     Clear-Host
     Write-Host ""
     Write-Host "  +===============================================================+" -ForegroundColor DarkCyan
@@ -223,18 +233,43 @@ function Write-H([string]$title) {
     Write-Host "\" -NoNewline -ForegroundColor Yellow
     Write-Host "\" -NoNewline -ForegroundColor Red
     Write-Host "  ARC RAIDERS — PRO Utility  " -NoNewline -ForegroundColor White
-    Write-Host $title.PadRight(10) -NoNewline -ForegroundColor Gray
+    Write-Host $Title.PadRight(10) -NoNewline -ForegroundColor Gray
     Write-Host "  |" -ForegroundColor DarkCyan
     Write-Host "  +===============================================================+" -ForegroundColor DarkCyan
     Write-Host ""
 }
 
-function Write-Ok([string]$msg)   { Write-Host "  [v] $msg" -ForegroundColor Green;  Write-Log "[OK]  $msg" }
-function Write-Warn([string]$msg) { Write-Host "  [!] $msg" -ForegroundColor Yellow; Write-Log "[!!]  $msg" }
-function Write-Err([string]$msg)  { Write-Host "  [X] $msg" -ForegroundColor Red;    Write-Log "[ERR] $msg" }
-function Write-Info([string]$msg) { Write-Host "  $msg"     -ForegroundColor Gray;   Write-Log "      $msg" }
+function Write-Ok {
+    [CmdletBinding()]
+    param([string]$Message)
+    Write-Host "  [v] $Message" -ForegroundColor Green
+    Write-UtilityLog -Message "[OK]  $Message"
+}
+
+function Write-Warn {
+    [CmdletBinding()]
+    param([string]$Message)
+    Write-Host "  [!] $Message" -ForegroundColor Yellow
+    Write-UtilityLog -Message "[!!]  $Message"
+}
+
+function Write-Err {
+    [CmdletBinding()]
+    param([string]$Message)
+    Write-Host "  [X] $Message" -ForegroundColor Red
+    Write-UtilityLog -Message "[ERR] $Message"
+}
+
+function Write-Info {
+    [CmdletBinding()]
+    param([string]$Message)
+    Write-Host "  $Message" -ForegroundColor Gray
+    Write-UtilityLog -Message "      $Message"
+}
 
 function Invoke-PauseBack {
+    [CmdletBinding()]
+    param()
     Write-Host ""
     Write-Host "  Press any key to return..." -ForegroundColor DarkGray
     $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
@@ -243,152 +278,206 @@ function Invoke-PauseBack {
 # ─────────────────────────────────────────────────────────────────────────────
 #  INI helpers
 # ─────────────────────────────────────────────────────────────────────────────
-function Set-IniValue([ref]$text, [string]$key, [string]$value) {
-    $escaped = [regex]::Escape($key)
-    if ($text.Value -match "(?m)^$escaped=") {
-        $text.Value = $text.Value -replace "(?m)^$escaped=.*", "$key=$value"
+function Set-IniValue {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [ref]$Text,
+        [Parameter(Mandatory)]
+        [string]$Key,
+        [Parameter(Mandatory)]
+        [string]$Value
+    )
+    $escaped = [regex]::Escape($Key)
+    if ($Text.Value -match "(?m)^$escaped=") {
+        $Text.Value = $Text.Value -replace "(?m)^$escaped=.*", "$Key=$Value"
     } else {
-        $text.Value = $text.Value.TrimEnd() + "`r`n$key=$value`r`n"
+        $Text.Value = $Text.Value.TrimEnd() + "`r`n$Key=$Value`r`n"
     }
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Core actions
 # ─────────────────────────────────────────────────────────────────────────────
-function Invoke-RtxDetect([ref]$iniPath) {
-    Write-Info "Detecting DXR / RTX support..."
+function Invoke-RtxDetect {
+    [CmdletBinding()]
+    param([ref]$IniPath)
+    Write-Info -Message "Detecting DXR / RTX support..."
     $rtx, $gpu = Find-RtxGpu
-    Write-Info "Adapter found: $gpu"
-    if ($rtx) { Write-Ok "RTX GPU detected — RTX preset options enabled" }
-    else       { Write-Warn "No RTX GPU detected — Cinematic RTX ON may not perform well" }
+    Write-Info -Message "Adapter found: $gpu"
+    if ($rtx) { Write-Ok -Message "RTX GPU detected — RTX preset options enabled" }
+    else       { Write-Warn -Message "No RTX GPU detected — Cinematic RTX ON may not perform well" }
     return $rtx
 }
 
-function Invoke-ApplyPreset([string]$iniPath, [string]$presetName) {
-    Write-Info "Applying graphics preset: $presetName"
-    if (-not (Test-Path $iniPath)) {
-        Write-Err "Config file missing: $iniPath"; return $false
+function Invoke-ApplyPreset {
+    [CmdletBinding()]
+    param(
+        [string]$IniPath,
+        [string]$PresetName
+    )
+    Write-Info -Message "Applying graphics preset: $PresetName"
+    if (-not (Test-Path -LiteralPath $IniPath)) {
+        Write-Err -Message "Config file missing: $IniPath"
+        return $false
     }
-    $p = $PRESETS[$presetName]
-    if (-not $p) { Write-Err "Unknown preset: $presetName"; return $false }
+    $p = $PRESETS[$PresetName]
+    if (-not $p) { Write-Err -Message "Unknown preset: $PresetName"; return $false }
 
-    $ini = Get-Content $iniPath -Raw
+    $ini = Get-Content -LiteralPath $IniPath -Raw
     foreach ($kv in $p.GetEnumerator()) {
-        Set-IniValue ([ref]$ini) $kv.Key $kv.Value
+        Set-IniValue -Text ([ref]$ini) -Key $kv.Key -Value $kv.Value
     }
-    Set-Content -LiteralPath $iniPath -Value $ini -Encoding UTF8 -NoNewline
-    Write-Ok "Preset '$presetName' applied to config"
-    Write-Info "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMode']) RTX=$($p['RTXGIQuality'])"
+    Set-Content -LiteralPath $IniPath -Value $ini -Encoding UTF8 -NoNewline
+    Write-Ok -Message "Preset '$PresetName' applied to config"
+    Write-Info -Message "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMode']) RTX=$($p['RTXGIQuality'])"
     return $true
 }
 
-function Invoke-Backup([string]$iniPath) {
-    $dir     = Split-Path $iniPath
-    $backDir = Join-Path $dir 'Backups'
+function Invoke-Backup {
+    [CmdletBinding()]
+    param([string]$IniPath)
+    $dir     = Split-Path -Path $IniPath
+    $backDir = Join-Path -Path $dir -ChildPath 'Backups'
     $null    = New-Item -ItemType Directory -Path $backDir -Force
-    $dest    = Join-Path $backDir "GameUserSettings_$(Get-Date -Format 'yyyyMMdd_HHmmss').ini"
-    Copy-Item -LiteralPath $iniPath -Destination $dest -Force
-    Write-Ok "Backup created: $dest"
+    $dest    = Join-Path -Path $backDir -ChildPath "GameUserSettings_$(Get-Date -Format 'yyyyMMdd_HHmmss').ini"
+    Copy-Item -LiteralPath $IniPath -Destination $dest -Force
+    Write-Ok -Message "Backup created: $dest"
     return $dest
 }
 
 function Invoke-NetFix {
-    Write-Info "Flushing DNS and resetting Winsock..."
+    [CmdletBinding()]
+    param()
+    Write-Info -Message "Flushing DNS and resetting Winsock..."
     if (-not (Test-IsAdmin)) {
-        Write-Err "Administrator required — right-click and Run as Administrator"
+        Write-Err -Message "Administrator required — right-click and Run as Administrator"
         return $false
     }
-    cmd.exe /c 'ipconfig /flushdns'    | Out-Null
-    cmd.exe /c 'netsh winsock reset'   | Out-Null
-    Write-Ok "DNS flushed + Winsock reset (restart required)"
+    $null = cmd.exe /c 'ipconfig /flushdns'
+    $null = cmd.exe /c 'netsh winsock reset'
+    Write-Ok -Message "DNS flushed + Winsock reset (restart required)"
     return $true
 }
 
-function Invoke-Optimize([string]$iniPath) {
-    Write-Info "Applying full game optimizations..."
+function Invoke-Optimize {
+    [CmdletBinding()]
+    param([string]$IniPath)
+    Write-Info -Message "Applying full game optimizations..."
     # Set ARC.exe + pioneergame.exe to High priority (live processes)
-    foreach ($name in @('ARC','pioneergame')) {
-        $procs = Get-Process -Name $name -ErrorAction SilentlyContinue
+    foreach ($procName in @('ARC', 'pioneergame')) {
+        $procs = Get-Process -Name $procName -ErrorAction SilentlyContinue
         foreach ($pr in $procs) {
-            try { $pr.PriorityClass = 'High'; Write-Ok "$name.exe priority → High" }
-            catch { Write-Warn "Could not set $name.exe priority" }
+            try {
+                $pr.PriorityClass = 'High'
+                Write-Ok -Message "$procName.exe priority -> High"
+            } catch {
+                Write-Warn -Message "Could not set $procName.exe priority"
+            }
         }
     }
-    # wmic fallback
-    cmd.exe /c 'wmic process where name="ARC.exe" CALL setpriority 128'         | Out-Null
-    cmd.exe /c 'wmic process where name="pioneergame.exe" CALL setpriority 128' | Out-Null
-    Write-Ok "Game priority optimization completed"
+    # wmic fallback for processes not yet running
+    $null = cmd.exe /c 'wmic process where name="ARC.exe" CALL setpriority 128'
+    $null = cmd.exe /c 'wmic process where name="pioneergame.exe" CALL setpriority 128'
+    Write-Ok -Message "Game priority optimization completed"
     return $true
 }
 
 function Invoke-CpuBoost {
-    Write-Info "Applying CPU Boost (High Performance power state)..."
-    if (-not (Test-IsAdmin)) { Write-Err "Administrator required"; return $false }
+    [CmdletBinding()]
+    param()
+    Write-Info -Message "Applying CPU Boost (High Performance power state)..."
+    if (-not (Test-IsAdmin)) { Write-Err -Message "Administrator required"; return $false }
 
     # Ultimate Performance (GUID e9a42b02-d5df-448d-aa00-03f14749eb61) or High Performance
     $list = powercfg /list 2>&1
-    $ultimate = $list | Select-String 'e9a42b02-d5df-448d-aa00-03f14749eb61'
+    $ultimate = $list | Select-String -Pattern 'e9a42b02-d5df-448d-aa00-03f14749eb61'
     if ($ultimate) {
-        cmd.exe /c 'powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61' | Out-Null
-        Write-Ok "Ultimate performance power plan activated"
+        $null = cmd.exe /c 'powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61'
+        Write-Ok -Message "Ultimate performance power plan activated"
     } else {
-        cmd.exe /c 'powercfg /setactive scheme_min' | Out-Null
-        Write-Ok "High performance power plan activated"
+        $null = cmd.exe /c 'powercfg /setactive scheme_min'
+        Write-Ok -Message "High performance power plan activated"
     }
-    cmd.exe /c 'powercfg /hibernate off' | Out-Null
-    Write-Ok "High precision timer / hibernate disabled"
+    $null = cmd.exe /c 'powercfg /hibernate off'
+    Write-Ok -Message "Hibernate disabled"
     return $true
 }
 
-function Invoke-ClearCache([string[]]$keys) {
-    Write-Info "Clearing selected caches..."
-    foreach ($key in $keys) {
+function Invoke-ClearCache {
+    [CmdletBinding()]
+    param([string[]]$Keys)
+    Write-Info -Message "Clearing selected caches..."
+    foreach ($key in $Keys) {
         [array]$paths = $CACHE_PATHS[$key]
         $anyFound = $false
         if ($paths.Count -gt 0) {
             [array]$pathResults = Test-Path -LiteralPath $paths
             for ($i = 0; $i -lt $paths.Count; $i++) {
                 if ($pathResults[$i]) {
-                    $path = $paths[$i]
+                    $cachePath = $paths[$i]
                     $anyFound = $true
                     try {
-                        Remove-Item -LiteralPath $path -Recurse -Force
-                        Write-Ok "$key — deleted: $(Split-Path $path -Leaf)"
+                        Remove-Item -LiteralPath $cachePath -Recurse -Force
+                        Write-Ok -Message "$key -- deleted: $(Split-Path -Path $cachePath -Leaf)"
                     } catch {
-                        Write-Err "$key — deletion failed: $_"
+                        $err = $_
+                        Write-Err -Message "$key -- deletion failed: $($err.Exception.Message)"
                     }
                 }
             }
         }
-        if (-not $anyFound) { Write-Warn "$key — not found on this system" }
+        if (-not $anyFound) { Write-Warn -Message "$key -- not found on this system" }
     }
 }
 
-function Invoke-Rollback([string]$iniPath, [string]$backupPath) {
-    if (-not (Test-Path $backupPath)) { Write-Err "Backup not found: $backupPath"; return $false }
-    if (-not (Test-Path $iniPath))    { Write-Err "Config not found: $iniPath";    return $false }
-    Copy-Item -LiteralPath $backupPath -Destination $iniPath -Force
-    Write-Ok "Backup restored successfully"
-    Write-Info "Restored: $backupPath"
+function Invoke-Rollback {
+    [CmdletBinding()]
+    param(
+        [string]$IniPath,
+        [string]$BackupPath
+    )
+    if (-not (Test-Path -LiteralPath $BackupPath)) {
+        Write-Err -Message "Backup not found: $BackupPath"
+        return $false
+    }
+    if (-not (Test-Path -LiteralPath $IniPath)) {
+        Write-Err -Message "Config not found: $IniPath"
+        return $false
+    }
+    Copy-Item -LiteralPath $BackupPath -Destination $IniPath -Force
+    Write-Ok -Message "Backup restored successfully"
+    Write-Info -Message "Restored: $BackupPath"
     return $true
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  UI — file picker (no WPF, use shell COM)
 # ─────────────────────────────────────────────────────────────────────────────
-function Select-IniFile([string]$title, [string]$filter = 'INI files (*.ini)|*.ini', [string]$initial = '') {
+function Select-IniFile {
+    [CmdletBinding()]
+    param(
+        [string]$Title,
+        [string]$Filter = 'INI files (*.ini)|*.ini',
+        [string]$Initial = ''
+    )
     Add-Type -AssemblyName System.Windows.Forms
-    $dlg = New-Object System.Windows.Forms.OpenFileDialog
-    $dlg.Title  = $title
-    $dlg.Filter = $filter
-    if ($initial -and (Test-Path $initial)) { $dlg.InitialDirectory = Split-Path $initial }
+    $dlg = New-Object -TypeName System.Windows.Forms.OpenFileDialog
+    $dlg.Title  = $Title
+    $dlg.Filter = $Filter
+    if ($Initial -and (Test-Path -LiteralPath $Initial)) {
+        $dlg.InitialDirectory = Split-Path -Path $Initial
+    }
     if ($dlg.ShowDialog() -eq 'OK') { return $dlg.FileName }
     return $null
 }
 
-function Select-BackupFile([string]$backupDir) {
-    if (-not (Test-Path $backupDir)) { return $null }
-    $files = Get-ChildItem $backupDir -Filter '*.ini' | Sort-Object LastWriteTime -Descending
+function Select-BackupFile {
+    [CmdletBinding()]
+    param([string]$BackupDir)
+    if (-not (Test-Path -LiteralPath $BackupDir)) { return $null }
+    $files = Get-ChildItem -LiteralPath $BackupDir -Filter '*.ini' |
+        Sort-Object -Property LastWriteTime -Descending
     if ($files.Count -eq 0) { return $null }
     Write-Host ""
     Write-Host "  Available backups:" -ForegroundColor White

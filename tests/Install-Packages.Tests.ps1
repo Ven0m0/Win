@@ -34,6 +34,10 @@ Describe "Install-Packages" {
             Mock Test-Path { return $true }
 
             Mock winget {}
+            # Wait-ForWinget returns the real exe path; '& $winget' would bypass the
+            # winget mock entirely and run real installs. Return the bare name so
+            # invocation resolves to the mocked function instead.
+            Mock Wait-ForWinget { 'winget' }
             Mock scoop {}
             Mock choco {}
             Mock DISM {}

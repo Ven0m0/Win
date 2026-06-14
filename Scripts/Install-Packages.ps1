@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Installs all required packages and tools for the Windows development environment.
@@ -14,10 +14,12 @@
     Skip Chocolatey package installations.
 .PARAMETER SkipSystemFeatures
     Skip Windows optional features.
+.PARAMETER SkipPowerShellModules
+    Skip PowerShell module installations.
+.PARAMETER SkipNotepadReplacer
+    Skip Notepad Replacer setup.
 .PARAMETER ApplyPostInstall
     Apply post-install Windows configuration (from autounattend.xml).
-.PARAMETER PostInstallComputerName
-    Computer name for post-install setup (default: PC).
 .PARAMETER PostInstallTimeZone
     Timezone for post-install setup (default: W. Europe Standard Time).
 .PARAMETER PostInstallInputLocale
@@ -40,7 +42,6 @@ param(
     [switch]$SkipPowerShellModules,
     [switch]$SkipNotepadReplacer,
     [switch]$ApplyPostInstall,
-    [string]$PostInstallComputerName = 'PC',
     [string]$PostInstallTimeZone = 'W. Europe Standard Time',
     [string]$PostInstallInputLocale = 'en-US',
     [int]$PostInstallGeoId = 94
@@ -62,15 +63,10 @@ function Start-InstallPackage {
         [switch]$SkipPowerShellModules,
         [switch]$SkipNotepadReplacer,
         [switch]$ApplyPostInstall,
-        [string]$PostInstallComputerName = 'PC',
         [string]$PostInstallTimeZone = 'W. Europe Standard Time',
         [string]$PostInstallInputLocale = 'en-US',
         [int]$PostInstallGeoId = 94
     )
-
-    Set-StrictMode -Version Latest
-    $ErrorActionPreference = 'Stop'
-    $ProgressPreference = 'SilentlyContinue'
 
     # Load canonical package catalog
     $catalog = Import-PowerShellDataFile "$PSScriptRoot\packages.psd1"
@@ -81,21 +77,14 @@ function Start-InstallPackage {
     function Write-Status {
         param([string]$Message, [string]$Status = 'INFO')
         $color = switch ($Status) {
-            'OK' { 'Green' }
-            'FAIL' { 'Red' }
-            'SKIP' { 'Yellow' }
+            'OK'      { 'Green' }
+            'FAIL'    { 'Red' }
+            'SKIP'    { 'Yellow' }
             'RUNNING' { 'Cyan' }
-            default { 'White' }
+            default   { 'White' }
         }
         Write-Host "  [$Status] $Message" -ForegroundColor $color
         $script:Results[$Message] = $Status
-    }
-
-    function Invoke-Operation {
-        param([string]$Name, [scriptblock]$Action, [string]$SuccessStatus = 'OK')
-        Write-Status "$Name" -Status 'RUNNING'
-        try { & $Action; Write-Status "$Name" -Status $SuccessStatus; return $true }
-        catch { Write-Status "$Name - $($_.Exception.Message)" -Status 'FAIL'; return $false }
     }
 
     function Install-WingetTool {
@@ -113,13 +102,13 @@ function Start-InstallPackage {
                 $ec = $LASTEXITCODE
                 # 0 = success; -1978335189 = already installed; -1978335230 = no applicable installer for scope
                 if ($ec -eq 0 -or $ec -eq -1978335189 -or $ec -eq -1978335230) {
-                    Write-Host " [OK]" -ForegroundColor Green
+                    Write-Host ' [OK]' -ForegroundColor Green
                 } else {
-                    Write-Host ""
+                    Write-Host ''
                     Write-Warning "  [WARN] $Name - winget exit code: $ec"
                 }
             } catch {
-                Write-Host ""
+                Write-Host ''
                 Write-Warning "  [WARN] $Name - $_"
                 Write-Verbose "winget install failed for $Id : $_"
             }
@@ -129,7 +118,7 @@ function Start-InstallPackage {
     # ============================================================================
     # Phase 1: Prerequisites check and installation
     # ============================================================================
-    Write-Host '[1/7] Checking prerequisites...' -ForegroundColor Cyan
+    Write-Host '[1/11] Checking prerequisites...' -ForegroundColor Cyan
 
     # Check if running as admin for system-level operations
     $adminOverride = Get-Variable -Name 'isAdminOverride' -Scope script -ErrorAction SilentlyContinue
@@ -153,18 +142,17 @@ function Start-InstallPackage {
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
           'SkipPowerShellModules', 'SkipNotepadReplacer', 'ApplyPostInstall') {
-            if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
+            if ((Get-Variable -Name $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
-        try { Start-Process $shell `
-    -ArgumentList $argList -Verb RunAs } catch { Write-Verbose "Elevation relaunch failed: $_" }
+        try { Start-Process -FilePath $shell -ArgumentList $argList -Verb RunAs } catch { Write-Verbose "Elevation relaunch failed: $_" }
         return
     }
 
     # Set execution policy
     try {
         if ($PSCmdlet.ShouldProcess('CurrentUser execution policy', 'Set to RemoteSigned')) {
-            Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+            Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
             Write-Status 'Execution policy set to RemoteSigned' -Status 'OK'
         }
     } catch {
@@ -245,14 +233,9 @@ function Start-InstallPackage {
             Install-WingetTool -Id $id -Name $id
         }
         # Name-based installs (no stable ID)
-        if ($PSCmdlet.ShouldProcess('FFmpeg (Essentials Build)', 'Install via winget')) {
-            $null = Wait-ForWinget
-            winget install 'FFmpeg (Essentials Build)' --silent --accept-source-agreements `
-                --accept-package-agreements *>$null
-        }
-        if ($PSCmdlet.ShouldProcess('ShutterEncoder', 'Install via winget')) {
-            $null = Wait-ForWinget
-            winget install 'PaulPacifico.ShutterEncoder' --silent --accept-source-agreements `
+        if ($PSCmdlet.ShouldProcess('FFmpeg (Shared Build)', 'Install via winget')) {
+            $winget = Wait-ForWinget
+            & $winget install 'FFmpeg (Shared Build)' --silent --accept-source-agreements `
                 --accept-package-agreements *>$null
         }
     }
@@ -264,12 +247,11 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[7.5/11] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
-        # Check if Notepad++ is installed
         $notepadPlusPlus = @(
-          Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
-            -ErrorAction SilentlyContinue
-          Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
-            -ErrorAction SilentlyContinue
+            Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+                -ErrorAction SilentlyContinue
+            Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+                -ErrorAction SilentlyContinue
         ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -eq 'Notepad++' }
 
         if (-not $notepadPlusPlus) {
@@ -277,12 +259,12 @@ function Start-InstallPackage {
         } else {
             try {
                 $url = 'https://www.binaryfortress.com/Data/Download/?Package=notepadreplacer&Log=100'
-                $tempInstaller = Join-Path $env:TEMP 'NotepadReplacer-Setup.exe'
+                $tempInstaller = Join-Path -Path $env:TEMP -ChildPath 'NotepadReplacer-Setup.exe'
 
                 if ($PSCmdlet.ShouldProcess('Notepad Replacer', 'Download and install')) {
-                    Invoke-WebRequest -Uri $url -OutFile $tempInstaller -UseBasicParsing -ErrorAction Stop
+                    Get-FileFromWeb -URL $url -File $tempInstaller
                     Start-Process -FilePath $tempInstaller -ArgumentList '/S' -Wait -NoNewWindow
-                    Remove-Item $tempInstaller -Force -ErrorAction SilentlyContinue
+                    Remove-Item -Path $tempInstaller -Force -ErrorAction SilentlyContinue
                     Write-Status 'Notepad Replacer installed' -Status 'OK'
                 }
             } catch {
@@ -298,16 +280,14 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[8/11] Setting up Scoop...' -ForegroundColor Cyan
 
-        # Install Scoop if not present
         if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Scoop...' -Status 'RUNNING'
             try {
                 $guid = [System.Guid]::NewGuid().ToString('N')
-                $scoopInstaller = Join-Path $env:TEMP "install-scoop-$guid.ps1"
-                Invoke-RestMethod -Uri 'https://get.scoop.sh' `
-                    -OutFile $scoopInstaller
+                $scoopInstaller = Join-Path -Path $env:TEMP -ChildPath "install-scoop-$guid.ps1"
+                Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
                 & $scoopInstaller
-                Remove-Item $scoopInstaller -Force -ErrorAction SilentlyContinue
+                Remove-Item -Path $scoopInstaller -Force -ErrorAction SilentlyContinue
                 Write-Status 'Scoop installed' -Status 'OK'
             } catch {
                 Write-Status "Scoop installation failed: $_" -Status 'FAIL'
@@ -317,7 +297,6 @@ function Start-InstallPackage {
         }
 
         if (Get-Command scoop -ErrorAction SilentlyContinue) {
-            # Add Scoop buckets
             foreach ($bucket in $catalog.ScoopBuckets) {
                 try {
                     scoop bucket add $bucket 2>$null
@@ -327,11 +306,9 @@ function Start-InstallPackage {
                 }
             }
 
-            # Configure aria2 for Scoop
             scoop config aria2-enabled true 2>$null
             scoop config aria2-warning-enabled false 2>$null
 
-            # Install Scoop packages
             foreach ($pkg in $catalog.ScoopPackages) {
                 try {
                     scoop install $pkg 2>$null
@@ -350,15 +327,19 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[9/11] Setting up Chocolatey...' -ForegroundColor Cyan
 
-        # Install Chocolatey if not present
         if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
             Write-Status 'Installing Chocolatey...' -Status 'RUNNING'
             try {
-                try { Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue } catch { Write-Verbose "ExecutionPolicy: $_" }
+                try {
+                    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue
+                } catch {
+                    Write-Verbose "ExecutionPolicy: $_"
+                }
+                $chocoInstaller = Join-Path -Path $env:TEMP -ChildPath 'choco-install.ps1'
                 Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
-                    -OutFile "$env:TEMP\choco-install.ps1" -ErrorAction Stop
-                & "$env:TEMP\choco-install.ps1"
-                Remove-Item "$env:TEMP\choco-install.ps1" -Force -ErrorAction SilentlyContinue
+                    -OutFile $chocoInstaller -ErrorAction Stop
+                & $chocoInstaller
+                Remove-Item -Path $chocoInstaller -Force -ErrorAction SilentlyContinue
                 Write-Status 'Chocolatey installed' -Status 'OK'
             } catch {
                 Write-Status "Chocolatey installation failed: $_" -Status 'FAIL'
@@ -367,7 +348,6 @@ function Start-InstallPackage {
             Write-Status 'Chocolatey already installed' -Status 'OK'
         }
 
-        # Install Chocolatey packages
         if (Get-Command choco -ErrorAction SilentlyContinue) {
             foreach ($pkg in $catalog.ChocoPackages) {
                 try {
@@ -421,11 +401,11 @@ function Start-InstallPackage {
     }
 
     # ============================================================================
-    # Phase 8: Post-Install Windows Setup (from autounattend.xml)
+    # Phase 12: Post-Install Windows Setup (from autounattend.xml)
     # ============================================================================
     if ($ApplyPostInstall -and $isAdmin) {
         Write-Host ''
-        Write-Host '[8/8] Applying post-install Windows configuration...' -ForegroundColor Cyan
+        Write-Host '[12/12] Applying post-install Windows configuration...' -ForegroundColor Cyan
 
         # Set timezone
         try {
@@ -442,11 +422,11 @@ function Start-InstallPackage {
 
         # Disable WPBT (Windows Platform Binary Table) - prevents malicious firmware attacks
         try {
-            $sysHive = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager"
-            if (-not (Test-Path $sysHive)) {
-                New-Item -Path $sysHive -Force | Out-Null
+            $sysHive = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager'
+            if (-not (Test-Path -Path $sysHive)) {
+                $null = New-Item -Path $sysHive -Force
             }
-            Set-ItemProperty -Path $sysHive -Name 'DisableWpbtExecution' -Value 1 -Type DWord -Force
+            Set-RegistryValue -Path $sysHive -Name 'DisableWpbtExecution' -Value 1
             Write-Status 'WPBT execution disabled' -Status 'OK'
         } catch {
             Write-Status "WPBT disable failed: $($_.Exception.Message)" -Status 'SKIP'
@@ -454,26 +434,25 @@ function Start-InstallPackage {
 
         # Set geographic region (GeoId)
         try {
-            $regionKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion"
-            if (-not (Test-Path $regionKey)) {
-                New-Item -Path $regionKey -Force | Out-Null
+            $regionKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion'
+            if (-not (Test-Path -Path $regionKey)) {
+                $null = New-Item -Path $regionKey -Force
             }
-            Set-ItemProperty -Path $regionKey -Name 'DeviceRegion' -Value $PostInstallGeoId -Type DWord -Force
+            Set-RegistryValue -Path $regionKey -Name 'DeviceRegion' -Value $PostInstallGeoId
             Write-Status "Geographic region set to GeoId $PostInstallGeoId" -Status 'OK'
         } catch {
             Write-Status "GeoId set failed: $($_.Exception.Message)" -Status 'SKIP'
         }
 
         # BypassSetup LabConfig (for future reinstallation/repair)
-        $labConfig = "HKLM:\SYSTEM\Setup\LabConfig"
+        $labConfig = 'HKLM:\SYSTEM\Setup\LabConfig'
         try {
-            if (-not (Test-Path $labConfig)) {
-                New-Item -Path $labConfig -Force | Out-Null
+            if (-not (Test-Path -Path $labConfig)) {
+                $null = New-Item -Path $labConfig -Force
             }
-            Set-ItemProperty -Path $labConfig -Name 'BypassTPMCheck' -Value 1 -Type DWord -Force
-            Set-ItemProperty -Path $labConfig -Name 'BypassSecureBootCheck' `
-                -Value 1 -Type DWord -Force
-            Set-ItemProperty -Path $labConfig -Name 'BypassRAMCheck' -Value 1 -Type DWord -Force
+            Set-RegistryValue -Path $labConfig -Name 'BypassTPMCheck' -Value 1
+            Set-RegistryValue -Path $labConfig -Name 'BypassSecureBootCheck' -Value 1
+            Set-RegistryValue -Path $labConfig -Name 'BypassRAMCheck' -Value 1
             Write-Status 'Setup bypass flags configured' -Status 'OK'
         } catch {
             Write-Status "LabConfig setup failed: $($_.Exception.Message)" -Status 'SKIP'
@@ -508,24 +487,25 @@ function Start-InstallPackage {
     Write-Host 'Package Installation Summary' -ForegroundColor Cyan
     Write-Host ''
 
-    foreach ($key in $script:Results.Keys | Sort-Object) {
+    foreach ($key in ($script:Results.Keys | Sort-Object)) {
         $status = $script:Results[$key]
         $color = switch ($status) {
-            'OK' { 'Green' }
-            'FAIL' { 'Red' }
-            'SKIP' { 'Yellow' }
+            'OK'      { 'Green' }
+            'FAIL'    { 'Red' }
+            'SKIP'    { 'Yellow' }
             'RUNNING' { 'Cyan' }
-            default { 'White' }
+            default   { 'White' }
         }
-        Write-Host "  $($key.PadRight(50)) : " -NoNewline; Write-Host "$status" -ForegroundColor $color
+        Write-Host "  $($key.PadRight(50)) : " -NoNewline
+        Write-Host "$status" -ForegroundColor $color
     }
 
     $duration = (Get-Date) - $script:StartTime
-    Write-Host ""
+    Write-Host ''
     Write-Host "  Total time: $($duration.ToString('hh\:mm\:ss'))" -ForegroundColor Cyan
-    Write-Host ""
-    Write-Host "  Next: Run Setup-Win11.ps1 (or dotbot -c install.conf.yaml) to deploy config files." -ForegroundColor Yellow
-    Write-Host ""
+    Write-Host ''
+    Write-Host '  Next: Run Setup-Win11.ps1 (or dotbot -c install.conf.yaml) to deploy config files.' -ForegroundColor Yellow
+    Write-Host ''
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
@@ -533,4 +513,3 @@ if ($MyInvocation.InvocationName -ne '.') {
     $exitCode = $LASTEXITCODE
     if ($null -ne $exitCode) { exit $exitCode }
 }
-

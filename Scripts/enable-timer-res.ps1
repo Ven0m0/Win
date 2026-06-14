@@ -15,7 +15,8 @@ $DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/downloa
 $TaskName = "SetTimerResolution-AutoStart"
 $Resolution = 5040  # fallback default (0.504ms); overridden by Select-OptimalResolution at runtime
 $ResolutionMinHns = 5000  # 0.5ms in 100ns units
-$ResolutionMaxHns = 6000  # 0.6ms in 100ns units
+$ResolutionMaxHns = 5980  # 0.598ms cap — strictly under 0.6ms
+$BenchmarkSamples = 20    # samples per resolution value
 
 # P/Invoke bindings for NtDll timer resolution API
 Add-Type -TypeDefinition @'
@@ -29,17 +30,17 @@ public class NtTimer {
 }
 '@
 
-# Function to write colored messages
 function Write-StatusMessage {
+    [CmdletBinding()]
     param(
         [string]$Message,
         [string]$Status = "Info"  # Info, Success, Warning, Error
     )
     $colors = @{
-        "Info"    = 'White'
-        "Success" = 'Green'
-        "Warning" = 'Yellow'
-        "Error"   = 'Red'
+        "Info"    = [System.ConsoleColor]'White'
+        "Success" = [System.ConsoleColor]'Green'
+        "Warning" = [System.ConsoleColor]'Yellow'
+        "Error"   = [System.ConsoleColor]'Red'
     }
     $prefix = @{
         "Info"    = "[INFO]"
@@ -47,16 +48,17 @@ function Write-StatusMessage {
         "Warning" = "[WARN]"
         "Error"   = "[ERROR]"
     }
-    Write-Host "$($prefix[$Status]) $Message" -ForegroundColor $colors[$Status]
+    Write-ColorOutput "$($prefix[$Status]) $Message" -ForegroundColor $colors[$Status]
 }
 
-# Measures sleep accuracy for a given timer resolution (in 100ns units).
+# Measures sleep accuracy for a given timer resolution (in 100ns units) using P/Invoke + stopwatch.
 # Returns a PSCustomObject with Resolution, MeanMs, StdDevMs, and Score (lower = better).
 function Measure-TimerResolutionAccuracy {
     param(
         [uint32]$Resolution,
-        [int]$Samples = 50
+        [int]$Samples = $BenchmarkSamples
     )
+
     $current = [uint32]0
     $null = [NtTimer]::NtSetTimerResolution($Resolution, $true, [ref]$current)
     Start-Sleep -Milliseconds 15  # allow resolution to stabilize
@@ -90,11 +92,12 @@ function Measure-TimerResolutionAccuracy {
 # the uint32 value with the lowest sleep-accuracy score.
 function Select-OptimalResolution {
     param(
-        [uint32]$MinHns  = $ResolutionMinHns,
-        [uint32]$MaxHns  = $ResolutionMaxHns,
-        [uint32]$Step    = 100
+        [uint32]$MinHns = $ResolutionMinHns,
+        [uint32]$MaxHns = $ResolutionMaxHns,
+        [uint32]$Step   = 20  # 0.002ms granularity
     )
-    Write-StatusMessage "Measuring sleep accuracy across $(($MaxHns - $MinHns) / $Step + 1) resolution values ($($MinHns/10000.0)ms - $($MaxHns/10000.0)ms)..." "Info"
+    $count = [Math]::Floor(($MaxHns - $MinHns) / $Step) + 1
+    Write-StatusMessage "Measuring $count resolution values ($($MinHns/10000.0)ms - $($MaxHns/10000.0)ms, step 0.002ms)..." "Info"
 
     $results = [System.Collections.Generic.List[object]]::new()
     $value = $MinHns
@@ -112,7 +115,7 @@ function Select-OptimalResolution {
     return [uint32]$best.Resolution
 }
 
-# Function to download SetTimerResolution.exe
+# Downloads SetTimerResolution.exe if not already present.
 function Get-TimerResolutionExe {
     Write-StatusMessage "Checking for SetTimerResolution.exe at $ExePath..." "Info"
     if (Test-Path $ExePath) {
@@ -135,47 +138,39 @@ function Get-TimerResolutionExe {
     }
 }
 
-# Function to setup scheduled task
 function Set-TimerResolutionTask {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
     param([switch]$Force = $false)
-    
+
     Write-StatusMessage "Checking for scheduled task '$TaskName'..." "Info"
     $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    
+
     if ($existingTask -and -not $Force) {
         Write-StatusMessage "Scheduled task '$TaskName' already exists, skipping creation" "Success"
         return $true
     }
-    
+
     if ($existingTask -and $Force) {
         Write-StatusMessage "Removing existing task for reconfiguration..." "Info"
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
     }
-    
+
     Write-StatusMessage "Creating scheduled task '$TaskName'..." "Info"
-    
+
     try {
         $action = New-ScheduledTaskAction -Execute $ExePath -Argument "--resolution $Resolution --no-console"
-        
-        # Create trigger: at logon, for any user
         $trigger = New-ScheduledTaskTrigger -AtLogon
-        
-        # Create settings: allow start on demand, run whether user is logged on or not
         $settings = New-ScheduledTaskSettingsSet `
           -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-        
-        # Create principal: run with highest privileges
         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-        
-        # Register the task
         $null = Register-ScheduledTask -TaskName $TaskName -Action $action `
           -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop
-        
+
         Write-StatusMessage "Scheduled task '$TaskName' created successfully" "Success"
         Write-StatusMessage "Task will run at: At Logon" "Info"
         Write-StatusMessage ("Timer resolution: {0}ms ({1} * 100ns)" -f ($Resolution / 10000.0), $Resolution) "Info"
         Write-StatusMessage "Executable path: $ExePath" "Info"
-        
         return $true
     } catch {
         Write-StatusMessage "Failed to create scheduled task: $($_.Exception.Message)" "Error"
@@ -183,11 +178,12 @@ function Set-TimerResolutionTask {
     }
 }
 
-# Function to start timer resolution immediately
 function Start-TimerResolutionNow {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
+    param()
     Write-StatusMessage "Starting timer resolution now..." "Info"
-    
-    # Try via scheduled task first
+
     try {
         $taskInfo = Get-ScheduledTask -TaskName $TaskName -ErrorAction Stop
         if ($taskInfo.State -eq "Running") {
@@ -204,15 +200,13 @@ function Start-TimerResolutionNow {
     } catch {
         Write-StatusMessage "Could not start via Task Scheduler, trying direct execution..." "Warning"
     }
-    
-    # Fall back to direct execution
+
     try {
         $runningProcess = Get-Process -Name "SetTimerResolution" -ErrorAction SilentlyContinue
         if ($runningProcess) {
             Write-StatusMessage "SetTimerResolution already running (PID: $($runningProcess.Id))" "Success"
             return $true
         }
-        
         $process = Start-Process -FilePath $ExePath `
           -ArgumentList "--resolution $Resolution --no-console" -WindowStyle Hidden -PassThru
         Write-StatusMessage "SetTimerResolution started directly (PID: $($process.Id))" "Success"
@@ -223,12 +217,10 @@ function Start-TimerResolutionNow {
     }
 }
 
-# Function to check current status
 function Get-TimerResolutionStatus {
     Write-StatusMessage "" "Info"
     Write-StatusMessage "=== Timer Resolution Status ===" "Info"
-    
-    # Check registry setting
+
     try {
         $globalEnabled = (Get-ItemProperty `
           -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
@@ -242,16 +234,14 @@ function Get-TimerResolutionStatus {
     } catch {
         Write-StatusMessage "Global Timer Resolution: Unable to check registry" "Warning"
     }
-    
-    # Check if process is running
+
     $runningProcess = Get-Process -Name "SetTimerResolution" -ErrorAction SilentlyContinue
     if ($runningProcess) {
         Write-StatusMessage "SetTimerResolution process: RUNNING (PID: $($runningProcess.Id))" "Success"
     } else {
         Write-StatusMessage "SetTimerResolution process: Not running" "Warning"
     }
-    
-    # Check scheduled task
+
     $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($task) {
         Write-StatusMessage "Scheduled task: EXISTS (State: $($task.State))" "Success"
@@ -262,7 +252,6 @@ function Get-TimerResolutionStatus {
 
 # ==================== MAIN EXECUTION ====================
 
-# Check admin rights
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
   [Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
@@ -274,7 +263,7 @@ Write-StatusMessage "=== Enabling Global Timer Resolution for Windows ===" "Info
 Write-StatusMessage "" "Info"
 
 # Step 1: Select optimal timer resolution by measuring sleep accuracy
-Write-StatusMessage "Step 1: Selecting optimal timer resolution (0.5ms – 0.6ms range)..." "Info"
+Write-StatusMessage "Step 1: Selecting optimal timer resolution (0.5ms - 0.598ms, 0.002ms steps)..." "Info"
 try {
     $Resolution = Select-OptimalResolution
 } catch {
@@ -293,7 +282,7 @@ try {
     Write-StatusMessage "Failed to configure registry: $($_.Exception.Message)" "Error"
 }
 
-# Step 3: Download/verify executable
+# Step 3: Download/verify SetTimerResolution.exe
 Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 3: Checking/Downloading SetTimerResolution.exe..." "Info"
 if (-not (Get-TimerResolutionExe)) {

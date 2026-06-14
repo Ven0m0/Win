@@ -48,7 +48,7 @@ Describe "ARCRaidersUtility Script Initialization" {
             "Invoke-NetFix",
             "Invoke-Optimize",
             "Invoke-CpuBoost",
-            "Invoke-ClearCaches",
+            "Invoke-ClearCache",
             "Invoke-Rollback"
         )
 

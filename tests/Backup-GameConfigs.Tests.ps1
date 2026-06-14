@@ -4,7 +4,7 @@ BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
-Describe "Backup-GameConfigs.ps1" {
+Describe "Backup-GameConfig.ps1" {
     BeforeAll {
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"
@@ -14,7 +14,7 @@ Describe "Backup-GameConfigs.ps1" {
 
     BeforeEach {
         Mock -CommandName Write-Host -MockWith { }
-        Mock -CommandName Write-BackupStatus -MockWith { }
+        Mock -CommandName Write-ColorOutput -MockWith { }
         Mock -CommandName Test-Path -MockWith { return $false }
         Mock -CommandName New-Item -MockWith { }
         Mock -CommandName Get-ChildItem -MockWith { }
@@ -23,11 +23,11 @@ Describe "Backup-GameConfigs.ps1" {
 
     Context "DotfilesPath directory creation" {
         BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
+            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
         }
 
         It "Should create DotfilesPath directory if it does not exist" {
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke New-Item -ParameterFilter {
                 $Path -eq $dotfilesPath -and $ItemType -eq 'Directory'
             }
@@ -35,22 +35,22 @@ Describe "Backup-GameConfigs.ps1" {
 
         It "Should not create DotfilesPath directory if it already exists" {
             Mock Test-Path -ParameterFilter { $Path -eq $dotfilesPath } -MockWith { return $true }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke New-Item -Times 0
         }
     }
 
     Context "Black Ops 6 backup" {
         BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
+            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
         }
 
         It "Should skip Black Ops 6 backup if source does not exist" {
             Mock Test-Path -ParameterFilter { $Path -eq $bo6Source } -MockWith { return $false }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke Copy-Item -Times 0
-            Should -Invoke Write-BackupStatus -ParameterFilter {
-                $Message -like "*not found*" -and $Message -like "*Black Ops 6*"
+            Should -Invoke Write-ColorOutput -ParameterFilter {
+                $Object -like "*not found*" -and $Object -like "*Black Ops 6*"
             }
         }
 
@@ -58,7 +58,7 @@ Describe "Backup-GameConfigs.ps1" {
             Mock Test-Path -ParameterFilter { $Path -eq $bo6Source } -MockWith { return $true }
             Mock Test-Path -ParameterFilter { $Path -eq $dotfilesPath } -MockWith { return $true }
             $expectedDest = Join-Path $dotfilesPath "bo6"
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke New-Item -ParameterFilter {
                 $Path -eq $expectedDest
             }
@@ -73,7 +73,7 @@ Describe "Backup-GameConfigs.ps1" {
                     [PSCustomObject]@{ FullName = "test1"; Name = "config.cfg"; Directory = $true }
                 )
             }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke Copy-Item -Times 1
         }
 
@@ -86,14 +86,14 @@ Describe "Backup-GameConfigs.ps1" {
             Mock Get-ChildItem -ParameterFilter { $Path -eq $bo6Source -and -not $Directory } -MockWith {
                 @([PSCustomObject]@{ FullName = "settings.cfg"; Name = "settings.cfg" })
             }
-            Backup-GameConfigs -DotfilesPath $dotfilesPath
+            Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke Copy-Item -Times 1
         }
     }
 
     Context "Arc Raiders backup" {
         BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
+            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
         }
     }
 }

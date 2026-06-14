@@ -17,7 +17,6 @@
     "USE_BUILTIN_RIPGREP": "0",
     "CLAUDE_CODE_SHELL": "bash",
     "ANTHROPIC_MODEL": "opusplan",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "haiku",
     "NO_COLOR": "1",
     "LC_ALL": "C",
     "BASH_DEFAULT_TIMEOUT_MS": "120000",
@@ -129,7 +128,6 @@
       }
     ]
   },
-  "model": "claude-sonnet-4-6",
   "theme": "dark",
   "effortLevel": "medium"
 }

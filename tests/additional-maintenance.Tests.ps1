@@ -10,6 +10,7 @@ Describe "additional-maintenance.ps1" {
     Context "DryRun Mode" {
         It "Should execute operations with DryRun" {
             # Mock Common functions instead of depending on Common.ps1 side-effects
+            Mock Initialize-ConsoleUI { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
             Mock Get-Date { return [datetime]"2023-01-01T12:00:00" }
             Mock Write-Header {}
             Mock Write-Info {}
@@ -47,6 +48,7 @@ Describe "additional-maintenance.ps1" {
 
     Context "NoRestorePoint flag" {
         It "Should skip restore point creation" {
+            Mock Initialize-ConsoleUI { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
             Mock Get-Date { return [datetime]"2023-01-01T12:00:00" }
             Mock Write-Header {}
             Mock Write-Info {}

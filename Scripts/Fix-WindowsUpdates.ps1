@@ -22,13 +22,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# ---------------------------------------------------------------------------
-# Ensure Common.ps1 is available (best-effort in standalone usage)
-# ---------------------------------------------------------------------------
-$commonPath = Join-Path $PSScriptRoot 'Common.ps1'
-if (Test-Path $commonPath) {
-    . $commonPath
-}
+. "$PSScriptRoot\Common.ps1"
 
 # ---------------------------------------------------------------------------
 # Helper: run an external command and surface non-zero exits as warnings
@@ -67,11 +61,14 @@ function Invoke-ExternalCommand {
 function Reset-WUService {
     [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter(Mandatory)]
         [string]$Name,
 
         [string]$StartupType = 'auto'
     )
+
+    if (-not $Name) {
+        return
+    }
 
     $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
     if (-not $svc) {
@@ -253,13 +250,13 @@ function Remove-TargetReleaseConstraint {
 # Main
 # ---------------------------------------------------------------------------
 if ($Restore) {
-    Write-Host 'Restoring Windows Update registry tweaks...' -ForegroundColor Cyan
+    Write-Information 'Restoring Windows Update registry tweaks...'
     Remove-WURegistryTweak
-    Write-Host 'Restore complete.' -ForegroundColor Green
+    Write-Information 'Restore complete.'
     return
 }
 
-Write-Host 'Fixing Windows Update components...' -ForegroundColor Cyan
+Write-Information 'Fixing Windows Update components...'
 
 # 1. Stop services
 Reset-WUService -Name 'BITS' -StartupType 'delayed-auto'
@@ -293,7 +290,7 @@ if ($PSCmdlet.ShouldProcess('Group Policy', 'Update')) {
     Invoke-ExternalCommand -FilePath 'gpupdate.exe' -ArgumentList '/force'
 }
 
-Write-Host ''
-Write-Host 'Windows Update repair complete. A reboot is recommended.' -ForegroundColor Green
-Write-Host 'Run this script with -WhatIf to preview changes.' -ForegroundColor Gray
+Write-Information ''
+Write-Information 'Windows Update repair complete. A reboot is recommended.'
+Write-Information 'Run this script with -WhatIf to preview changes.'
 

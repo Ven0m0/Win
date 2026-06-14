@@ -12,7 +12,7 @@ Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $Form                            = New-Object system.Windows.Forms.Form
-$Form.ClientSize                 = New-Object System.Drawing.Point(1606,934)
+$Form.ClientSize                 = New-Object System.Drawing.Point(1606,960)
 $Form.text                       = "[St1cky] Network Pro - Tweaker v1.0a"
 $Form.TopMost                    = $false
 $Form.BackColor                  = [System.Drawing.ColorTranslator]::FromHtml("#171717")
@@ -717,7 +717,7 @@ $cb_ndisrssbasecpu.ForeColor     = [System.Drawing.ColorTranslator]::FromHtml("#
 $cb_ndisrssbasecpu.BackColor     = [System.Drawing.ColorTranslator]::FromHtml("#171717")
 
 $Groupbox4                       = New-Object system.Windows.Forms.Groupbox
-$Groupbox4.height                = 173
+$Groupbox4.height                = 215
 $Groupbox4.width                 = 321
 $Groupbox4.text                  = "PowerSaving Settings"
 $Groupbox4.location              = New-Object System.Drawing.Point(570,715)
@@ -744,7 +744,7 @@ $btn_applypowersettings          = New-Object system.Windows.Forms.Button
 $btn_applypowersettings.text     = "Apply"
 $btn_applypowersettings.width    = 60
 $btn_applypowersettings.height   = 21
-$btn_applypowersettings.location  = New-Object System.Drawing.Point(570,893)
+$btn_applypowersettings.location  = New-Object System.Drawing.Point(570,933)
 $btn_applypowersettings.Font     = New-Object System.Drawing.Font('Calibri',10)
 $btn_applypowersettings.ForeColor  = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
 
@@ -2017,20 +2017,80 @@ $cb_IrpStackSize.Font            = New-Object System.Drawing.Font('Calibri',9)
 $cb_IrpStackSize.ForeColor       = [System.Drawing.ColorTranslator]::FromHtml("#4a90e2")
 $cb_IrpStackSize.BackColor       = [System.Drawing.ColorTranslator]::FromHtml("#171717")
 
-$Form.controls.AddRange(@($cb_AdapterNamesCombo,$Label1,$Label2,$lbl_Path,$Label3,$lbl_ndisver,$Groupbox1,$btn_apply,$btn_unqueues,$btn_openreg,$btn_applyglobal,$btn_applyadv,$btn_adaptrest,$btn_applypowersettings,$Groupbox2,$Groupbox3,$Groupbox4,$Groupbox5,$Groupbox6,$Groupbox7,$Groupbox8,$btn_applyall,$btn_applyInterfaceSettings,$btn_rssaddsupport,$btn_registrytweaksapply,$btn_Opacity,$btn_InterruptApply,$btn_afd))
-$Groupbox1.controls.AddRange(@($Label4,$Label5,$Label6,$lbl_rssstatus,$cb_rss_onoff,$cb_rssqueues,$cb_rssprofile,$Label7,$Label8,$Label9,$cb_rssbaseproc,$cb_rssmaxproc,$cb_rssmaxprocs,$btn_apply,$btn_unqueues,$btn_openreg))
-$Groupbox2.controls.AddRange(@($Label10,$cb_osrss,$Label11,$cb_osrsc,$Label12,$cb_oschimney,$Label13,$cb_ostaskoff,$cb_osntd,$Label14,$cb_osntdais,$Label15,$cb_ospcf,$Label16,$btn_applyglobal))
-$Groupbox3.controls.AddRange(@($Label17,$cb_flowcontrol,$Label18,$Label19,$Label20,$Label21,$Label22,$Label23,$cb_InterruptModeration,$btn_applyadv,$btn_adaptrest,$cb_IPChecksumOffloadIPv4,$cb_TCPChecksumOffloadIPv4,$cb_TCPChecksumOffloadIPv6,$cb_UDPChecksumOffloadIPv4,$cb_UDPChecksumOffloadIPv6,$Label24,$cb_InterruptModerationRate,$Label25,$Label26,$cb_LsoV2IPv4,$cb_LsoV2IPv6,$Label27,$cb_LsoV1IPv4,$Label28,$cb_PMNSOffload,$Label29,$cb_PMARPOffload,$cb_PriorityVLANTag,$Label00,$Label30,$cb_ReceiveBuffers,$Label31,$cb_TransmitBuffers))
+$Form.controls.AddRange(@(
+  $cb_AdapterNamesCombo,$Label1,$Label2,$lbl_Path,$Label3,$lbl_ndisver,
+  $Groupbox1,$Groupbox2,$Groupbox3,$Groupbox4,$Groupbox5,$Groupbox6,$Groupbox7,$Groupbox8,
+  $btn_apply,$btn_unqueues,$btn_openreg,$btn_applyglobal,
+  $btn_applyadv,$btn_adaptrest,$btn_applypowersettings,$btn_applyall,
+  $btn_applyInterfaceSettings,$btn_rssaddsupport,$btn_registrytweaksapply,
+  $btn_Opacity,$btn_InterruptApply,$btn_afd,$cb_IPv4,$cb_IPv6
+))
+$Groupbox1.controls.AddRange(@(
+  $Label4,$Label5,$Label6,$lbl_rssstatus,$cb_rss_onoff,$cb_rssqueues,
+  $cb_rssprofile,$Label7,$Label8,$Label9,$cb_rssbaseproc,$cb_rssmaxproc,$cb_rssmaxprocs
+))
+$Groupbox2.controls.AddRange(@(
+  $Label10,$cb_osrss,$Label11,$cb_osrsc,$Label12,$cb_oschimney,
+  $Label13,$cb_ostaskoff,$cb_osntd,$Label14,$cb_osntdais,$Label15,$cb_ospcf,$Label16
+))
+$Groupbox3.controls.AddRange(@(
+  $Label17,$cb_flowcontrol,$Label18,$Label19,$Label20,$Label21,$Label22,
+  $Label23,$cb_InterruptModeration,
+  $cb_IPChecksumOffloadIPv4,$cb_TCPChecksumOffloadIPv4,$cb_TCPChecksumOffloadIPv6,
+  $cb_UDPChecksumOffloadIPv4,$cb_UDPChecksumOffloadIPv6,
+  $Label24,$cb_InterruptModerationRate,
+  $Label25,$Label26,$cb_LsoV2IPv4,$cb_LsoV2IPv6,$Label27,$cb_LsoV1IPv4,
+  $Label28,$cb_PMNSOffload,$Label29,$cb_PMARPOffload,
+  $cb_PriorityVLANTag,$Label00,$Label30,$cb_ReceiveBuffers,$Label31,$cb_TransmitBuffers,
+  $Label73,$tb_TxIntDelay,$Label74,$cb_PacketDirect,
+  $Label75,$cb_EnableCoalesce,$Label68,$cb_CoalesceBufferSize,$Label76,$cb_EnableUdpTxScaling
+))
 $Groupbox5.controls.AddRange(@($Label32,$Label33,$cb_tcpiprssbasecpu,$cb_ndisrssbasecpu))
-$Groupbox4.controls.AddRange(@($Label34,$cb_EnablePME,$Label36,$cb_EnableDynamicPowerGating,$Label37,$cb_EnableConnectedPowerGating,$Label38,$cb_AutoPowerSaveModeEnabled,$cb_NicAutoPowerSaver,$Label39,$Label40,$cb_DisableDelayedPowerUp,$Label41,$cb_ReduceSpeedOnPowerDown,$Label35,$cb_DisablePortScaling,$Label42,$cb_ManyCoreScaling,$btn_applypowersettings))
-$Groupbox7.controls.AddRange(@($Label44,$cb_AdvertiseDefaultRoute,$Label45,$cb_Advertising,$Label46,$cb_AutomaticMetric,$cb_ClampMss,$Label47,$cb_DirectedMacWolPattern,$Label48,$Label49,$cb_EcnMarking,$Label50,$cb_ForceArpNdWolPattern,$Label51,$cb_Forwarding,$cb_IgnoreDefaultRoutes,$Label52,$Label53,$cb_ManagedAddressConfiguration,$Label54,$cb_NeighborDiscoverySupported,$Label55,$cb_NeighborUnreachabilityDetection,$Label56,$cb_OtherStatefulConfiguration,$Label57,$cb_RouterDiscovery,$Label58,$cb_Store,$Label59,$cb_WeakHostReceive,$Label60,$cb_WeakHostSend,$Label61,$tb_CurrentHopLimit,$Label62,$tb_BaseReachableTime,$tb_ReachableTime,$Label63,$Label64,$tb_DadRetransmitTime,$Label65,$tb_DadTransmits,$Label66,$tb_NlMtu,$Label67,$tb_RetransmitTime,$btn_applyall))
-$Groupbox6.controls.AddRange(@($lb_MsiMode,$cb_MsiMode,$lb_InterruptPriority,$cb_InterruptPriority,$lb_DevicePolicy,$cb_DevicePolicy,$btn_applyInterfaceSettings,$Label69,$Label70,$Label71,$Label72,$Label73,$tb_TxIntDelay,$Label74,$cb_PacketDirect,$Label75,$cb_EnableCoalesce,$Label76,$cb_EnableUdpTxScaling,$cb_IPv6,$cb_IPv4,$btn_rssaddsupport,$Label68,$cb_CoalesceBufferSize))
-$Groupbox8.controls.AddRange(@($Label43,$Label77,$cb_Afd_defaultrecWin,$cb_Afd_defaultSendWin,$Label78,$cb_DisableAddressSharing,$Label79,$cb_DoNotHoldNICBuffers,$Label80,$cb_SmallBufferSize,$Label81,$cb_MediumBufferSize,$Label82,$cb_LargeBufferSize,$Label83,$cb_HugeBufferSize,$cb_BufferAlignment,$Label84,$cb_BufferMultiplier,$Label85,$Label86,$cb_SmallBufferListDepth,$Label87,$cb_MediumBufferListDepth,$Label88,$cb_LargBufferListDepth,$Label89,$cb_DisableChainedReceive,$Label90,$cb_DisableDirectAcceptEx,$Label91,$cb_DisableRawSecurity,$Label92,$cb_DynamicSendBufferDisable,$Label93,$cb_FastSendDatagramThreshold,$Label94,$cb_FastCopyReceiveThreshold,$Label95,$cb_IgnorePushBitOnReceives,$Label96,$cb_IgnoreOrderlyRelease,$Label97,$cb_TransmitWorker,$Label98,$cb_PriorityBoost,$btn_InterruptApply,$btn_registrytweaksapply,$btn_Opacity,$btn_afd,$Label99,$cb_IrpStackSize))
+$Groupbox4.controls.AddRange(@(
+  $Label34,$cb_EnablePME,$Label36,$cb_EnableDynamicPowerGating,
+  $Label37,$cb_EnableConnectedPowerGating,$Label38,$cb_AutoPowerSaveModeEnabled,
+  $cb_NicAutoPowerSaver,$Label39,$Label40,$cb_DisableDelayedPowerUp,
+  $Label41,$cb_ReduceSpeedOnPowerDown,$Label35,$cb_DisablePortScaling,
+  $Label42,$cb_ManyCoreScaling
+))
+$Groupbox6.controls.AddRange(@(
+  $lb_MsiMode,$cb_MsiMode,$lb_InterruptPriority,$cb_InterruptPriority,
+  $lb_DevicePolicy,$cb_DevicePolicy
+))
+$Groupbox7.controls.AddRange(@(
+  $Label44,$cb_AdvertiseDefaultRoute,$Label45,$cb_Advertising,
+  $Label46,$cb_AutomaticMetric,$cb_ClampMss,$Label47,
+  $cb_DirectedMacWolPattern,$Label48,$Label49,$cb_EcnMarking,
+  $Label50,$cb_ForceArpNdWolPattern,$Label51,$cb_Forwarding,
+  $cb_IgnoreDefaultRoutes,$Label52,$Label53,$cb_ManagedAddressConfiguration,
+  $Label54,$cb_NeighborDiscoverySupported,$Label55,$cb_NeighborUnreachabilityDetection,
+  $Label56,$cb_OtherStatefulConfiguration,$Label57,$cb_RouterDiscovery,
+  $Label58,$cb_Store,$Label59,$cb_WeakHostReceive,$Label60,$cb_WeakHostSend,
+  $Label61,$tb_CurrentHopLimit,$Label62,$tb_BaseReachableTime,
+  $tb_ReachableTime,$Label63,$Label64,$tb_DadRetransmitTime,
+  $Label65,$tb_DadTransmits,$Label66,$tb_NlMtu,$Label67,$tb_RetransmitTime,
+  $Label69,$Label70,$Label71,$Label72
+))
+$Groupbox8.controls.AddRange(@(
+  $Label43,$Label77,$cb_Afd_defaultrecWin,$cb_Afd_defaultSendWin,
+  $Label78,$cb_DisableAddressSharing,$Label79,$cb_DoNotHoldNICBuffers,
+  $Label80,$cb_SmallBufferSize,$Label81,$cb_MediumBufferSize,
+  $Label82,$cb_LargeBufferSize,$Label83,$cb_HugeBufferSize,
+  $cb_BufferAlignment,$Label84,$cb_BufferMultiplier,$Label85,
+  $Label86,$cb_SmallBufferListDepth,$Label87,$cb_MediumBufferListDepth,
+  $Label88,$cb_LargBufferListDepth,$Label89,$cb_DisableChainedReceive,
+  $Label90,$cb_DisableDirectAcceptEx,$Label91,$cb_DisableRawSecurity,
+  $Label92,$cb_DynamicSendBufferDisable,$Label93,$cb_FastSendDatagramThreshold,
+  $Label94,$cb_FastCopyReceiveThreshold,$Label95,$cb_IgnorePushBitOnReceives,
+  $Label96,$cb_IgnoreOrderlyRelease,$Label97,$cb_TransmitWorker,
+  $Label98,$cb_PriorityBoost,$Label99,$cb_IrpStackSize
+))
 
 
 #region Logic
 #Cleaning Code
-Clear-Host
+# Clear-Host throws "handle is invalid" in consoles without a real handle (CI, Pester, redirected output)
+try { Clear-Host } catch { Write-Verbose "Clear-Host skipped: $_" }
 Add-Type -Name Window -Namespace Console -MemberDefinition '
 [DllImport("Kernel32.dll")]
 public static extern IntPtr GetConsoleWindow();
@@ -2054,7 +2114,6 @@ $Groupbox5.Add_MouseClick({$Form.ActiveControl = $null})
 $Groupbox7.Add_MouseClick({$Form.ActiveControl = $null})
 $Groupbox6.Add_MouseClick({$Form.ActiveControl = $null})
 $Groupbox8.Add_MouseClick({$Form.ActiveControl = $null})
-$Groupbox9.Add_MouseClick({$Form.ActiveControl = $null})
 
 
 #Groupboxes
@@ -2094,12 +2153,16 @@ $btn_InterruptApply.Flatstyle = 'Flat'
 $btn_afd.Flatstyle = 'Flat'
 
 
-function Set-ConsoleColor ($bc, $fc) {
-    $Host.UI.RawUI.BackgroundColor = $bc
-    $Host.UI.RawUI.ForegroundColor = $fc
-    Clear-Host
+function Initialize-ConsoleColor ($bc, $fc) {
+    # Console color/clear is cosmetic; hosts without a real console handle
+    # (CI, Pester, redirected output) throw "handle is invalid" here
+    try {
+        $Host.UI.RawUI.BackgroundColor = $bc
+        $Host.UI.RawUI.ForegroundColor = $fc
+        Clear-Host
+    } catch { Write-Verbose "Console color change skipped: $_" }
 }
-Set-ConsoleColor 'Black' 'Green'
+Initialize-ConsoleColor 'Black' 'Green'
 
 #Locked Combos
 $cb_AdapterNamesCombo.Flatstyle = 'Flat'
@@ -2276,11 +2339,12 @@ $cb_ospcf.text = (Get-NetOffloadGlobalSetting | Select-Object -expand PacketCoal
 
 # ========================================================
 # RSS Global
-$ErrorActionPreference = 'Continue'
-$Global:TCPIP_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
-$Global:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
+$Script:TCPIP_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
+$Script:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
 
-$TCPIP_RssBaseCpu = (Get-ItemPropertyValue -Path "$TCPIP_RegPath" -Name "RssBaseCpu" -ErrorAction SilentlyContinue)
+# Get-ItemPropertyValue throws a terminating error for missing properties even
+# with -ErrorAction SilentlyContinue; Get-ItemProperty property access returns $null
+$TCPIP_RssBaseCpu = (Get-ItemProperty -Path "$TCPIP_RegPath" -ErrorAction SilentlyContinue).RssBaseCpu
 if ($null -eq $TCPIP_RssBaseCpu)
     {
         $cb_tcpiprssbasecpu.text = '0'
@@ -2289,7 +2353,7 @@ if ($null -eq $TCPIP_RssBaseCpu)
     {
         $cb_tcpiprssbasecpu.text = $TCPIP_RssBaseCpu
     }
-$NDIS_RssBaseCpu = (Get-ItemPropertyValue -Path "$NDIS_RegPath" -Name "RssBaseCpu"-ErrorAction SilentlyContinue)
+$NDIS_RssBaseCpu = (Get-ItemProperty -Path "$NDIS_RegPath" -ErrorAction SilentlyContinue).RssBaseCpu
 if ($null -eq $NDIS_RssBaseCpu)
     {
         $cb_ndisrssbasecpu.text = '0'
@@ -2299,8 +2363,6 @@ if ($null -eq $NDIS_RssBaseCpu)
         $cb_ndisrssbasecpu.text = $NDIS_RssBaseCpu
     }
 
-$TCPIPRssBaseCpuValue = ($cb_tcpiprssbasecpu.text)
-$NDISRssBaseCpuValue = ($cb_ndisrssbasecpu.text)
 $cb_tcpiprssbasecpu.add_TextChanged({
     Write-Host "TCP/IP - RSSBaseCpu = "$cb_tcpiprssbasecpu.text
     Set-ItemProperty -Path "$TCPIP_RegPath" -Name "RssBaseCpu" -Value $cb_tcpiprssbasecpu.text -Type DWord -Force})
@@ -2396,10 +2458,9 @@ $AdapterName = Get-NetAdapter -physical | Where-Object status -eq 'up' | Select-
 function Initialize-AdapterUI {
     Clear-Host
     Write-Host $cb_AdapterNamesCombo.Text
-    $Global:NIC_Desc = $cb_AdapterNamesCombo.Text
+    $Script:NIC_Desc = $cb_AdapterNamesCombo.Text
     $lbl_ndisver.Text = Get-NetAdapter -InterfaceDescription $AdapterName | Select-Object -expand NdisVersion
     $PhysicalAdapter = Get-CimInstance -ClassName Win32_NetworkAdapter|Where-Object{$_.Name -like "$NIC_Desc"}
-            $PhysicalAdapterName = $PhysicalAdapter.Name
             $DeviceID = $PhysicalAdapter.DeviceID
                 If([Int32]$DeviceID -lt 10)
             {
@@ -2411,12 +2472,11 @@ function Initialize-AdapterUI {
             }
 
         $PnPEntity = Get-CimInstance -ClassName Win32_PnPEntity -Filter "Name = '$NIC_Desc'"
-        $Global:EthernetClassGuid = $PnPEntity.ClassGuid
-        $Global:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
-        $Global:NetConnectionID = $PhysicalAdapter.NetConnectionID
-    $ErrorActionPreference = 'Continue'
+        $Script:EthernetClassGuid = $PnPEntity.ClassGuid
+        $Script:EthernetPNPDeviceID = $PnPEntity.PNPDeviceID
+        $Script:NetConnectionID = $PhysicalAdapter.NetConnectionID
 
-    $Global:KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\" + `
+    $Script:KeyPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Class\" + `
       "{4D36E972-E325-11CE-BFC1-08002bE10318}\$AdapterDeviceNumber"
     If(Test-Path -Path $KeyPath)
     {
@@ -2428,7 +2488,7 @@ function Initialize-AdapterUI {
       Write-Warning "The path ($KeyPath) not found."
     }
     #RSS Enabled or Not
-    $Global:rssstatus = (Get-NetAdapterRss).Enabled
+    $Script:rssstatus = (Get-NetAdapterRss).Enabled
     if($rssstatus -eq 'True')
             {
             $cb_rss_onoff.Text = "Enable"
@@ -2458,11 +2518,11 @@ function Initialize-AdapterUI {
             }
       if($cb_rss_onoff.Text -eq 'Enable')
         {
-            $Global:Rssstatusset = ($True)
+            $Script:Rssstatusset = ($True)
         }
         else
         {
-            $Global:Rssstatusset = ($False)
+            $Script:Rssstatusset = ($False)
         }
 
     #IPv6 Disabled?
@@ -2475,25 +2535,25 @@ function Initialize-AdapterUI {
         $cb_IPv6.Enabled = $False
         $cb_IPv6.Visible = $False
         $cb_IPv4.Checked = $True
-        $Global:AddressFamily = "IPv4"
+        $Script:AddressFamily = "IPv4"
         }else{
-          Write-Warning  "IPv4/IPv6 is Enabled by Registry. Selecting IPv4 as Default for AddressFamily"  -ForegroundCol
+          Write-Warning  "IPv4/IPv6 is Enabled by Registry. Selecting IPv4 as Default for AddressFamily"
           $cb_IPv4.Checked = $true
           $cb_IPv6.Checked = $false
-          $Global:AddressFamily = "IPv4"
+          $Script:AddressFamily = "IPv4"
         }
 
     #RSS Queues
     $AdapterQueuesRegTest = (Test-Path -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum")
     if($null -eq $rssstatus -Or $cb_rssqueues.Items.Count -eq '0' -and $AdapterQueuesRegTest -eq $false){
-        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfRecei
-        $Global:AdapterQueues = $AdapterQueues
+        $AdapterQueues = Get-NetAdapterRss -InterfaceDescription $NIC_Desc | Select-Object -ExpandProperty NumberOfReceiveQueues
+        $Script:AdapterQueues = $AdapterQueues
         [void] $cb_rssqueues.Items.Add($AdapterQueues)
         $cb_rssqueues.Text = $AdapterQueues
         }else{
-        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Propert
+        $AdapterQueues = Get-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues\Enum" | Select-Object -ExpandProperty Property
             [void] $cb_rssqueues.Items.AddRange([object[]]@($AdapterQueues))
-        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -exp
+        $AdapterQueues = Get-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "Default" | Select-Object -expand Default
         $cb_rssqueues.Text = $AdapterQueues
         }
 
@@ -2508,161 +2568,159 @@ function Initialize-AdapterUI {
         $cb_rssmaxprocs.Text = Get-NetAdapterRss | Select-Object -ExpandProperty "MaxProcessors"
 
         # Network Adapter Advanced Settings
-        #
+        $adapterProps = Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue
         #FlowControl
-        $FlowControl = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*FlowControl")
-        $cb_flowcontrol.SelectedIndex=$FlowControl
+        $FlowControl = $adapterProps.'*FlowControl'
+        if ($null -ne $FlowControl) { $cb_flowcontrol.SelectedIndex = [int]$FlowControl }
         #IPChecksumOffloadIPv4
-        $IPChecksumOffloadIPv4 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4")
-        $cb_IPChecksumOffloadIPv4.SelectedIndex=$IPChecksumOffloadIPv4
+        $IPChecksumOffloadIPv4 = $adapterProps.'*IPChecksumOffloadIPv4'
+        if ($null -ne $IPChecksumOffloadIPv4) { $cb_IPChecksumOffloadIPv4.SelectedIndex = [int]$IPChecksumOffloadIPv4 }
         #TCPChecksumOffloadIPv4
-        $TCPChecksumOffloadIPv4 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4")
-        $cb_TCPChecksumOffloadIPv4.SelectedIndex=$TCPChecksumOffloadIPv4
+        $TCPChecksumOffloadIPv4 = $adapterProps.'*TCPChecksumOffloadIPv4'
+        if ($null -ne $TCPChecksumOffloadIPv4) { $cb_TCPChecksumOffloadIPv4.SelectedIndex = [int]$TCPChecksumOffloadIPv4 }
         #TCPChecksumOffloadIPv6
-        $TCPChecksumOffloadIPv6 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6")
-        $cb_TCPChecksumOffloadIPv6.SelectedIndex=$TCPChecksumOffloadIPv6
+        $TCPChecksumOffloadIPv6 = $adapterProps.'*TCPChecksumOffloadIPv6'
+        if ($null -ne $TCPChecksumOffloadIPv6) { $cb_TCPChecksumOffloadIPv6.SelectedIndex = [int]$TCPChecksumOffloadIPv6 }
         #UDPChecksumOffloadIPv4
-        $UDPChecksumOffloadIPv4 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4")
-        $cb_UDPChecksumOffloadIPv4.SelectedIndex=$UDPChecksumOffloadIPv4
+        $UDPChecksumOffloadIPv4 = $adapterProps.'*UDPChecksumOffloadIPv4'
+        if ($null -ne $UDPChecksumOffloadIPv4) { $cb_UDPChecksumOffloadIPv4.SelectedIndex = [int]$UDPChecksumOffloadIPv4 }
         #UDPChecksumOffloadIPv6
-        $UDPChecksumOffloadIPv6 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6")
-        $cb_UDPChecksumOffloadIPv6.SelectedIndex=$UDPChecksumOffloadIPv6
+        $UDPChecksumOffloadIPv6 = $adapterProps.'*UDPChecksumOffloadIPv6'
+        if ($null -ne $UDPChecksumOffloadIPv6) { $cb_UDPChecksumOffloadIPv6.SelectedIndex = [int]$UDPChecksumOffloadIPv6 }
         #InterruptModeration
-        $InterruptModeration = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*InterruptModeration")
-        $cb_InterruptModeration.SelectedIndex=$InterruptModeration
+        $InterruptModeration = $adapterProps.'*InterruptModeration'
+        if ($null -ne $InterruptModeration) { $cb_InterruptModeration.SelectedIndex = [int]$InterruptModeration }
         #InterruptModerationRate
-        $InterruptModerationRate = (Get-ItemPropertyValue -Path "$KeyPath" -Name "ITR")
-        $cb_InterruptModerationRate.Text=$InterruptModerationRate
+        $InterruptModerationRate = $adapterProps.'ITR'
+        if ($null -ne $InterruptModerationRate) { $cb_InterruptModerationRate.Text = $InterruptModerationRate }
         #LsoV2IPv4
-        $LsoV2IPv4 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV2IPv4")
-        $cb_LsoV2IPv4.SelectedIndex=$LsoV2IPv4
+        $LsoV2IPv4 = $adapterProps.'*LsoV2IPv4'
+        if ($null -ne $LsoV2IPv4) { $cb_LsoV2IPv4.SelectedIndex = [int]$LsoV2IPv4 }
         #LsoV2IPv6
-        $LsoV2IPv6 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV2IPv6")
-        $cb_LsoV2IPv6.SelectedIndex=$LsoV2IPv6
+        $LsoV2IPv6 = $adapterProps.'*LsoV2IPv6'
+        if ($null -ne $LsoV2IPv6) { $cb_LsoV2IPv6.SelectedIndex = [int]$LsoV2IPv6 }
         #LsoV1IPv4
-        $LsoV1IPv4 = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV1IPv4")
-        $cb_LsoV1IPv4.SelectedIndex=$LsoV1IPv4
+        $LsoV1IPv4 = $adapterProps.'*LsoV1IPv4'
+        if ($null -ne $LsoV1IPv4) { $cb_LsoV1IPv4.SelectedIndex = [int]$LsoV1IPv4 }
         #PMARPOffload
-        $PMARPOffload = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PMARPOffload")
-        $cb_PMARPOffload.SelectedIndex=$PMARPOffload
+        $PMARPOffload = $adapterProps.'*PMARPOffload'
+        if ($null -ne $PMARPOffload) { $cb_PMARPOffload.SelectedIndex = [int]$PMARPOffload }
         #PMNSOffload
-        $PMNSOffload = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PMNSOffload")
-        $cb_PMNSOffload.SelectedIndex=$PMNSOffload
+        $PMNSOffload = $adapterProps.'*PMNSOffload'
+        if ($null -ne $PMNSOffload) { $cb_PMNSOffload.SelectedIndex = [int]$PMNSOffload }
         #PriorityVLANTag
-        $PriorityVLANTag = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PriorityVLANTag")
-        $cb_PriorityVLANTag.SelectedIndex=$PriorityVLANTag
+        $PriorityVLANTag = $adapterProps.'*PriorityVLANTag'
+        if ($null -ne $PriorityVLANTag) { $cb_PriorityVLANTag.SelectedIndex = [int]$PriorityVLANTag }
         #ReceiveBuffers
-        $ReceiveBuffers = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*ReceiveBuffers")
-        $cb_ReceiveBuffers.Text=$ReceiveBuffers
+        $ReceiveBuffers = $adapterProps.'*ReceiveBuffers'
+        if ($null -ne $ReceiveBuffers) { $cb_ReceiveBuffers.Text = $ReceiveBuffers }
         #TransmitBuffers
-        $TransmitBuffers = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TransmitBuffers")
-        $cb_TransmitBuffers.Text=$TransmitBuffers
+        $TransmitBuffers = $adapterProps.'*TransmitBuffers'
+        if ($null -ne $TransmitBuffers) { $cb_TransmitBuffers.Text = $TransmitBuffers }
         #TxIntDelay
-        $TxIntDelay = (Get-ItemPropertyValue -Path "$KeyPath" -Name "TxIntDelay")
-        $tb_TxIntDelay.Text=$TxIntDelay
+        $TxIntDelay = $adapterProps.'TxIntDelay'
+        if ($null -ne $TxIntDelay) { $tb_TxIntDelay.Text = $TxIntDelay }
         #PacketDirect
-        $PacketDirect = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PacketDirect")
-        if($null -eq $PacketDirect){
-            $cb_PacketDirect.Text="Undefined"
-        }else{
-            $cb_PacketDirect.SelectedIndex=$PacketDirect}
+        $PacketDirect = $adapterProps.'*PacketDirect'
+        if ($null -eq $PacketDirect) {
+          $cb_PacketDirect.Text = 'Undefined'
+        } else {
+          $cb_PacketDirect.SelectedIndex = [int]$PacketDirect
+        }
         #EnableCoalesce ( Default Enabled )
-        $EnableCoalesce = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnableCoalesce")
-        if($null -eq $EnableCoalesce){
-            $cb_EnableCoalesce.Text="Enabled"
-        }else{
-            $cb_EnableCoalesce.SelectedIndex=$EnableCoalesce}
+        $EnableCoalesce = $adapterProps.'EnableCoalesce'
+        if ($null -eq $EnableCoalesce) {
+          $cb_EnableCoalesce.Text = 'Enabled'
+        } else {
+          $cb_EnableCoalesce.SelectedIndex = [int]$EnableCoalesce
+        }
         #CoalesceBufferSize ( Default 2048 )
-        $CoalesceBufferSize = (Get-ItemPropertyValue -Path "$KeyPath" -Name "CoalesceBufferSize")
-        if($null -eq $CoalesceBufferSize){
-            $cb_CoalesceBufferSize.Text="2048"
-        }else{
-            $cb_CoalesceBufferSize.Text=$CoalesceBufferSize}
+        $CoalesceBufferSize = $adapterProps.'CoalesceBufferSize'
+        if ($null -eq $CoalesceBufferSize) {
+          $cb_CoalesceBufferSize.Text = '2048'
+        } else {
+          $cb_CoalesceBufferSize.Text = $CoalesceBufferSize
+        }
         #EnableUdpTxScaling
-        $EnableUdpTxScaling = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnableUdpTxScaling")
-        if($null -eq $EnableUdpTxScaling){
-            $cb_EnableUdpTxScaling.Text="Enabled"
-        }else{
-            $cb_EnableUdpTxScaling.SelectedIndex=$EnableUdpTxScaling}
+        $EnableUdpTxScaling = $adapterProps.'EnableUdpTxScaling'
+        if ($null -eq $EnableUdpTxScaling) {
+          $cb_EnableUdpTxScaling.Text = 'Enabled'
+        } else {
+          $cb_EnableUdpTxScaling.SelectedIndex = [int]$EnableUdpTxScaling
+        }
 
         #EnablePME
-        $EnablePME = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnablePME")
-            if ($EnablePME -eq '0' -or $EnablePME -eq '1' ){
-                $cb_EnablePME.SelectedIndex=$EnablePME
-            }else{
-                [void] $cb_EnablePME.Items.Add('Undeclared')
-                $cb_EnablePME.Text = 'Undeclared'
-            }
+        $EnablePME = $adapterProps.'EnablePME'
+        if ($EnablePME -eq '0' -or $EnablePME -eq '1') {
+          $cb_EnablePME.SelectedIndex = [int]$EnablePME
+        } else {
+          [void] $cb_EnablePME.Items.Add('Undeclared')
+          $cb_EnablePME.Text = 'Undeclared'
+        }
         #EnableDynamicPowerGating
-        $EnableDynamicPowerGating = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*EnableDynamicPowerGating")
-            if ($EnableDynamicPowerGating -eq 0 -or $EnableDynamicPowerGating -eq 1 ){
-                $cb_EnableDynamicPowerGating.SelectedIndex=$EnableDynamicPowerGating
-            }else{
-                [void] $cb_EnableDynamicPowerGating.Items.Add('Undeclared')
-                $cb_EnableDynamicPowerGating.Text = 'Undeclared'
-            }
+        $EnableDynamicPowerGating = $adapterProps.'*EnableDynamicPowerGating'
+        if ($EnableDynamicPowerGating -eq 0 -or $EnableDynamicPowerGating -eq 1) {
+          $cb_EnableDynamicPowerGating.SelectedIndex = [int]$EnableDynamicPowerGating
+        } else {
+          [void] $cb_EnableDynamicPowerGating.Items.Add('Undeclared')
+          $cb_EnableDynamicPowerGating.Text = 'Undeclared'
+        }
         #EnableConnectedPowerGating
-        $EnableConnectedPowerGating = (Get-ItemPropertyValue -Path "$KeyPath" -Name "EnableConnectedPowerGating")
-            if ($EnableConnectedPowerGating -eq 0 -or $EnableConnectedPowerGating -eq 1 ){
-                $cb_EnableConnectedPowerGating.SelectedIndex=$EnableConnectedPowerGating
-            }else{
-                [void] $cb_EnableConnectedPowerGating.Items.Add('Undeclared')
-                $cb_EnableConnectedPowerGating.Text = 'Undeclared'
-            }
-
+        $EnableConnectedPowerGating = $adapterProps.'EnableConnectedPowerGating'
+        if ($EnableConnectedPowerGating -eq 0 -or $EnableConnectedPowerGating -eq 1) {
+          $cb_EnableConnectedPowerGating.SelectedIndex = [int]$EnableConnectedPowerGating
+        } else {
+          [void] $cb_EnableConnectedPowerGating.Items.Add('Undeclared')
+          $cb_EnableConnectedPowerGating.Text = 'Undeclared'
+        }
         #AutoPowerSaveModeEnabled
-        $AutoPowerSaveModeEnabled = (Get-ItemPropertyValue -Path "$KeyPath" -Name "AutoPowerSaveModeEnabled")
-            if ($AutoPowerSaveModeEnabled -eq 0 -or $AutoPowerSaveModeEnabled -eq 1 ){
-                $cb_AutoPowerSaveModeEnabled.SelectedIndex=$AutoPowerSaveModeEnabled
-            }else{
-                [void] $cb_AutoPowerSaveModeEnabled.Items.Add('Undeclared')
-                $cb_EnableConnectedPowerGating.Text = 'Enabled'
-            }
-
+        $AutoPowerSaveModeEnabled = $adapterProps.'AutoPowerSaveModeEnabled'
+        if ($AutoPowerSaveModeEnabled -eq 0 -or $AutoPowerSaveModeEnabled -eq 1) {
+          $cb_AutoPowerSaveModeEnabled.SelectedIndex = [int]$AutoPowerSaveModeEnabled
+        } else {
+          [void] $cb_AutoPowerSaveModeEnabled.Items.Add('Undeclared')
+          $cb_AutoPowerSaveModeEnabled.Text = 'Undeclared'
+        }
         #NicAutoPowerSaver
-        $NicAutoPowerSaver = (Get-ItemPropertyValue -Path "$KeyPath" -Name "*NicAutoPowerSaver")
-            if ($NicAutoPowerSaver -eq 0 -or $NicAutoPowerSaver -eq 1 ){
-                $cb_NicAutoPowerSaver.SelectedIndex=$NicAutoPowerSaver
-            }else{
-                [void] $cb_NicAutoPowerSaver.Items.Add('Undeclared')
-                $cb_NicAutoPowerSaver.Text = 'Undeclared'
-            }
-
+        $NicAutoPowerSaver = $adapterProps.'*NicAutoPowerSaver'
+        if ($NicAutoPowerSaver -eq 0 -or $NicAutoPowerSaver -eq 1) {
+          $cb_NicAutoPowerSaver.SelectedIndex = [int]$NicAutoPowerSaver
+        } else {
+          [void] $cb_NicAutoPowerSaver.Items.Add('Undeclared')
+          $cb_NicAutoPowerSaver.Text = 'Undeclared'
+        }
         #DisableDelayedPowerUp
-        $DisableDelayedPowerUp = (Get-ItemPropertyValue -Path "$KeyPath" -Name "DisableDelayedPowerUp")
-            if ($DisableDelayedPowerUp -eq 0 -or $DisableDelayedPowerUp -eq 1 ){
-                $cb_DisableDelayedPowerUp.SelectedIndex=$DisableDelayedPowerUp
-            }else{
-                [void] $cb_DisableDelayedPowerUp.Items.Add('Undeclared')
-                $cb_DisableDelayedPowerUp.Text = 'Undeclared'
-            }
-
+        $DisableDelayedPowerUp = $adapterProps.'DisableDelayedPowerUp'
+        if ($DisableDelayedPowerUp -eq 0 -or $DisableDelayedPowerUp -eq 1) {
+          $cb_DisableDelayedPowerUp.SelectedIndex = [int]$DisableDelayedPowerUp
+        } else {
+          [void] $cb_DisableDelayedPowerUp.Items.Add('Undeclared')
+          $cb_DisableDelayedPowerUp.Text = 'Undeclared'
+        }
         #ReduceSpeedOnPowerDown
-        $ReduceSpeedOnPowerDown = (Get-ItemPropertyValue -Path "$KeyPath" -Name "ReduceSpeedOnPowerDown")
-            if ($ReduceSpeedOnPowerDown -eq 0 -or $ReduceSpeedOnPowerDown -eq 1 ){
-                $cb_ReduceSpeedOnPowerDown.SelectedIndex=$ReduceSpeedOnPowerDown
-            }else{
-                [void] $cb_ReduceSpeedOnPowerDown.Items.Add('Undeclared')
-                $cb_ReduceSpeedOnPowerDown.Text = 'Undeclared'
-            }
-
+        $ReduceSpeedOnPowerDown = $adapterProps.'ReduceSpeedOnPowerDown'
+        if ($ReduceSpeedOnPowerDown -eq 0 -or $ReduceSpeedOnPowerDown -eq 1) {
+          $cb_ReduceSpeedOnPowerDown.SelectedIndex = [int]$ReduceSpeedOnPowerDown
+        } else {
+          [void] $cb_ReduceSpeedOnPowerDown.Items.Add('Undeclared')
+          $cb_ReduceSpeedOnPowerDown.Text = 'Undeclared'
+        }
         #DisablePortScaling
-        $DisablePortScaling = (Get-ItemPropertyValue -Path "$KeyPath" -Name "DisablePortScaling")
-            if ($DisablePortScaling -eq 0 -or $DisablePortScaling -eq 1 ){
-                $cb_DisablePortScaling.SelectedIndex=$DisablePortScaling
-            }else{
-                [void] $cb_DisablePortScaling.Items.Add('Undeclared')
-                $cb_DisablePortScaling.Text = 'Undeclared'
-            }
-
+        $DisablePortScaling = $adapterProps.'DisablePortScaling'
+        if ($DisablePortScaling -eq 0 -or $DisablePortScaling -eq 1) {
+          $cb_DisablePortScaling.SelectedIndex = [int]$DisablePortScaling
+        } else {
+          [void] $cb_DisablePortScaling.Items.Add('Undeclared')
+          $cb_DisablePortScaling.Text = 'Undeclared'
+        }
         #ManyCoreScaling
-        $ManyCoreScaling = (Get-ItemPropertyValue -Path "$KeyPath" -Name "ManyCoreScaling")
-            if ($ManyCoreScaling -eq 0 -or $ManyCoreScaling -eq 1 ){
-                $cb_ManyCoreScaling.SelectedIndex=$ManyCoreScaling
-            }else{
-                [void] $cb_ManyCoreScaling.Items.Add('Undeclared')
-                $cb_ManyCoreScaling.Text = 'Undeclared'
-            }
+        $ManyCoreScaling = $adapterProps.'ManyCoreScaling'
+        if ($ManyCoreScaling -eq 0 -or $ManyCoreScaling -eq 1) {
+          $cb_ManyCoreScaling.SelectedIndex = [int]$ManyCoreScaling
+        } else {
+          [void] $cb_ManyCoreScaling.Items.Add('Undeclared')
+          $cb_ManyCoreScaling.Text = 'Undeclared'
+        }
 
 
 #Getting Tweaks Settings
@@ -2829,7 +2887,7 @@ function Initialize-AdapterUI {
 #NetIPInterface
 
         #NetIPInterface
-        $NetIPIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
+        $NetIPIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily
 
         #AdvertiseDefaultRoute
         $AdvertiseDefaultRoute = [Microsoft.PowerShell.Cmdletization.GeneratedTypes.NetIPInterface.AdvertiseDefaultRoute].GetEnumValues()
@@ -2952,9 +3010,9 @@ function Initialize-AdapterUI {
         $tb_RetransmitTime.Text = $NetIPIface.RetransmitTime
 
         $PathInterrupt = 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Enum'
-        #$Global:EthernetClassGuid
-        #$Global:EthernetPNPDeviceID
-        $Global:NewPathInterrupt = "$PathInterrupt\$EthernetPNPDeviceID"
+        #$Script:EthernetClassGuid
+        #$Script:EthernetPNPDeviceID
+        $Script:NewPathInterrupt = "$PathInterrupt\$EthernetPNPDeviceID"
         $Test = Test-Path REGISTRY::$NewPathInterrupt
         if ($Test){
           $cb_MsiMode.Enabled = $True
@@ -2971,7 +3029,7 @@ function Initialize-AdapterUI {
                 $cb_MsiMode.Text = "Disabled"}
 
             $DevicePriority = Get-ItemPropertyValue -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\AffinityPolicy" -Name DevicePriority -ErrorAction SilentlyContinue
-      $Global:DevicePriorityAvailable = ((Get-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\AffinityPolicy").PSObject.Properties.Name) -contains 'DevicePriority'
+      $Script:DevicePriorityAvailable = ((Get-ItemProperty -Path "REGISTRY::$NewPathInterrupt\Device Parameters\Interrupt Management\AffinityPolicy").PSObject.Properties.Name) -contains 'DevicePriority'
             if($DevicePriority -eq "0"){
                 $cb_InterruptPriority.Text = "Undefined"}
             if($DevicePriority -eq "1"){
@@ -3021,7 +3079,7 @@ function RSSEnable{
         function applyadvsettings {
         #cls
         #FlowControl
-        if ($cb_flowcontrol.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*FlowControl")){
+        if ($cb_flowcontrol.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*FlowControl'){
             Write-Host "FlowControl is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_flowcontrol.SelectedIndex -eq '0'){
@@ -3141,7 +3199,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6" -Value "3" -Force}
 
         #Large-Send-Offload V2 (IPv4)
-        if ($cb_LsoV2IPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV2IPv4")){
+        if ($cb_LsoV2IPv4.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*LsoV2IPv4'){
             Write-Host "LsoV2IPv4 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_LsoV2IPv4.SelectedIndex -eq '0'){
@@ -3153,7 +3211,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv4" -Value "1" -Force}
 
         #Large-Send-Offload V2 (IPv6)
-        if ($cb_LsoV2IPv6.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV2IPv6")){
+        if ($cb_LsoV2IPv6.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*LsoV2IPv6'){
             Write-Host "LsoV2IPv6 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_LsoV2IPv6.SelectedIndex -eq '0'){
@@ -3165,7 +3223,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv6" -Value "1" -Force}
 
         #Large-Send-Offload V1 (IPv4)
-        if ($cb_LsoV1IPv4.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*LsoV1IPv4")){
+        if ($cb_LsoV1IPv4.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*LsoV1IPv4'){
             Write-Host "LsoV1IPv4 is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_LsoV1IPv4.SelectedIndex -eq '0'){
@@ -3177,7 +3235,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*LsoV1IPv4" -Value "1" -Force}
 
         #PMARPOffload
-        if ($cb_PMARPOffload.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PMARPOffload")){
+        if ($cb_PMARPOffload.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*PMARPOffload'){
             Write-Host "PMARPOffload is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_PMARPOffload.SelectedIndex -eq '0'){
@@ -3189,7 +3247,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*PMARPOffload" -Value "1" -Force}
 
         #PMNSOffload
-        if ($cb_PMNSOffload.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PMNSOffload")){
+        if ($cb_PMNSOffload.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*PMNSOffload'){
             Write-Host "PMNSOffload is same then Registry, skipping."  -ForegroundColor green}
 
             elseif ($cb_PMNSOffload.SelectedIndex -eq '0'){
@@ -3201,7 +3259,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*PMNSOffload" -Value "1" -Force}
 
         #PriorityVLANTag
-        if ($cb_PriorityVLANTag.SelectedIndex -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*PriorityVLANTag")){
+        if ($cb_PriorityVLANTag.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*PriorityVLANTag'){
             Write-Host "PriorityVLANTag is same then Registry, skipping."  -ForegroundColor Green}
 
             elseif ($cb_PriorityVLANTag.SelectedIndex -eq '0'){
@@ -3221,7 +3279,7 @@ function RSSEnable{
             Set-ItemProperty -Path "$KeyPath" -Name "*PriorityVLANTag" -Value "3" -Force}
 
         #ReceiveBuffers
-        if ($cb_ReceiveBuffers.Text -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*ReceiveBuffers"))
+        if ($cb_ReceiveBuffers.Text -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*ReceiveBuffers')
             {
             Write-Host "ReceiveBuffers is same then Registry, skipping."  -ForegroundColor Green
             }
@@ -3232,7 +3290,7 @@ function RSSEnable{
             }
 
         #TransmitBuffers
-        if ($cb_TransmitBuffers.Text -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "*TransmitBuffers"))
+        if ($cb_TransmitBuffers.Text -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*TransmitBuffers')
             {
             Write-Host "TransmitBuffers is same then Registry, skipping."  -ForegroundColor Green
             }
@@ -3276,7 +3334,7 @@ function RSSEnable{
 
             #TxIntDelay
             #I-219V 28TxDelay Default
-            if ($tb_TxIntDelay.Text -eq (Get-ItemPropertyValue -Path "$KeyPath" -Name "TxIntDelay"))
+            if ($tb_TxIntDelay.Text -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'TxIntDelay')
             {
             Write-Host "TxIntDelay is same then Registry, skipping."  -ForegroundColor Green
             }
@@ -3411,20 +3469,6 @@ function RSSEnable{
 
         #Adding more then Default RSSQueues
         function RSSQueuesUnlock {
-            if (Test-Path "$KeyPath\Ndi\Params\*NumRssQueues") {
-                try {
-                    $AdapterQueuesOriginal = (Get-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -ErrorAction SilentlyContinue).default
-                }
-                catch {
-                    # Fallback if the key exists but the 'default' value is missing
-                    $AdapterQueuesOriginal = "1"
-                }
-            }
-            else {
-                # Fallback if the key does not exist yet
-                $AdapterQueuesOriginal = "1"
-            }
-
             New-Item -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "ParamDesc" -PropertyType "String" -Value "Maximum Number of RSS Queues" -Force
             New-ItemProperty "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -PropertyType "String" -Value $AdapterQueues -Force
@@ -3470,7 +3514,7 @@ function btn_regopadap {
         Try {
         $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit"
         $name = "LastKey"
-        $value = "Computer\"+(Convert-Path ($Global:KeyPath))
+        $value = "Computer\"+(Convert-Path ($Script:KeyPath))
                 New-ItemProperty -Path $regPath -Name $name -Value $value -PropertyType String -Force | Out-Null
                 Start-Process RegEdit
             }
@@ -3496,8 +3540,8 @@ function btn_regopenafd {
 
 function Interrupt{
     $Path = 'HKEY_LOCAL_MACHINE\System\CurrentControlSet\Enum'
-    #$Global:EthernetClassGuid
-    #$Global:EthernetPNPDeviceID
+    #$Script:EthernetClassGuid
+    #$Script:EthernetPNPDeviceID
     $NewPath = "$Path\$EthernetPNPDeviceID"
     $Test = Test-Path REGISTRY::$NewPath
     if ($Test){
@@ -3509,11 +3553,11 @@ function Interrupt{
 
 function bypassrssqueues{
     $error.clear()
-    try { Set-NetAdapterRss -InterfaceDescription $($Global:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text)
+    try { Set-NetAdapterRss -InterfaceDescription $($Script:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text)
         } catch { Write-Warning "Error occured while Setting Set-NetAdapterRss, Abort." }
     if (!$error) { Write-Host 'No Error Occured, while Setting Set-NetAdapterRss without NumberOfReceiveQueues. Continued.'
                     Write-Host "Using Registry now, to set RSS Queues to $($cb_rssqueues.Text)"
-                    Set-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -Value $cb_rssqueues.Text
+                    Set-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -Value $cb_rssqueues.Text -Force -ErrorAction "Stop"
                     Write-Host "Done."
         }
 }
@@ -3541,7 +3585,7 @@ function applyrsssettings {
 
         $error.clear()
         try {
-            Set-NetAdapterRss -InterfaceDescription $($Global:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text) -MaxProcessors $($cb_rssmaxprocs.Text) -NumberOfReceiveQueues $($cb_rssqueues.Text)
+            Set-NetAdapterRss -InterfaceDescription $($Script:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text) -MaxProcessors $($cb_rssmaxprocs.Text) -NumberOfReceiveQueues $($cb_rssqueues.Text)
             Write-Host "Using Powershell to Set-NetAdapterRss."
             }
             catch { Write-Warning "Error occured while Setting Set-NetAdapterRss, testing now without NumberOfReceiveQueues." }
@@ -3550,161 +3594,161 @@ function applyrsssettings {
 }
 
 function ApplyInterfaceSettings{
-    $currentIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
+    $currentIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily
     if ($cb_AdvertiseDefaultRoute.Text -eq $currentIface.AdvertiseDefaultRoute){
         Write-Host "AdvertiseDefaultRoute is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "AdvertiseDefaultRoute:"$cb_AdvertiseDefaultRoute.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -AdvertiseDefaultRoute $cb_AdvertiseDefaultRoute.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -AdvertiseDefaultRoute $cb_AdvertiseDefaultRoute.Text
         }
     if ($cb_Advertising.Text -eq $currentIface.Advertising){
         Write-Host "Advertising is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "Advertising:"$cb_Advertising.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -Advertising $cb_Advertising.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -Advertising $cb_Advertising.Text
         }
     if ($cb_AutomaticMetric.Text -eq $currentIface.AutomaticMetric){
         Write-Host "AutomaticMetric is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "AutomaticMetric:"$cb_AutomaticMetric.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -AutomaticMetric $cb_AutomaticMetric.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -AutomaticMetric $cb_AutomaticMetric.Text
         }
     if ($cb_ClampMss.Text -eq $currentIface.ClampMss){
         Write-Host "ClampMss is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "ClampMss:"$cb_ClampMss.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -ClampMss $cb_ClampMss.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -ClampMss $cb_ClampMss.Text
         }
     if ($DirectedMacWolPattern.Text -eq $currentIface.DirectedMacWolPattern){
         Write-Host "DirectedMacWolPattern is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "DirectedMacWolPattern:"$DirectedMacWolPattern.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -DirectedMacWolPattern $DirectedMacWolPattern.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -DirectedMacWolPattern $DirectedMacWolPattern.Text
         }
     if ($cb_EcnMarking.Text -eq $currentIface.EcnMarking){
         Write-Host "EcnMarking is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "EcnMarking:"$cb_EcnMarking.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -EcnMarking $cb_EcnMarking.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -EcnMarking $cb_EcnMarking.Text
         }
     if ($cb_ForceArpNdWolPattern.Text -eq $currentIface.ForceArpNdWolPattern){
         Write-Host "ForceArpNdWolPattern is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "ForceArpNdWolPattern:"$cb_ForceArpNdWolPattern.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -ForceArpNdWolPattern $cb_ForceArpNdWolPattern.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -ForceArpNdWolPattern $cb_ForceArpNdWolPattern.Text
         }
     if ($cb_Forwarding.Text -eq $currentIface.Forwarding){
         Write-Host "Forwarding is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "Forwarding:"$cb_Forwarding.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -Forwarding $cb_Forwarding.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -Forwarding $cb_Forwarding.Text
         }
     if ($cb_IgnoreDefaultRoutes.Text -eq $currentIface.IgnoreDefaultRoutes){
         Write-Host "IgnoreDefaultRoutes is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "IgnoreDefaultRoutes:"$cb_IgnoreDefaultRoutes.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -IgnoreDefaultRoutes $cb_IgnoreDefaultRoutes.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -IgnoreDefaultRoutes $cb_IgnoreDefaultRoutes.Text
         }
     if ($cb_ManagedAddressConfiguration.Text -eq $currentIface.ManagedAddressConfiguration){
         Write-Host "ManagedAddressConfiguration is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "ManagedAddressConfiguration:"$cb_ManagedAddressConfiguration.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -ManagedAddressConfiguration $cb_ManagedAddressConfiguration.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -ManagedAddressConfiguration $cb_ManagedAddressConfiguration.Text
         }
     if ($cb_NeighborDiscoverySupported.Text -eq $currentIface.NeighborDiscoverySupported){
         Write-Host "NeighborDiscoverySupported is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "NeighborDiscoverySupported:"$cb_NeighborDiscoverySupported.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -NeighborDiscoverySupported $cb_NeighborDiscoverySupported.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -NeighborDiscoverySupported $cb_NeighborDiscoverySupported.Text
         }
     if ($cb_NeighborUnreachabilityDetection.Text -eq $currentIface.NeighborUnreachabilityDetection){
         Write-Host "NeighborUnreachabilityDetection is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "NeighborUnreachabilityDetection:"$cb_NeighborUnreachabilityDetection.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -NeighborUnreachabilityDetection $cb_NeighborUnreachabilityDetection.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -NeighborUnreachabilityDetection $cb_NeighborUnreachabilityDetection.Text
         }
     if ($cb_OtherStatefulConfiguration.Text -eq $currentIface.OtherStatefulConfiguration){
         Write-Host "OtherStatefulConfiguration is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "OtherStatefulConfiguration:"$cb_OtherStatefulConfiguration.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -OtherStatefulConfiguration $cb_OtherStatefulConfiguration.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -OtherStatefulConfiguration $cb_OtherStatefulConfiguration.Text
         }
     if ($cb_RouterDiscovery.Text -eq $currentIface.RouterDiscovery){
         Write-Host "RouterDiscovery is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "RouterDiscovery:"$cb_RouterDiscovery.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -RouterDiscovery $cb_RouterDiscovery.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -RouterDiscovery $cb_RouterDiscovery.Text
         }
     if ($cb_Store.Text -eq $currentIface.Store){
         Write-Host "Store is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "Store:"$cb_Store.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -Store $cb_Store.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -Store $cb_Store.Text
         }
     if ($cb_WeakHostReceive.Text -eq $currentIface.WeakHostReceive){
         Write-Host "WeakHostReceive is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "WeakHostReceive:"$cb_WeakHostReceive.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -Store $cb_WeakHostReceive.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -Store $cb_WeakHostReceive.Text
         }
     if ($cb_WeakHostSend.Text -eq $currentIface.WeakHostSend){
         Write-Host "WeakHostSend is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "WeakHostSend:"$cb_WeakHostSend.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -Store $cb_WeakHostSend.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -Store $cb_WeakHostSend.Text
         }
     if ($tb_CurrentHopLimit.Text -eq $currentIface.CurrentHopLimit){
         Write-Host "CurrentHopLimit is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "CurrentHopLimit:"$tb_CurrentHopLimit.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -CurrentHopLimit $tb_CurrentHopLimit.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -CurrentHopLimit $tb_CurrentHopLimit.Text
         }
     if ($tb_BaseReachableTime.Text -eq $currentIface.BaseReachableTime){
         Write-Host "BaseReachableTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "BaseReachableTime:"$tb_BaseReachableTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -BaseReachableTime $tb_BaseReachableTime.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -BaseReachableTime $tb_BaseReachableTime.Text
         }
     if ($tb_ReachableTime.Text -eq $currentIface.ReachableTime){
         Write-Host "ReachableTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "ReachableTime:"$tb_ReachableTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -ReachableTime $tb_ReachableTime.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -ReachableTime $tb_ReachableTime.Text
         }
     if ($tb_DadRetransmitTime.Text -eq $currentIface.DadRetransmitTime){
         Write-Host "DadRetransmitTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "DadRetransmitTime:"$tb_DadRetransmitTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -DadRetransmitTime $tb_DadRetransmitTime.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -DadRetransmitTime $tb_DadRetransmitTime.Text
         }
     if ($tb_DadTransmits.Text -eq $currentIface.DadTransmits){
         Write-Host "DadTransmits is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "DadTransmits:"$tb_DadTransmits.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -DadTransmits $tb_DadTransmits.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -DadTransmits $tb_DadTransmits.Text
         }
     if ($tb_NlMtu.Text -eq $currentIface.NlMtu){
         Write-Host "NlMtu is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "NlMtu:"$tb_NlMtu.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -NlMtu $tb_NlMtu.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -NlMtu $tb_NlMtu.Text
         }
     if ($tb_RetransmitTime.Text -eq $currentIface.RetransmitTime){
         Write-Host "RetransmitTime is same, skipping."  -ForegroundColor green}
         else{
             Write-Host "RetransmitTime:"$tb_RetransmitTime.Text  -ForegroundColor Green
-            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily -RetransmitTime $tb_RetransmitTime.Text
+            Set-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily -RetransmitTime $tb_RetransmitTime.Text
         }
 }
 
 function IPv4_CheckedChanged(){
 if ($cb_IPv4.Checked){
     $cb_IPv6.Enabled = $false
-    $Global:AddressFamily = "IPv4"
+    $Script:AddressFamily = "IPv4"
     RefreshingNetIPInterfaceSettings
     }else{
     $cb_IPv6.Enabled = $true
-    $Global:AddressFamily = "IPv6"
+    $Script:AddressFamily = "IPv6"
     RefreshingNetIPInterfaceSettings
     }
 if ($cb_IPv4.Checked -eq $false -and $cb_IPv6.Checked -eq $false -or $cb_IPv4.Checked -eq $false -and $cb_IPv6.Visible -eq $false){
@@ -3720,11 +3764,11 @@ if ($cb_IPv4.Checked -eq $false -and $cb_IPv6.Checked -eq $false -or $cb_IPv4.Ch
 function IPv6_CheckedChanged(){
 if ($cb_IPv6.Checked){
     $cb_IPv4.Enabled = $false
-    $Global:AddressFamily = "IPv6"
+    $Script:AddressFamily = "IPv6"
     RefreshingNetIPInterfaceSettings
     }else{
     $cb_IPv4.Enabled = $true
-    $Global:AddressFamily = "IPv4"}
+    $Script:AddressFamily = "IPv4"}
     RefreshingNetIPInterfaceSettings
     }
 
@@ -3739,7 +3783,7 @@ if ($cb_IPv4.Checked -eq $false -and $cb_IPv6.Checked -eq $false -or $cb_IPv4.Ch
 
 function RefreshingNetIPInterfaceSettings{
     #NetIPInterface
-        $NetIPIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Global:AddressFamily
+        $NetIPIface = Get-NetIPInterface -InterfaceAlias $NetConnectionID -AddressFamily $Script:AddressFamily
 
         #AdvertiseDefaultRoute
         $cb_AdvertiseDefaultRoute.Text = $NetIPIface.AdvertiseDefaultRoute
@@ -3874,26 +3918,26 @@ function RegistryTweaks{
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name) -contains 'DefaultReceiveWindow'
     if ($A -eq $false -and $null -ne $cb_Afd_defaultrecWin.Text -and $cb_Afd_defaultrecWin.Text -ne '' ){
       Write-Host "Set AFDDefaultReceiveWindow to"$cb_Afd_defaultrecWin.Text -ForegroundColor Green
-          New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_DefaultReceiveWindow.Text -Force
+          New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_Afd_defaultrecWin.Text -Force
     }elseif($A -eq $true -and $null -eq $cb_Afd_defaultrecWin.Text -or $cb_Afd_defaultrecWin.Text -eq ''){
       Write-Warning "Removing AFDDefaultReceiveWindow"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow"
     }else{
       Write-Host "Set AFDDefaultReceiveWindow to"$cb_Afd_defaultrecWin.Text -ForegroundColor Green
-          Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_DefaultReceiveWindow.Text -Force
+          Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_Afd_defaultrecWin.Text -Force
     }
 
         #DefaultSendWindow
     $A=((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name) -contains 'DefaultSendWindow'
     if ($A -eq $false -and $null -ne $cb_Afd_defaultSendWin.Text -and $cb_Afd_defaultSendWin.Text -ne '' ){
       Write-Host "Set AFDDefaultSendWindow to"$cb_Afd_defaultSendWin.Text -ForegroundColor Green
-          New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_DefaultSendWindow.Text -Force
+          New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_Afd_defaultSendWin.Text -Force
     }elseif($A -eq $true -and $null -eq $cb_Afd_defaultSendWin.Text -or $cb_Afd_defaultSendWin.Text -eq ''){
       Write-Warning "Removing AFDDefaultSendWindow"
       Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow"
     }else{
       Write-Host "Set AFDDefaultSendWindow to"$cb_Afd_defaultSendWin.Text -ForegroundColor Green
-          Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_DefaultSendWindow.Text -Force
+          Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_Afd_defaultSendWin.Text -Force
     }
 
         #DisableAddressSharing

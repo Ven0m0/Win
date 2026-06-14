@@ -45,8 +45,8 @@ function Remove-BloatwareApp {
 
   foreach ($pattern in $patterns) {
     if ($allPackages) {
-      $matches = @($allPackages | Where-Object { $_.Name -like $pattern })
-      foreach ($pkg in $matches) {
+      $pkgMatches = @($allPackages | Where-Object { $_.Name -like $pattern })
+      foreach ($pkg in $pkgMatches) {
         Write-Host "  Removing: $($pkg.Name)" -ForegroundColor Yellow
         try { Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction SilentlyContinue } catch {
           try { Remove-AppxPackage -Package $pkg.PackageFullName -ErrorAction SilentlyContinue } catch { Write-Verbose "Remove-AppxPackage failed for $($pkg.Name): $_" }
@@ -125,7 +125,7 @@ function Disable-UnnecessaryService {
 
 #region Phase 3: Windows Features
 function Disable-WindowsFeature {
-  [CmdletBinding(SupportsShouldProcess)]
+  [CmdletBinding()]
   param()
   Write-Host "=== Phase 3: Disabling Windows Optional Features ===" -ForegroundColor Cyan
 
@@ -152,7 +152,7 @@ function Disable-WindowsFeature {
 
 #region Phase 4: Scheduled Tasks
 function Invoke-ScheduledTaskCleanup {
-  [CmdletBinding(SupportsShouldProcess)]
+  [CmdletBinding()]
   param()
   Write-Host "=== Phase 4: Disabling Scheduled Tasks ===" -ForegroundColor Cyan
 
@@ -224,7 +224,7 @@ function Invoke-ScheduledTaskCleanup {
 
 #region Phase 5: Registry Tweaks
 function Invoke-RegistryTweak {
-  [CmdletBinding(SupportsShouldProcess)]
+  [CmdletBinding()]
   param()
   Write-Host "=== Phase 5: Applying Registry Tweaks ===" -ForegroundColor Cyan
 

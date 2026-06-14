@@ -15,6 +15,8 @@ function Enable-ScriptExecution {
   .SYNOPSIS
     Sets execution policy to RemoteSigned and unblocks scripts in this directory.
   #>
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "Enabling PowerShell scripts..." -ForegroundColor Cyan
   Write-Host ""
 
@@ -45,6 +47,8 @@ function Disable-ScriptExecution {
   .SYNOPSIS
     Removes PowerShell file associations and restricts execution policy.
   #>
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
   Write-Host "Disabling PowerShell scripts..." -ForegroundColor Cyan
   Write-Host ""
 

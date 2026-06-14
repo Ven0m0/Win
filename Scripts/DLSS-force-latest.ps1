@@ -9,11 +9,12 @@ $ProgressPreference    = 'SilentlyContinue'
 . "$PSScriptRoot\Common.ps1"
 
 function New-DLSSInspectorConfig {
+  [CmdletBinding()]
   <#
   .SYNOPSIS
-      Generates NVIDIA Profile Inspector XML configuration for DLSS settings
+      Generates NVIDIA Profile Inspector XML configuration for DLSS settings.
   .PARAMETER EnableDLSSOverride
-      If $true, enables DLSS-SR override settings; if $false, disables them
+      If $true, enables DLSS-SR override settings; if $false, disables them.
   #>
   param([bool]$EnableDLSSOverride = $true)
 
@@ -236,7 +237,7 @@ $dlssOverrideSettings      <ProfileSetting>
 }
 
 function Start-DLSSForceLatestMenu {
-  [CmdletBinding()]
+  [CmdletBinding(SupportsShouldProcess)]
   param()
 
   # Request admin elevation
@@ -245,24 +246,22 @@ function Start-DLSSForceLatestMenu {
   # Initialize console UI
   Initialize-ConsoleUI -Title "DLSS Force Latest (Administrator)"
 
-  Write-Host "Installing: NvidiaProfileInspector . . ."
+  Write-Verbose "Installing: NvidiaProfileInspector . . ."
   # check for file
   if (-Not (Test-Path -Path "$env:TEMP\Inspector.exe")) {
     # unblock drs files
-    $path = "C:\ProgramData\NVIDIA Corporation\Drs"
-    Get-ChildItem -Path $path -Recurse | Unblock-File
+    $drsPath = "C:\ProgramData\NVIDIA Corporation\Drs"
+    Get-ChildItem -Path $drsPath -Recurse | Unblock-File
     # download inspector
     Get-FileFromWeb -URL "https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe" `
       -File "$env:TEMP\Inspector.exe"
     # enable nvidia legacy sharpen
-    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" -Name "EnableGR535" `
-      -Type REG_DWORD -Data 1
-    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" -Name "EnableGR535" `
-      -Type REG_DWORD -Data 1
-    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" -Name "EnableGR535" `
-      -Type REG_DWORD -Data 1
-  } else {
-    # skip
+    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS" `
+      -Name "EnableGR535" -Type REG_DWORD -Data 1
+    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS" `
+      -Name "EnableGR535" -Type REG_DWORD -Data 1
+    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS" `
+      -Name "EnableGR535" -Type REG_DWORD -Data 1
   }
   Clear-Host
 
@@ -276,81 +275,72 @@ function Start-DLSSForceLatestMenu {
       "Inspector"
     )
 
-    Write-Host ""
-    Write-Host "DLSSv3 v310.X.X or above = DLSS 4" -ForegroundColor Red
-    Write-Host "DLSSv3 v3.X.X  or below = DLSS 3" -ForegroundColor Red
-    Write-Host ""
+    Write-Verbose ""
+    Write-Warning "DLSSv3 v310.X.X or above = DLSS 4"
+    Write-Warning "DLSSv3 v3.X.X  or below = DLSS 3"
+    Write-Verbose ""
 
     $choice = Get-MenuChoice -Min 1 -Max 6
+
+    $drsDb0 = "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin"
+    $drsDb1 = "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin"
 
     switch ($choice) {
       1 {
         Clear-Host
-        Write-Host "DLSS Force Latest: On"
-        # revert read only nvdrsdb0.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" `
-          -Name IsReadOnly -Value $false
-        # revert read only nvdrsdb1.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" `
-          -Name IsReadOnly -Value $false
+        Write-Info "DLSS Force Latest: On"
+        # revert read only nvdrsdb0.bin and nvdrsdb1.bin
+        Set-ItemProperty -Path $drsDb0 -Name IsReadOnly -Value $false
+        Set-ItemProperty -Path $drsDb1 -Name IsReadOnly -Value $false
         # create config for inspector
         $config = New-DLSSInspectorConfig -EnableDLSSOverride $true
         Set-Content -Path "$env:TEMP\DLSSLatestOn.nip" -Value $config -Force
         # import config
-        Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOn.nip"
+        Start-Process -FilePath "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOn.nip" -Wait
       }
       2 {
         Clear-Host
-        Write-Host "DLSS Force Latest: Off"
-        # revert read only nvdrsdb0.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" `
-          -Name IsReadOnly -Value $false
-        # revert read only nvdrsdb1.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" `
-          -Name IsReadOnly -Value $false
+        Write-Info "DLSS Force Latest: Off"
+        # revert read only nvdrsdb0.bin and nvdrsdb1.bin
+        Set-ItemProperty -Path $drsDb0 -Name IsReadOnly -Value $false
+        Set-ItemProperty -Path $drsDb1 -Name IsReadOnly -Value $false
         # create config for inspector
         $config = New-DLSSInspectorConfig -EnableDLSSOverride $false
         Set-Content -Path "$env:TEMP\DLSSLatestOff.nip" -Value $config -Force
         # import config
-        Start-Process -wait "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOff.nip"
+        Start-Process -FilePath "$env:TEMP\Inspector.exe" -ArgumentList "$env:TEMP\DLSSLatestOff.nip" -Wait
       }
       3 {
-          Clear-Host
-          Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" `
-            -Name "ShowDlssIndicator" -Type REG_DWORD -Data 1
-          Write-Info "DLSS Overlay: On . . ."
-          Wait-ForKeyPress
+        Clear-Host
+        Set-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" `
+          -Name "ShowDlssIndicator" -Type REG_DWORD -Data 1
+        Write-Info "DLSS Overlay: On . . ."
+        Wait-ForKeyPress
       }
       4 {
-          Clear-Host
-          Remove-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" -Name "ShowDlssIndicator"
-          Write-Info "DLSS Overlay: Off (Default) . . ."
-          Wait-ForKeyPress
+        Clear-Host
+        Remove-RegistryValue -Path "HKLM\SOFTWARE\NVIDIA Corporation\Global\NGXCore" `
+          -Name "ShowDlssIndicator"
+        Write-Info "DLSS Overlay: Off (Default) . . ."
+        Wait-ForKeyPress
       }
       5 {
         Clear-Host
-        # read only nvdrsdb0.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" `
-          -Name IsReadOnly -Value $true
-        # read only nvdrsdb1.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" `
-          -Name IsReadOnly -Value $true
-        Write-Host "Read Only"
-        Write-Host ""
-        Write-Host "nvdrsdb0.bin & nvdrsdb1.bin set to read only"
+        # set nvdrsdb0.bin and nvdrsdb1.bin to read-only
+        Set-ItemProperty -Path $drsDb0 -Name IsReadOnly -Value $true
+        Set-ItemProperty -Path $drsDb1 -Name IsReadOnly -Value $true
+        Write-Info "Read Only"
+        Write-Verbose "nvdrsdb0.bin & nvdrsdb1.bin set to read only"
         Wait-ForKeyPress -Message "Press any key to continue . . ."
       }
       6 {
         Clear-Host
-        Write-Host "Inspector"
-        # revert read only nvdrsdb0.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb0.bin" `
-          -Name IsReadOnly -Value $false
-        # revert read only nvdrsdb1.bin
-        Set-ItemProperty -Path "$env:SystemDrive\ProgramData\NVIDIA Corporation\Drs\nvdrsdb1.bin" `
-          -Name IsReadOnly -Value $false
+        Write-Info "Inspector"
+        # revert read only nvdrsdb0.bin and nvdrsdb1.bin
+        Set-ItemProperty -Path $drsDb0 -Name IsReadOnly -Value $false
+        Set-ItemProperty -Path $drsDb1 -Name IsReadOnly -Value $false
         # open inspector
-        Start-Process -wait "$env:TEMP\Inspector.exe"
+        Start-Process -FilePath "$env:TEMP\Inspector.exe" -Wait
       }
     }
   }

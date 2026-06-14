@@ -17,7 +17,7 @@ param(
     [ValidateSet('1','2','3','4','5','6','0')]
     [string]$Option
 )
-
+$ProgressPreference = 'SilentlyContinue'
 $script:Warn = '[!]'
 $script:Esc  = [char]27
 
@@ -305,6 +305,10 @@ function Show-Credit {
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+# Skip main when dot-sourced (e.g. by Pester tests) — the menu loop blocks forever
+# in non-interactive sessions and 'exit 1' would kill the host process.
+if ($MyInvocation.InvocationName -eq '.') { return }
+
 $CurrentDir = Find-ArcRaider
 if (-not $CurrentDir) {
     Write-Host ""

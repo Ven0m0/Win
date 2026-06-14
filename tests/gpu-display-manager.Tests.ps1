@@ -4,7 +4,7 @@ BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     # Load the script to test
-    . "$PSScriptRoot/../Scripts/gpu-display-manager.ps1"
+    . "$PSScriptRoot/../Scripts/system-settings-manager.ps1"
 }
 
 Describe "gpu-display-manager.ps1 functions" {
@@ -20,7 +20,7 @@ Describe "gpu-display-manager.ps1 functions" {
             Assert-MockCalled Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
                 $Name -eq "DisableDynamicPstate" -and $Type -eq "REG_DWORD" -and $Data -eq "1"
             }
-            Assert-MockCalled Show-NvidiaGpuSettings -Times 1
+            Assert-MockCalled Show-NvidiaGpuSetting -Times 1
         }
     }
 
@@ -36,7 +36,7 @@ Describe "gpu-display-manager.ps1 functions" {
             Assert-MockCalled Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
                 $Name -eq "RMHdcpKeyglobZero" -and $Type -eq "REG_DWORD" -and $Data -eq "0"
             }
-            Assert-MockCalled Show-NvidiaGpuSettings -Times 1
+            Assert-MockCalled Show-NvidiaGpuSetting -Times 1
         }
     }
 }

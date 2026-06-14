@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
@@ -6,95 +6,105 @@
 .DESCRIPTION
     Copies game settings, keybinds, and preferences to the user's dotfiles.
     Does NOT copy account login credentials or sensitive data.
+.PARAMETER DotfilesPath
+    Destination directory under which game config subdirectories are created.
 .EXAMPLE
-    .\Backup-GameConfigs.ps1
+    .\Backup-GameConfig.ps1
+    .\Backup-GameConfig.ps1 -DotfilesPath "$HOME\.dotfiles\config\games"
 #>
 
 [CmdletBinding()]
 param(
-    [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
+  [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
 
-function Write-BackupStatus {
-    param([string]$Message, [string]$Color = 'White')
-    Write-Host "[Backup] $Message" -ForegroundColor $Color
-}
+. "$PSScriptRoot\Common.ps1"
 
-$bo6Source = "$env:USERPROFILE\Documents\Call of Duty\players"
-$bo6Dest = "$DotfilesPath\bo6"
+function Backup-GameConfig {
+  <#
+  .SYNOPSIS
+      Runs the full game config backup to the specified dotfiles path.
+  .PARAMETER DotfilesPath
+      Root directory for backed-up configs.
+  #>
+  [CmdletBinding()]
+  param(
+    [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
+  )
 
-$arcRaidersSource = "$env:LOCALAPPDATA\PioneerGame\Saved\SaveGames"
-$arcRaidersDest = "$DotfilesPath\arc-raiders"
+  $bo6Source = "$env:USERPROFILE\Documents\Call of Duty\players"
+  $bo6Dest   = "$DotfilesPath\bo6"
 
-Write-BackupStatus "Starting game config backup..." -Color Cyan
-Write-BackupStatus "Destination: $DotfilesPath" -Color Gray
+  $arcRaidersSource = "$env:LOCALAPPDATA\PioneerGame\Saved\SaveGames"
+  $arcRaidersDest   = "$DotfilesPath\arc-raiders"
 
-if (-not (Test-Path $DotfilesPath)) {
-    [void](New-Item -ItemType Directory -Path $DotfilesPath -Force)
-}
+  Write-ColorOutput "[Backup] Starting game config backup..." -ForegroundColor Cyan
+  Write-ColorOutput "[Backup] Destination: $DotfilesPath" -ForegroundColor Gray
 
-if (Test-Path $bo6Source) {
-    Write-BackupStatus "Backing up Black Ops 6 settings..." -Color Yellow
+  Ensure-Directory -Path $DotfilesPath
 
-    if (-not (Test-Path $bo6Dest)) {
-        [void](New-Item -ItemType Directory -Path $bo6Dest -Force)
-    }
+  if (Test-Path -Path $bo6Source) {
+    Write-ColorOutput "[Backup] Backing up Black Ops 6 settings..." -ForegroundColor Yellow
+
+    Ensure-Directory -Path $bo6Dest
 
     $playerFolders = Get-ChildItem -Path $bo6Source -Directory -ErrorAction SilentlyContinue
     foreach ($playerFolder in $playerFolders) {
-        $destPlayerFolder = Join-Path $bo6Dest $playerFolder.Name
-        if (-not (Test-Path $destPlayerFolder)) {
-            [void](New-Item -ItemType Directory -Path $destPlayerFolder -Force)
-        }
+      $destPlayerFolder = Join-Path -Path $bo6Dest -ChildPath $playerFolder.Name
+      Ensure-Directory -Path $destPlayerFolder
 
-        $filesToCopy = Get-ChildItem -Path $playerFolder.FullName -File -ErrorAction SilentlyContinue
-        foreach ($file in $filesToCopy) {
-            Copy-Item -Path $file.FullName -Destination $destPlayerFolder -Force
-            Write-BackupStatus "  Copied: $($file.Name)" -Color Gray
-        }
+      $filesToCopy = Get-ChildItem -Path $playerFolder.FullName -File -ErrorAction SilentlyContinue
+      foreach ($file in $filesToCopy) {
+        Copy-Item -Path $file.FullName -Destination $destPlayerFolder -Force
+        Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
+      }
     }
 
     $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -match '^s' }
+      Where-Object { $_.Name -match '^s' }
     foreach ($file in $rootFiles) {
-        Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
-        Write-BackupStatus "  Copied: $($file.Name)" -Color Gray
+      Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
+      Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
     }
 
-    Write-BackupStatus "Black Ops 6 backup complete!" -Color Green
-} else {
-    Write-BackupStatus "Black Ops 6 settings not found at $bo6Source" -Color Yellow
-}
+    Write-ColorOutput "[Backup] Black Ops 6 backup complete!" -ForegroundColor Green
+  } else {
+    Write-ColorOutput "[Backup] Black Ops 6 settings not found at $bo6Source" -ForegroundColor Yellow
+  }
 
-if (Test-Path $arcRaidersSource) {
-    Write-BackupStatus "Backing up Arc Raiders settings..." -Color Yellow
+  if (Test-Path -Path $arcRaidersSource) {
+    Write-ColorOutput "[Backup] Backing up Arc Raiders settings..." -ForegroundColor Yellow
 
-    if (-not (Test-Path $arcRaidersDest)) {
-        [void](New-Item -ItemType Directory -Path $arcRaidersDest -Force)
-    }
+    Ensure-Directory -Path $arcRaidersDest
 
-    $keybindsFile = Get-ChildItem -Path $arcRaidersSource -File -Filter "*KeyBindings*.sav" -ErrorAction SilentlyContinu
+    $keybindsFile = Get-ChildItem -Path $arcRaidersSource -File -Filter '*KeyBindings*.sav' `
+      -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($keybindsFile) {
-        Copy-Item -Path $keybindsFile.FullName -Destination (Join-Path $arcRaidersDest "keybinds.sav") -Force
-        Write-BackupStatus "  Copied: keybinds.sav" -Color Gray
+      Copy-Item -Path $keybindsFile.FullName -Destination (Join-Path -Path $arcRaidersDest -ChildPath 'keybinds.sav') -Force
+      Write-ColorOutput "[Backup]   Copied: keybinds.sav" -ForegroundColor Gray
     }
 
     $settingsFiles = @('GameUserSettings.ini', 'Engine.ini')
     foreach ($settingsFile in $settingsFiles) {
-        $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile `
-    -Recurse -ErrorAction SilentlyCo
-        if ($sourceFile) {
-            Copy-Item -Path $sourceFile.FullName -Destination $arcRaidersDest -Force
-            Write-BackupStatus "  Copied: $settingsFile" -Color Gray
-        }
+      $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile `
+        -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+      if ($sourceFile) {
+        Copy-Item -Path $sourceFile.FullName -Destination $arcRaidersDest -Force
+        Write-ColorOutput "[Backup]   Copied: $settingsFile" -ForegroundColor Gray
+      }
     }
 
-    Write-BackupStatus "Arc Raiders backup complete!" -Color Green
-} else {
-    Write-BackupStatus "Arc Raiders settings not found at $arcRaidersSource" -Color Yellow
+    Write-ColorOutput "[Backup] Arc Raiders backup complete!" -ForegroundColor Green
+  } else {
+    Write-ColorOutput "[Backup] Arc Raiders settings not found at $arcRaidersSource" -ForegroundColor Yellow
+  }
+
+  Write-ColorOutput "[Backup] All game configs backed up successfully!" -ForegroundColor Green
 }
 
-Write-BackupStatus "All game configs backed up successfully!" -Color Green
+if ($MyInvocation.InvocationName -ne '.') {
+  Backup-GameConfig -DotfilesPath $DotfilesPath
+}

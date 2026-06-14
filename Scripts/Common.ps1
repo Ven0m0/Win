@@ -4,6 +4,8 @@
 # This module provides reusable functions to avoid code duplication
 # Suppress Write-ColorOutput warnings for UI helper functions
 
+$ErrorActionPreference = 'Stop'
+
 #region Internal Helpers
 function Write-ColorOutput {
     [CmdletBinding()]
@@ -14,24 +16,26 @@ function Write-ColorOutput {
         [System.ConsoleColor]$BackgroundColor,
         [switch]$NoNewline
     )
-    $oldFg = $host.UI.RawUI.ForegroundColor
-    $oldBg = $host.UI.RawUI.BackgroundColor
-    try {
-        if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
-            $host.UI.RawUI.ForegroundColor = $ForegroundColor
+    process {
+        $oldFg = $host.UI.RawUI.ForegroundColor
+        $oldBg = $host.UI.RawUI.BackgroundColor
+        try {
+            if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+                $host.UI.RawUI.ForegroundColor = $ForegroundColor
+            }
+            if ($PSBoundParameters.ContainsKey('BackgroundColor')) {
+                $host.UI.RawUI.BackgroundColor = $BackgroundColor
+            }
+            $text = if ($null -ne $Object) { $Object.ToString() } else { "" }
+            if ($NoNewline) {
+                $host.UI.Write($text)
+            } else {
+                $host.UI.WriteLine($text)
+            }
+        } finally {
+            $host.UI.RawUI.ForegroundColor = $oldFg
+            $host.UI.RawUI.BackgroundColor = $oldBg
         }
-        if ($PSBoundParameters.ContainsKey('BackgroundColor')) {
-            $host.UI.RawUI.BackgroundColor = $BackgroundColor
-        }
-        $text = if ($null -ne $Object) { $Object.ToString() } else { "" }
-        if ($NoNewline) {
-            $host.UI.Write($text)
-        } else {
-            $host.UI.WriteLine($text)
-        }
-    } finally {
-        $host.UI.RawUI.ForegroundColor = $oldFg
-        $host.UI.RawUI.BackgroundColor = $oldBg
     }
 }
 #endregion
@@ -172,7 +176,7 @@ function Show-RestartRequired {
 
 #region Registry Helpers
 function Set-RegistryValue {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Sets a registry value with error suppression
@@ -192,11 +196,13 @@ function Set-RegistryValue {
         [string]$Data
     )
 
-    $null = reg add $Path /v $Name /t $Type /d $Data /f 2>&1
+    if ($PSCmdlet.ShouldProcess("$Path\$Name", 'Set registry value')) {
+        $null = reg add $Path /v $Name /t $Type /d $Data /f 2>&1
+    }
 }
 
 function Remove-RegistryValue {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Removes a registry value with error suppression
@@ -211,9 +217,13 @@ function Remove-RegistryValue {
     )
 
     if ($Name) {
-        $null = reg delete $Path /v $Name /f 2>&1
+        if ($PSCmdlet.ShouldProcess("$Path\$Name", 'Remove registry value')) {
+            $null = reg delete $Path /v $Name /f 2>&1
+        }
     } else {
-        $null = reg delete $Path /f 2>&1
+        if ($PSCmdlet.ShouldProcess($Path, 'Remove registry key')) {
+            $null = reg delete $Path /f 2>&1
+        }
     }
 }
 
@@ -251,7 +261,7 @@ function Get-NvidiaGpuPath {
 }
 
 function Set-NvidiaGpuRegistryValue {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Sets a registry value for all NVIDIA GPUs
@@ -422,7 +432,7 @@ function Get-RegistryValueSafe {
 }
 
 function Set-NvidiaSignatureOverride {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Enables or disables NVIDIA driver signature override
@@ -553,8 +563,7 @@ function Get-FileFromWeb {
             Write-Progress "$ProgressText" -id 0 -percentComplete $percentComplete
         } else {
             Write-ColorOutput -NoNewLine `
-                "`r$ProgressText $($(''.PadRight($BarSize * $percent, [char]9608)).PadRight($BarSize, [char]9617)) " `
-                "$($percentComplete.ToString('##0.00').PadLeft(6)) % "
+                "`r$ProgressText $($(''.PadRight($BarSize * $percent, [char]9608)).PadRight($BarSize, [char]9617)) $($percentComplete.ToString('##0.00').PadLeft(6)) % "
         }
     }
 
@@ -593,7 +602,7 @@ function Get-FileFromWeb {
             $writer.Write($buffer, 0, $count)
             $total += $count
             if ($fullSize -gt 0) {
-                Show-Progress -TotalValue $fullSize -CurrentValue $total -ProgressText " $($File.Name)"
+                Show-Progress -TotalValue $fullSize -CurrentValue $total -ProgressText " $([System.IO.Path]::GetFileName($File))"
             }
         } while ($count -gt 0)
     }
@@ -640,7 +649,7 @@ function Get-MonitorInstance {
 
 #region Gaming Display Settings
 function Set-FullscreenMode {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Configures fullscreen mode (FSO or FSE)
@@ -684,7 +693,7 @@ function Set-FullscreenMode {
 }
 
 function Set-MultiPlaneOverlay {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Configures Multiplane Overlay and windowed game optimizations
@@ -801,7 +810,7 @@ function ConvertFrom-VDF {
         [string[]]$Content,
         [ref]$line = ([ref]0)
     )
-    $re = '\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\Z'
+    $re = '\A\s*("(?<k>[^"]+)"|(?<b>[\{\}]))\s*(?<v>"(?:\\"|[^"])*")?\s*\Z'
     $obj = [ordered]@{}
 
     while ($line.Value -lt $Content.Count) {
@@ -883,7 +892,7 @@ function Clear-DirectorySafe {
 
 #region System Management
 function New-RestorePoint {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Creates a system restore point
@@ -893,6 +902,8 @@ function New-RestorePoint {
     param(
         [string]$Description = "Before Optimization"
     )
+
+    if (-not $PSCmdlet.ShouldProcess("$($env:SystemDrive)", 'Create system restore point')) { return }
 
     Write-ColorOutput "Creating System Restore Point..." -ForegroundColor Yellow
     try {
@@ -914,7 +925,7 @@ function New-RestorePoint {
 
 #region App Management
 function Remove-AppxPackageSafe {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Safely removes an Appx package for all users and its provisioned counterpart
@@ -961,7 +972,7 @@ function Remove-AppxPackageSafe {
 
 #region EDID Override Management
 function Set-EDIDOverride {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Applies EDID override to all monitors to fix display driver stuttering
@@ -994,7 +1005,7 @@ function Set-EDIDOverride {
 }
 
 function Remove-EDIDOverride {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Removes EDID override from all monitors
@@ -1063,7 +1074,7 @@ function Show-EDIDStatus {
 
 #region MSI Mode
 function Set-MSIMode {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Enables or disables MSI mode for all display adapters
@@ -1200,11 +1211,11 @@ function Add-Log {
 
 function Get-Log {
     [CmdletBinding()]
-    param()
     <#
     .SYNOPSIS
         Returns the accumulated log entries
     #>
+    param()
     return $script:LogOutput
 }
 
@@ -1396,9 +1407,7 @@ function Clear-PathSafe {
         Clear-PathSafe -Path "C:\Cache" -Recurse
     #>
     param(
-        [Parameter(Mandatory)][string]$Path,
-        [switch]$Recurse,
-        [switch]$UseRobocopy
+        [Parameter(Mandatory)][string]$Path
     )
 
     # Detect wildcard characters
@@ -1467,8 +1476,34 @@ function Invoke-ServiceOperation {
     }
 }
 
+function Get-SteamPath {
+  <#
+  .SYNOPSIS
+      Returns the Steam installation path, optionally overridden by caller.
+  .PARAMETER Override
+      If provided, returned as-is without registry lookup.
+  #>
+  [CmdletBinding()]
+  [OutputType([string])]
+  param([string]$Override)
+
+  if ($Override) { return $Override }
+  try {
+    $reg = Get-ItemProperty 'HKLM:\SOFTWARE\Wow6432Node\Valve\Steam' `
+      -Name InstallPath -ErrorAction SilentlyContinue
+    if ($reg) { return $reg.InstallPath }
+  } catch { Write-Verbose "Get-SteamPath: HKLM lookup failed: $_" }
+  try {
+    $reg = Get-ItemProperty 'HKCU:\Software\Valve\Steam' `
+      -Name SteamPath -ErrorAction SilentlyContinue
+    if ($reg) { return $reg.SteamPath }
+  } catch { Write-Verbose "Get-SteamPath: HKCU lookup failed: $_" }
+  return "${env:ProgramFiles(x86)}\Steam"
+}
+
+
 function Stop-SteamGracefully {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     <#
     .SYNOPSIS
         Stops Steam process gracefully (shutdown then force kill)
@@ -1489,12 +1524,7 @@ function Stop-SteamGracefully {
     if (Get-Process -Name 'steam' -ErrorAction SilentlyContinue) {
         Write-Info "Shutting down Steam..."
 
-        $steamPath = (Get-ItemProperty "HKLM:\SOFTWARE\WOW6432Node\Valve\Steam" `
-            -Name 'InstallPath' -ErrorAction SilentlyContinue).InstallPath
-        if (-not $steamPath) {
-            $steamPath = (Get-ItemProperty "HKCU:\Software\Valve\Steam" `
-                -Name 'SteamPath' -ErrorAction SilentlyContinue).SteamPath
-        }
+        $steamPath = Get-SteamPath
 
         if ($steamPath) {
             $shutdownArgs = "-ifrunning -silent -shutdown +quit now"
@@ -1671,8 +1701,7 @@ function Install-WingetPackage {
         [string]$Id,
 
         [string]$Name,
-        [string]$ExePath,
-        [switch]$NoWait
+        [string]$ExePath
     )
 
     if (-not $Name) { $Name = $Id }
@@ -1736,7 +1765,7 @@ function Invoke-BuildOperation {
     $statusColor = 'Cyan'
     Write-ColorOutput "  [RUNNING] $Name" -ForegroundColor $statusColor
     try {
-        $result = & $Action
+        $null = & $Action
         $color = switch ($SuccessStatus) { 'OK' { 'Green' } 'SKIP' { 'Yellow' } default { 'Green' } }
         Write-ColorOutput "  [$SuccessStatus] $Name" -ForegroundColor $color
         return $true

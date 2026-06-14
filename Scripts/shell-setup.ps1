@@ -17,6 +17,8 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $VerbosePreference = 'Continue'
 
+. "$PSScriptRoot\Common.ps1"
+
 function Invoke-Elevated {
   [CmdletBinding()]
   param(
@@ -32,8 +34,10 @@ function Invoke-Elevated {
   }
   if ($Hidden) { $psi.WindowStyle = 'Hidden' }
   $proc = Start-Process @psi -PassThru
-  if (-not $NoWait) { $proc.WaitForExit();
-    if ($proc.ExitCode -ne 0) { throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode))" } }
+  if (-not $NoWait) {
+    $proc.WaitForExit()
+    if ($proc.ExitCode -ne 0) { throw "Command failed: $FilePath $ArgumentList (exit $($proc.ExitCode))" }
+  }
 }
 
 function Install-ScoopApp {
@@ -48,15 +52,7 @@ function Install-ScoopApp {
   }
 }
 
-function Install-WinGetApp {
-  [CmdletBinding()]
-  param([Parameter(Mandatory)][string]$PackageID)
-  Write-Verbose "Installing $PackageID"
-  winget install --silent --id "$PackageID" --accept-source-agreements --accept-package-agreements
-  if ($LASTEXITCODE -notin @(0, -1978335189)) {
-    throw "Install-WinGetApp failed: $PackageID (exit $LASTEXITCODE)"
-  }
-}
+
 
 function Install-ChocoApp {
   [CmdletBinding()]
@@ -81,13 +77,13 @@ function Expand-Download {
   if (Test-Path -LiteralPath $File -PathType Leaf) {
     $ext = ($File.Split(".") | Select-Object -Last 1).ToLowerInvariant()
     switch ($ext) {
-      "rar" { Start-Process -FilePath "UnRar.exe" -ArgumentList "x",
-    "-op'$Folder'",
-    "-y",
-    "$File" -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait | Out-Null }
-      "zip" { 7z x -o"$Folder" -y "$File" | Out-Null }
-      "7z"  { 7z x -o"$Folder" -y "$File" | Out-Null }
-      "exe" { 7z x -o"$Folder" -y "$File" | Out-Null }
+      "rar" {
+        $null = Start-Process -FilePath "UnRar.exe" -ArgumentList "x", "-op'$Folder'", "-y", "$File" `
+          -WorkingDirectory "$Env:ProgramFiles\WinRAR\" -Wait
+      }
+      "zip" { $null = & 7z x -o"$Folder" -y "$File" }
+      "7z"  { $null = & 7z x -o"$Folder" -y "$File" }
+      "exe" { $null = & 7z x -o"$Folder" -y "$File" }
       Default { throw "No extractor for $File" }
     }
   }
@@ -121,7 +117,7 @@ function Install-CustomApp {
   if (Test-Path -LiteralPath $downloadPath -PathType Leaf) {
     if ($PSBoundParameters.ContainsKey('Folder')) {
       $target = Join-Path "$Env:UserProfile\bin" $Folder
-      if (-not (Test-Path -LiteralPath $target)) { New-Item -Path $target -ItemType Directory | Out-Null }
+      if (-not (Test-Path -LiteralPath $target)) { $null = New-Item -Path $target -ItemType Directory }
       Expand-Download -Folder $target -File $downloadPath
     } else {
       Expand-Download -Folder "$Env:UserProfile\bin\" -File $downloadPath
@@ -153,6 +149,8 @@ function Enable-Bucket {
 }
 
 function Start-MainFunction {
+  [CmdletBinding(SupportsShouldProcess)]
+  [OutputType([string])]
   param([switch]$HomeWorkstation)
 
 # ExecutionPolicy: CurrentUser -> RemoteSigned
@@ -204,7 +202,7 @@ finally {
 }
 
 # WinGet
-if (-not (Get-AppPackage -name "Microsoft.DesktopAppInstaller")) {
+if (-not (Get-AppxPackage -Name "Microsoft.DesktopAppInstaller")) {
   Write-Verbose "Installing WinGet..."
   @'
 $releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
@@ -212,7 +210,7 @@ $releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/late
 Register-PackageSource -Name Nuget -Location "https://www.nuget.org/api/v2" -ProviderName Nuget -Trusted
 Install-Package Microsoft.UI.Xaml -RequiredVersion 2.7.1
 $releases = Invoke-RestMethod -uri $releases_url
-$latestRelease = $releases.assets | Where { $_.browser_download_url.EndsWith('msixbundle') } | Select-Object -First 1
+$latestRelease = $releases.assets | Where-Object { $_.browser_download_url.EndsWith('msixbundle') } | Select-Object -First 1
 Add-AppxPackage -Path $latestRelease.browser_download_url
 '@ > $Env:Temp\winget.ps1
   Invoke-Elevated -FilePath "PowerShell" -ArgumentList "$Env:Temp\winget.ps1"
@@ -232,7 +230,7 @@ Invoke-Elevated -FilePath "PowerShell" -ArgumentList "${Env:Temp}\openssh.ps1" -
 Remove-Item -LiteralPath "${Env:Temp}\openssh.ps1" -Force
 
 # Git
-Install-WinGetApp -PackageID "Git.Git"
+Invoke-Winget -Id "Git.Git"
 Start-Sleep -Seconds 5
 refreshenv
 Start-Sleep -Seconds 5
@@ -249,8 +247,8 @@ if ((Get-Service -Name ssh-agent).Status -ne "Running") {
 
 # Aria2
 Install-ScoopApp -Package "aria2"
-if (-not (scoop config aria2-enabled) -eq $True) { scoop config aria2-enabled true }
-if (-not (scoop config aria2-warning-enabled) -eq $False) { scoop config aria2-warning-enabled false }
+if ((scoop config aria2-enabled) -ne $True) { scoop config aria2-enabled true }
+if ((scoop config aria2-warning-enabled) -ne $False) { scoop config aria2-warning-enabled false }
 if (-not (Get-ScheduledTaskInfo -TaskName "Aria2RPC" -ErrorAction Ignore)) {
 @'
 $Action = New-ScheduledTaskAction -Execute $Env:UserProfile\scoop\apps\aria2\current\aria2c.exe `
@@ -285,7 +283,7 @@ if (-not $PSBoundParameters.ContainsKey("HomeWorkstation")) {
 
 if ($HomeWorkstation -and -not (Test-Path -LiteralPath $Env:UserProfile\bin)) {
   Write-Verbose "Creating bin directory in $Env:UserProfile"
-  New-Item -Path $Env:UserProfile\bin -ItemType Directory | Out-Null
+  $null = New-Item -Path $Env:UserProfile\bin -ItemType Directory
 }
 
 # Scoop packages
@@ -340,7 +338,7 @@ $WinGet = @(
     "ElaborateBytes.VirtualCloneDrive",
   "RARLab.WinRAR","Piriform.Speccy","Piriform.Defraggler","Starship.Starship","OliverBetz.ExifTool"
 )
-foreach ($item in $WinGet) { Install-WinGetApp -PackageID $item }
+foreach ($item in $WinGet) { Invoke-Winget -Id $item }
 
 if ($HomeWorkstation) {
   $WinGet = @(
@@ -366,7 +364,7 @@ if ($HomeWorkstation) {
     "Romcenter.Romcenter",
     "Valve.Steam"
   )
-  foreach ($item in $WinGet) { Install-WinGetApp -PackageID $item }
+  foreach ($item in $WinGet) { Invoke-Winget -Id $item }
 }
 
 # VSCode custom install
@@ -410,11 +408,10 @@ Install-CustomApp -URL "https://code.kliu.org/misc/winisoutils/eicfg_removal_uti
     -Folder "ei.cfg-removal-utility"
 Install-CustomPackage `
     -URL "https://downloads.sourceforge.net/project/catacombae/HFSExplorer/2021.10.9/hfsexplorer-2021.10.9-setup.exe"
-New-Item -Path "$Env:UserProfile\bin\RipMe" -ItemType Directory -ErrorAction Ignore | Out-Null
-Get-CustomApp `
+$null = New-Item -Path "$Env:UserProfile\bin\RipMe" -ItemType Directory -ErrorAction Ignore
+$null = Get-CustomApp `
     -Link "https://github.com/RipMeApp/ripme/releases/download/1.7.95/ripme.jar" `
-    -Folder "$Env:UserProfile\bin\RipMe" |
-  Out-Null
+    -Folder "$Env:UserProfile\bin\RipMe"
 Install-CustomApp -URL "https://image.easyeda.com/files/easyeda-router-windows-x64-v0.8.11.zip"
 
 if ($HomeWorkstation) {
@@ -437,11 +434,10 @@ if ($HomeWorkstation) {
   Install-CustomApp `
     -URL "https://github.com/KirovAir/TwilightBoxart/releases/download/0.7/TwilightBoxart-Windows-UX.zip" `
     -Folder "TwilightMenuBoxArt"
-  New-Item -Path "$Env:UserProfile\bin\ISOToolkit" -ItemType Directory -ErrorAction Ignore | Out-Null
-  Get-CustomApp `
+  $null = New-Item -Path "$Env:UserProfile\bin\ISOToolkit" -ItemType Directory -ErrorAction Ignore
+  $null = Get-CustomApp `
     -Link "https://files1.majorgeeks.com/10afebdbffcd4742c81a3cb0f6ce4092156b4375/cddvd/ISOToolKit.exe" `
-    -Folder "$Env:UserProfile\bin\ISOToolkit" |
-  Out-Null
+    -Folder "$Env:UserProfile\bin\ISOToolkit"
   Install-CustomApp -URL "https://github.com/putnam/binmerge/releases/download/1.0.1/binmerge-1.0.1-win64.zip"
   Install-CustomApp -URL "https://www.psx-place.com/resources/ppf-o-matic.507/download?version=717" `
     -Folder "ppf-o-matic"
@@ -452,7 +448,7 @@ if ($HomeWorkstation) {
   $Package = Get-CustomApp `
     -Link "https://github.com/mamedev/mame/releases/download/mame0242/mame0242b_64bit.exe" `
     -Folder "$Env:UserProfile\Downloads\"
-  7z e -o"$Env:UserProfile\bin\" -y "$Env:UserProfile\Downloads\$Package" chdman.exe | Out-Null
+  $null = & 7z e -o"$Env:UserProfile\bin\" -y "$Env:UserProfile\Downloads\$Package" chdman.exe
   Remove-Item -LiteralPath "$Env:UserProfile\Downloads\$Package" -Force
   Install-CustomApp -URL "https://lib.openmpt.org/files/libopenmpt/bin/libopenmpt-0.6.3+release.bin.windows.zip" `
     -Folder "OpenMPT123"
@@ -479,7 +475,7 @@ if (-not (Test-Path -LiteralPath "$Env:AppData\Microsoft\Windows\Start Menu\Prog
 # GO env
 if (-not (Test-Path -LiteralPath "$Env:UserProfile\go\" -PathType Container)) {
   Write-Verbose "Configuring GO Environment..."
-  New-Item -Path "${Env:UserProfile}\go" -ItemType Directory | Out-Null
+  $null = New-Item -Path "${Env:UserProfile}\go" -ItemType Directory
   [System.Environment]::SetEnvironmentVariable('GOPATH', "${Env:UserProfile}\go", 'USER')
 }
 

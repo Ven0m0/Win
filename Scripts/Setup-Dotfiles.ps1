@@ -65,9 +65,9 @@ function Deploy-Config {
 
   if ($PSCmdlet.ShouldProcess($Destination, "Deploy $Label")) {
     if (-not (Test-Path $destDir)) {
-      New-Item -ItemType Directory -Path $destDir -Force | Out-Null
+      $null = New-Item -ItemType Directory -Path $destDir -Force
     }
-    Copy-Item $Source $Destination -Force
+    Copy-Item -Path $Source -Destination $Destination -Force
     Write-Host "  [OK] $Label deployed" -ForegroundColor Green
   }
 }
@@ -142,7 +142,7 @@ function Import-RegistryConfig {
   }
 
   if ($PSCmdlet.ShouldProcess('Registry', "Import $Label")) {
-    & reg.exe import $Source | Out-Null
+    $null = & reg.exe import $Source 2>&1
     if ($LASTEXITCODE -eq 0) {
       Write-Host "  [OK] $Label imported" -ForegroundColor Green
     } else {
@@ -276,9 +276,9 @@ function Set-CmdAliasAutoRun {
 
   if ($PSCmdlet.ShouldProcess($commandProcessorKey, "Configure $Label")) {
     if (-not (Test-Path $commandProcessorKey)) {
-      New-Item -Path $commandProcessorKey -Force | Out-Null
+      $null = New-Item -Path $commandProcessorKey -Force
     }
-    New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force | Out-Null
+    $null = New-ItemProperty -Path $commandProcessorKey -Name AutoRun -Value $newAutoRun -PropertyType String -Force
     Write-Host "  [OK] $Label configured" -ForegroundColor Green
   }
 }
@@ -325,10 +325,12 @@ function Deploy-StarWarsBattlefrontIIConfig {
 
   $profileOptionsPath = Join-Path $SourceDir 'ProfileOptions_profile'
   if (Test-Path $profileOptionsPath) {
-    Deploy-Config `
-      -Source $profileOptionsPath `
-      -Destination (Join-Path $activeProfilePath 'ProfileOptions_profile') `
-      -Label "$Label/ProfileOptions_profile"
+    $deployParams = @{
+      Source      = $profileOptionsPath
+      Destination = Join-Path $activeProfilePath 'ProfileOptions_profile'
+      Label       = "$Label/ProfileOptions_profile"
+    }
+    Deploy-Config @deployParams
   }
 }
 
@@ -434,10 +436,10 @@ function Start-Bootstrap {
       [string[]]$Target
   )
 
-
-  Set-StrictMode -Version Latest
-  $ErrorActionPreference = 'Stop'
-  $ProgressPreference = 'SilentlyContinue'
+  # $Unattended and $SkipWSL are accepted for forward-compatibility and passed
+  # through from the outer param block; they are not yet implemented.
+  if ($Unattended) { Write-Verbose 'Unattended mode requested (not yet implemented).' }
+  if ($SkipWSL) { Write-Verbose 'SkipWSL requested; WSL config entry will still appear in manifest but can be excluded via -Target.' }
 
   # ---------------------------------------------------------------------------
   # Admin elevation
@@ -456,11 +458,9 @@ function Start-Bootstrap {
     $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
     $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     if ($WhatIfPreference) { $argList += ' -WhatIf' }
-    Start-Process $shell -ArgumentList $argList -Verb RunAs
+    Start-Process -FilePath $shell -ArgumentList $argList -Verb RunAs
     return
   }
-
-  $configRoot = Join-Path (Split-Path $PSScriptRoot -Parent) 'user\.dotfiles\config'
 
   # ---------------------------------------------------------------------------
   # Phase 1: Prerequisites & execution policy
@@ -490,7 +490,6 @@ function Start-Bootstrap {
           $null = Wait-ForWinget
       } catch {
           Write-Warning "  winget not available: $_. Install from: https://aka.ms/getwinget"
-          $_ | Out-Null
       }
       if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
           Write-Warning '  winget not found. Install from: https://aka.ms/getwinget'
@@ -514,11 +513,7 @@ function Start-Bootstrap {
   Write-Host ''
   Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
-  $appData = if ($env:APPDATA) { $env:APPDATA } else { "/tmp/AppData" }
-  $docs = if ([Environment]::GetFolderPath('MyDocuments')) { `
-    [Environment]::GetFolderPath('MyDocuments') `
-  } else { "/tmp/Docs" }
-  $callOfDutyPlayersPath = Join-Path $docs 'Call of Duty\players'
+  $appData = if ($env:APPDATA) { $env:APPDATA } else { '/tmp/AppData' }
   $firefoxProfilesRoot = Join-Path $appData 'Mozilla\Firefox'
 
   $configManifest = @(
@@ -533,9 +528,8 @@ function Start-Bootstrap {
       Mode               = 'file'
       Label              = 'Windows Terminal settings'
       ResolveDestination = {
-      Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' `
-        -Directory -ErrorAction SilentlyContinue |
-          Select-Object -First 1 | ForEach-Object { Join-Path $_.FullName 'LocalState\settings.json' }
+        Get-ChildItem -Path "$env:LOCALAPPDATA\Packages" -Filter 'Microsoft.WindowsTerminal_*' -Directory -ErrorAction SilentlyContinue |
+          Select-Object -First 1 | ForEach-Object { Join-Path -Path $_.FullName -ChildPath 'LocalState\settings.json' }
       }
       GetSkipReason      = { 'Windows Terminal package directory not found' }
     },
@@ -599,10 +593,9 @@ function Start-Bootstrap {
       Label              = 'Arc Raiders configs'
       Filter             = '*'
       ResolveDestination = {
-        $arcPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) `
-          'ArcRaiders\Saved\Config\WindowsNoEditor'
+        $arcPath = Join-Path -Path ([Environment]::GetFolderPath('LocalApplicationData')) -ChildPath 'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
-        $arcPath = Join-Path $env:LOCALAPPDATA 'ArcRaiders\Saved\Config\WindowsNoEditor'
+        $arcPath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'ArcRaiders\Saved\Config\WindowsNoEditor'
         if (Test-Path $arcPath) { return $arcPath }
         return $null
       }
@@ -614,8 +607,7 @@ function Start-Bootstrap {
       Label              = 'Fortnite configs'
       Filter             = '*.ini'
       ResolveDestination = {
-        $fortnitePath = Join-Path $env:LOCALAPPDATA `
-          'FortniteGame\Saved\Config\WindowsClient'
+        $fortnitePath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'FortniteGame\Saved\Config\WindowsClient'
         if (Test-Path $fortnitePath) { return $fortnitePath }
         return $null
       }
@@ -679,24 +671,24 @@ function Start-Bootstrap {
         $wslConfigHost = Join-Path $HOME '.wslconfig'
         $wslConfHostFile = Join-Path $sourceDir '.wslconfig'
         if (Test-Path $wslConfHostFile) {
-          if ($PSCmdlet.ShouldProcess($wslConfigHost, "Deploy WSL2 host config")) {
-            Copy-Item $wslConfHostFile $wslConfigHost -Force
-            Write-Host "  [OK] WSL2 host config deployed to ~\.wslconfig" -ForegroundColor Green
+          if ($PSCmdlet.ShouldProcess($wslConfigHost, "Deploy $label host config")) {
+            Copy-Item -Path $wslConfHostFile -Destination $wslConfigHost -Force
+            Write-Host "  [OK] $label host config deployed to ~\.wslconfig" -ForegroundColor Green
           }
         } else {
-          Write-Warning "  WSL2 host config (.wslconfig) not found in source"
+          Write-Warning "  [SKIP] $label - .wslconfig not found in source: $sourceDir"
         }
         # Deploy wsl.conf to user's WSL directory for manual transfer
         $wslConfFile = Join-Path $sourceDir 'wsl.conf'
         $wslDeployPath = Join-Path $HOME '.config\wsl.conf'
         if (Test-Path $wslConfFile) {
-          if ($PSCmdlet.ShouldProcess($wslDeployPath, "Stage WSL distro config")) {
-            $wslConfigDir = Split-Path $wslDeployPath -Parent
+          if ($PSCmdlet.ShouldProcess($wslDeployPath, "Stage $label distro config")) {
+            $wslConfigDir = Split-Path -Path $wslDeployPath -Parent
             if (-not (Test-Path $wslConfigDir)) {
-              New-Item -ItemType Directory -Path $wslConfigDir -Force | Out-Null
+              $null = New-Item -ItemType Directory -Path $wslConfigDir -Force
             }
-            Copy-Item $wslConfFile $wslDeployPath -Force
-            Write-Host "  [OK] WSL distro config staged to ~/.config/wsl.conf" -ForegroundColor Green
+            Copy-Item -Path $wslConfFile -Destination $wslDeployPath -Force
+            Write-Host "  [OK] $label distro config staged to ~/.config/wsl.conf" -ForegroundColor Green
             Write-Host "  [INFO] To apply: copy ~/.config/wsl.conf to /etc/wsl.conf inside WSL" -ForegroundColor Yellow
           }
         }
@@ -739,7 +731,7 @@ function Start-Bootstrap {
   foreach ($dir in $commonDirs) {
     if (-not (Test-Path $dir)) {
       if ($PSCmdlet.ShouldProcess($dir, 'Create directory')) {
-        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+        $null = New-Item -ItemType Directory -Path $dir -Force
         Write-Host "  [OK] Created $dir" -ForegroundColor Green
       }
     }
@@ -775,6 +767,6 @@ function Start-Bootstrap {
 
 if ($MyInvocation.InvocationName -ne '.') {
   Start-Bootstrap @PSBoundParameters
-  $ec = Get-Variable LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue; `
+  $ec = Get-Variable -Name LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue
   if ($null -ne $ec) { exit $ec } else { exit 0 }
 }

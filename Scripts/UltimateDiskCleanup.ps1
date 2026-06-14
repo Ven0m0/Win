@@ -1,44 +1,45 @@
-﻿#Requires -Version 5.1
-
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 # Ultimate Disk Cleanup - GUI tool for comprehensive disk cleanup
 # Provides user-friendly interface for Windows cleanup utilities
+
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
-# Import common functions
-. "$PSScriptRoot\Common.ps1"
-function Start-UltimateDiskCleanup {
-    [CmdletBinding(SupportsShouldProcess)]
-    param()
-# Request admin elevation
-Request-AdminElevation
-# Load Windows Forms assemblies
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-[System.Windows.Forms.Application]::EnableVisualStyles()
-# Configure error handling
-$ErrorActionPreference = 'Stop'
-# Create the form
-$form = New-Object System.Windows.Forms.Form
-$form.Text = 'Ultimate Cleanup'
-$form.Size = New-Object System.Drawing.Size(450, 400)
-$form.StartPosition = 'CenterScreen'
-$form.BackColor = 'Black'
 
-$label = New-Object System.Windows.Forms.Label
-$label.Location = New-Object System.Drawing.Point(60, 10)
-$label.Size = New-Object System.Drawing.Size(250, 25)
-$label.Text = 'Disk Cleanup Options'
-$label.ForeColor = 'White'
-$label.Font = New-Object System.Drawing.Font('segoe ui', 10)
-$form.Controls.Add($label)
-# Create the CheckedListBox
-$checkedListBox = New-Object System.Windows.Forms.CheckedListBox
-$checkedListBox.Location = New-Object System.Drawing.Point(40, 60)
-$checkedListBox.Size = New-Object System.Drawing.Size(200, 300)
-$checkedListBox.BackColor = 'Black'
-$checkedListBox.ForeColor = 'White'
-$options = @(
+. "$PSScriptRoot\Common.ps1"
+
+function Start-UltimateDiskCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
+
+  Request-AdminElevation
+
+  Add-Type -AssemblyName System.Windows.Forms
+  Add-Type -AssemblyName System.Drawing
+  [System.Windows.Forms.Application]::EnableVisualStyles()
+
+  # Build form
+  $form = New-Object System.Windows.Forms.Form
+  $form.Text          = 'Ultimate Cleanup'
+  $form.Size          = New-Object System.Drawing.Size(450, 400)
+  $form.StartPosition = 'CenterScreen'
+  $form.BackColor     = 'Black'
+
+  $label          = New-Object System.Windows.Forms.Label
+  $label.Location = New-Object System.Drawing.Point(60, 10)
+  $label.Size     = New-Object System.Drawing.Size(250, 25)
+  $label.Text     = 'Disk Cleanup Options'
+  $label.ForeColor = 'White'
+  $label.Font     = New-Object System.Drawing.Font('segoe ui', 10)
+  $form.Controls.Add($label)
+
+  $checkedListBox          = New-Object System.Windows.Forms.CheckedListBox
+  $checkedListBox.Location = New-Object System.Drawing.Point(40, 60)
+  $checkedListBox.Size     = New-Object System.Drawing.Size(200, 300)
+  $checkedListBox.BackColor = 'Black'
+  $checkedListBox.ForeColor = 'White'
+
+  $options = @(
     'Active Setup Temp Folders'
     'Thumbnail Cache'
     'Delivery Optimization Files'
@@ -62,177 +63,160 @@ $options = @(
     'Feedback Hub Archive log files'
     'Diagnostic Data Viewer database files'
     'Device Driver Packages'
-)
-foreach ($option in $options) {
-    $checkedListBox.Items.Add($option, $false) | Out-Null
-}
-# Create the checkboxes
-$checkBox1 = New-Object System.Windows.Forms.CheckBox
-$checkBox1.Text = 'Clear Event Viewer Logs'
-$checkBox1.Location = New-Object System.Drawing.Point(250, 70)
-$checkBox1.ForeColor = 'White'
-$checkBox1.AutoSize = $true
+  )
 
-$checkBox2 = New-Object System.Windows.Forms.CheckBox
-$checkBox2.Text = 'Clear Windows Logs'
-$checkBox2.Location = New-Object System.Drawing.Point(250, 100)
-$checkBox2.ForeColor = 'White'
-$checkBox2.AutoSize = $true
+  foreach ($option in $options) {
+    $null = $checkedListBox.Items.Add($option, $false)
+  }
 
-$checkBox3 = New-Object System.Windows.Forms.CheckBox
-$checkBox3.Text = 'Clear TEMP Cache'
-$checkBox3.Location = New-Object System.Drawing.Point(250, 130)
-$checkBox3.ForeColor = 'White'
-$checkBox3.AutoSize = $true
-# Create the Clean button
-$buttonClean = New-Object System.Windows.Forms.Button
-$buttonClean.Text = 'Clean'
-$buttonClean.Location = New-Object System.Drawing.Point(250, 200)
-$buttonClean.Size = New-Object System.Drawing.Size(100, 30)
-$buttonClean.ForeColor = 'White'
-$buttonClean.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
-$buttonClean.DialogResult = [System.Windows.Forms.DialogResult]::OK
-$buttonClean.Add_MouseEnter({
-        $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(64, 64, 64)
-    })
-$buttonClean.Add_MouseLeave({
-        $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
-    })
-$checkALL = New-Object System.Windows.Forms.CheckBox
-$checkALL.Text = 'Check All'
-$checkALL.Location = New-Object System.Drawing.Point(40, 40)
-$checkALL.ForeColor = 'White'
-$checkALL.AutoSize = $true
-$checkALL.add_CheckedChanged({
-        if ($checkALL.Checked) {
-            $i = 0
-            foreach ($option in $options) {
-                $checkedListBox.SetItemChecked($i, $true)
-                $i++
-            }
-        }
-        else {
-            $i = 0
-            foreach ($option in $options) {
-                $checkedListBox.SetItemChecked($i, $false)
-                $i++
-            }
-        }
-    })
-$form.Controls.Add($checkALL)
+  $checkBox1          = New-Object System.Windows.Forms.CheckBox
+  $checkBox1.Text     = 'Clear Event Viewer Logs'
+  $checkBox1.Location = New-Object System.Drawing.Point(250, 70)
+  $checkBox1.ForeColor = 'White'
+  $checkBox1.AutoSize = $true
 
-# Add controls to the form
-$form.Controls.Add($checkedListBox)
-$form.Controls.Add($checkBox1)
-$form.Controls.Add($checkBox2)
-$form.Controls.Add($checkBox3)
-$form.Controls.Add($buttonClean)
+  $checkBox2          = New-Object System.Windows.Forms.CheckBox
+  $checkBox2.Text     = 'Clear Windows Logs'
+  $checkBox2.Location = New-Object System.Drawing.Point(250, 100)
+  $checkBox2.ForeColor = 'White'
+  $checkBox2.AutoSize = $true
 
-# Show the form
-$result = $form.ShowDialog()
+  $checkBox3          = New-Object System.Windows.Forms.CheckBox
+  $checkBox3.Text     = 'Clear TEMP Cache'
+  $checkBox3.Location = New-Object System.Drawing.Point(250, 130)
+  $checkBox3.ForeColor = 'White'
+  $checkBox3.AutoSize = $true
 
+  $buttonClean              = New-Object System.Windows.Forms.Button
+  $buttonClean.Text         = 'Clean'
+  $buttonClean.Location     = New-Object System.Drawing.Point(250, 200)
+  $buttonClean.Size         = New-Object System.Drawing.Size(100, 30)
+  $buttonClean.ForeColor    = 'White'
+  $buttonClean.BackColor    = [System.Drawing.Color]::FromArgb(30, 30, 30)
+  $buttonClean.DialogResult = [System.Windows.Forms.DialogResult]::OK
+  $buttonClean.Add_MouseEnter({
+    $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(64, 64, 64)
+  })
+  $buttonClean.Add_MouseLeave({
+    $buttonClean.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)
+  })
 
-if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-    $driveletter = $env:SystemDrive -replace ':', ''
-    $drive = Get-PSDrive $driveletter
-    $usedInGB = [math]::Round($drive.Used / 1GB, 4)
-    Write-Host 'BEFORE CLEANING' -ForegroundColor Red
-    Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Red
-    # add clear cache logic here
-    Write-Host "Clearing cache..." -ForegroundColor Cyan
-    # Clear Windows Prefetch
-    Write-Host "Clearing Windows Prefetch..." -ForegroundColor Yellow
-    Remove-Item -Path "$env:SystemRoot\Prefetch\*" -Force -ErrorAction SilentlyContinue
-    # Clear Windows Temp
-    Write-Host "Clearing Windows Temp..." -ForegroundColor Yellow
-    Remove-Item -Path "$env:SystemRoot\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
-    # Clear User Temp
-    Write-Host "Clearing User Temp..." -ForegroundColor Yellow
-    Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
-    # Clear Internet Explorer Cache
-    Write-Host "Clearing Internet Explorer Cache..." -ForegroundColor Yellow
-    Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
-    Write-Host "Cache clearing completed." -ForegroundColor Green
-    if ($checkBox1.Checked) {
-        Write-Host 'Clearing Event Viewer Logs...'
-        wevtutil el | Foreach-Object { wevtutil cl "$_" >$null 2>&1 }
+  $checkALL          = New-Object System.Windows.Forms.CheckBox
+  $checkALL.Text     = 'Check All'
+  $checkALL.Location = New-Object System.Drawing.Point(40, 40)
+  $checkALL.ForeColor = 'White'
+  $checkALL.AutoSize = $true
+  $checkALL.add_CheckedChanged({
+    for ($i = 0; $i -lt $options.Count; $i++) {
+      $checkedListBox.SetItemChecked($i, $checkALL.Checked)
     }
-    if ($checkBox2.Checked) {
-        #CLEAR LOGS
-        Write-Host 'Clearing Windows Log Files...'
-        #Clear Distributed Transaction Coordinator logs
-        Remove-Item -Path $env:SystemRoot\DtcInstall.log -Force -ErrorAction SilentlyContinue
-        #Clear Optional Component Manager and COM+ components logs
-        Remove-Item -Path $env:SystemRoot\comsetup.log -Force -ErrorAction SilentlyContinue
-        #Clear Pending File Rename Operations logs
-        Remove-Item -Path $env:SystemRoot\PFRO.log -Force -ErrorAction SilentlyContinue
-        #Clear Windows Deployment Upgrade Process Logs
-        Remove-Item -Path $env:SystemRoot\setupact.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\setuperr.log -Force -ErrorAction SilentlyContinue
-        #Clear Windows Setup Logs
-        Remove-Item -Path $env:SystemRoot\setupapi.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\Panther\* -Force -Recurse -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.app.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.dev.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\inf\setupapi.offline.log -Force -ErrorAction SilentlyContinue
-        #Clear Windows System Assessment Tool logs
-        Remove-Item -Path $env:SystemRoot\Performance\WinSAT\winsat.log -Force -ErrorAction SilentlyContinue
-        #Clear Password change events
-        Remove-Item -Path $env:SystemRoot\debug\PASSWD.LOG -Force -ErrorAction SilentlyContinue
-        #Clear DISM (Deployment Image Servicing and Management) Logs
-        Remove-Item -Path $env:SystemRoot\Logs\CBS\CBS.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\Logs\DISM\DISM.log -Force -ErrorAction SilentlyContinue
-        #Clear Server-initiated Healing Events Logs
-        Remove-Item -Path "$env:SystemRoot\Logs\SIH\*" -Force -ErrorAction SilentlyContinue
-        #Common Language Runtime Logs
-        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0\UsageTraces\*" -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path "$env:LocalAppData\Microsoft\CLR_v4.0_32\UsageTraces\*" -Force -ErrorAction SilentlyContinue
-        #Network Setup Service Events Logs
-        Remove-Item -Path "$env:SystemRoot\Logs\NetSetup\*" -Force -ErrorAction SilentlyContinue
-        #Disk Cleanup tool (Cleanmgr.exe) Logs
-        Remove-Item -Path "$env:SystemRoot\System32\LogFiles\setupcln\*" -Force -ErrorAction SilentlyContinue
-        #Clear Windows update and SFC scan logs
-        Remove-Item -Path $env:SystemRoot\Temp\CBS\* -Force -ErrorAction SilentlyContinue
-        #Clear Windows Update Medic Service logs
-        takeown /f $env:SystemRoot\Logs\waasmedic /r -Value y *>$null
-        icacls $env:SystemRoot\Logs\waasmedic /grant administrators:F /t *>$null
-        Remove-Item -Path $env:SystemRoot\Logs\waasmedic -Recurse -ErrorAction SilentlyContinue
-        #Clear Cryptographic Services Traces
-        Remove-Item -Path $env:SystemRoot\System32\catroot2\dberr.txt -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.log -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.jrs -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.edb -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $env:SystemRoot\System32\catroot2.chk -Force -ErrorAction SilentlyContinue
-        #Windows Update Logs
-        Remove-Item -Path "$env:SystemRoot\Traces\WindowsUpdate\*" -Force -ErrorAction SilentlyContinue
+  })
+
+  $form.Controls.Add($checkALL)
+  $form.Controls.Add($checkedListBox)
+  $form.Controls.Add($checkBox1)
+  $form.Controls.Add($checkBox2)
+  $form.Controls.Add($checkBox3)
+  $form.Controls.Add($buttonClean)
+
+  $result = $form.ShowDialog()
+
+  if ($result -ne [System.Windows.Forms.DialogResult]::OK) {
+    return
+  }
+
+  $driveLetter = $env:SystemDrive -replace ':', ''
+  $drive       = Get-PSDrive -Name $driveLetter
+  $usedBefore  = [math]::Round($drive.Used / 1GB, 4)
+  Write-Verbose "BEFORE CLEANING - Used space on $($drive.Name):\ $usedBefore GB"
+
+  # Clear common cache directories
+  Write-Verbose 'Clearing cache...'
+  Write-Verbose 'Clearing Windows Prefetch...'
+  Clear-PathSafe -Path "$env:SystemRoot\Prefetch\*"
+
+  Write-Verbose 'Clearing Windows Temp...'
+  Clear-DirectorySafe -Path "$env:SystemRoot\Temp"
+
+  Write-Verbose 'Clearing User Temp...'
+  Clear-DirectorySafe -Path $env:TEMP
+
+  Write-Verbose 'Clearing Internet Explorer Cache...'
+  Clear-PathSafe -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*"
+
+  Write-Verbose 'Cache clearing completed.'
+
+  if ($checkBox1.Checked) {
+    Write-Verbose 'Clearing Event Viewer Logs...'
+    & wevtutil.exe el | ForEach-Object { $null = & wevtutil.exe cl "$_" 2>&1 }
+  }
+
+  if ($checkBox2.Checked) {
+    Write-Verbose 'Clearing Windows Log Files...'
+
+    $logPaths = @(
+      "$env:SystemRoot\DtcInstall.log"
+      "$env:SystemRoot\comsetup.log"
+      "$env:SystemRoot\PFRO.log"
+      "$env:SystemRoot\setupact.log"
+      "$env:SystemRoot\setuperr.log"
+      "$env:SystemRoot\setupapi.log"
+      "$env:SystemRoot\Panther\*"
+      "$env:SystemRoot\inf\setupapi.app.log"
+      "$env:SystemRoot\inf\setupapi.dev.log"
+      "$env:SystemRoot\inf\setupapi.offline.log"
+      "$env:SystemRoot\Performance\WinSAT\winsat.log"
+      "$env:SystemRoot\debug\PASSWD.LOG"
+      "$env:SystemRoot\Logs\CBS\CBS.log"
+      "$env:SystemRoot\Logs\DISM\DISM.log"
+      "$env:SystemRoot\Logs\SIH\*"
+      "$env:LOCALAPPDATA\Microsoft\CLR_v4.0\UsageTraces\*"
+      "$env:LOCALAPPDATA\Microsoft\CLR_v4.0_32\UsageTraces\*"
+      "$env:SystemRoot\Logs\NetSetup\*"
+      "$env:SystemRoot\System32\LogFiles\setupcln\*"
+      "$env:SystemRoot\Temp\CBS\*"
+      "$env:SystemRoot\System32\catroot2\dberr.txt"
+      "$env:SystemRoot\System32\catroot2.log"
+      "$env:SystemRoot\System32\catroot2.jrs"
+      "$env:SystemRoot\System32\catroot2.edb"
+      "$env:SystemRoot\System32\catroot2.chk"
+      "$env:SystemRoot\Traces\WindowsUpdate\*"
+    )
+
+    foreach ($logPath in $logPaths) {
+      Clear-PathSafe -Path $logPath
     }
-    if ($checkBox3.Checked) {
-        Write-Host 'Clearing TEMP Files...'
-        #cleanup temp files
-        $temp1 = "$env:SystemRoot\Temp"
-        $temp2 = $env:TEMP
-        $tempFiles = (Get-ChildItem -Path $temp1 , $temp2 -Recurse -Force).FullName
-        foreach ($file in $tempFiles) {
-            Remove-Item -Path $file -Recurse -Force -ErrorAction SilentlyContinue
-        }
+
+    # WaasMedic log requires ownership change before removal
+    $waasPath = "$env:SystemRoot\Logs\waasmedic"
+    if (Test-Path -Path $waasPath) {
+      $null = & takeown.exe /f $waasPath /r /d y 2>&1
+      $null = & icacls.exe $waasPath /grant 'administrators:F' /t 2>&1
+      Clear-DirectorySafe -Path $waasPath
     }
-    if ($checkedListBox.CheckedItems) {
-        $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
-        foreach ($item in $checkedListBox.CheckedItems) {
-            Set-RegistryValue -Path "$key\$item" -Name "StateFlags0069" -Type REG_DWORD -Data "2"
-        }
-        Write-Host 'Running Disk Cleanup...'
-        #nice
-        Start-Process cleanmgr.exe -ArgumentList '/sagerun:69 /autoclean' -Wait
+  }
+
+  if ($checkBox3.Checked) {
+    Write-Verbose 'Clearing TEMP Files...'
+    Clear-DirectorySafe -Path "$env:SystemRoot\Temp"
+    Clear-DirectorySafe -Path $env:TEMP
+  }
+
+  if ($checkedListBox.CheckedItems.Count -gt 0) {
+    $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
+    foreach ($item in $checkedListBox.CheckedItems) {
+      Set-RegistryValue -Path "$key\$item" -Name 'StateFlags0069' -Type 'REG_DWORD' -Data '2'
     }
-    $drive = Get-PSDrive $driveletter
-    $usedInGB = [math]::Round($drive.Used / 1GB, 4)
-    Write-Host 'AFTER CLEANING' -ForegroundColor Green
-    Write-Host "Used space on $($drive.Name):\ $usedInGB GB" -ForegroundColor Green
-}
+    Write-Verbose 'Running Disk Cleanup...'
+    Start-Process -FilePath 'cleanmgr.exe' -ArgumentList '/sagerun:69 /autoclean' -Wait
+  }
+
+  $drive    = Get-PSDrive -Name $driveLetter
+  $usedAfter = [math]::Round($drive.Used / 1GB, 4)
+  Write-Verbose "AFTER CLEANING - Used space on $($drive.Name):\ $usedAfter GB"
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    Start-UltimateDiskCleanup @PSBoundParameters
-    exit $LASTEXITCODE
+  Start-UltimateDiskCleanup @PSBoundParameters
+  exit $LASTEXITCODE
 }

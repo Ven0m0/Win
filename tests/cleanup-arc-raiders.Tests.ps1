@@ -20,15 +20,18 @@ Describe "Cleanup-ArcRaiders Script Initialization" {
 Describe "Cleanup-ArcRaiders Functions" {
     BeforeAll {
         function Write-Host {}
+        # Storage-module CDXML cmdlets cannot be Pester-mocked: their generated
+        # proxies reference dynamic types (e.g. Get-PhysicalDisk.PhysicalDiskUsage)
+        # that fail to parse. Plain stub functions shadow them instead.
+        function Get-Volume { return @() }
+        function Get-PhysicalDisk {}
+        function Optimize-Volume {}
         Mock Write-Host {}
         Mock Get-Item { return @() }
         Mock Get-Process {}
         Mock ipconfig {}
         Mock DISM {}
         Mock Start-Process {}
-        Mock Optimize-Volume {}
-        Mock Get-Volume { return @() }
-        Mock Get-PhysicalDisk {}
         Mock Set-ItemProperty {}
         Mock New-Item {}
     }

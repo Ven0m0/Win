@@ -16,7 +16,7 @@ Describe "SkipVideosMod Script Initialization" {
             "Remove-VideoFile",
             "Remove-QuestFile",
             "Show-Menu",
-            "Show-Diagnostics",
+            "Show-Diagnostic",
             "Show-Credit"
         )
 

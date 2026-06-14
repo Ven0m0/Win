@@ -1,5 +1,4 @@
-﻿#!/usr/bin/env pwsh
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
 
 <#
@@ -38,6 +37,8 @@ param(
     [switch]$SkipDebloat
 )
 
+$ErrorActionPreference = 'Stop'
+
 . "$PSScriptRoot\Common.ps1"
 
 function Start-SetupWin11 {
@@ -58,22 +59,18 @@ function Start-SetupWin11 {
     $script:StartTime = Get-Date
     $script:Results = @{}
 
-    function Write-Status { param([string]$Message, [string]$Status = 'INFO')
+    function Write-Status {
+        param([string]$Message, [string]$Status = 'INFO')
         $color = switch ($Status) {
-            'OK' { 'Green' }
-            'FAIL' { 'Red' }
-            'SKIP' { 'Yellow' }
+            'OK'      { 'Green' }
+            'FAIL'    { 'Red' }
+            'SKIP'    { 'Yellow' }
             'RUNNING' { 'Cyan' }
-            default { 'White' }
+            default   { 'White' }
         }
-
-
         Write-Host "  [$Status] $Message" -ForegroundColor $color
         $script:Results[$Message] = $Status
     }
-
-    function Write-Warning($msg) { Write-Host "[WARN] $msg" -ForegroundColor Yellow }
-    function Write-Fail($msg) { Write-Host "[FAIL] $msg" -ForegroundColor Red }
 
     function Invoke-Operation {
         param([string]$Name, [scriptblock]$Action, [string]$SuccessStatus = 'OK')
@@ -113,7 +110,7 @@ function Start-SetupWin11 {
             & "$PSScriptRoot\shell-setup.ps1"
             Write-Status 'Prerequisites installed' -Status 'OK'
         } else {
-            Write-Fail 'winget not found and shell-setup.ps1 unavailable.'
+            Write-Host '  [FAIL] winget not found and shell-setup.ps1 unavailable.' -ForegroundColor Red
             Write-Host '  Install winget from https://aka.ms/getwinget then re-run.' `
                 -ForegroundColor Yellow
             return $false
@@ -121,16 +118,18 @@ function Start-SetupWin11 {
     } else { Write-Status 'winget is available' -Status 'OK' }
 
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        $null = Invoke-BuildOperation -Name 'Installing Git' -Action {
-            & winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements 2>$null
+        $null = Invoke-Operation -Name 'Installing Git' -Action {
+            $ProgressPreference = 'SilentlyContinue'
+            & winget install --id Git.Git --silent --accept-source-agreements --accept-package-agreements
             if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "git install failed with exit code $LASTEXITCODE" }
         }
     } else { Write-Status 'Git is available' -Status 'OK' }
 
     if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
-        $null = Invoke-BuildOperation -Name 'Installing PowerShell 7+' -Action {
+        $null = Invoke-Operation -Name 'Installing PowerShell 7+' -Action {
+            $ProgressPreference = 'SilentlyContinue'
             & winget install --id Microsoft.PowerShell --silent --accept-source-agreements `
-                --accept-package-agreements 2>$null
+                --accept-package-agreements
             if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "pwsh install failed with exit code $LASTEXITCODE" }
         }
     } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
@@ -148,12 +147,12 @@ function Start-SetupWin11 {
     if (Test-Path $repoDir) {
         if ($Force) {
             Write-Status 'Existing repo found - forcing re-clone' -Status 'RUNNING'
-            Remove-Item $repoDir -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $repoDir -Recurse -Force -ErrorAction SilentlyContinue
         } else {
             Write-Status 'Repository already initialized - pulling latest changes' `
                 -Status 'RUNNING'
             try {
-                git -C $repoDir pull
+                & git -C $repoDir pull
                 if ($LASTEXITCODE -ne 0) { throw "git pull failed with exit code $LASTEXITCODE" }
                 Write-Status 'Dotfiles updated' -Status 'OK'
             }
@@ -164,7 +163,7 @@ function Start-SetupWin11 {
     if (-not (Test-Path $repoDir)) {
         Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
         try {
-            git clone $repoUrl $repoDir
+            & git clone $repoUrl $repoDir
             if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE" }
             Write-Status 'Repository cloned' -Status 'OK'
         }
@@ -175,8 +174,9 @@ function Start-SetupWin11 {
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
         Write-Status 'Installing Python via winget...' -Status 'RUNNING'
         try {
-            & winget install --id Python.Python.3.12 --silent --accept-source-agreements `
-                --accept-package-agreements 2>$null
+            $ProgressPreference = 'SilentlyContinue'
+            & winget install --id Python.Python.3.14 --silent --accept-source-agreements `
+                --accept-package-agreements
             if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "python install failed with exit code $LASTEXITCODE" }
             Write-Status 'Python installed' -Status 'OK'
         }
@@ -185,7 +185,10 @@ function Start-SetupWin11 {
 
     if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
         Write-Status 'Installing dotbot via pip...' -Status 'RUNNING'
-        try { pip install dotbot | Out-Null; Write-Status 'dotbot installed' -Status 'OK' }
+        try {
+            $null = & pip install dotbot
+            Write-Status 'dotbot installed' -Status 'OK'
+        }
         catch { Write-Status "dotbot installation failed: $_" -Status 'WARN' }
     }
 
@@ -232,16 +235,16 @@ function Start-SetupWin11 {
     Write-Host '[5/7] Deploying configs via dotbot...' -ForegroundColor Cyan
 
     # Change to repository directory and run dotbot
-    pushd $repoDir
+    Push-Location -Path $repoDir
     try {
-        dotbot -c install.conf.yaml
+        & dotbot -c install.conf.yaml
         Write-Status 'Bootstrap completed' -Status 'OK'
     } catch {
         Write-Status "Bootstrap failed: $_" -Status 'FAIL'
-        popd
+        Pop-Location
         return $false
     }
-    popd
+    Pop-Location
 
     # ---------------------------------------------------------------------------
     # Phase 6: Optional WSL2
@@ -249,7 +252,7 @@ function Start-SetupWin11 {
     if (-not $SkipWSL) {
         Write-Host ''
         Write-Host '[6/7] Optional: WSL2 setup' -ForegroundColor Cyan
-        $wslState = wsl --status 2>$null
+        $null = & wsl.exe --status 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Status 'WSL is already installed' -Status 'OK'
         } else {
@@ -259,7 +262,7 @@ function Start-SetupWin11 {
                     'WSL2','Install WSL2 (recommended for Windows 11)?', @('&Yes','&No'), 0) -eq 0
             }
             if ($installWSL) {
-                $null = Invoke-Operation -Name 'Installing WSL2' -Action { wsl --install --no-distribution | Out-Null }
+                $null = Invoke-Operation -Name 'Installing WSL2' -Action { $null = & wsl.exe --install --no-distribution }
             } else {
                 Write-Status 'WSL2 installation skipped' -Status 'SKIP'
             }

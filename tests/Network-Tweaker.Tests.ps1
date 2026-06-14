@@ -1,7 +1,6 @@
 ﻿#Requires -Version 5.1
 
 # Setup logic outside of BeforeAll for Pester 5 Discovery phase
-$scriptPath = "$PSScriptRoot/../Scripts/Network-Tweaker.ps1"
 $canLoadForms = $false
 
 try {
@@ -14,13 +13,20 @@ catch {
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
+    # Discovery-phase variables are not visible during the Run phase in Pester 5,
+    # so the script path must be assigned here for the It blocks to see it.
+    $scriptPath = "$PSScriptRoot/../Scripts/Network-Tweaker.ps1"
 }
 
 Describe "Network-Tweaker.ps1" {
     It "Should bypass ShowDialog when dot-sourced" -Skip:(-not $canLoadForms) {
         # Test if it can be dot-sourced without hanging
         & {
-            . $scriptPath
+            # The script targets the default 'Continue' preference: it reads many
+            # machine-dependent registry values at load and tolerates absent ones
+            # as non-terminating errors. Pester's 'Stop' default would abort.
+            $ErrorActionPreference = 'Continue'
+            . $scriptPath 2>$null
 
             # If it dot-sources successfully, it should have created the form object
             $Form -is [System.Windows.Forms.Form] | Should -Be $true
@@ -35,7 +41,8 @@ Describe "Network-Tweaker.ps1" {
 
     It "Should define expected UI manipulation functions" -Skip:(-not $canLoadForms) {
         & {
-            . $scriptPath
+            $ErrorActionPreference = 'Continue'
+            . $scriptPath 2>$null
 
             Get-Command -Name "applyglobal" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command -Name "RegistryTweaks" -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty

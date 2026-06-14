@@ -262,10 +262,10 @@ function Write-Section {
     Write-Host "`n$($('=' * 54))" -ForegroundColor DarkGray
     Write-Host "  $Title" -ForegroundColor Cyan
     Write-Host "$('=' * 54)" -ForegroundColor DarkGray
-    Write-Log -Message "--- $Title ---" -Level 'Info'
+    Write-UpdateLog -Message "--- $Title ---" -Level 'Info'
 }
 
-function Write-Log {
+function Write-UpdateLog {
     param([string]$Message, [string]$Level = 'Info')
     $timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
     $logLine = "[$timestamp] [$Level] $Message"
@@ -287,7 +287,7 @@ function Write-Status {
     $colors = @{ Success = 'Green'; Warning = 'Yellow'; Error = 'Red'; Info = 'Gray' }
     $symbols = @{ Success = '[OK]'; Warning = '[!]'; Error = '[X]'; Info = '[*]' }
     Write-Host "$($symbols[$Type]) $Message" -ForegroundColor $colors[$Type]
-    Write-Log -Message $Message -Level $Type
+    Write-UpdateLog -Message $Message -Level $Type
 }
 
 function Write-Detail {
@@ -296,7 +296,7 @@ function Write-Detail {
     $prefixes = @{ Info = '  >'; Muted = '  -'; Warning = '  !'; Error = '  x' }
     if ($Message) {
         Write-Host "$($prefixes[$Type]) $Message" -ForegroundColor $colors[$Type]
-        Write-Log -Message "$($prefixes[$Type]) $Message" -Level $Type
+        Write-UpdateLog -Message "$($prefixes[$Type]) $Message" -Level $Type
     }
 }
 
@@ -315,7 +315,7 @@ function Write-FilteredOutput {
         if ($compact -match 'package\(s\) have version numbers that cannot be determined') { continue }
         if ($compact -match '^[\-=]{6,}$') { continue }
         Write-Host $line -ForegroundColor $Color
-        Write-Log -Message $line -Level 'Info'
+        Write-UpdateLog -Message $line -Level 'Info'
     }
 }
 
@@ -337,7 +337,7 @@ function Invoke-StreamingCapture {
                     $text = $_.ToString()
                     if (-not [string]::IsNullOrWhiteSpace($text)) {
                         Write-Host $text -ForegroundColor $Color
-                        Write-Log -Message $text -Level 'Info'
+                        Write-UpdateLog -Message $text -Level 'Info'
                     }
                 }
             } | Out-Null
@@ -351,7 +351,7 @@ function Invoke-StreamingCapture {
         if (Test-Path $outputPath) {
             try {
                 $captured = Get-Content -LiteralPath $outputPath -Raw -ErrorAction SilentlyContinue
-                if ($captured) { Write-Log -Message $captured -Level 'Error' }
+                if ($captured) { Write-UpdateLog -Message $captured -Level 'Error' }
             }
             catch { Write-Verbose "Captured output read failed: $_" }
         }
@@ -449,10 +449,12 @@ function Get-WingetUpgradeEntry {
 }
 
 function Add-WingetBlockingPin {
+    [CmdletBinding()]
     param([Parameter(Mandatory)][string]$PackageId)
 
+    $id = $PackageId
     $pinRun = Invoke-StreamingCapture -ScriptBlock {
-        winget pin add --id $PackageId --blocking --exact --source winget --accept-source-agreements --disable-interactivity --force
+        winget pin add --id $id --blocking --exact --source winget --accept-source-agreements --disable-interactivity --force
     }
     return (Read-CapturedOutput $pinRun.OutputPath)
 }
@@ -541,6 +543,8 @@ function Save-State {
 }
 
 function Update-WingetState {
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
     # Get current list of installed winget packages using export JSON to avoid parsing truncated table output.
     try {
         $exportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("winget-state-{0}.json" -f ([guid]::NewGuid().ToString('N')))
@@ -567,6 +571,8 @@ function Update-WingetState {
 }
 
 function Update-ScoopState {
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
     if (Test-Command 'scoop') {
         try {
             $list = scoop list 2>&1 | Out-String
@@ -588,6 +594,8 @@ function Update-ScoopState {
 }
 
 function Update-ChocolateyState {
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
     if (Test-Command 'choco' -and $isAdmin) {
         try {
             $list = choco list -lo 2>&1 | Out-String
@@ -798,7 +806,7 @@ $managers = @(
                     $pkgFailed = $false
                     for ($attempt = 1; $attempt -le 3; $attempt++) {
                         try {
-                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments
+                            $pkgResult = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--id', $pkgId, '--include-unknown', '--source', 'winget', '--silent', '--accept-source-agreements', '--accept-package-agreements', '--disable-interactivity')
                             $exitCode = $pkgResult.ExitCode
                             $pkgOutput = $pkgResult.Output
                             if ($pkgOutput) { Write-FilteredOutput -Text $pkgOutput -Color ([ConsoleColor]::Gray) }
@@ -834,7 +842,7 @@ $managers = @(
                 }
 
                 # Recapture status for post-hooks
-                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade'
+                $finalScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity')
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
                 try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } `
@@ -1089,7 +1097,7 @@ Invoke-Update -Name 'pnpm' -RequiresCommand 'pnpm' -Disabled:$SkipNode -Action {
 
 Invoke-Update -Name 'Bun' -RequiresCommand 'bun' -Disabled:$SkipNode -Action {
     $out = (bun upgrade 2>&1 | Out-String).Trim()
-    if ($out -and $out -notmatch 'already on the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated'
+    if ($out -and $out -notmatch 'already on the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } else { $script:stepMessage = 'already current' }
 }
 
 Invoke-Update -Name 'Deno' -RequiresCommand 'deno' -Disabled:$SkipNode -Action {
@@ -1097,7 +1105,7 @@ Invoke-Update -Name 'Deno' -RequiresCommand 'deno' -Disabled:$SkipNode -Action {
     if ($mgr) { $script:stepMessage = "managed by $mgr (already updated)"; return }
     $denoRun = Invoke-StreamingCapture -ScriptBlock { deno upgrade }
     $out = Read-CapturedOutput $denoRun.OutputPath
-    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' }
+    if ($out -and $out -notmatch 'already the latest') { $script:stepChanged = $true; $script:stepMessage = 'updated' } else { $script:stepMessage = 'already current' }
 }
 
 Invoke-Update -Name 'Rust' -RequiresCommand 'rustup' -Disabled:$SkipRust -Action {
@@ -1209,14 +1217,14 @@ Invoke-Update -Name 'juliaup' -RequiresCommand 'juliaup' -Action {
     juliaup update 2>&1 | Out-Null; $script:stepMessage = 'checked'
 }
 
-Invoke-Update -Name 'ollama-models' -Title 'Ollama Models' -RequiresCommand 'ollama' -Disabled:(-not $UpdateOllamaModels
+Invoke-Update -Name 'ollama-models' -Title 'Ollama Models' -RequiresCommand 'ollama' -Disabled:(-not $UpdateOllamaModels) -Action {
     $models = (ollama list 2>&1 | Select-Object -Skip 1 | ForEach-Object { ($_ -split '\s+')[0] })
     foreach ($m in $models) { if ($m) { ollama pull $m } }
     $script:stepMessage = "checked $($models.Count) models"
 }
 
 Invoke-Update -Name 'git-lfs' -RequiresCommand 'git-lfs' -Disabled:$SkipGitLFS -Action {
-    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GitHub.GitLFS --accept-source-agreements --acce
+    $result = Invoke-StreamingCapture -ScriptBlock { winget upgrade --id GitHub.GitLFS --accept-source-agreements --accept-package-agreements --disable-interactivity }
     $gitLfsOutput = Read-CapturedOutput $result.OutputPath
     if ($gitLfsOutput -match 'Successfully installed|Successfully upgraded|successfully installed') {
         $script:stepChanged = $true
@@ -1228,7 +1236,7 @@ Invoke-Update -Name 'git-lfs' -RequiresCommand 'git-lfs' -Disabled:$SkipGitLFS -
 }
 
 Invoke-Update -Name 'git-credential-manager' -RequiresCommand 'git-credential-manager' -Action {
-    winget upgrade --id Git.Git --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Ou
+    winget upgrade --id Git.Git --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1 | Out-Null; $script:stepMessage = 'updated via git upgrade'
 }
 
 Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
@@ -1253,15 +1261,14 @@ Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
     }
 
     if ($batchPkgs.Count -gt 0) {
-        $pipRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --n
-        $pkgOutput = Read-CapturedOutput $pipRun.OutputPath
+        $pipRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --no-input $batchPkgs }
         if ($pipRun.ExitCode -eq 0) {
             foreach ($pkgName in $batchPkgs) { $updated.Add($pkgName) }
         }
         else {
             # Batch failed — fall back to per-package to identify which ones failed
             foreach ($pkgName in $batchPkgs) {
-                $singleRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-versio
+                $singleRun = Invoke-StreamingCapture -ScriptBlock { python -m pip install --upgrade --disable-pip-version-check --no-input $pkgName }
                 $singleOut = Read-CapturedOutput $singleRun.OutputPath
                 if ($singleRun.ExitCode -eq 0) {
                     $updated.Add($pkgName)
@@ -1290,7 +1297,7 @@ Invoke-Update -Name 'pip' -Title 'Python / pip' -Action {
 Invoke-Update -Name 'uv' -Title 'UV' -RequiresCommand 'uv' -Action {
     $uvRun = Invoke-StreamingCapture -ScriptBlock { uv self update }
     $out = Read-CapturedOutput $uvRun.OutputPath
-    if ($out -match 'installed via pip|only available for uv binaries installed via the standalone installation scripts'
+    if ($out -match 'installed via pip|only available for uv binaries installed via the standalone installation scripts') {
         $script:stepMessage = 'managed by another installer'
     }
     elseif ($uvRun.ExitCode -eq 0 -and $out -match 'updated|successfully') {
@@ -1326,7 +1333,7 @@ Invoke-Update -Name 'uv-python' -Title 'uv Python Versions' -RequiresCommand 'uv
 }
 
 Invoke-Update -Name 'cargo-binaries' -Title 'Cargo Global Binaries' -RequiresCommand 'cargo' -Action {
-    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update
+    if (-not (Test-Command 'cargo-install-update')) { Invoke-StreamingCapture -ScriptBlock { cargo install cargo-update } | Out-Null }
     $cargoRun = Invoke-StreamingCapture -ScriptBlock { cargo install-update -a }
     $out = Read-CapturedOutput $cargoRun.OutputPath
     if ($out -match 'Updated [1-9]\d* packages?|Overall updated [1-9]\d* packages?') {
@@ -1375,7 +1382,7 @@ Invoke-Update -Name 'vscode-extensions' -Title 'VS Code Extensions' -Disabled:$S
     }
     $out = Read-CapturedOutput $vsCodeRun.OutputPath
     if ($out -match 'VS Code CLI not found') { $script:stepMessage = 'VS Code not found' }
-    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated'
+    elseif ($out -match 'updated|installing') { $script:stepChanged = $true; $script:stepMessage = 'extensions updated' }
     else { $script:stepMessage = 'extensions checked' }
 }
 
@@ -1408,8 +1415,7 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         $psrCommand = Get-Command Update-PSResource -ErrorAction SilentlyContinue
         $supportsAcceptLicense = $psrCommand -and $psrCommand.Parameters.ContainsKey('AcceptLicense')
         $beforeSnapshot = @{}
-        @(Get-InstalledPSResource `
-    -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$
+        @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object { $beforeSnapshot[$_.Name] = [string]$_.Version }
         $updateArgs = @{ Name = '*'; ErrorAction = 'SilentlyContinue' }
         if ($supportsAcceptLicense) { $updateArgs.AcceptLicense = $true }
         try { Update-PSResource @updateArgs 2>&1 | Out-Null } catch { Write-Verbose "Update-PSResource failed: $($_.Exception.Message)" }
@@ -1459,7 +1465,7 @@ else {
         $tempPath = $env:TEMP
         $cutoff = (Get-Date).AddDays(-$script:Config.TempCleanupDays)
         if ($tempPath -and (Test-Path $tempPath)) {
-            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff }
+            Get-ChildItem -Path $tempPath -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
             Write-Status "Temp files cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
         }
     }
