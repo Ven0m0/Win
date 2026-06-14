@@ -1,7 +1,7 @@
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.16
+    rev: v0.15.17
     hooks:
       # Run linter and auto-fix issues
       - id: ruff
@@ -39,16 +39,16 @@ repos:
       - id: forbid-submodules
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.218.0
+    rev: 43.222.1
     hooks:
       - id: renovate-config-validator
 
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.4.16
+    rev: v2.5.0
     hooks:
       - id: biome-ci
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.2
+    rev: 0.37.3
     hooks:
       - id: check-dependabot
       - id: check-github-actions
