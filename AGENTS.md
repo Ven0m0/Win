@@ -356,3 +356,6 @@ Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handlin
 - `.kilo/rules/bootstrap-deployment.md` — bootstrap and deployment rules
 - `.kilo/rules/registry-security.md` — registry safety rules
 - `.kilo/rules/windows-os.md` — Windows OS compatibility
+- `.kilo/rules/shell-strategy.md` — shell strategy (PS vs CMD vs batch)
+- `.kilo/rules/agent-orchestration.md` — multi-agent coordination
+- `.kilo/rules/morph-tools.md` — tool and MCP server selection
