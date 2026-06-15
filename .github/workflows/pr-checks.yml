@@ -1,0 +1,168 @@
+# =============================================================================
+# PR Quality Gates
+# =============================================================================
+# Dedicated pull request checks — runs on every PR regardless of which files
+# changed, so the gate is always present on the merge button.
+#
+# Jobs:
+#   1. psscriptanalyzer  — lint all .ps1/.psm1/.psd1 files; fail on Error/Warning
+#   2. pester            — run the full Pester test suite; publish results
+# =============================================================================
+
+name: PR Quality Gates
+
+on:
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write        # required to post test results as check annotations
+  pull-requests: write # required to post inline PR comments from test reporter
+
+jobs:
+  # ===========================================================================
+  # Job 1: PSScriptAnalyzer
+  # ===========================================================================
+  psscriptanalyzer:
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Cache PowerShell modules
+        uses: potatoqualitee/psmodulecache@v6.2.1
+        continue-on-error: true
+        with:
+          modules-to-cache: PSScriptAnalyzer
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.21.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module PSScriptAnalyzer
+          Write-Host "PSScriptAnalyzer $(( Get-Module PSScriptAnalyzer ).Version)"
+
+      - name: Run PSScriptAnalyzer
+        id: analyze
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $settingsFile = if (Test-Path 'PSScriptAnalyzerSettings.psd1') { 'PSScriptAnalyzerSettings.psd1' } else { $null }
+
+          $psFiles = Get-ChildItem -Recurse -Include '*.ps1','*.psm1','*.psd1' -File |
+            Where-Object { $_.FullName -notmatch '\\(node_modules|\.git|user|\.dotfiles)\\' }
+
+          Write-Host "Analyzing $($psFiles.Count) file(s)..."
+
+          $params = @{ Path = $psFiles.FullName }
+          if ($settingsFile) { $params['Settings'] = $settingsFile }
+
+          $results  = Invoke-ScriptAnalyzer @params -ErrorAction Continue
+          $issues   = $results | Where-Object { $_.Severity -in 'Error','Warning' }
+
+          # Emit GitHub workflow annotations
+          foreach ($r in $issues) {
+            $rel  = ($r.ScriptPath -replace [regex]::Escape($PWD.Path + '\'), '') -replace '\\','/'
+            $lvl  = if ($r.Severity -eq 'Error') { 'error' } else { 'warning' }
+            Write-Host "::$lvl file=$rel,line=$($r.Line),col=$($r.Column)::[$($r.RuleName)] $($r.Message)"
+          }
+
+          if ($issues.Count -gt 0) {
+            Write-Host ""
+            Write-Host "❌ $($issues.Count) issue(s) found (Error: $(($issues | Where-Object Severity -eq 'Error').Count), Warning: $(($issues | Where-Object Severity -eq 'Warning').Count))"
+            exit 1
+          }
+
+          Write-Host "✅ No PSScriptAnalyzer errors or warnings"
+
+  # ===========================================================================
+  # Job 2: Pester Tests
+  # ===========================================================================
+  pester:
+    name: Pester Tests
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache PowerShell modules
+        uses: potatoqualitee/psmodulecache@v6.2.1
+        continue-on-error: true
+        with:
+          modules-to-cache: Pester
+
+      - name: Install Pester
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object Version -ge '5.0.0')) {
+            Install-Module -Name Pester -MinimumVersion 5.6.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module Pester
+          Write-Host "Pester $(( Get-Module Pester ).Version)"
+
+      - name: Run Pester tests
+        shell: pwsh
+        env:
+          DOTFILES_ROOT: ${{ github.workspace }}
+        run: |
+          Set-StrictMode -Version Latest
+
+          $testFiles = Get-ChildItem -Path . -Recurse -Include '*.Tests.ps1' -File |
+            Where-Object { $_.FullName -notmatch '\\(node_modules|\.git|user|\.dotfiles)\\' }
+
+          if ($testFiles.Count -eq 0) {
+            Write-Host "No test files found — skipping"
+            exit 0
+          }
+
+          Write-Host "Discovered $($testFiles.Count) test file(s)"
+
+          $config = New-PesterConfiguration
+          $config.Run.Path        = $testFiles.FullName
+          $config.Output.Verbosity = 'Detailed'
+          $config.Run.PassThru    = $true
+
+          $config.TestResult.Enabled      = $true
+          $config.TestResult.OutputFormat = 'JUnitXml'
+          $config.TestResult.OutputPath   = 'pester-results.xml'
+
+          $result = Invoke-Pester -Configuration $config
+
+          if (-not $result) {
+            Write-Host "::error::Pester returned no result object (crash or timeout)"
+            exit 1
+          }
+
+          Write-Host ""
+          Write-Host "Passed:  $($result.PassedCount)"
+          Write-Host "Failed:  $($result.FailedCount)"
+          Write-Host "Skipped: $($result.SkippedCount)"
+          Write-Host "Total:   $($result.TotalCount)"
+
+          if ($result.FailedCount -gt 0) {
+            exit 1
+          }
+
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Pester Results
+          path: pester-results.xml
+          reporter: java-junit
+          fail-on-error: false

@@ -6,7 +6,7 @@
 
 | Task | Command |
 |------|---------|
-| Fresh Windows 11 install | `Scripts/Setup-Win11.ps1` or `iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing \| iex` |
+| Fresh Windows 11 install | `Scripts/Setup-Win11.ps1` or `iwr ...bootstrap.ps1 \| iex` |
 | Deploy dotfiles | `mise run deploy` or `dotbot -c install.conf.yaml` |
 | Deploy single config | `pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'` |
 | Debloat Windows | `Scripts/debloat-windows.ps1` |
@@ -34,8 +34,6 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 |------|---------|
 | `Scripts/` | PowerShell automation surface |
 | `Scripts/Common.ps1` | Shared helper library — always import, never duplicate |
-| `Scripts/Setup-Win11.ps1` | Full Windows 11 setup entry point |
-| `Scripts/micro-adjust-benchmark.ps1` | Timer resolution micro-benchmark |
 | `Scripts/arc-raiders/` | Arc Raiders game-specific scripts |
 | `Scripts/reg/` | Registry `.reg` files and priority tweaks |
 | `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer |
@@ -45,8 +43,24 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `user/.dotfiles/config/` | Tracked dotfile content (deploy targets) |
 | `install.conf.yaml` | Dotbot configuration |
 | `.kilo/` | Kilo AI configuration (skills, agents, rules, commands) |
-| `.claude/` | Claude Code configuration (agents, commands, rules, skills, settings) |
 | `.github/workflows/` | CI pipeline definitions |
+
+**Notable scripts** (beyond setup/bootstrap):
+
+| Script | Purpose |
+|--------|---------|
+| `debloat-windows.ps1` | Remove bloatware, disable telemetry |
+| `gpu-display-manager.ps1` | EDID overrides, MSI mode, display tweaks |
+| `system-settings-manager.ps1` | Power, visual, privacy system settings |
+| `system-maintenance.ps1` | Scheduled maintenance tasks |
+| `system-update.ps1` | Winget + scoop update runner |
+| `Network-Tweaker.ps1` | TCP/IP and adapter optimizations |
+| `shader-cache.ps1` | Shader cache management |
+| `shell-setup.ps1` | Shell environment configuration |
+| `UltimateDiskCleanup.ps1` | Deep disk cleanup |
+| `Fix-WindowsUpdates.ps1` | Windows Update repair |
+| `DLSS-force-latest.ps1` | Force latest DLSS version across games |
+| `New-SteamShortcut.ps1` | Steam shortcut creator |
 
 ## High-Signal Rules
 
@@ -58,23 +72,87 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Guidance splits**:
   - `.github/copilot-instructions.md` — short startup bootstrap only
   - `AGENTS.md` — canonical repo-wide guide
-  - `.claude/rules/` — narrow coding and system standards (Claude Code); `.kilo/rules/` for Kilo AI
-  - `.claude/skills/` — reusable workflow knowledge (Claude Code); `.kilo/skills/` for Kilo AI
-  - `.claude/agents/` — agent identity and system prompts (Claude Code); `.kilo/agents/` for Kilo AI
-  - `.claude/commands/` — command workflows and slash commands (Claude Code); `.kilo/commands/` for Kilo AI
+  - `.kilo/rules/` and `.claude/rules/` — narrow coding and system standards (symlinked)
+  - `.kilo/skills/` and `.claude/skills/` — reusable workflow knowledge (symlinked)
+  - `.kilo/agents/` — agent identity and handoff rules
+  - `.kilo/commands/` — documented command workflows
 
 ## PowerShell Scripts
 
-Full coding standards in `.claude/rules/powershell.md`. Key rules:
-- **Reuse `Scripts/Common.ps1`** — never duplicate helpers (see section 9 of powershell.md for full API)
-- **Never** `$ErrorActionPreference = 'SilentlyContinue'` globally or `Invoke-Expression` with untrusted input
-- **External commands** — `&` operator; `curl.exe` (not bare `curl`); OTBS braces, 2-space indent
+- Follow existing admin elevation patterns (`Request-AdminElevation` from `Common.ps1`)
+- Prefer helpers in `Scripts/Common.ps1` over new one-off functions
+- Use comment-based help; `[CmdletBinding(SupportsShouldProcess)]` for system modifications
+- **Never** use global `$ErrorActionPreference = 'SilentlyContinue'` or `Invoke-Expression` with untrusted input
+- CI enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`
+- **Pipeline model** — `Return` only exits early; suppress output with `$null = <expr>`
+- **String comparisons** — `.NET` string methods are case-sensitive; pass `'CurrentCultureIgnoreCase'` explicitly
+- **External commands** — use `&` operator; never bare `curl` — always `curl.exe`
+- **Downloads** — set `$ProgressPreference = 'SilentlyContinue'` before `Invoke-WebRequest`
+- **Braces** — OTBS style, 2-space indent
+- **No aliases** — use full cmdlet names (`Get-ChildItem`, not `gci`/`ls`/`dir`)
+- **Full parameter names** — no positional shorthand (`Get-Process -Name Explorer`, not `Get-Process Explorer`)
+- **Nouns** — singular PascalCase compound (`Get-DiskInfo`, not `Get-DiskInfos`)
+
+## Common.ps1 — Use These Helpers
+
+```powershell
+# Admin / UI
+Request-AdminElevation                          # elevation check (always first)
+Initialize-ConsoleUI -Title "..."               # console setup
+Show-Menu / Get-MenuChoice                      # interactive menus
+Wait-ForKeyPress                                # pause for user
+Show-RestartRequired                            # prompt restart when needed
+
+# Output / Logging
+Write-Header / Write-Info / Write-Success       # colored status output
+Write-Warn / Write-Fail / Write-ColorOutput     # warnings and errors
+Add-Log / Get-Log / Clear-Log                   # session logging
+Show-Summary                                    # display results summary
+
+# Registry
+Set-RegistryValue / Remove-RegistryValue        # safe registry ops
+Get-RegistryValueSafe                           # read without throwing
+
+# NVIDIA / Display
+Get-NvidiaGpuRegistryPath                       # discover all NVIDIA adapter registry paths
+Get-NvidiaGpuPath / Set-NvidiaGpuRegistryValue  # GPU-specific registry ops
+Get-NvidiaGpuSetting / Show-NvidiaGpuSetting    # read/display GPU settings
+Set-NvidiaSignatureOverride / Get-NvidiaSignatureStatus
+Set-FullscreenMode / Set-MultiPlaneOverlay      # display tweaks
+Set-MSIMode                                     # enable/disable MSI interrupt mode
+Set-EDIDOverride / Remove-EDIDOverride          # EDID override management
+Show-EDIDStatus / Show-GamingDisplayStatus      # display status info
+Get-MonitorInstance                             # enumerate monitor devices
+
+# System
+New-RestorePoint                                # before any HKLM changes
+Remove-AppxPackageSafe                          # safe appx removal
+Invoke-ServiceOperation                         # start/stop/query services
+Invoke-CommandChecked                           # run external command, throw on failure
+Invoke-Operation / Invoke-BuildOperation        # operation wrappers with error handling
+Invoke-RegImport                                # import .reg files safely
+Install-WingetPackage / Invoke-Winget           # winget wrappers
+Wait-ForWinget                                  # wait for winget lock
+
+# Files / Paths
+Get-FileFromWeb -URL "..." -File "..."          # downloads (sets ProgressPreference)
+Clear-DirectorySafe -Path "..."                 # safe directory clear
+Clear-PathSafe -Path "..."                      # safe path removal
+Ensure-Directory -Path "..."                    # mkdir -p equivalent
+
+# Utilities
+ConvertFrom-VDF / ConvertTo-VDF                 # Steam VDF parsing
+Stop-SteamGracefully                            # safe Steam shutdown
+Get-FolderSize / Format-Size                    # size reporting
+Measure-Execution                               # timing
+```
 
 ## Registry & System Tweaks
 
-Full rules in `.claude/rules/registry-security.md`. Key rules:
-- Restore point before HKLM changes; support `-Action Enable` / `-Restore`
-- Never hardcode GPU IDs — use `Get-NvidiaGpuRegistryPath`; avoid `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`
+- Always create a restore point before HKLM changes (unless `-NoRestorePoint`)
+- Support both apply and restore: `-Action Enable` / `-Restore`
+- **Never** hardcode GPU PCI IDs — use `Get-NvidiaGpuRegistryPath` for device discovery
+- Avoid sensitive keys: `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`
 
 ## Config Deployment
 
@@ -107,10 +185,11 @@ Full rules in `.claude/rules/registry-security.md`. Key rules:
 
 ## Arc Raiders Scripts
 
-All five scripts change together:
+All six scripts change together:
 
 ```
 Scripts/arc-raiders/ARCRaidersUtility.ps1    # main utility (menu-driven)
+Scripts/arc-raiders/ArcRaidersCommon.ps1     # shared helpers for Arc Raiders scripts
 Scripts/arc-raiders/game-boost.ps1           # gaming optimization
 Scripts/arc-raiders/start-arc-raiders.ps1    # launch wrapper
 Scripts/arc-raiders/cleanup-arc-raiders.ps1  # cleanup helper
@@ -138,9 +217,9 @@ README.md  (setup sections)
 | `Scripts/Setup-Dotfiles.ps1` | ScriptAnalyzer + deployment manifest review | Config paths verification |
 | `user/.dotfiles/config/*` | Format preservation (no cosmetic re-serialization) | Deployment manifest correctness |
 | `Scripts/auto/autounattend.xml` | `$xml = [xml]::new(); $xml.Load(path)` | Check `ExtractScript` entity encoding |
-| `.claude/rules/*.md` | Validate syntax and path references | `ctxlint --fix-safe` |
+| `.kilo/rules/*.md` | Validate syntax and path references | `ctxlint --fix-safe` |
 | `.github/workflows/*` | YAML syntax, tool availability | — |
-| `.claude/` or `.kilo/` config changes | JSON/YAML syntax; correct paths | Run `ctxlint` if guidance touched |
+| `.kilo/` config changes | JSON/YAML syntax; correct paths | Run `ctxlint` if guidance touched |
 
 ## CI Pipelines
 
@@ -155,15 +234,15 @@ README.md  (setup sections)
 
 **CI enforces:** `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 
-**Pester:** 28 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 26 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## AI Guidance Changes
 
 - Keep `.github/copilot-instructions.md` minimal (startup only)
 - Broader rules → `AGENTS.md`
-- Narrow rules → `.claude/rules/` (Claude Code) / `.kilo/rules/` (Kilo AI)
-- Reusable workflows → `.claude/skills/` (Claude Code) / `.kilo/skills/` (Kilo AI)
-- After editing `.claude/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
+- Narrow rules → `.kilo/rules/`
+- Reusable workflows → `.kilo/skills/`
+- After editing `.kilo/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
 
 ## Agent Delegation
 
@@ -177,7 +256,7 @@ README.md  (setup sections)
 | `documentation-writer` | Markdown docs, README, AGENTS.md maintenance | New commands/agents, README sync after features |
 | `explore-codebase` | Read-only exploration, symbol location | Finding where a function lives, mapping dependencies |
 
-Agents live in `.claude/agents/`. Always load relevant skills first: `win-patterns`, `bootstrap-deployment`, `validation`, `agent-delegation`.
+Always load relevant skills first: `win-patterns`, `validation`, `agent-delegation`.
 
 ## MCP Servers
 
@@ -188,12 +267,18 @@ Configured in `.kilo/kilo.json` under the `mcp` key.
 | `ref-tools` | remote | Reference and citation tools |
 | `github` | remote | GitHub API integration |
 | `exa` | remote | Live web search and content crawling |
+| `gitmcp` | remote | Git repository MCP bridge |
+| `grep` | remote | Remote code search |
+| `deepwiki` | remote | Deep wiki documentation lookup |
+| `context7` | remote | Library documentation lookup |
+| `serena` | local | Local semantic code search |
 | `octocode` | local | Code search, LSP navigation, filesystem traversal |
-| `context7` | remote | Library documentation lookup (disabled by default) |
 
 Every enabled MCP server adds tokens to context. Prefer built-in tools for simple ops; disable unused servers on context warnings.
 
-## Skills (`.claude/skills/`)
+## Skills
+
+**`.kilo/skills/`** (shared, available in all AI tools):
 
 | Skill | Description |
 |---|---|
@@ -208,34 +293,51 @@ Every enabled MCP server adds tokens to context. Prefer built-in tools for simpl
 | `test-relocation` | Move and reorganize Pester test files |
 | `dead-code-cleanup` | Identify and remove unused code |
 | `windows-dotfiles` | Windows dotfiles conventions and deployment patterns |
-| `new-ps-script` | Scaffold a new PowerShell script with Common.ps1 integration and standard structure |
-| `powershell-windows` | PowerShell coding standards and Windows-specific patterns for this repo |
-| `ps-dedupe-cleanup` | Remove duplicate functions and variables in PowerShell scripts |
-| `ps-script-validator` | Validate a PowerShell script against Win repo conventions |
-| `session-complete` | End-of-session handoff and summary generation |
-| `todo-scan` | Scan for TODOs and unfinished work across the repository |
+| `karpathy-guidelines` | LLM coding discipline — avoid overcomplication, surgical changes |
 
-## Commands (`.claude/commands/`)
+**`.claude/skills/`** (Claude Code extras, superset of `.kilo/skills/`):
+
+| Skill | Description |
+|---|---|
+| `new-ps-script` | Scaffold new `.ps1` files with required headers and boilerplate |
+| `powershell-windows` | Critical pitfalls, operator syntax, error handling patterns |
+| `ps-script-validator` | Validate scripts against Win repo conventions and CI rules |
+| `session-complete` | End-of-session workflow: issues, quality gates, push, verify |
+| `todo-scan` | Scan repo for TODO comments, issues, and predict next work item |
+
+## Rules (`.kilo/rules/`)
+
+| Rule file | Scope |
+|---|---|
+| `powershell.md` | Naming, style, error handling, module patterns |
+| `bootstrap-deployment.md` | Bootstrap layers, dotbot, deployment order |
+| `registry-security.md` | Safe registry access, sensitive key avoidance |
+| `windows-os.md` | Windows API usage, compatibility, system paths |
+| `shell-strategy.md` | When to use PS vs CMD vs batch |
+| `agent-orchestration.md` | Multi-agent coordination and handoff patterns |
+| `morph-tools.md` | Tool and MCP server selection strategy |
+
+## Commands (`.kilo/commands/`)
 
 | Command | Description |
 |---|---|
-| `audit-security` | Security checks across the repository |
-| `backup-configs` | Backup configs before changes |
-| `debloat-windows` | Windows debloating workflow |
-| `deploy-configs` | Deploy a single config group |
-| `invoke-scriptanalyzer` | Lint PowerShell files |
-| `lint-guidance` | Validate AGENTS.md and `.claude/` guidance |
-| `migrate-config` | Migrate legacy configs to current layout |
-| `new-restore-point` | Create a system restore point |
-| `optimize-gaming` | Gaming optimization workflow |
-| `optimize-repository` | Analyze and improve repo maintainability |
-| `review-code` | Structured code review for PowerShell changes |
-| `set-execution-policy` | Safely set PowerShell execution policy |
-| `setup-win11` | Fresh Windows 11 setup workflow |
-| `sync-configs` | Synchronize configs with deployment manifest |
-| `test-environment` | Validate the local environment |
-| `update-winget` | Update winget-managed packages |
-| `validate-changes` | Run validation checks for changed areas |
+| `Audit-Security` | Security checks across the repository |
+| `Backup-CurrentConfigs` | Backup configs before changes |
+| `Debloat-Windows` | Windows debloating workflow |
+| `Deploy-Configs` | Deploy a single config group |
+| `Invoke-ScriptAnalyzer` | Lint PowerShell files |
+| `Lint-Guidance` | Validate AGENTS.md and `.kilo/` guidance |
+| `Migrate-Config` | Migrate legacy configs to current layout |
+| `New-RestorePointSafe` | Create a system restore point |
+| `Optimize-Gaming` | Gaming optimization workflow |
+| `Optimize-Repository` | Analyze and improve repo maintainability |
+| `Review-Code` | Structured code review for PowerShell changes |
+| `Set-ExecutionPolicySafe` | Safely set PowerShell execution policy |
+| `Setup-Win11` | Fresh Windows 11 setup workflow |
+| `Sync-Configs` | Synchronize configs with deployment manifest |
+| `Test-Environment` | Validate the local environment |
+| `Update-WingetPackages` | Update winget-managed packages |
+| `Validate-Changes` | Run validation checks for changed areas |
 
 ## Git & Commits
 
@@ -249,6 +351,11 @@ Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handlin
 
 - `README.md` — user-facing setup and usage
 - `.github/copilot-instructions.md` — short startup guide
-- `.claude/skills/win-patterns/SKILL.md` — recurring repo workflows
-- `.claude/rules/powershell.md` — PowerShell coding rules
-- `.claude/rules/bootstrap-deployment.md` — bootstrap and deployment rules
+- `.kilo/skills/win-patterns/SKILL.md` — recurring repo workflows
+- `.kilo/rules/powershell.md` — PowerShell coding rules
+- `.kilo/rules/bootstrap-deployment.md` — bootstrap and deployment rules
+- `.kilo/rules/registry-security.md` — registry safety rules
+- `.kilo/rules/windows-os.md` — Windows OS compatibility
+- `.kilo/rules/shell-strategy.md` — shell strategy (PS vs CMD vs batch)
+- `.kilo/rules/agent-orchestration.md` — multi-agent coordination
+- `.kilo/rules/morph-tools.md` — tool and MCP server selection

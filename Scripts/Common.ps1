@@ -983,7 +983,7 @@ function Set-EDIDOverride {
         '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' + `
                 '0000000000000000000000000000000000000000000000000000000000000000000' + `
                 '00000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
-    $monitors = Get-MonitorInstances
+    $monitors = Get-MonitorInstance
 
     if ($monitors.Count -eq 0) {
         Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
@@ -1012,7 +1012,7 @@ function Remove-EDIDOverride {
     #>
     param()
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
-    $monitors = Get-MonitorInstances
+    $monitors = Get-MonitorInstance
 
     if ($monitors.Count -eq 0) {
         Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
@@ -1040,7 +1040,7 @@ function Show-EDIDStatus {
         Displays current EDID override status for all monitors
     #>
     param()
-    $monitors = Get-MonitorInstances
+    $monitors = Get-MonitorInstance
 
     if ($monitors.Count -eq 0) {
         Write-ColorOutput "No monitors detected!" -ForegroundColor Yellow
