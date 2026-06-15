@@ -45,6 +45,23 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `.kilo/` | Kilo AI configuration (skills, agents, rules, commands) |
 | `.github/workflows/` | CI pipeline definitions |
 
+**Notable scripts** (beyond setup/bootstrap):
+
+| Script | Purpose |
+|--------|---------|
+| `debloat-windows.ps1` | Remove bloatware, disable telemetry |
+| `gpu-display-manager.ps1` | EDID overrides, MSI mode, display tweaks |
+| `system-settings-manager.ps1` | Power, visual, privacy system settings |
+| `system-maintenance.ps1` | Scheduled maintenance tasks |
+| `system-update.ps1` | Winget + scoop update runner |
+| `Network-Tweaker.ps1` | TCP/IP and adapter optimizations |
+| `shader-cache.ps1` | Shader cache management |
+| `shell-setup.ps1` | Shell environment configuration |
+| `UltimateDiskCleanup.ps1` | Deep disk cleanup |
+| `Fix-WindowsUpdates.ps1` | Windows Update repair |
+| `DLSS-force-latest.ps1` | Force latest DLSS version across games |
+| `New-SteamShortcut.ps1` | Steam shortcut creator |
+
 ## High-Signal Rules
 
 - **Reuse `Scripts/Common.ps1`** for shared behavior — registry, restore points, UI, GPU discovery, logging
@@ -72,6 +89,9 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **External commands** — use `&` operator; never bare `curl` — always `curl.exe`
 - **Downloads** — set `$ProgressPreference = 'SilentlyContinue'` before `Invoke-WebRequest`
 - **Braces** — OTBS style, 2-space indent
+- **No aliases** — use full cmdlet names (`Get-ChildItem`, not `gci`/`ls`/`dir`)
+- **Full parameter names** — no positional shorthand (`Get-Process -Name Explorer`, not `Get-Process Explorer`)
+- **Nouns** — singular PascalCase compound (`Get-DiskInfo`, not `Get-DiskInfos`)
 
 ## Common.ps1 — Use These Helpers
 
@@ -81,24 +101,37 @@ Request-AdminElevation                          # elevation check (always first)
 Initialize-ConsoleUI -Title "..."               # console setup
 Show-Menu / Get-MenuChoice                      # interactive menus
 Wait-ForKeyPress                                # pause for user
+Show-RestartRequired                            # prompt restart when needed
+
+# Output / Logging
+Write-Header / Write-Info / Write-Success       # colored status output
+Write-Warn / Write-Fail / Write-ColorOutput     # warnings and errors
+Add-Log / Get-Log / Clear-Log                   # session logging
+Show-Summary                                    # display results summary
 
 # Registry
 Set-RegistryValue / Remove-RegistryValue        # safe registry ops
 Get-RegistryValueSafe                           # read without throwing
 
-# NVIDIA
-Get-NvidiaGpuRegistryPath                       # discover all NVIDIA adapter registry paths (function name is singular)
-Get-NvidiaGpuPath / Set-NvidiaGpuRegistryValue  # GPU-specific ops
+# NVIDIA / Display
+Get-NvidiaGpuRegistryPath                       # discover all NVIDIA adapter registry paths
+Get-NvidiaGpuPath / Set-NvidiaGpuRegistryValue  # GPU-specific registry ops
+Get-NvidiaGpuSetting / Show-NvidiaGpuSetting    # read/display GPU settings
 Set-NvidiaSignatureOverride / Get-NvidiaSignatureStatus
 Set-FullscreenMode / Set-MultiPlaneOverlay      # display tweaks
+Set-MSIMode                                     # enable/disable MSI interrupt mode
+Set-EDIDOverride / Remove-EDIDOverride          # EDID override management
+Show-EDIDStatus / Show-GamingDisplayStatus      # display status info
+Get-MonitorInstance                             # enumerate monitor devices
 
 # System
 New-RestorePoint                                # before any HKLM changes
 Remove-AppxPackageSafe                          # safe appx removal
 Invoke-ServiceOperation                         # start/stop/query services
 Invoke-CommandChecked                           # run external command, throw on failure
+Invoke-Operation / Invoke-BuildOperation        # operation wrappers with error handling
 Invoke-RegImport                                # import .reg files safely
-Invoke-Winget                                   # winget wrapper
+Install-WingetPackage / Invoke-Winget           # winget wrappers
 Wait-ForWinget                                  # wait for winget lock
 
 # Files / Paths
@@ -107,14 +140,11 @@ Clear-DirectorySafe -Path "..."                 # safe directory clear
 Clear-PathSafe -Path "..."                      # safe path removal
 Ensure-Directory -Path "..."                    # mkdir -p equivalent
 
-# Logging
-Add-Log / Get-Log / Clear-Log                   # session logging
-
 # Utilities
 ConvertFrom-VDF / ConvertTo-VDF                 # Steam VDF parsing
+Stop-SteamGracefully                            # safe Steam shutdown
 Get-FolderSize / Format-Size                    # size reporting
 Measure-Execution                               # timing
-Show-Summary                                    # display results summary
 ```
 
 ## Registry & System Tweaks
@@ -155,10 +185,11 @@ Show-Summary                                    # display results summary
 
 ## Arc Raiders Scripts
 
-All five scripts change together:
+All six scripts change together:
 
 ```
 Scripts/arc-raiders/ARCRaidersUtility.ps1    # main utility (menu-driven)
+Scripts/arc-raiders/ArcRaidersCommon.ps1     # shared helpers for Arc Raiders scripts
 Scripts/arc-raiders/game-boost.ps1           # gaming optimization
 Scripts/arc-raiders/start-arc-raiders.ps1    # launch wrapper
 Scripts/arc-raiders/cleanup-arc-raiders.ps1  # cleanup helper
@@ -203,7 +234,7 @@ README.md  (setup sections)
 
 **CI enforces:** `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 
-**Pester:** 19 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 26 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## AI Guidance Changes
 
@@ -217,15 +248,15 @@ README.md  (setup sections)
 
 | Agent | Specialization | When to Delegate |
 |---|---|---|
-| `powershell-expert` | Script authoring, refactoring, CI compliance | New/modified `.ps1`, function extraction, ScriptAnalyzer fixes |
-| `windows-system-agent` | Registry tweaks, debloating, gaming, NVIDIA GPU | System modifications, service management, registry changes |
-| `config-deployer-agent` | Dotbot YAML, tracked config, deployment path mapping | `install.conf.yaml` edits, new tracked configs |
+| `powershell-agent` | Script authoring, refactoring, CI compliance | New/modified `.ps1`, function extraction, ScriptAnalyzer fixes |
+| `windows-optimizer` | Registry tweaks, debloating, gaming, NVIDIA GPU | System modifications, service management, registry changes |
+| `config-deployer` | Dotbot YAML, tracked config, deployment path mapping | `install.conf.yaml` edits, new tracked configs |
 | `code-reviewer` | Read-only review, best-practice verification | Before merging PS changes, after refactoring |
 | `security-auditor` | Credential detection, unsafe pattern flagging | Before committing scripts touching credentials or elevation |
 | `documentation-writer` | Markdown docs, README, AGENTS.md maintenance | New commands/agents, README sync after features |
 | `explore-codebase` | Read-only exploration, symbol location | Finding where a function lives, mapping dependencies |
 
-Always load relevant skills first: `win-patterns`, `bootstrap-deployment`, `validation`, `agent-delegation`.
+Always load relevant skills first: `win-patterns`, `validation`, `agent-delegation`.
 
 ## MCP Servers
 
@@ -236,12 +267,18 @@ Configured in `.kilo/kilo.json` under the `mcp` key.
 | `ref-tools` | remote | Reference and citation tools |
 | `github` | remote | GitHub API integration |
 | `exa` | remote | Live web search and content crawling |
+| `gitmcp` | remote | Git repository MCP bridge |
+| `grep` | remote | Remote code search |
+| `deepwiki` | remote | Deep wiki documentation lookup |
+| `context7` | remote | Library documentation lookup |
+| `serena` | local | Local semantic code search |
 | `octocode` | local | Code search, LSP navigation, filesystem traversal |
-| `context7` | remote | Library documentation lookup (disabled by default) |
 
 Every enabled MCP server adds tokens to context. Prefer built-in tools for simple ops; disable unused servers on context warnings.
 
-## Skills (`.kilo/skills/`)
+## Skills
+
+**`.kilo/skills/`** (shared, available in all AI tools):
 
 | Skill | Description |
 |---|---|
@@ -256,6 +293,29 @@ Every enabled MCP server adds tokens to context. Prefer built-in tools for simpl
 | `test-relocation` | Move and reorganize Pester test files |
 | `dead-code-cleanup` | Identify and remove unused code |
 | `windows-dotfiles` | Windows dotfiles conventions and deployment patterns |
+| `karpathy-guidelines` | LLM coding discipline — avoid overcomplication, surgical changes |
+
+**`.claude/skills/`** (Claude Code extras, superset of `.kilo/skills/`):
+
+| Skill | Description |
+|---|---|
+| `new-ps-script` | Scaffold new `.ps1` files with required headers and boilerplate |
+| `powershell-windows` | Critical pitfalls, operator syntax, error handling patterns |
+| `ps-script-validator` | Validate scripts against Win repo conventions and CI rules |
+| `session-complete` | End-of-session workflow: issues, quality gates, push, verify |
+| `todo-scan` | Scan repo for TODO comments, issues, and predict next work item |
+
+## Rules (`.kilo/rules/`)
+
+| Rule file | Scope |
+|---|---|
+| `powershell.md` | Naming, style, error handling, module patterns |
+| `bootstrap-deployment.md` | Bootstrap layers, dotbot, deployment order |
+| `registry-security.md` | Safe registry access, sensitive key avoidance |
+| `windows-os.md` | Windows API usage, compatibility, system paths |
+| `shell-strategy.md` | When to use PS vs CMD vs batch |
+| `agent-orchestration.md` | Multi-agent coordination and handoff patterns |
+| `morph-tools.md` | Tool and MCP server selection strategy |
 
 ## Commands (`.kilo/commands/`)
 
@@ -294,3 +354,8 @@ Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handlin
 - `.kilo/skills/win-patterns/SKILL.md` — recurring repo workflows
 - `.kilo/rules/powershell.md` — PowerShell coding rules
 - `.kilo/rules/bootstrap-deployment.md` — bootstrap and deployment rules
+- `.kilo/rules/registry-security.md` — registry safety rules
+- `.kilo/rules/windows-os.md` — Windows OS compatibility
+- `.kilo/rules/shell-strategy.md` — shell strategy (PS vs CMD vs batch)
+- `.kilo/rules/agent-orchestration.md` — multi-agent coordination
+- `.kilo/rules/morph-tools.md` — tool and MCP server selection
