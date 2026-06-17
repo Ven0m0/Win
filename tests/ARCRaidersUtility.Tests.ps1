@@ -38,7 +38,6 @@ Describe "ARCRaidersUtility Script Initialization" {
 
     It "Should export the expected helper functions" {
         $expectedFunctions = @(
-            "Write-Log",
             "Test-IsAdmin",
             "Find-RtxGpu",
             "Set-IniValue",

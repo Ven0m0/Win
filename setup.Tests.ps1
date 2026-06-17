@@ -29,7 +29,7 @@ Describe "Get-ActivePhysicalAdapterAlias" {
         function Get-NetAdapter {}
         Mock Get-NetAdapter { throw "Simulated failure" }
         $result = Get-ActivePhysicalAdapterAlias
-        $result.Count | Should -Be 0
+        $result | Should -BeNullOrEmpty
     }
 
     It "Returns adapter names when Get-NetAdapter succeeds" {

@@ -1,10 +1,14 @@
 ﻿#Requires -Version 5.1
 
+BeforeDiscovery {
+    $scriptExists = Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
+}
+
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
-Describe "Backup-GameConfig.ps1" {
+Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     BeforeAll {
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"

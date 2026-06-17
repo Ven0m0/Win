@@ -1,9 +1,11 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
-# Evaluated during Pester discovery (before BeforeAll runs), so must live here.
-$script:IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator
-)
+BeforeDiscovery {
+    # Must live here so -Skip: expressions can evaluate it during discovery.
+    $IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator
+    )
+}
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
@@ -11,9 +13,6 @@ BeforeAll {
 
 Describe "enable-timer-res.ps1" {
     BeforeAll {
-        if (-not $script:IsAdmin) {
-            Write-Host "  [SKIP] enable-timer-res tests require Administrator." -ForegroundColor Yellow
-        }
         # Stub Common.ps1 helpers so dot-source does not trigger downloads
         function Get-FileFromWeb { param([string]$URL, [string]$File) }
         # Mocks for all system-mutating operations
@@ -29,7 +28,7 @@ Describe "enable-timer-res.ps1" {
         Mock Select-OptimalResolution { [uint32]5040 }
     }
 
-    Context "Write-StatusMessage" -Skip:(-not $script:IsAdmin) {
+    Context "Write-StatusMessage" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }
@@ -55,7 +54,7 @@ Describe "enable-timer-res.ps1" {
         }
     }
 
-    Context "Get-TimerResolutionExe — file already present" -Skip:(-not $script:IsAdmin) {
+    Context "Get-TimerResolutionExe — file already present" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }
@@ -68,7 +67,7 @@ Describe "enable-timer-res.ps1" {
         }
     }
 
-    Context "Get-TimerResolutionExe — file missing" -Skip:(-not $script:IsAdmin) {
+    Context "Get-TimerResolutionExe — file missing" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }
@@ -92,7 +91,7 @@ Describe "enable-timer-res.ps1" {
         }
     }
 
-    Context "Set-TimerResolutionTask — task does not exist" -Skip:(-not $script:IsAdmin) {
+    Context "Set-TimerResolutionTask — task does not exist" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }
@@ -110,7 +109,7 @@ Describe "enable-timer-res.ps1" {
         }
     }
 
-    Context "Set-TimerResolutionTask — task already exists, no -Force" -Skip:(-not $script:IsAdmin) {
+    Context "Set-TimerResolutionTask — task already exists, no -Force" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }
@@ -123,7 +122,7 @@ Describe "enable-timer-res.ps1" {
         }
     }
 
-    Context "Get-TimerResolutionStatus" -Skip:(-not $script:IsAdmin) {
+    Context "Get-TimerResolutionStatus" -Skip:(-not $IsAdmin) {
         BeforeAll {
             . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
         }

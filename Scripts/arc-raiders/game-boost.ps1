@@ -176,7 +176,9 @@ function Get-GameProcess {
 
 # Load Win32 APIs for working set trimming
 function Import-MemApi {
-    Add-Type @"
+    if (([System.Management.Automation.PSTypeName]'ArcBoostMem').Type) { return }
+    try {
+        Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 public class ArcBoostMem {
@@ -195,7 +197,7 @@ public class ArcBoostMem {
             try {
                 IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
                 if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); count++; }
-            } catch { Write-Verbose "ArcBoostMem.TrimAll process failed: $_" }
+            } catch { }
         }
         return count;
     }
@@ -206,7 +208,10 @@ public class ArcBoostMem {
         Marshal.FreeHGlobal(buf);
     }
 }
-"@ -ErrorAction SilentlyContinue
+"@
+    } catch {
+        Write-Verbose "MemApi unavailable: $_"
+    }
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

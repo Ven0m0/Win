@@ -127,7 +127,7 @@ Describe "Steam-Config.ps1 — VDF parser" {
     }
 
     Context "settings application roundtrip" {
-        It "Applies all $settings keys to an empty VDF tree without error" {
+        It "Applies all settings keys to an empty VDF tree without error" {
             $vdf = '"UserLocalConfigStore"' + "`r`n{`r`n}`r`n"
             $tree = parsevdf $vdf
 

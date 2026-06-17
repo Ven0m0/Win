@@ -2344,7 +2344,8 @@ $Script:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
 
 # Get-ItemPropertyValue throws a terminating error for missing properties even
 # with -ErrorAction SilentlyContinue; Get-ItemProperty property access returns $null
-$TCPIP_RssBaseCpu = (Get-ItemProperty -Path "$TCPIP_RegPath" -ErrorAction SilentlyContinue).RssBaseCpu
+$tcpipRegProps = Get-ItemProperty -Path "$TCPIP_RegPath" -ErrorAction SilentlyContinue
+$TCPIP_RssBaseCpu = if ($null -ne $tcpipRegProps) { $tcpipRegProps.RssBaseCpu } else { $null }
 if ($null -eq $TCPIP_RssBaseCpu)
     {
         $cb_tcpiprssbasecpu.text = '0'
@@ -2353,7 +2354,8 @@ if ($null -eq $TCPIP_RssBaseCpu)
     {
         $cb_tcpiprssbasecpu.text = $TCPIP_RssBaseCpu
     }
-$NDIS_RssBaseCpu = (Get-ItemProperty -Path "$NDIS_RegPath" -ErrorAction SilentlyContinue).RssBaseCpu
+$ndisRegProps = Get-ItemProperty -Path "$NDIS_RegPath" -ErrorAction SilentlyContinue
+$NDIS_RssBaseCpu = if ($null -ne $ndisRegProps) { $ndisRegProps.RssBaseCpu } else { $null }
 if ($null -eq $NDIS_RssBaseCpu)
     {
         $cb_ndisrssbasecpu.text = '0'
