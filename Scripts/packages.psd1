@@ -36,7 +36,6 @@
     'Microsoft.EdgeWebView2Runtime'
     'Oracle.JavaRuntimeEnvironment'
     'EclipseAdoptium.Temurin.25.JRE'
-    'OpenAL.OpenAL'
   )
 
   # ---------------------------------------------------------------------------
@@ -45,10 +44,12 @@
   WingetToolchains = @(
     'MartinStorsjo.LLVM-MinGW.UCRT'
     'Rustlang.Rustup'
+    'Rustlang.Rust.MSVC'
+    'RubyInstallerTeam.Ruby.4.0'
+    'Microsoft.VisualStudio.BuildTools'
     'astral-sh.uv'
     'Oven-sh.Bun'
     'BiomeJS.Biome'
-    'koalaman.shellcheck'
     'ast-grep.ast-grep'
     'SQLite.SQLite'
     'Kitware.CMake'
@@ -65,10 +66,13 @@
     'MathiasCodes.Winstow'
     'OpenJS.NodeJS'
     'Python.Python.3.13'
+    'Python.Python.3.14'
+    'Python.Launcher'
     'PuTTY.PuTTY'
-    'Eugeny.Terminus'
     'jdx.mise'
     'topgrade-rs.topgrade'
+    'sinelaw.fresh-editor'
+    'Anthropic.ClaudeCode'
   )
 
   # ---------------------------------------------------------------------------
@@ -84,6 +88,7 @@
     'Starship.Starship'
     'ajeetdsouza.zoxide'
     'DEVCOM.JetBrainsMonoNerdFont'
+    'marlocarlo.psmux'
   )
 
   # ---------------------------------------------------------------------------
@@ -99,13 +104,12 @@
     'KDE.Kdenlive'
     'Audacity.Audacity'
     'HandBrake.HandBrake'
-    'aandrew-me.ytDownloader'
+    'Gyan.FFmpeg.Shared'
     # Image / graphics
     'GIMP.GIMP'
     'KDE.Krita'
     'tannerhelland.PhotoDemon'
     'Greenshot.Greenshot'
-    'ShareX.ShareX'
     'XnSoft.XnConvert'
     'SaeraSoft.CaesiumImageCompressor'
     # Compression / files
@@ -131,6 +135,7 @@
     'Microsoft.Sysinternals.Autologon'
     # Package managers / install helpers
     'Devolutions.UniGetUI'
+    'Anthropic.Claude'
     # System / drivers / hardware
     'Guru3D.Afterburner.Beta'
     'SteelSeries.GG'

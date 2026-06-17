@@ -86,7 +86,11 @@ jobs:
         shell: pwsh
         run: |
           $xml = [xml]::new()
-          $xml.Load("$PWD/Scripts/auto/autounattend.xml")
+          if (Test-Path "$PWD/Scripts/auto/autounattend.xml") {
+            $xml.Load("$PWD/Scripts/auto/autounattend.xml")
+          } else {
+            Write-Host "Scripts/auto/autounattend.xml not present, skipping"
+          }
           $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
 
       - name: Run PSScriptAnalyzer
