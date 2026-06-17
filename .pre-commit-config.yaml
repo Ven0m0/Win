@@ -1,3 +1,6 @@
+ci:
+  skip: [renovate-config-validator]
+
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
