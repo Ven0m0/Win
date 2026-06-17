@@ -112,9 +112,9 @@ Describe "fix-system.ps1 (WindowsUpdate action) - Functions" {
     BeforeAll {
         . "$PSScriptRoot/../Scripts/fix-system.ps1"
 
-        function Write-Host {}
-        function Write-Verbose {}
-        function Write-Warning {}
+        Mock Write-Host {}
+        Mock Write-Verbose {}
+        Mock Write-Warning {}
         function sc.exe { return 0 }
         function net.exe { return 0 }
         function reg.exe { return 0 }

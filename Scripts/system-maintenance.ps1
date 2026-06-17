@@ -627,7 +627,7 @@ function Invoke-ShaderCacheCleanup {
     Clear-DirectorySafe -Path $entry
   }
 
-  Write-Host 'All relevant shader/log/crash caches cleaned.'
+  Write-Verbose 'All relevant shader/log/crash caches cleaned.'
 }
 
 

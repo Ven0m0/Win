@@ -65,7 +65,7 @@ Describe "Invoke-MsiCleanup" {
 Describe "Start-AdditionalMaintenance" {
     Context "DryRun Mode" {
         It "Should execute operations with DryRun" {
-            Mock Initialize-ConsoleUI { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
+            Mock Initialize-ConsoleUI {}
             Mock Get-Date { return [datetime]"2023-01-01T12:00:00" }
             Mock Write-Header {}
             Mock Write-Info {}
@@ -99,7 +99,7 @@ Describe "Start-AdditionalMaintenance" {
 
     Context "NoRestorePoint flag" {
         It "Should skip restore point creation" {
-            Mock Initialize-ConsoleUI { param([Parameter(ValueFromRemainingArguments)]$DummyArgs) }
+            Mock Initialize-ConsoleUI {}
             Mock Get-Date { return [datetime]"2023-01-01T12:00:00" }
             Mock Write-Header {}
             Mock Write-Info {}
@@ -170,7 +170,7 @@ Describe "Invoke-ShaderCacheCleanup" {
             Mock ConvertFrom-VDF {
                 $obj = New-Object PSObject
                 $inner = @{ "0" = @{ "path" = '"C:\SteamLibrary"' } }
-                Add-Member -InputObject $obj -MemberType ScriptMethod -Name Item -Value { param($i) return $this.Inner }
+                Add-Member -InputObject $obj -MemberType ScriptMethod -Name Item -Value { param($i); $null = $i; return $this.Inner }
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name Inner -Value $inner
                 return $obj
             }

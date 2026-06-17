@@ -227,6 +227,7 @@ function Remove-RegistryValue {
     }
 }
 
+[OutputType([string[]])]
 function Get-NvidiaGpuRegistryPath {
     [CmdletBinding()]
     <#
