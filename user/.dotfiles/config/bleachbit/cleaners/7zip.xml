@@ -27,10 +27,10 @@
     @cleanerby Andrew Ziem (2013) & 2McCoy7 (2014) & mikevainio (2016) & Tobias B. Besemer (2019-02-18 - 2019-03-21)
     @tested ok v???, Windows 7
     @testeddate 2014-10-01 (... with an old version of the cleaner!)
-    @testedby 
+    @testedby
     @tested ok v15.06 beta, Windows 7
     @testeddate 2015-08-25 (... with an old version of the cleaner!)
-    @testedby 
+    @testedby
     @note 7-Zip stores history in the Windows Registry, so this cleaner is more aimed towards maintaining privacy rather then freeing up disk space.
     @note 7-Zip-GUI for Linux: Package p7zip-gui, App 7zFM
     @note I will try to figure the storage place of the Linux version later out. Tobias.
@@ -43,7 +43,7 @@
   <var name="profile">
     Windows: Seems 7-Zip have no profile directory...
     <value os="windows">none</value>
-    
+
     Linux: Profile directory not yet figured out! I will do this later! Tobias.
     <value os="linux">~/.7zfm</value>
   </var>

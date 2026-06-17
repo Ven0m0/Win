@@ -229,6 +229,7 @@ function Remove-RegistryValue {
 
 function Get-NvidiaGpuRegistryPath {
     [CmdletBinding()]
+    [OutputType([System.Object[]])]
     <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
@@ -237,8 +238,9 @@ function Get-NvidiaGpuRegistryPath {
     #>
     param()
     $basePath = "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}"
-    $subkeys = (Get-ChildItem -Path "Registry::$basePath" -Force -ErrorAction SilentlyContinue).Name
-    return $subkeys | Where-Object { $_ -notlike '*Configuration' }
+    $items = Get-ChildItem -Path "Registry::$basePath" -Force -ErrorAction SilentlyContinue
+    if (-not $items) { return @() }
+    return $items.Name | Where-Object { $_ -notlike '*Configuration' }
 }
 
 $script:CachedNvidiaGpuPaths = $null

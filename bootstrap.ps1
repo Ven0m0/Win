@@ -112,7 +112,7 @@ if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
     } else {
         Write-Ok 'Python is already installed'
     }
-    
+
     # Install dotbot via pip
     try {
         Write-Info 'Installing dotbot via pip...'

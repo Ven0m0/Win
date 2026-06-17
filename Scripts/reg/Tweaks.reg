@@ -34,7 +34,7 @@ Windows Registry Editor Version 5.00
 
 ; Filterkeys Setter
 [HKEY_CURRENT_USER\Control Panel\Accessibility\Keyboard Response]
-"DelayBeforeAcceptance"="0" 
+"DelayBeforeAcceptance"="0"
 "BounceTime"="0"
 
 ; OTHER

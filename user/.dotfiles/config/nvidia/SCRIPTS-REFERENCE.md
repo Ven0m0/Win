@@ -93,7 +93,7 @@ The script downloads Inspector.exe to `%TEMP%` automatically.
 
 ---
 
-### `Scripts/shader-cache.ps1`
+### `Scripts/system-maintenance.ps1 -Action Shader`
 
 Shader Cache Cleanup — clears all shader caches for Steam games and GPU drivers.
 
@@ -118,7 +118,7 @@ Shader Cache Cleanup — clears all shader caches for Steam games and GPU driver
 - Simpler
 
 **Equivalent Batch File:**
-- `nvidia-shader-cache-cleanup.cmd` — NVIDIA caches only
+- `nvidia-cleanup.cmd shader` — NVIDIA caches only
 
 **Differences:**
 
@@ -133,12 +133,12 @@ Shader Cache Cleanup — clears all shader caches for Steam games and GPU driver
 **Usage:**
 ```powershell
 cd ~/Scripts
-.\shader-cache.ps1
+.\system-maintenance.ps1 -Action Shader
 ```
 
 Or for NVIDIA-only cleanup:
 ```cmd
-nvidia-shader-cache-cleanup.cmd
+nvidia-cleanup.cmd shader
 ```
 
 ---
@@ -198,8 +198,8 @@ The `nvidia-performance-tweaks.reg` file consolidates settings from the PowerShe
 | Enable MSI Mode | PowerShell | `gpu-display-manager.ps1` |
 | Override EDID | PowerShell | `gpu-display-manager.ps1` |
 | Force DLSS latest | PowerShell | `DLSS-force-latest.ps1` |
-| Clear shader cache | PowerShell (full) | `shader-cache.ps1` |
-| Clear NVIDIA cache only | Batch | `nvidia-shader-cache-cleanup.bat` |
+| Clear shader cache | PowerShell (full) | `system-maintenance.ps1 -Action Shader` |
+| Clear NVIDIA cache only | Batch | `nvidia-cleanup.cmd shader` |
 | Full performance tweaks | Registry | `nvidia-performance-tweaks.reg` |
 
 ## Integration Examples
@@ -220,7 +220,7 @@ regedit /s toggles/disable-mpo.reg
 regedit /s toggles/enable-hardware-scheduling.reg
 
 :: Clean shader cache
-call nvidia-shader-cache-cleanup.cmd
+call nvidia-cleanup.cmd shader
 
 :: For MSI Mode and EDID, use PowerShell script:
 :: powershell -ExecutionPolicy Bypass -File "%USERPROFILE%\Scripts\gpu-display-manager.ps1"

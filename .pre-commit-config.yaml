@@ -1,3 +1,6 @@
+ci:
+  skip: [renovate-config-validator, forbid-submodules]
+
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -31,6 +34,7 @@ repos:
       - id: check-toml
       - id: check-xml
       - id: fix-byte-order-marker
+        exclude: \.(ps1|psm1|psd1)$
       - id: mixed-line-ending
       - id: detect-private-key
       - id: check-case-conflict
@@ -72,7 +76,7 @@ repos:
       - id: py-psscriptanalyzer-format
         files: \.(ps1|psm1|psd1)$
         stages: [pre-commit]
-  
+
   - repo: local
     hooks:
       - id: psscriptanalyzer-lint

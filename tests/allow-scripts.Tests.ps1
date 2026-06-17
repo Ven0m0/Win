@@ -68,7 +68,7 @@ Describe "allow-scripts.ps1" {
 
         It "Should write disabling status messages (at least banner and completion)" {
             Disable-ScriptExecution
-            Assert-MockCalled -CommandName Write-Host -AtLeast 5
+            Should -Invoke Write-Host -Times 5 -Scope It
         }
     }
 

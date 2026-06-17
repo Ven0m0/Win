@@ -6,6 +6,12 @@
 .NOTES
   Requires Windows, PowerShell 5+; will elevate for certain steps.
   ExecutionPolicy for CurrentUser will be set to RemoteSigned on first run.
+
+  DEPRECATED package lists: the inline Winget/Scoop/Choco arrays below duplicate
+  and drift from the canonical catalog in Scripts/packages.psd1. Prefer
+  Scripts/Install-Packages.ps1 (which reads packages.psd1). This script is still
+  referenced by Setup-Win11.ps1 only as a winget-bootstrap fallback; its bulk
+  package install is slated for removal.
 #>
 [CmdletBinding()]
 param(
@@ -313,30 +319,12 @@ $WinGet = @(
     "Python.Python.3.11",
     "chrisant996.Clink",
     "PuTTY.PuTTY",
-    "WinSCP.WinSCP",
-    "Balena.Etcher",
-    "CPUID.HWMonitor",
-    "CrystalDewWorld.CrystalDiskMark",
   "BleachBit.BleachBit",
     "GnuPG.GnuPG",
     "LIGHTNINGUK.ImgBurn",
     "dotPDNLLC.paintdotnet",
-    "UderzoSoftware.SpaceSniffer",
-    "Rufus.Rufus",
-  "scottlerch.hosts-file-editor",
-    "thomasnordquist.MQTT-Explorer",
-    "jziolkowski.tdm",
-    "HDDGURU.HDDRawCopyTool",
-    "dnSpyEx.dnSpy",
-    "JLC.EasyEDA",
-    "Google.Chrome",
-  "Lexikos.AutoHotkey",
-    "SumatraPDF.SumatraPDF",
-    "ScooterSoftware.BeyondCompare4",
-    "Eassos.DiskGenius",
     "RevoUninstaller.RevoUninstaller",
-    "ElaborateBytes.VirtualCloneDrive",
-  "RARLab.WinRAR","Piriform.Speccy","Piriform.Defraggler","Starship.Starship","OliverBetz.ExifTool"
+  "Starship.Starship"
 )
 foreach ($item in $WinGet) { Invoke-Winget -Id $item }
 
@@ -367,11 +355,11 @@ if ($HomeWorkstation) {
   foreach ($item in $WinGet) { Invoke-Winget -Id $item }
 }
 
-# VSCode custom install
-winget install Microsoft.VisualStudioCode `
+# VSCodium custom install
+winget install VSCodium.VSCodium `
     --override '/SILENT /mergetasks="!runcode,addcontextmenufiles,addcontextmenufolders"'
 if ($LASTEXITCODE -notin @(0, -1978335189)) {
-    throw "VSCode install failed with exit code $LASTEXITCODE"
+    throw "VSCodium install failed with exit code $LASTEXITCODE"
 }
 
 # Choco packages

@@ -64,7 +64,7 @@ user_pref("network.prefetch-next", true);
 user_pref("network.modulepreload", true);
 user_pref("network.early-hints.enabled", true);
 user_pref("network.early-hints.preconnect.enabled", true);
-user_pref("network.early-hints.preconnect.max_connections", 10); 
+user_pref("network.early-hints.preconnect.max_connections", 10);
 user_pref("network.preconnect", true); // DEFAULT
 user_pref("browser.urlbar.speculativeConnect.enabled", true); // preconnect to the autocomplete URL in the address bar
 user_pref("browser.places.speculativeConnect.enabled", true); // Whether to warm up network connections for places:menus and places:toolbar
@@ -164,7 +164,7 @@ user_pref("media.mediasource.webm.enabled", true);
 user_pref("dom.webnotifications.enabled", false);
 user_pref("dom.webnotifications.serviceworker.enabled", false);
 user_pref("extensions.screenshots.upload-disabled", true); // Disable "Upload" feature on Screenshots
-user_pref("layout.word_select.eat_space_to_next_word", true); // When double-clicking a word on a page, only copy the word itself, not the space character next to it 
+user_pref("layout.word_select.eat_space_to_next_word", true); // When double-clicking a word on a page, only copy the word itself, not the space character next to it
 // Autoplay
 user_pref("media.block-autoplay-until-in-foreground", true);
 // PREF: restore "View image info" on right-click

@@ -36,7 +36,6 @@
     'Microsoft.EdgeWebView2Runtime'
     'Oracle.JavaRuntimeEnvironment'
     'EclipseAdoptium.Temurin.25.JRE'
-    'OpenAL.OpenAL'
   )
 
   # ---------------------------------------------------------------------------
@@ -45,12 +44,15 @@
   WingetToolchains = @(
     'MartinStorsjo.LLVM-MinGW.UCRT'
     'Rustlang.Rustup'
+    'Rustlang.Rust.MSVC'
+    'RubyInstallerTeam.Ruby.4.0'
+    'Microsoft.VisualStudio.BuildTools'
     'astral-sh.uv'
     'Oven-sh.Bun'
     'BiomeJS.Biome'
-    'koalaman.shellcheck'
     'ast-grep.ast-grep'
     'SQLite.SQLite'
+    'Kitware.CMake'
   )
 
   # ---------------------------------------------------------------------------
@@ -64,10 +66,13 @@
     'MathiasCodes.Winstow'
     'OpenJS.NodeJS'
     'Python.Python.3.13'
+    'Python.Python.3.14'
+    'Python.Launcher'
     'PuTTY.PuTTY'
-    'Eugeny.Terminus'
     'jdx.mise'
     'topgrade-rs.topgrade'
+    'sinelaw.fresh-editor'
+    'Anthropic.ClaudeCode'
   )
 
   # ---------------------------------------------------------------------------
@@ -80,11 +85,16 @@
     'sharkdp.bat'
     'dandavison.delta'
     'JanDeDobbeleer.OhMyPosh'
+    'Starship.Starship'
+    'ajeetdsouza.zoxide'
+    'DEVCOM.JetBrainsMonoNerdFont'
+    'marlocarlo.psmux'
   )
 
   # ---------------------------------------------------------------------------
   # Applications — media, productivity, gaming, system utilities, security
   # ---------------------------------------------------------------------------
+  # Reconciled 2026-06-17 to match currently-installed software (winget export).
   WingetApplications = @(
     # Media / video / audio
     'VideoLAN.VLC'
@@ -94,10 +104,10 @@
     'KDE.Kdenlive'
     'Audacity.Audacity'
     'HandBrake.HandBrake'
-    'GiantPinkRobots.Varia'
-    'CodecGuide.K-LiteCodecPack.Basic'
+    'Gyan.FFmpeg.Shared'
     # Image / graphics
     'GIMP.GIMP'
+    'KDE.Krita'
     'tannerhelland.PhotoDemon'
     'Greenshot.Greenshot'
     'XnSoft.XnConvert'
@@ -105,14 +115,11 @@
     # Compression / files
     '7zip.7zip'
     'Meta.Zstandard'
-    'IridiumIO.CompactGUI'
     'Nikkho.FileOptimizer'
-    'Rclone.Rclone'
-    'TimVisee.ffsend'
     'aria2.aria2'
     # Browsers / launchers
     'Ablaze.Floorp'
-    'Mozilla.Firefox'
+    'ImputNet.Helium'
     # Gaming
     'Valve.Steam'
     'EpicGames.EpicGamesLauncher'
@@ -121,44 +128,31 @@
     # Productivity / utilities
     'Microsoft.PowerToys'
     'voidtools.Everything'
-    'DevToys-app.DevToys'
     'AutoHotkey.AutoHotkey'
-    'TheDocumentFoundation.LibreOffice'
-    'Rainmeter.Rainmeter'
+    'ONLYOFFICE.DesktopEditors'
+    'gerardog.gsudo'
     'Microsoft.Sysinternals.Autoruns'
-    'Sysinternals.Autologon'
+    'Microsoft.Sysinternals.Autologon'
     # Package managers / install helpers
-    'MartiCliment.UniGetUI'
-    'Chocolatey.Chocolatey'
-    'Chocolatey.ChocolateyGUI'
+    'Devolutions.UniGetUI'
+    'Anthropic.Claude'
     # System / drivers / hardware
     'Guru3D.Afterburner.Beta'
-    'SteelSeries.SteelSeriesEngine'
+    'SteelSeries.GG'
     'ViGEm.ViGEmBus'
-    'ToastyX.CustomResolutionUtility'
+    'Nefarius.HidHide'
     'TechPowerUp.NVCleanstall'
-    'Wagnardsoft.DisplayDriverUninstaller'
-    'lostindark.DriverStoreExplorer'
-    'Recol.DLSSUpdater'
     'GlennDelahoy.SnappyDriverInstallerOrigin'
-    'CPUID.CPU-Z'
-    'TechPowerUp.GPU-Z'
+    'Orbmu2k.nvidiaProfileInspector'
+    'xHybred.NVPIRevamped'
+    'Nvidia.PhysX'
+    'REALiX.HWiNFO'
+    'Intel.IntelExtremeTuningUtility'
+    'Ventoy.Ventoy'
     # Disk / storage / cleanup
-    'WinDirStat.WinDirStat'
     'BleachBit.BleachBit'
-    'qarmin.czkawka.gui'
-    'SingularLabs.CCEnhancer'
     # Uninstallers / maintenance
     'RevoUninstaller.RevoUninstaller'
-    'Klocman.BulkCrapUninstaller'
-    'Universal-Debloater-Alliance.uad-ng'
-    # Security
-    'ClamWin.ClamWin'
-    # Dev utilities
-    'WindowsPostInstallWizard.UniversalSilentSwitchFinder'
-    'EditorConfig-Checker.EditorConfig-Checker'
-    'Nlitesoft.NTLite'
-    'CodingWondersSoftware.DISMTools.Stable'
   )
 
   # ---------------------------------------------------------------------------
@@ -166,9 +160,6 @@
   # ---------------------------------------------------------------------------
   ScoopBuckets = @(
     'extras'
-    'nerd-fonts'
-    'java'
-    'nirsoft'
   )
 
   ScoopPackages = @()

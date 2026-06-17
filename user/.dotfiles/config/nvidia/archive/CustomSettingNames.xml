@@ -8,11 +8,11 @@
   |======== !!!IMPORTANT!!! DETAILS ABOUT HIDDEN SETTINGS ========|
   |===============================================================|
     There are two ways that Settings may be hidden:
-    
+
     1) Using the <Hidden /> XML tag
         - These are typically hidden for good reason. It is not recommended to make them visible unless you
           *really* know what you're doing
-    
+
     2) The XML block has been commented out
         - These are typically hidden by the author of this file because they are uncommonly used and only needed in
           specific use-cases (like the advanced Stereo Profile setting at the top)
@@ -7248,8 +7248,8 @@
         </CustomSettingValue>
       </SettingValues>
     </CustomSetting>
-    <!-- 
-      MPO Indicator, sourced from Soliver84's massive Reference.xml version: 
+    <!--
+      MPO Indicator, sourced from Soliver84's massive Reference.xml version:
       https://forums.guru3d.com/threads/nvidia-profile-inspector-crazy-all-nvida-stetings-reference-file.448873/#post-6176940
     -->
     <CustomSetting>

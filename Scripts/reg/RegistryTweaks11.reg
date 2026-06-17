@@ -65,7 +65,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Control Panel\UnsupportedHardwareNotificationCache]
 "SV2"=dword:00000000
 
-[HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig] 
+[HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig]
 "BypassCPUCheck"=dword:00000001
 "BypassRAMCheck"=dword:00000001
 "BypassSecureBootCheck"=dword:00000001
@@ -152,7 +152,7 @@ Windows Registry Editor Version 5.00
 
 ; Set Wallpaper to Solid Color (11)
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Wallpapers]
-"BackgroundType"=dword:00000001        
+"BackgroundType"=dword:00000001
 
 ; Disable Prompt For Location Privacy
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
@@ -175,7 +175,7 @@ Windows Registry Editor Version 5.00
 "IsResumeAllowed"=dword:00000000
 "IsOneDriveResumeAllowed"=dword:00000000
 
-; Disable Dynamic Lighting 
+; Disable Dynamic Lighting
 [HKEY_CURRENT_USER\Software\Microsoft\Lighting]
 "AmbientLightingEnabled"=dword:00000000
 "ControlledByForegroundApp"=dword:00000000

@@ -14,7 +14,7 @@ Workflows executed:
 | Step | Action | Script wrapper |
 |------|--------|----------------|
 | **Fullscreen & MPO** | Registry tweaks for exclusive fullscreen, multiplane overlay | `Scripts/gaming-display.ps1`, `Scripts/gpu-display-manager.ps1` |
-| **Shader Cache** | Clears Steam, temp, NVIDIA/AMD shader caches | `Scripts/shader-cache.ps1` (with manual fallback) |
+| **Shader Cache** | Clears Steam, temp, NVIDIA/AMD shader caches | `Scripts/system-maintenance.ps1 -Action Shader` (with manual fallback) |
 | **DLSS Update** | Forces latest DLSS DLLs across game directories | `Scripts/DLSS-force-latest.ps1` |
 
 Creates a system restore point automatically (unless `-NoRestorePoint`), requires admin elevation, and supports `-WhatIf` for dry-run.
@@ -62,6 +62,6 @@ Creates a system restore point automatically (unless `-NoRestorePoint`), require
 
 - `Scripts/gaming-display.ps1` — fullscreen optimizations
 - `Scripts/gpu-display-manager.ps1` — GPU-specific settings
-- `Scripts/shader-cache.ps1` — cache cleanup
+- `Scripts/system-maintenance.ps1 -Action Shader` — cache cleanup
 - `Scripts/DLSS-force-latest.ps1` — DLSS updater
 - `New-RestorePointSafe.ps1` — manual restore point management

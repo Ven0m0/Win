@@ -25,7 +25,7 @@ pwsh -File Scripts/Optimize-Gaming.ps1 -NoRestorePoint
 pwsh -File Scripts/gpu-display-manager.ps1
 
 # Only clear shader caches (Steam, NVIDIA, temp)
-pwsh -File Scripts/shader-cache.ps1
+pwsh -File Scripts/system-maintenance.ps1 -Action Shader
 
 # Force latest DLSS DLLs across game directories
 pwsh -File Scripts/DLSS-force-latest.ps1

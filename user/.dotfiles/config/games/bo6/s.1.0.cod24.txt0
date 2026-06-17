@@ -428,7 +428,7 @@ DetectedMemoryAmountMB@0;38495;7764 = 32682 // -2147483648 to 2147483647
 DisableHWChangeDetection@0;57752;48403 = false
 
 // essdi
-ESSDI@0;2059;35888 = 
+ESSDI@0;2059;35888 =
 
 // DO NOT MODIFY. Last Detected GPU driver version
 GPUDriverVersion@0;2059;35888 = 59621 r595_88
@@ -441,4 +441,3 @@ LastUsedGPU@0;56178;35888 = NVIDIA GeForce RTX 2080 SUPER
 
 // Indicates whether recommended settings have been set, will reset settings to recommended if set to 0
 RecommendedSet@0;57752;48403 = true
-
