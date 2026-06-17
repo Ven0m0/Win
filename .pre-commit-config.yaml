@@ -1,5 +1,5 @@
 ci:
-  skip: [renovate-config-validator]
+  skip: [renovate-config-validator, forbid-submodules]
 
 repos:
   # Ruff - Python linting and formatting

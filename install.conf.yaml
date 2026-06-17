@@ -54,7 +54,7 @@
     # Source:  user/.dotfiles/config/games/arc-raiders/
     # Target:  %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Arc Raiders configs' -SkipWingetTools -SkipWSL
-      description: "Arc Raiders configs → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor"
+      description: 'Arc Raiders configs → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor'
     # ── Fortnite configs ────────────────────────────────────────────────────
     # Source:  user/.dotfiles/config/games/fortnite/
     # Target:  %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
