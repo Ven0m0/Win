@@ -229,7 +229,7 @@ function Remove-RegistryValue {
 
 function Get-NvidiaGpuRegistryPath {
     [CmdletBinding()]
-    [OutputType([string[]])]
+    [OutputType([System.Object[]])]
     <#
     .SYNOPSIS
         Gets all NVIDIA GPU registry paths
