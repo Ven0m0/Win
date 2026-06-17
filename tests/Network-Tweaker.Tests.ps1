@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 # Setup logic outside of BeforeAll for Pester 5 Discovery phase
 $canLoadForms = $false

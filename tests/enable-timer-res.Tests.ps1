@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeDiscovery {
     # Must live here so -Skip: expressions can evaluate it during discovery.

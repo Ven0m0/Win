@@ -24,10 +24,10 @@
     @cleanerversion v0.3.0
     @cleanerdate 2019-03-22
     @cleanerby https://github.com/Tobias-B-Besemer (2019-02-27 - 2019-03-22)
-    @tested ok 
-    @testeddate 
-    @testedby 
-    @note 
+    @tested ok
+    @testeddate
+    @testedby
+    @note
 
 -->
 <cleaner id="shadow_copies_more" os="windows">

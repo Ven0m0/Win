@@ -24,7 +24,7 @@ GstRender.FilmGrainEnabled 0
 GstRender.FilmicEffectsEnabled 0
 GstRender.FullscreenEnabled 1
 GstRender.FullscreenMode 0
-GstRender.FullscreenRefreshRate 
+GstRender.FullscreenRefreshRate
 GstRender.FullscreenScreen 0
 GstRender.HudScaling 100.000000
 GstRender.LensDistortionEnabled 0
@@ -34,9 +34,9 @@ GstRender.MotionBlur 0.000000
 GstRender.MotionBlurEnabled 0
 GstRender.OverallGraphicsQuality 5
 GstRender.PostProcessQuality 0
-GstRender.ResolutionHeight 
+GstRender.ResolutionHeight
 GstRender.ResolutionScale 1.000000
-GstRender.ResolutionWidth 
+GstRender.ResolutionWidth
 GstRender.ShadowQuality 0
 GstRender.SkyCelestialQuality 0
 GstRender.TerrainGroundcover 0

@@ -4,4 +4,3 @@ dism >nul 2>&1 || (echo ^<Run the Script in Administrator^> && pause>nul && cls&
 echo info: del to context-menu
 reg delete "HKCR\Directory\Background\shell\nvcpl" /f
 pause
-

@@ -111,7 +111,7 @@ Windows Registry Editor Version 5.00
 
 ; Disable show recently opened items in start, jump lists and file explorer
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"Start_TrackDocs"=dword:00000000 
+"Start_TrackDocs"=dword:00000000
 
 
 
@@ -137,7 +137,7 @@ Windows Registry Editor Version 5.00
 
 
 
-; Dark theme 
+; Dark theme
 [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize]
 "AppsUseLightTheme"=dword:00000000
 "SystemUsesLightTheme"=dword:00000000
@@ -161,7 +161,7 @@ Windows Registry Editor Version 5.00
 "ColorizationAfterglow"=dword:c4191919
 
 ; Disable windows widgets
-[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Dsh] 
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Dsh]
 "AllowNewsAndInterests"=dword:00000000
 
 ; 100% DPI Scaling
@@ -350,7 +350,7 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam]
 "Value"="Deny"
 
-; PRIVACY Microphone 
+; PRIVACY Microphone
 [Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone]
 "Value"="Allow"
 
@@ -401,11 +401,11 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\radios]
 "Value"="Deny"
 
-; PRIVACY Other devices 
+; PRIVACY Other devices
 [HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\bluetoothSync]
 "Value"="Deny"
 
-; PRIVACY App diagnostics 
+; PRIVACY App diagnostics
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appDiagnostics]
 "Value"="Deny"
 
@@ -413,7 +413,7 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary]
 "Value"="Deny"
 
-; PRIVACY Downloads folder 
+; PRIVACY Downloads folder
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\downloadsFolder]
 "Value"="Deny"
 
@@ -437,15 +437,15 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\graphicsCaptureWithoutBorder]
 "Value"="Deny"
 
-; PRIVACY Screenshots and apps 
+; PRIVACY Screenshots and apps
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\graphicsCaptureProgrammatic]
 "Value"="Allow"
 
-; Disable let websites show me locally relevant content by accessing my language list 
+; Disable let websites show me locally relevant content by accessing my language list
 [HKEY_CURRENT_USER\Control Panel\International\User Profile]
 "HttpAcceptLanguageOptOut"=dword:00000001
 
-; Disable let windows improve start and search results by tracking app launches  
+; Disable let windows improve start and search results by tracking app launches
 [HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\EdgeUI]
 "DisableMFUTracking"=dword:00000001
 
@@ -468,7 +468,7 @@ Windows Registry Editor Version 5.00
 "NumberOfSIUFInPeriod"=dword:00000000
 "PeriodInNanoSeconds"=-
 
-; Disable store my activity history on this device 
+; Disable store my activity history on this device
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\System]
 "PublishUserActivities"=dword:00000000
 
@@ -550,7 +550,7 @@ C2,0A,01,D2,1E,28,4D,00,69,00,63,00,72,00,6F,00,73,00,6F,00,66,00,74,00,2E,\
 00,79,00,4F,00,6E,00,6C,00,79,00,C2,28,01,D1,32,80,E0,AA,8A,99,30,D1,3C,80,\
 E0,F6,C5,D5,0E,CA,50,00,00
 
-; Disable magnifier settings 
+; Disable magnifier settings
 [HKEY_CURRENT_USER\SOFTWARE\Microsoft\ScreenMagnifier]
 "FollowCaret"=dword:00000000
 "FollowNarrator"=dword:00000000
@@ -584,7 +584,7 @@ E0,F6,C5,D5,0E,CA,50,00,00
 "NarratorCursorHighlight"=dword:00000000
 "CoupleNarratorCursorKeyboard"=dword:00000000
 
-; Disable ease of access settings 
+; Disable ease of access settings
 [HKEY_CURRENT_USER\Software\Microsoft\Ease of Access]
 "selfvoice"=dword:00000000
 "selfscan"=dword:00000000
@@ -926,7 +926,7 @@ E0,F6,C5,D5,0E,CA,50,00,00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer]
 "DisableCoInstallers"=dword:00000001
 
-; Disable Windows Automatic Folder Type 
+; Disable Windows Automatic Folder Type
 [HKEY_CURRENT_USER\SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell]
 "FolderType"="NotSpecified"
 
@@ -952,7 +952,7 @@ E0,F6,C5,D5,0E,CA,50,00,00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\FTH]
 "Enabled"=dword:00000000
 
-; Increase Icon Cache Size 
+; Increase Icon Cache Size
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer]
 "MaxCachedIcons"="4096"
 
@@ -987,13 +987,13 @@ E0,F6,C5,D5,0E,CA,50,00,00
 
 ; No Document History Tracking
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoRecentDocsHistory"=dword:00000001  
+"NoRecentDocsHistory"=dword:00000001
 "ClearRecentDocsOnExit"=dword:00000001
 
 ; Disable Low Disk Space Checks
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoLowDiskSpaceChecks"=dword:00000001  
+"NoLowDiskSpaceChecks"=dword:00000001
 
 ; Disable Publish to Web
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer]
-"NoPublishingWizard"=dword:00000001  
+"NoPublishingWizard"=dword:00000001

@@ -115,4 +115,3 @@ jobs:
             Write-Host "## No PSScriptAnalyzer errors found" -ForegroundColor Green
             exit 0
           }
-

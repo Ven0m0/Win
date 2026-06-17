@@ -119,7 +119,7 @@ Stereo - Swap eyes: 0x00000000 WKS_API_STEREO_EYES_EXCHANGE_OFF
 -------------------------
 3DSMax Shim Layer Control: 0x00000000 Disable - Disable the 3DSMax Shim Layer
 APP_COMPAT_SHIM: 0x00000000 Disabled
-ASYNC10_ENABLE: 0x37605835 APP - Enable dual core optimizations unless the application requested to disable them 
+ASYNC10_ENABLE: 0x37605835 APP - Enable dual core optimizations unless the application requested to disable them
 ASYNC10_NVAPI_MODE: 0x00000003 ALLOW_ALL - Allow all optimizations
 ASYNC10_OOO_QUERY_LIMIT: 0x00010000 (Battlefield 3)
 ASYNC10_PRESENT_MODE: 0x53855200 Sync - DX10 present will be sync call

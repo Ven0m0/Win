@@ -18,11 +18,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-	
+
 	Cleaner by Vincent DUVERNET - Nolmë Informatique
 	Web site : http://www.nolme.com
 	Version  : 1.0
-	
+
 	Source : http://www.winhelponline.com/articles/55/1/How-to-redirect-the-Remote-Desktop-Cache-Files-location.html
 -->
 <cleaner id="windows_terminal_server" os="windows">

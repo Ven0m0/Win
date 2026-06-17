@@ -31,4 +31,3 @@ $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 - **Config deployment**: Manifest-driven with SHA256 hash-based change detection
 - **Tool installation**: Uses `winget` with `--silent --accept-*` flags
 - **Tracked config root**: `user/.dotfiles/config/`
-

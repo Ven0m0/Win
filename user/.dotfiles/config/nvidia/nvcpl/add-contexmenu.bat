@@ -6,5 +6,3 @@ reg add "HKCR\Directory\Background\shell\nvcpl" /v "MUIVerb" /t reg_sz /d "Nvidi
 reg add "HKCR\Directory\Background\shell\nvcpl" /v "Icon" /t reg_sz /d "%~dp0nvcpl.exe,6" /f >nul
 reg add "HKCR\Directory\Background\shell\nvcpl\command" /ve /d "\"C:\Windows\System32\WScript.exe\" \"%~dp0nvcpl.vbs\"" /f >nul
 pause
-
-

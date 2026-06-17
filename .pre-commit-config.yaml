@@ -75,7 +75,7 @@ repos:
       - id: py-psscriptanalyzer-format
         files: \.(ps1|psm1|psd1)$
         stages: [pre-commit]
-  
+
   - repo: local
     hooks:
       - id: psscriptanalyzer-lint

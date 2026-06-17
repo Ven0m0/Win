@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Shared helpers for Arc Raiders scripts (game-boost, cleanup, start, skip-videos).

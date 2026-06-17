@@ -15,7 +15,7 @@ Function GetScriptFolder()
     scriptFullName = WScript.ScriptFullName
     Set objFile = objFSO.GetFile(scriptFullName)
     scriptFolder = objFSO.GetParentFolderName(objFile)
-    
+
     GetScriptFolder = scriptFolder
 End Function
 
