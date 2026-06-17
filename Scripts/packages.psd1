@@ -31,7 +31,6 @@
     'Microsoft.DotNet.Framework.DeveloperPack_4'
     'Microsoft.DirectX'
     'KhronosGroup.VulkanRT'
-    'KhronosGroup.VulkanSDK'
     'Microsoft.XNARedist'
     'Microsoft.EdgeWebView2Runtime'
     'Oracle.JavaRuntimeEnvironment'
@@ -44,7 +43,6 @@
   WingetToolchains = @(
     'MartinStorsjo.LLVM-MinGW.UCRT'
     'Rustlang.Rustup'
-    'Rustlang.Rust.MSVC'
     'RubyInstallerTeam.Ruby.4.0'
     'Microsoft.VisualStudio.BuildTools'
     'astral-sh.uv'
@@ -52,7 +50,6 @@
     'BiomeJS.Biome'
     'ast-grep.ast-grep'
     'SQLite.SQLite'
-    'Kitware.CMake'
   )
 
   # ---------------------------------------------------------------------------
@@ -65,7 +62,6 @@
     'CodeSector.TeraCopy'
     'MathiasCodes.Winstow'
     'OpenJS.NodeJS'
-    'Python.Python.3.13'
     'Python.Python.3.14'
     'Python.Launcher'
     'PuTTY.PuTTY'
@@ -73,6 +69,7 @@
     'topgrade-rs.topgrade'
     'sinelaw.fresh-editor'
     'Anthropic.ClaudeCode'
+    'Anthropic.Claude'
   )
 
   # ---------------------------------------------------------------------------
@@ -83,7 +80,6 @@
     'BurntSushi.ripgrep.MSVC'
     'sharkdp.fd'
     'sharkdp.bat'
-    'dandavison.delta'
     'JanDeDobbeleer.OhMyPosh'
     'Starship.Starship'
     'ajeetdsouza.zoxide'
@@ -100,7 +96,7 @@
     'VideoLAN.VLC'
     'mpv.net'
     'OBSProject.OBSStudio'
-    'Meltytech.Shotcut'
+    #'Meltytech.Shotcut'
     'KDE.Kdenlive'
     'Audacity.Audacity'
     'HandBrake.HandBrake'
@@ -114,7 +110,6 @@
     'SaeraSoft.CaesiumImageCompressor'
     # Compression / files
     '7zip.7zip'
-    'Meta.Zstandard'
     'Nikkho.FileOptimizer'
     'aria2.aria2'
     # Browsers / launchers
@@ -126,7 +121,7 @@
     'PrismLauncher.PrismLauncher'
     'smartfrigde.Legcord'
     # Productivity / utilities
-    'Microsoft.PowerToys'
+    #'Microsoft.PowerToys'
     'voidtools.Everything'
     'AutoHotkey.AutoHotkey'
     'ONLYOFFICE.DesktopEditors'
@@ -135,7 +130,6 @@
     'Microsoft.Sysinternals.Autologon'
     # Package managers / install helpers
     'Devolutions.UniGetUI'
-    'Anthropic.Claude'
     # System / drivers / hardware
     'Guru3D.Afterburner.Beta'
     'SteelSeries.GG'
@@ -145,7 +139,7 @@
     'GlennDelahoy.SnappyDriverInstallerOrigin'
     'Orbmu2k.nvidiaProfileInspector'
     'xHybred.NVPIRevamped'
-    'Nvidia.PhysX'
+    #'Nvidia.PhysX'
     'REALiX.HWiNFO'
     'Intel.IntelExtremeTuningUtility'
     'Ventoy.Ventoy'
@@ -216,7 +210,7 @@
     'MicrosoftTeams*'
     'Microsoft.Xbox.TCUI'
     'Microsoft.XboxGamingOverlay'
-    'Microsoft.XboxIdentityProvider'
+    #'Microsoft.XboxIdentityProvider'
     'Microsoft.XboxSpeechToTextOverlay'
     'Microsoft.XboxGameCallableUI'
     'Microsoft.WindowsAlarms'
