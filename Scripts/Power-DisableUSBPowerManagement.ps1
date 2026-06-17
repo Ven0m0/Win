@@ -28,7 +28,7 @@ Write-Host "Querying WMI — this may take a moment...`n"
 # Win32_USBHub would.
 try {
     $devices = Get-CimInstance -ClassName Win32_PnPEntity |
-               Where-Object { $_.PNPDeviceID -ne $null }
+      Where-Object { $_.PNPDeviceID -ne $null }
 } catch {
     Write-Error "Failed to query Win32_PnPEntity: $_"
     exit 1
