@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**/*.json", "**/*.jsonc", "!user/.dotfiles", "!.claude/**"]
+    "includes": ["**/*.json", "**/*.jsonc", "!user/.dotfiles", "!.claude"]
   },
   "formatter": {
     "enabled": true,
