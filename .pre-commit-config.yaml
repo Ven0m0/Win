@@ -34,6 +34,7 @@ repos:
       - id: check-toml
       - id: check-xml
       - id: fix-byte-order-marker
+        exclude: \.(ps1|psm1|psd1)$
       - id: mixed-line-ending
       - id: detect-private-key
       - id: check-case-conflict

@@ -1,4 +1,4 @@
-# packages.psd1 — Canonical software catalog for the Win dotfiles repo
+﻿# packages.psd1 — Canonical software catalog for the Win dotfiles repo
 #
 # This is the single source of truth for all package lists. Scripts that install
 # or remove software load this file via Import-PowerShellDataFile.

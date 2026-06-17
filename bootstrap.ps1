@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Standalone bootstrap: installs dotbot if missing, clones repo, runs full setup.

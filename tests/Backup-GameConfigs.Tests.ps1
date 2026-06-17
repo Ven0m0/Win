@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 BeforeDiscovery {
     $scriptExists = Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"

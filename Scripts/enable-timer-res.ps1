@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 # Requires Administrator privileges
 # This script enables global timer resolution and sets up a scheduled task to persist the timer resolution on logon
 
