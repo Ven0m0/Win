@@ -112,7 +112,6 @@
     'aria2.aria2'
     # Browsers / launchers
     'Ablaze.Floorp'
-    'Mozilla.Firefox'
     # Gaming
     'Valve.Steam'
     'EpicGames.EpicGamesLauncher'
@@ -121,16 +120,13 @@
     # Productivity / utilities
     'Microsoft.PowerToys'
     'voidtools.Everything'
-    'DevToys-app.DevToys'
     'AutoHotkey.AutoHotkey'
-    'TheDocumentFoundation.LibreOffice'
-    'Rainmeter.Rainmeter'
+    'ONLYOFFICE.DesktopEditors'
     'Microsoft.Sysinternals.Autoruns'
     'Sysinternals.Autologon'
     # Package managers / install helpers
     'MartiCliment.UniGetUI'
     'Chocolatey.Chocolatey'
-    'Chocolatey.ChocolateyGUI'
     # System / drivers / hardware
     'Guru3D.Afterburner.Beta'
     'SteelSeries.SteelSeriesEngine'
@@ -144,21 +140,9 @@
     'CPUID.CPU-Z'
     'TechPowerUp.GPU-Z'
     # Disk / storage / cleanup
-    'WinDirStat.WinDirStat'
     'BleachBit.BleachBit'
-    'qarmin.czkawka.gui'
-    'SingularLabs.CCEnhancer'
     # Uninstallers / maintenance
     'RevoUninstaller.RevoUninstaller'
-    'Klocman.BulkCrapUninstaller'
-    'Universal-Debloater-Alliance.uad-ng'
-    # Security
-    'ClamWin.ClamWin'
-    # Dev utilities
-    'WindowsPostInstallWizard.UniversalSilentSwitchFinder'
-    'EditorConfig-Checker.EditorConfig-Checker'
-    'Nlitesoft.NTLite'
-    'CodingWondersSoftware.DISMTools.Stable'
   )
 
   # ---------------------------------------------------------------------------
@@ -166,9 +150,6 @@
   # ---------------------------------------------------------------------------
   ScoopBuckets = @(
     'extras'
-    'nerd-fonts'
-    'java'
-    'nirsoft'
   )
 
   ScoopPackages = @()

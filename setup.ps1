@@ -3,6 +3,11 @@
 #Requires -RunAsAdministrator
 # Windows Setup Script - Comprehensive automated installation and configuration
 # Combines software installation, system optimization, bloatware removal, and privacy tweaks
+#
+# DEPRECATED: This standalone script carries its own inline package lists that
+# duplicate (and drift from) the canonical catalog in Scripts/packages.psd1.
+# Prefer Scripts/Setup-Win11.ps1 + Scripts/Install-Packages.ps1 (which read
+# packages.psd1) as the single source of truth. Slated for removal.
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 function Set-SetupStep {
@@ -484,7 +489,7 @@ function Start-Setup {
   Write-Host "[9/12] Installing development tools..." -ForegroundColor Cyan
   $devTools = @(
     'Git.Git', 'GitHub.cli', 'evilmartians.lefthook', 'Notepad++.Notepad++', 'VSCodium.VSCodium',
-    'Microsoft.PowerShell', 'Microsoft.WindowsTerminal', 'CodeSector.TeraCopy', 'Microsoft.VisualStudioCode',
+    'Microsoft.PowerShell', 'Microsoft.WindowsTerminal', 'CodeSector.TeraCopy',
     'MathiasCodes.Winstow', 'OpenJS.NodeJS', 'PuTTY.PuTTY', 'Eugeny.Terminus'
   )
   foreach ($pkg in $devTools) {
@@ -511,22 +516,21 @@ function Start-Setup {
     'SaeraSoft.CaesiumImageCompressor', 'OptiPNG.OptiPNG', 'fhanau.Efficient-Compression-Tool',
     'Kornelski.DSSIM', 'chaiNNer-org.chaiNNer', 'OBSProject.OBSStudio', 'Meltytech.Shotcut',
     '7zip.7zip', 'Meta.Zstandard', 'IridiumIO.CompactGUI', 'aria2.aria2', 'GiantPinkRobots.Varia',
-    'aandrew-me.ytDownloader', 'DevToys-app.DevToys', 'TimVisee.ffsend', 'Intel.PresentMon.Beta',
-    'WindowsPostInstallWizard.UniversalSilentSwitchFinder', 'jdx.mise', 'topgrade-rs.topgrade',
-    'MartiCliment.UniGetUI', 'chocolatey.chocolatey', 'Chocolatey.ChocolateyGUI', 'GorillaDevs.Ferium',
-    'Ablaze.Floorp', 'Mozilla.Firefox', 'HeroicGamesLauncher.HeroicGamesLauncher', 'Valve.Steam',
+    'aandrew-me.ytDownloader', 'TimVisee.ffsend', 'Intel.PresentMon.Beta',
+    'jdx.mise', 'topgrade-rs.topgrade',
+    'MartiCliment.UniGetUI', 'chocolatey.chocolatey', 'GorillaDevs.Ferium',
+    'Ablaze.Floorp', 'HeroicGamesLauncher.HeroicGamesLauncher', 'Valve.Steam',
     'MoonlightGameStreamingProject.Moonlight', 'smartfrigde.Legcord', 'PrismLauncher.PrismLauncher',
     'Cemu.Cemu', 'Modrinth.ModrinthApp', 'Playnite.Playnite', 'DevelopedMethods.playit',
     'Libretro.RetroArch', 'EpicGames.EpicGamesLauncher', 'Guru3D.Afterburner.Beta', 'BleachBit.BleachBit',
-    'qarmin.czkawka.gui', 'EditorConfig-Checker.EditorConfig-Checker', 'SingularLabs.CCEnhancer',
-    'szTheory.exifcleaner', 'RevoUninstaller.RevoUninstaller', 'Klocman.BulkCrapUninstaller',
-    'WinDirStat.WinDirStat', 'GlennDelahoy.SnappyDriverInstallerOrigin', 'SteelSeries.SteelSeriesEngine',
+    'szTheory.exifcleaner', 'RevoUninstaller.RevoUninstaller',
+    'GlennDelahoy.SnappyDriverInstallerOrigin', 'SteelSeries.SteelSeriesEngine',
     'ToastyX.CustomResolutionUtility', 'TechPowerUp.NVCleanstall', 'Wagnardsoft.DisplayDriverUninstaller',
     'ViGEm.ViGEmBus', 'lostindark.DriverStoreExplorer', 'Microsoft.EdgeDriver', 'Recol.DLSSUpdater',
-    'Nlitesoft.NTLite', 'CodingWondersSoftware.DISMTools.Stable', 'Rclone.Rclone', 'Upscayl.Upscayl',
-    'Universal-Debloater-Alliance.uad-ng', 'TheDocumentFoundation.LibreOffice', 'Audacity.Audacity',
+    'Rclone.Rclone', 'Upscayl.Upscayl',
+    'ONLYOFFICE.DesktopEditors', 'Audacity.Audacity',
     'KDE.Kdenlive', 'voidtools.Everything', 'CPUID.CPU-Z', 'Microsoft.PowerToys', 'TechPowerUp.GPU-Z',
-    'Rainmeter.Rainmeter', 'ShareX.ShareX', 'ClamWin.ClamWin', 'mpv.net'
+    'ShareX.ShareX', 'mpv.net'
   )
   foreach ($pkg in $applications) {
     Invoke-Winget -ArgumentList @('install', "--id=$pkg", '-e', '-h') -Action "Install application '$pkg'"
