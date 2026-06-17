@@ -51,6 +51,7 @@
     'koalaman.shellcheck'
     'ast-grep.ast-grep'
     'SQLite.SQLite'
+    'Kitware.CMake'
   )
 
   # ---------------------------------------------------------------------------
@@ -80,11 +81,15 @@
     'sharkdp.bat'
     'dandavison.delta'
     'JanDeDobbeleer.OhMyPosh'
+    'Starship.Starship'
+    'ajeetdsouza.zoxide'
+    'DEVCOM.JetBrainsMonoNerdFont'
   )
 
   # ---------------------------------------------------------------------------
   # Applications — media, productivity, gaming, system utilities, security
   # ---------------------------------------------------------------------------
+  # Reconciled 2026-06-17 to match currently-installed software (winget export).
   WingetApplications = @(
     # Media / video / audio
     'VideoLAN.VLC'
@@ -94,24 +99,23 @@
     'KDE.Kdenlive'
     'Audacity.Audacity'
     'HandBrake.HandBrake'
-    'GiantPinkRobots.Varia'
-    'CodecGuide.K-LiteCodecPack.Basic'
+    'aandrew-me.ytDownloader'
     # Image / graphics
     'GIMP.GIMP'
+    'KDE.Krita'
     'tannerhelland.PhotoDemon'
     'Greenshot.Greenshot'
+    'ShareX.ShareX'
     'XnSoft.XnConvert'
     'SaeraSoft.CaesiumImageCompressor'
     # Compression / files
     '7zip.7zip'
     'Meta.Zstandard'
-    'IridiumIO.CompactGUI'
     'Nikkho.FileOptimizer'
-    'Rclone.Rclone'
-    'TimVisee.ffsend'
     'aria2.aria2'
     # Browsers / launchers
     'Ablaze.Floorp'
+    'ImputNet.Helium'
     # Gaming
     'Valve.Steam'
     'EpicGames.EpicGamesLauncher'
@@ -122,23 +126,24 @@
     'voidtools.Everything'
     'AutoHotkey.AutoHotkey'
     'ONLYOFFICE.DesktopEditors'
+    'gerardog.gsudo'
     'Microsoft.Sysinternals.Autoruns'
-    'Sysinternals.Autologon'
+    'Microsoft.Sysinternals.Autologon'
     # Package managers / install helpers
-    'MartiCliment.UniGetUI'
-    'Chocolatey.Chocolatey'
+    'Devolutions.UniGetUI'
     # System / drivers / hardware
     'Guru3D.Afterburner.Beta'
-    'SteelSeries.SteelSeriesEngine'
+    'SteelSeries.GG'
     'ViGEm.ViGEmBus'
-    'ToastyX.CustomResolutionUtility'
+    'Nefarius.HidHide'
     'TechPowerUp.NVCleanstall'
-    'Wagnardsoft.DisplayDriverUninstaller'
-    'lostindark.DriverStoreExplorer'
-    'Recol.DLSSUpdater'
     'GlennDelahoy.SnappyDriverInstallerOrigin'
-    'CPUID.CPU-Z'
-    'TechPowerUp.GPU-Z'
+    'Orbmu2k.nvidiaProfileInspector'
+    'xHybred.NVPIRevamped'
+    'Nvidia.PhysX'
+    'REALiX.HWiNFO'
+    'Intel.IntelExtremeTuningUtility'
+    'Ventoy.Ventoy'
     # Disk / storage / cleanup
     'BleachBit.BleachBit'
     # Uninstallers / maintenance
