@@ -16,7 +16,7 @@
 *.[cC][mM][dD] text eol=crlf
 *.[bB][aA][tT] text eol=crlf
 *.ahk text eol=crlf
-*.[rR][eE][gG] binary
+*.[rR][eE][gG] text eol=crlf
 
 # =============================================================================
 # Unix Scripts (WSL/Cross-Platform)
