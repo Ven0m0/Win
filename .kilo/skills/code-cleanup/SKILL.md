@@ -61,7 +61,7 @@ rg "^##" --type ps1
 2. Remove the commented lines
 3. Invert conditionals that now have an empty branch
 4. Remove trailing blank lines left by deletions
-5. Verify syntax: `pwsh -Command "[System.Management.Automation.PSParser]::Tokenize(...)"` 
+5. Verify syntax: `pwsh -Command "[System.Management.Automation.PSParser]::Tokenize(...)"`
 6. Run `mise run lint`
 
 ### Safety rules
