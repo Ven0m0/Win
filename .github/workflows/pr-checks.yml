@@ -98,7 +98,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Cache PowerShell modules
         uses: potatoqualitee/psmodulecache@v6.2.1
@@ -160,7 +160,7 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v3
         with:
           name: Pester Results
           path: pester-results.xml
