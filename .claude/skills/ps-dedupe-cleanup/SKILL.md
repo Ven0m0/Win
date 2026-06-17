@@ -91,7 +91,7 @@ Then delete the duplicate function definition (and any extra blank lines it leav
 - **`Invoke-WebRequest` for downloads** — replace with `Get-FileFromWeb -URL $url -File $path`. Remove any `$ProgressPreference = 'SilentlyContinue'` that was only there to suppress the Invoke-WebRequest progress bar (Get-FileFromWeb handles this internally).
 - **Hardcoded `C:\` prefixes** — replace with `$env:SystemDrive\`.
 - **`.cmd` scripts with a `.ps1` equivalent in the same directory** — verify the `.ps1` is a superset, then delete the `.cmd`. Check for references first with `rg "\.cmd" --glob "*.ps1" --glob "*.yml" --glob "*.md"`.
-- **Commented-out code blocks** — see the `dead-code-cleanup` skill for patterns. Only remove blocks that are clearly abandoned (not `# TODO:`, not explanatory comments).
+- **Commented-out code blocks** — see the `code-cleanup` skill for patterns. Only remove blocks that are clearly abandoned (not `# TODO:`, not explanatory comments).
 
 ---
 
