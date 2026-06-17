@@ -58,7 +58,12 @@ jobs:
           foreach ($file in $files) {
             if (-not (Test-Path $file)) { continue }
 
-            $content = Get-Content -Path $file -Raw
+            $rawBytes = [System.IO.File]::ReadAllBytes($file)
+            if ($rawBytes.Length -ge 2 -and $rawBytes[0] -eq 0xFF -and $rawBytes[1] -eq 0xFE) {
+              $content = [System.Text.Encoding]::Unicode.GetString($rawBytes, 2, $rawBytes.Length - 2)
+            } else {
+              $content = [System.Text.Encoding]::UTF8.GetString($rawBytes)
+            }
             $lines = $content -replace "`r" -split "`n"
 
             # ========================================
