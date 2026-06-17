@@ -20,13 +20,15 @@ function Find-SteamPath {
     $steamPath = $null
     try {
         $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop `
-    | Select-Object -ExpandProperty SteamPath
-    } catch { Write-Verbose "ArcRaidersCommon: HKCU Steam lookup failed: $_" }
+        | Select-Object -ExpandProperty SteamPath
+    }
+    catch { Write-Verbose "ArcRaidersCommon: HKCU Steam lookup failed: $_" }
     if (-not $steamPath) {
         try {
             $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop `
-    | Select-Object -ExpandProperty InstallPath
-        } catch { Write-Verbose "ArcRaidersCommon: HKLM Steam lookup failed: $_" }
+            | Select-Object -ExpandProperty InstallPath
+        }
+        catch { Write-Verbose "ArcRaidersCommon: HKLM Steam lookup failed: $_" }
     }
     if ($steamPath) {
         $steamPath = $steamPath -replace '/', '\'
@@ -92,11 +94,13 @@ function Remove-Glob {
                 foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
                     $sz += $f.Length
                 }
-            } catch {
-                $sz = (Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
-                    Measure-Object Length -Sum).Sum
             }
-        } else {
+            catch {
+                $sz = (Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
+                        Measure-Object Length -Sum).Sum
+            }
+        }
+        else {
             $sz = $item.Length
         }
         if ($TotalSize) { $TotalSize.Value += [long]$sz }
@@ -155,7 +159,8 @@ public class $TypeName {
             $method = [type]$TypeName
             $method::TrimAll()
             Write-Host "  Working sets trimmed."
-        } catch {
+        }
+        catch {
             Write-Verbose "Working set trim skipped: $_"
         }
     }
@@ -165,7 +170,8 @@ public class $TypeName {
             $method = [type]$TypeName
             $method::PurgeStandby()
             Write-Host "  Standby list purged."
-        } catch {
+        }
+        catch {
             Write-Verbose "Standby purge skipped: $_"
         }
     }
@@ -202,7 +208,8 @@ function Set-GameProcessPriority {
                 try {
                     $pr.PriorityClass = $Priority
                     Write-Host "  $name.exe priority -> $Priority"
-                } catch {
+                }
+                catch {
                     Write-Verbose "Could not set $name.exe priority: $_"
                 }
             }
@@ -231,7 +238,7 @@ function Set-ContentNoNewline {
     .SYNOPSIS
         Write content to a file without a trailing newline.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [string]$Path,
@@ -240,7 +247,8 @@ function Set-ContentNoNewline {
     if ($PSCmdlet.ShouldProcess($Path, 'Write content')) {
         if ((Get-Command Set-Content).Parameters['NoNewline']) {
             Set-Content -LiteralPath $Path -Value $Content -NoNewline -Force
-        } else {
+        }
+        else {
             [System.IO.File]::WriteAllText($Path, ($Content -join [char]10))
         }
     }
@@ -279,34 +287,36 @@ function Optimize-FixedVolume {
             (Get-PhysicalDisk | Where-Object {
                 (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
                     Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $_.UniqueId
-            } | Select-Object -First 1).MediaType
-        } catch { 'Unspecified' }
-
-        Write-Host "  ${dl}: ($($_.FileSystem), $med)"
-        if ($med -ne 'HDD') {
-            if ($PSCmdlet.ShouldProcess("${dl}:", 'ReTrim')) {
-                Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+                } | Select-Object -First 1).MediaType
             }
-        } else {
-            if ($PSCmdlet.ShouldProcess("${dl}:", 'Defrag')) {
-                Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
+            catch { 'Unspecified' }
+
+            Write-Host "  ${dl}: ($($_.FileSystem), $med)"
+            if ($med -ne 'HDD') {
+                if ($PSCmdlet.ShouldProcess("${dl}:", 'ReTrim')) {
+                    Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+                }
+            }
+            else {
+                if ($PSCmdlet.ShouldProcess("${dl}:", 'Defrag')) {
+                    Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
+                }
             }
         }
     }
-}
 
-# ── Output ────────────────────────────────────────────────────────────────────
+    # ── Output ────────────────────────────────────────────────────────────────────
 
-$script:ARC_TOTAL_SIZE  = 0
-$script:ARC_TOTAL_COUNT = 0
+    $script:ARC_TOTAL_SIZE = 0
+    $script:ARC_TOTAL_COUNT = 0
 
-function Write-ArcSummary {
-    [CmdletBinding()]
-    param()
+    function Write-ArcSummary {
+        [CmdletBinding()]
+        param()
 
-    $mb = [math]::Round($script:ARC_TOTAL_SIZE / 1MB, 2)
-    Write-Host ""
-    Write-Host "══════════════════════════════════════"
-    Write-Host " Cleaned: $($script:ARC_TOTAL_COUNT) item(s), ${mb} MB freed."
-    Write-Host "══════════════════════════════════════"
-}
+        $mb = [math]::Round($script:ARC_TOTAL_SIZE / 1MB, 2)
+        Write-Host ""
+        Write-Host "══════════════════════════════════════"
+        Write-Host " Cleaned: $($script:ARC_TOTAL_COUNT) item(s), ${mb} MB freed."
+        Write-Host "══════════════════════════════════════"
+    }

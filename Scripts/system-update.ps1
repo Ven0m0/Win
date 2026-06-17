@@ -80,7 +80,7 @@ catch {
 }
 
 $ErrorActionPreference = 'Continue'
-$ProgressPreference    = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 $startTime = Get-Date
 $script:IsSimulation = $DryRun -or $WhatIfPreference
@@ -124,7 +124,7 @@ $script:Config = @{
             Pre  = { $script:_vscodeWasRunning = [bool](Get-Process -Name 'Code' -ErrorAction SilentlyContinue); if ($script:_vscodeWasRunning) { Write-Host "  Closing VS Code..." -ForegroundColor Gray; Stop-Process -Name 'Code' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 3 } }
             Post = { if ($script:_vscodeWasRunning) { $p = Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\Code.exe'; if (Test-Path $p) { Start-Process $p -ErrorAction SilentlyContinue } } }
         }
-        'Foxit.FoxitReader' = @{
+        'Foxit.FoxitReader'           = @{
             Pre  = {
                 $script:_foxitWasRunning = [bool](Get-Process -Name 'FoxitPDFReader', 'FoxitReader' -ErrorAction SilentlyContinue)
                 if ($script:_foxitWasRunning) { Write-Host "  Closing Foxit Reader..." -ForegroundColor Gray; Stop-Process -Name 'FoxitPDFReader', 'FoxitReader' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2 }
@@ -370,12 +370,13 @@ function ConvertTo-CommandArgumentString {
     param([string[]]$Arguments)
 
     return (($Arguments | ForEach-Object {
-        if ($_ -match '[\s"]') {
-            '"' + ($_ -replace '"', '\"') + '"'
-        } else {
-            $_
-        }
-    }) -join ' ')
+                if ($_ -match '[\s"]') {
+                    '"' + ($_ -replace '"', '\"') + '"'
+                }
+                else {
+                    $_
+                }
+            }) -join ' ')
 }
 
 function Invoke-WingetWithTimeout {
@@ -401,7 +402,8 @@ function Invoke-WingetWithTimeout {
             $wingetCommand = "winget $(ConvertTo-CommandArgumentString -Arguments $Arguments)"
             $command = @($setCommands + $wingetCommand) -join ' && '
             $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/d', '/c', $command) @startInfo
-        } else {
+        }
+        else {
             $proc = Start-Process -FilePath 'winget' -ArgumentList $Arguments @startInfo
         }
 
@@ -437,11 +439,11 @@ function Get-WingetUpgradeEntry {
 
         if ($trimmed -match '^(?<name>.+?)\s+(?<id>(?=.*[A-Za-z])[A-Za-z0-9][A-Za-z0-9\.\-_]*\.[A-Za-z0-9\.\-_]+)\s+(?<version>\S+)\s+(?<available>\S+)$') {
             $entries.Add([pscustomobject]@{
-                Name      = $Matches['name'].Trim()
-                Id        = $Matches['id'].Trim()
-                Version   = $Matches['version'].Trim()
-                Available = $Matches['available'].Trim()
-            })
+                    Name      = $Matches['name'].Trim()
+                    Id        = $Matches['id'].Trim()
+                    Version   = $Matches['version'].Trim()
+                    Available = $Matches['available'].Trim()
+                })
         }
     }
 
@@ -571,7 +573,7 @@ function Update-WingetState {
 }
 
 function Update-ScoopState {
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding()]
     param()
     if (Test-Command 'scoop') {
         try {
@@ -594,7 +596,7 @@ function Update-ScoopState {
 }
 
 function Update-ChocolateyState {
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding()]
     param()
     if (Test-Command 'choco' -and $isAdmin) {
         try {
@@ -739,7 +741,8 @@ $managers = @(
                 if ($preScan.Output) { Write-FilteredOutput -Text $preScan.Output -Color ([ConsoleColor]::Gray) }
                 $checkOut = $preScan.Output
                 Invoke-WingetUpgradeHook -Phase 'Pre' -WingetOutput $checkOut
-            } catch { Write-Verbose "Captured output read failed: $_" }
+            }
+            catch { Write-Verbose "Captured output read failed: $_" }
 
             # 2. Main Upgrade
             Write-Host "  Upgrading all (winget source, timeout: $($script:Config.WingetTimeoutSec)s)..." -ForegroundColor Gray
@@ -759,7 +762,8 @@ $managers = @(
                         TMP  = $wingetTempPath
                     }
                     Write-Detail "Using scoped TEMP override for winget MSI installs: $wingetTempPath" -Type Info
-                } else {
+                }
+                else {
                     Write-Detail "System temp directory not found for scoped winget override: $wingetTempPath" -Type Warning
                 }
             }
@@ -772,7 +776,7 @@ $managers = @(
                 $existingPinnedIds = @(Get-WingetPinnedPackageIds)
                 $unknownEntries = @(
                     $upgradeEntries |
-                    Where-Object { $_.Version -eq 'Unknown' -and $_.Id -notin $existingPinnedIds }
+                        Where-Object { $_.Version -eq 'Unknown' -and $_.Id -notin $existingPinnedIds }
                 )
                 $pinnedUnknownIds = [System.Collections.Generic.List[string]]::new()
 
@@ -786,13 +790,13 @@ $managers = @(
 
                 $pkgIds = @(
                     $upgradeEntries |
-                    Where-Object { $_.Id -notin $existingPinnedIds -and $_.Id -notin $pinnedUnknownIds } |
-                    Select-Object -ExpandProperty Id -Unique
+                        Where-Object { $_.Id -notin $existingPinnedIds -and $_.Id -notin $pinnedUnknownIds } |
+                        Select-Object -ExpandProperty Id -Unique
                 )
 
                 $anyInstalled = $false
-                $anyFailed    = $false
-                $skippedIds   = [System.Collections.Generic.List[string]]::new()
+                $anyFailed = $false
+                $skippedIds = [System.Collections.Generic.List[string]]::new()
                 if ($pkgIds.Count -eq 0) {
                     $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "pinned unknown-version packages: $($pinnedUnknownIds -join ', ')" } else { 'already current' }
                     return
@@ -819,14 +823,17 @@ $managers = @(
                         if ($exitCode -eq 1632) {
                             Write-Host "    Windows Installer busy (1632), waiting 10s before retry $attempt/3..." -ForegroundColor Yellow
                             Start-Sleep -Seconds 10
-                        } elseif ($pkgOutput -match 'No installed package found matching input criteria') {
+                        }
+                        elseif ($pkgOutput -match 'No installed package found matching input criteria') {
                             $skippedIds.Add($pkgId)
                             break
-                        } else {
+                        }
+                        else {
                             if ($exitCode -eq 0) {
                                 $anyInstalled = $true
                                 $installed = $true
-                            } else {
+                            }
+                            else {
                                 $pkgFailed = $true
                                 if ($pkgOutput) {
                                     $firstLine = ($pkgOutput -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -First 1)
@@ -846,7 +853,7 @@ $managers = @(
                 if ($finalScan.Output) { Write-FilteredOutput -Text $finalScan.Output -Color ([ConsoleColor]::Gray) }
                 $finalOutput = $finalScan.Output
                 try { Invoke-WingetUpgradeHook -Phase 'Post' -WingetOutput $finalOutput } `
-                catch { Write-Verbose "Post-upgrade hook failed: $_" }
+                    catch { Write-Verbose "Post-upgrade hook failed: $_" }
 
                 $script:stepChanged = $anyInstalled
                 if (-not $anyFailed) {
@@ -856,13 +863,16 @@ $managers = @(
                         if ($skippedIds.Count -gt 0) { $details.Add("skipped stale ids: $($skippedIds.Count)") }
                         if ($pinnedUnknownIds.Count -gt 0) { $details.Add("auto-pinned unknown-version packages: $($pinnedUnknownIds.Count)") }
                         $script:stepMessage = ($details -join '; ')
-                    } else {
+                    }
+                    else {
                         $script:stepMessage = if ($pinnedUnknownIds.Count -gt 0) { "already current; auto-pinned unknown-version packages: $($pinnedUnknownIds.Count)" } else { 'already current' }
                     }
-                } else {
+                }
+                else {
                     $script:stepMessage = if ($anyInstalled) { 'completed with some failures' } else { 'failed; see warnings above' }
                 }
-            } catch { Write-Warning $_ }
+            }
+            catch { Write-Warning $_ }
         }
         RequiresCommand = 'winget'
         SlowOperation   = $false
@@ -1024,7 +1034,8 @@ Invoke-Update -Name 'DefenderSignatures' -Title 'Microsoft Defender Signatures' 
         else {
             $script:stepMessage = 'signatures already current'
         }
-    } catch { throw }
+    }
+    catch { throw }
 }
 
 # Development tools - sequential
@@ -1481,9 +1492,11 @@ else {
         catch { Write-Verbose "Captured output read failed: $_" }
     }
 
-    try { Clear-DnsClientCache -ErrorAction SilentlyContinue
-      Write-Status "DNS cache flushed" -Type Success
-    } catch { Write-Verbose "Captured output read failed: $_" }
+    try {
+        Clear-DnsClientCache -ErrorAction SilentlyContinue
+        Write-Status "DNS cache flushed" -Type Success
+    }
+    catch { Write-Verbose "Captured output read failed: $_" }
     try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Write-Status "Recycle Bin emptied" -Type Success } catch { Write-Verbose "Recycle Bin clear skipped: $_" }
 
     if ($isAdmin -and $DeepClean) {
@@ -1512,10 +1525,10 @@ if (-not $script:IsSimulation -and $WhatChanged) {
 
     Write-Section "What changed since last run"
     foreach ($entry in @(
-        @{ Name = 'Winget'; Prev = $previousState.Winget; Curr = $script:State.Winget },
-        @{ Name = 'Scoop'; Prev = $previousState.Scoop; Curr = $script:State.Scoop },
-        @{ Name = 'Chocolatey'; Prev = $previousState.Chocolatey; Curr = $script:State.Chocolatey }
-    )) {
+            @{ Name = 'Winget'; Prev = $previousState.Winget; Curr = $script:State.Winget },
+            @{ Name = 'Scoop'; Prev = $previousState.Scoop; Curr = $script:State.Scoop },
+            @{ Name = 'Chocolatey'; Prev = $previousState.Chocolatey; Curr = $script:State.Chocolatey }
+        )) {
         $changes = @(Compare-PackageMaps $entry.Prev $entry.Curr)
         if ($changes.Count -gt 0) {
             Write-Host "  $($entry.Name) changes:" -ForegroundColor Cyan

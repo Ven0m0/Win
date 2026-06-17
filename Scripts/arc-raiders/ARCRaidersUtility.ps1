@@ -25,20 +25,20 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$ProgressPreference    = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths
 # ─────────────────────────────────────────────────────────────────────────────
 $DEFAULT_INI = "$env:LOCALAPPDATA\PioneerGame\Saved\Config\WindowsClient\GameUserSettings.ini"
-$LOG_FILE    = "$PSScriptRoot\ARCRaidersUtility.log"
+$LOG_FILE = "$PSScriptRoot\ARCRaidersUtility.log"
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Preset definitions  (mirror of GenerateOptimizedIni in the exe)
 #  Keys match GameUserSettings.ini exactly.
 # ─────────────────────────────────────────────────────────────────────────────
 $PRESETS = [ordered]@{
-    'Low' = @{
+    'Low'                 = @{
         'sg.ResolutionQuality'         = '75'
         'sg.ViewDistanceQuality'       = '0'
         'sg.AntiAliasingQuality'       = '0'
@@ -56,7 +56,7 @@ $PRESETS = [ordered]@{
         'RTXGIQuality'                 = 'Off'
         'bUseVSync'                    = 'False'
     }
-    'Medium' = @{
+    'Medium'              = @{
         'sg.ResolutionQuality'         = '100'
         'sg.ViewDistanceQuality'       = '1'
         'sg.AntiAliasingQuality'       = '1'
@@ -74,7 +74,7 @@ $PRESETS = [ordered]@{
         'RTXGIQuality'                 = 'Off'
         'bUseVSync'                    = 'False'
     }
-    'High' = @{
+    'High'                = @{
         'sg.ResolutionQuality'         = '100'
         'sg.ViewDistanceQuality'       = '2'
         'sg.AntiAliasingQuality'       = '2'
@@ -92,7 +92,7 @@ $PRESETS = [ordered]@{
         'RTXGIQuality'                 = 'Static'
         'bUseVSync'                    = 'False'
     }
-    'Epic' = @{
+    'Epic'                = @{
         'sg.ResolutionQuality'         = '100'
         'sg.ViewDistanceQuality'       = '3'
         'sg.AntiAliasingQuality'       = '3'
@@ -110,7 +110,7 @@ $PRESETS = [ordered]@{
         'RTXGIQuality'                 = 'Static'
         'bUseVSync'                    = 'False'
     }
-    'Cinematic' = @{
+    'Cinematic'           = @{
         'sg.ResolutionQuality'         = '100'
         'sg.ViewDistanceQuality'       = '3'
         'sg.AntiAliasingQuality'       = '3'
@@ -128,7 +128,7 @@ $PRESETS = [ordered]@{
         'RTXGIQuality'                 = 'Static'
         'bUseVSync'                    = 'False'
     }
-    'Cinematic (RTX ON)' = @{
+    'Cinematic (RTX ON)'  = @{
         'sg.ResolutionQuality'         = '100'
         'sg.ViewDistanceQuality'       = '3'
         'sg.AntiAliasingQuality'       = '3'
@@ -175,20 +175,20 @@ $CACHE_PATHS = [ordered]@{
         "$env:LOCALAPPDATA\PioneerGame\Saved\PSOCache"
         "$env:LOCALAPPDATA\PioneerGame\Saved\Crashes"
     )
-    'Steam cache' = @(
+    'Steam cache'       = @(
         "$env:LOCALAPPDATA\Steam\htmlcache"
         "$env:LOCALAPPDATA\Steam\webcache"
     )
-    'NVIDIA cache' = @(
+    'NVIDIA cache'      = @(
         "$env:LOCALAPPDATA\NVIDIA\DXCache"
         "$env:LOCALAPPDATA\NVIDIA\GLCache"
         "$env:ProgramData\NVIDIA Corporation\NV_Cache"
     )
-    'AMD GPU cache' = @(
+    'AMD GPU cache'     = @(
         "$env:LOCALAPPDATA\AMD\DxcCache"
         "$env:ProgramData\AMD"
     )
-    'Epic Games cache' = @(
+    'Epic Games cache'  = @(
         "$env:LOCALAPPDATA\EpicGamesLauncher\Saved\webcache"
         "$env:LOCALAPPDATA\EpicGamesLauncher\Saved\htmlcache"
     )
@@ -279,7 +279,7 @@ function Invoke-PauseBack {
 #  INI helpers
 # ─────────────────────────────────────────────────────────────────────────────
 function Set-IniValue {
-    [CmdletBinding(SupportsShouldProcess)]
+    [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [ref]$Text,
@@ -291,7 +291,8 @@ function Set-IniValue {
     $escaped = [regex]::Escape($Key)
     if ($Text.Value -match "(?m)^$escaped=") {
         $Text.Value = $Text.Value -replace "(?m)^$escaped=.*", "$Key=$Value"
-    } else {
+    }
+    else {
         $Text.Value = $Text.Value.TrimEnd() + "`r`n$Key=$Value`r`n"
     }
 }
@@ -306,7 +307,7 @@ function Invoke-RtxDetect {
     $rtx, $gpu = Find-RtxGpu
     Write-Info -Message "Adapter found: $gpu"
     if ($rtx) { Write-Ok -Message "RTX GPU detected — RTX preset options enabled" }
-    else       { Write-Warn -Message "No RTX GPU detected — Cinematic RTX ON may not perform well" }
+    else { Write-Warn -Message "No RTX GPU detected — Cinematic RTX ON may not perform well" }
     return $rtx
 }
 
@@ -337,10 +338,10 @@ function Invoke-ApplyPreset {
 function Invoke-Backup {
     [CmdletBinding()]
     param([string]$IniPath)
-    $dir     = Split-Path -Path $IniPath
+    $dir = Split-Path -Path $IniPath
     $backDir = Join-Path -Path $dir -ChildPath 'Backups'
-    $null    = New-Item -ItemType Directory -Path $backDir -Force
-    $dest    = Join-Path -Path $backDir -ChildPath "GameUserSettings_$(Get-Date -Format 'yyyyMMdd_HHmmss').ini"
+    $null = New-Item -ItemType Directory -Path $backDir -Force
+    $dest = Join-Path -Path $backDir -ChildPath "GameUserSettings_$(Get-Date -Format 'yyyyMMdd_HHmmss').ini"
     Copy-Item -LiteralPath $IniPath -Destination $dest -Force
     Write-Ok -Message "Backup created: $dest"
     return $dest
@@ -371,7 +372,8 @@ function Invoke-Optimize {
             try {
                 $pr.PriorityClass = 'High'
                 Write-Ok -Message "$procName.exe priority -> High"
-            } catch {
+            }
+            catch {
                 Write-Warn -Message "Could not set $procName.exe priority"
             }
         }
@@ -395,7 +397,8 @@ function Invoke-CpuBoost {
     if ($ultimate) {
         $null = cmd.exe /c 'powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61'
         Write-Ok -Message "Ultimate performance power plan activated"
-    } else {
+    }
+    else {
         $null = cmd.exe /c 'powercfg /setactive scheme_min'
         Write-Ok -Message "High performance power plan activated"
     }
@@ -420,7 +423,8 @@ function Invoke-ClearCache {
                     try {
                         Remove-Item -LiteralPath $cachePath -Recurse -Force
                         Write-Ok -Message "$key -- deleted: $(Split-Path -Path $cachePath -Leaf)"
-                    } catch {
+                    }
+                    catch {
                         $err = $_
                         Write-Err -Message "$key -- deletion failed: $($err.Exception.Message)"
                     }
@@ -463,7 +467,7 @@ function Select-IniFile {
     )
     Add-Type -AssemblyName System.Windows.Forms
     $dlg = New-Object -TypeName System.Windows.Forms.OpenFileDialog
-    $dlg.Title  = $Title
+    $dlg.Title = $Title
     $dlg.Filter = $Filter
     if ($Initial -and (Test-Path -LiteralPath $Initial)) {
         $dlg.InitialDirectory = Split-Path -Path $Initial
@@ -482,7 +486,7 @@ function Select-BackupFile {
     Write-Host ""
     Write-Host "  Available backups:" -ForegroundColor White
     for ($i = 0; $i -lt [Math]::Min($files.Count, 15); $i++) {
-        Write-Host ("  {0,2}. {1}  ({2})" -f ($i+1), $files[$i].Name, $files[$i].LastWriteTime) -ForegroundColor Gray
+        Write-Host ("  {0,2}. {1}  ({2})" -f ($i + 1), $files[$i].Name, $files[$i].LastWriteTime) -ForegroundColor Gray
     }
     Write-Host ""
     $c = Read-Host "  Select backup number (Enter = cancel)"
@@ -498,10 +502,10 @@ function Select-BackupFile {
 Write-Log "=== APPLICATION STARTED ==="
 
 # State
-$iniPath     = if ($ConfigPath -and (Test-Path $ConfigPath)) { $ConfigPath } else { '' }
-$backupPath  = ''
-$chkRTX      = $true
-$chkNetFix   = $false
+$iniPath = if ($ConfigPath -and (Test-Path $ConfigPath)) { $ConfigPath } else { '' }
+$backupPath = ''
+$chkRTX = $true
+$chkNetFix = $false
 $chkOptimize = $false
 $chkCpuBoost = $false
 $cacheChecks = [ordered]@{
@@ -528,9 +532,9 @@ while ($true) {
     # 1) File selection
     Write-Host "  1) Select files" -ForegroundColor White
     Write-Host "     C. [📂 Select Config]  Config: $(ConfigLabel)" `
-        -ForegroundColor $(if ($iniPath) {'Green'} else {'Gray'})
+        -ForegroundColor $(if ($iniPath) { 'Green' } else { 'Gray' })
     Write-Host "     B. [💾 Select Backup]  Backup: $(BackupLabel)" `
-        -ForegroundColor $(if ($backupPath) {'Green'} else {'Gray'})
+        -ForegroundColor $(if ($backupPath) { 'Green' } else { 'Gray' })
     Write-Host ""
 
     # 2) Options
@@ -552,8 +556,8 @@ while ($true) {
     Write-Host "  3) Graphics Preset" -ForegroundColor White
     for ($i = 0; $i -lt $presetKeys.Count; $i++) {
         $mark = if ($presetKeys[$i] -eq $selectedPreset) { "(*)" } else { "( )" }
-        $col  = if ($presetKeys[$i] -eq $selectedPreset) { 'Cyan' } else { 'Gray' }
-        Write-Host ("     P{0}. {1} {2}" -f ($i+1), $mark, $presetKeys[$i]) -ForegroundColor $col
+        $col = if ($presetKeys[$i] -eq $selectedPreset) { 'Cyan' } else { 'Gray' }
+        Write-Host ("     P{0}. {1} {2}" -f ($i + 1), $mark, $presetKeys[$i]) -ForegroundColor $col
     }
     Write-Host ""
 
@@ -567,18 +571,18 @@ while ($true) {
     $key = $key.Trim().ToUpper()
 
     switch -Regex ($key) {
-        '^C$'  {
+        '^C$' {
             $picked = Select-IniFile "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
             if ($picked) { $iniPath = $picked; Write-Log "Config selected: $iniPath" }
         }
-        '^B$'  {
+        '^B$' {
             $picked = Select-IniFile "Select Backup INI" "INI files (*.ini)|*.ini"
             if ($picked) { $backupPath = $picked; Write-Log "Backup selected: $backupPath" }
         }
-        '^R$'  { $chkRTX      = -not $chkRTX }
-        '^N$'  { $chkNetFix   = -not $chkNetFix }
-        '^O$'  { $chkOptimize = -not $chkOptimize }
-        '^U$'  { $chkCpuBoost = -not $chkCpuBoost }
+        '^R$' { $chkRTX = -not $chkRTX }
+        '^N$' { $chkNetFix = -not $chkNetFix }
+        '^O$' { $chkOptimize = -not $chkOptimize }
+        '^U$' { $chkCpuBoost = -not $chkCpuBoost }
         '^[1-5]$' {
             $idx = [int]$key - 1
             $ck = @($cacheChecks.Keys)[$idx]
@@ -600,7 +604,8 @@ while ($true) {
                 if (Test-Path $DEFAULT_INI) {
                     $iniPath = $DEFAULT_INI
                     Write-Info "Auto-detected config: $iniPath"
-                } else {
+                }
+                else {
                     Write-Err "No config file selected and default not found."
                     Write-Err "Use [C] to select GameUserSettings.ini"
                     Invoke-PauseBack; continue
@@ -619,9 +624,9 @@ while ($true) {
             Invoke-ApplyPreset $iniPath $selectedPreset | Out-Null
 
             # Options
-            if ($chkNetFix)   { Write-H "NETWORK FIX";    Invoke-NetFix        | Out-Null }
-            if ($chkOptimize) { Write-H "GAME OPTIMIZE";  Invoke-Optimize $iniPath | Out-Null }
-            if ($chkCpuBoost) { Write-H "CPU BOOST";      Invoke-CpuBoost      | Out-Null }
+            if ($chkNetFix) { Write-H "NETWORK FIX"; Invoke-NetFix        | Out-Null }
+            if ($chkOptimize) { Write-H "GAME OPTIMIZE"; Invoke-Optimize $iniPath | Out-Null }
+            if ($chkCpuBoost) { Write-H "CPU BOOST"; Invoke-CpuBoost      | Out-Null }
 
             # Caches
             $toClean = $cacheChecks.GetEnumerator() | Where-Object { $_.Value } | ForEach-Object { $_.Key }
@@ -643,7 +648,8 @@ while ($true) {
                 # Try to pick from backup dir
                 if ($backDir -and (Test-Path $backDir)) {
                     $backupPath = Select-BackupFile $backDir
-                } else {
+                }
+                else {
                     $backupPath = Select-IniFile "Select backup to restore" "INI files (*.ini)|*.ini"
                 }
             }
