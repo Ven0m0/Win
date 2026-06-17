@@ -145,7 +145,7 @@ Load relevant skills first: `win-patterns`, `validation`, `agent-delegation`.
 ## Skills & Rules
 
 **Skills** (`.kilo/skills/` = `.claude/skills/` shared):
-`win-patterns`, `bootstrap-deployment`, `validation`, `agent-delegation`, `script-merge-guide`, `dead-code-cleanup`, `repo-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `mcp-server-management`, `opencode-migration`, `test-relocation`
+`win-patterns`, `bootstrap-deployment`, `validation`, `agent-delegation`, `code-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `mcp-server-management`, `opencode-migration`, `test-relocation`
 
 **Claude Code extras** (`.claude/skills/` only):
 `new-ps-script`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `session-complete`, `todo-scan`
