@@ -10,8 +10,7 @@ nvidia/
 ├── XTREMEG.md                         # XtremeG custom drivers guide
 ├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
 ├── nvidia-performance-tweaks.reg      # Main performance optimizations (consolidated)
-├── nvidia-telemetry-cleanup.cmd       # Complete telemetry removal script
-├── nvidia-shader-cache-cleanup.cmd    # Clear NVIDIA shader caches
+├── nvidia-cleanup.cmd                 # Unified shader-cache + telemetry/bloat cleanup
 ├── xtremeg-installer.ps1              # XtremeG custom driver installer
 ├── toggles/                           # Quick enable/disable settings
 │   ├── disable-dlss-indicator.reg
@@ -82,14 +81,14 @@ What it does:
 
 ```cmd
 :: Run as Administrator
-nvidia-telemetry-cleanup.bat
+nvidia-cleanup.cmd telemetry
 ```
 
 For clean driver installs:
 1. Download NVIDIA driver
 2. Extract with 7-Zip
-3. Copy `nvidia-telemetry-cleanup.bat` to extracted folder
-4. Run it to remove bloat
+3. Copy `nvidia-cleanup.cmd` to extracted folder
+4. Run `nvidia-cleanup.cmd telemetry` to remove bloat
 5. Install driver with `setup.exe`
 
 ## Recommended Setup Procedure
@@ -103,8 +102,8 @@ For clean driver installs:
 3. Run debloat script:
    ```cmd
    cd path\to\extracted\driver
-   copy path\to\nvidia-telemetry-cleanup.bat .
-   nvidia-telemetry-cleanup.bat
+   copy path\to\nvidia-cleanup.cmd .
+   nvidia-cleanup.cmd telemetry
    ```
 
 4. Install driver:
@@ -394,7 +393,7 @@ Clear NVIDIA shader caches to fix stuttering, crashes, or visual artifacts:
 
 ```cmd
 :: Quick NVIDIA-only cleanup
-nvidia-shader-cache-cleanup.cmd
+nvidia-cleanup.cmd shader
 ```
 
 When to use:
@@ -406,7 +405,7 @@ When to use:
 For cleanup including Steam games:
 ```powershell
 cd ~/Scripts
-.\shader-cache.ps1
+.\system-maintenance.ps1 -Action Shader
 ```
 
 See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for detailed comparison.
@@ -419,7 +418,7 @@ This directory contains static registry files extracted from interactive PowerSh
 |-------------------|--------------|---------------------------|
 | `Scripts/gpu-display-manager.ps1` | Interactive menu for GPU/display settings | P-State, HDCP, MPO toggles |
 | `Scripts/DLSS-force-latest.ps1` | Force latest DLSS, overlay toggle | DLSS indicator toggles |
-| `Scripts/shader-cache.ps1` | Cache cleanup with Steam integration | `nvidia-shader-cache-cleanup.bat` |
+| `Scripts/system-maintenance.ps1 -Action Shader` | Cache cleanup with Steam integration | `nvidia-cleanup.cmd shader` |
 
 - Use scripts for interactive menus and advanced features (MSI Mode, EDID Override)
 - Use registry files for quick toggles, automation, or when PowerShell is unavailable
@@ -491,7 +490,7 @@ The `nvidia-performance-tweaks.reg` file consolidates these previously separate 
 
 ### What's Included in Telemetry Cleanup
 
-The `nvidia-telemetry-cleanup.bat` script consolidates:
+The `nvidia-cleanup.cmd telemetry` routine consolidates:
 - ~~Remove Telemetry.bat~~ Merged
 - ~~NVIDIA.bat~~ Merged
 - ~~Debloat.cmd~~ Merged

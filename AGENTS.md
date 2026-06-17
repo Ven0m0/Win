@@ -52,13 +52,11 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `debloat-windows.ps1` | Remove bloatware, disable telemetry |
 | `gpu-display-manager.ps1` | EDID overrides, MSI mode, display tweaks |
 | `system-settings-manager.ps1` | Power, visual, privacy system settings |
-| `system-maintenance.ps1` | Scheduled maintenance tasks |
+| `system-maintenance.ps1` | Maintenance hub (`-Action Defrag\|Disk\|Shader\|Extra\|All`): defrag/MSI, disk cleanup GUI, shader cache, DISM/cache rebuilds |
 | `system-update.ps1` | Winget + scoop update runner |
 | `Network-Tweaker.ps1` | TCP/IP and adapter optimizations |
-| `shader-cache.ps1` | Shader cache management |
 | `shell-setup.ps1` | Shell environment configuration |
-| `UltimateDiskCleanup.ps1` | Deep disk cleanup |
-| `Fix-WindowsUpdates.ps1` | Windows Update repair |
+| `fix-system.ps1` | Repair hub (`-Action System\|WindowsUpdate\|All`): DISM/SFC/CHKDSK/network/WMI + Windows Update reset |
 | `DLSS-force-latest.ps1` | Force latest DLSS version across games |
 | `New-SteamShortcut.ps1` | Steam shortcut creator |
 
@@ -234,7 +232,7 @@ README.md  (setup sections)
 
 **CI enforces:** `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 
-**Pester:** 26 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 24 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## AI Guidance Changes
 

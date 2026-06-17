@@ -81,7 +81,7 @@ Use this agent for Windows system optimization, registry modification, service/t
 
 - Fullscreen optimization: registry key under `HKCU:\System\GameConfig` or GPU profile tweaks
 - Multiplane Overlay (MPO): NVIDIA/AMD specific settings; use `Get-NvidiaGpuRegistryPaths`
-- Shader cache: clear via `shader-cache.ps1` helper (Steam, game-specific, GPU driver caches)
+- Shader cache: clear via `system-maintenance.ps1 -Action Shader` (Steam, game-specific, GPU driver caches)
 - DLSS: `DLSS-force-latest.ps1` updates DLSS DLLs to newest version across game directories
 
 ### Network Tweaks

@@ -168,16 +168,10 @@ If automatic bootstrap fails, configure manually:
 │   ├── debloat-windows.ps1       # System debloating suite
 │   ├── system-settings-manager.ps1
 │   ├── system-update.ps1
-│   ├── system-maintenance.ps1
-│   ├── fix-system.ps1
-│   ├── additional-maintenance.ps1
-│   ├── edid-manager.ps1          # Display EDID management
-│   ├── gaming-display.ps1        # Fullscreen/MPO optimization
-│   ├── gpu-display-manager.ps1   # GPU/display settings
+│   ├── system-maintenance.ps1    # Maintenance hub (-Action Defrag|Disk|Shader|Extra|All)
+│   ├── fix-system.ps1            # Repair hub (-Action System|WindowsUpdate|All)
 │   ├── Network-Tweaker.ps1       # Network adapter optimization
-│   ├── UltimateDiskCleanup.ps1   # Disk cleanup GUI
-│   ├── shader-cache.ps1          # Shader cache cleanup
-│   ├── steam.ps1                 # Steam optimization
+│   ├── Optimize-Steam.ps1        # Steam optimization
 │   ├── DLSS-force-latest.ps1     # DLSS configuration
 │   ├── arc-raiders/              # Arc Raiders utilities
 │   ├── Hostbuilder/
@@ -231,23 +225,18 @@ All scripts are located in `~/Scripts/` and can be run directly:
 - **`debloat-windows.ps1`** — System debloater (Apps, Services, Tasks, Features)
 - **`system-settings-manager.ps1`** — Apply system performance optimizations
 - **`system-update.ps1`** — Windows Update handler
-- **`system-maintenance.ps1`** — Scheduled maintenance runner
-- **`fix-system.ps1`** — System repair and recovery utilities
-- **`additional-maintenance.ps1`** — Extra maintenance routines
+- **`system-maintenance.ps1`** — Maintenance hub: `-Action Defrag|Disk|Shader|Extra|All` (defrag/MSI, disk cleanup GUI, shader cache, DISM/cache rebuilds)
+- **`fix-system.ps1`** — Repair hub: `-Action System|WindowsUpdate|All` (DISM/SFC/CHKDSK/network/WMI + Windows Update reset)
 
 ### Gaming Utilities
 
-- **`steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
-- **`shader-cache.ps1`** — Clear Steam/game/GPU shader caches
+- **`Optimize-Steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
+- **`system-maintenance.ps1 -Action Shader`** — Clear Steam/game/GPU shader caches
 - **`DLSS-force-latest.ps1`** — Force latest DLSS version
-- **`edid-manager.ps1`** — Apply/remove EDID overrides for display issues
-- **`gaming-display.ps1`** — Configure fullscreen mode and multiplane overlay
-- **`gpu-display-manager.ps1`** — GPU and display settings
 
 ### Maintenance & Cleanup
 
-- **`UltimateDiskCleanup.ps1`** — Comprehensive disk cleanup tool (GUI)
-- **`Clean-SpotifyCache.ps1`** — Clear Spotify cache
+- **`system-maintenance.ps1 -Action Disk`** — Comprehensive disk cleanup tool (GUI)
 
 ### Networking
 

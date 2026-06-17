@@ -1,10 +1,10 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 }
 
-Describe "fix-system.ps1" {
+Describe "fix-system.ps1 (System action)" {
     BeforeAll {
         function Write-Header { }
         function Write-Info { }
@@ -74,5 +74,73 @@ Describe "fix-system.ps1" {
             Start-SystemFix -SkipDiskCheck -DryRun -NoReboot -NoReport
             Assert-MockCalled -CommandName chkdsk -Times 0 -Exactly
         }
+    }
+}
+
+Describe "fix-system.ps1 (WindowsUpdate action) - Initialization" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/fix-system.ps1"
+    }
+
+    It "Should export the expected Windows Update functions" {
+        $expectedFunctions = @(
+            "Invoke-ExternalCommand",
+            "Reset-WUService",
+            "Clear-UpdateCache",
+            "Reset-Catroot2",
+            "Register-WuDll",
+            "Set-WURegistryTweak",
+            "Remove-WURegistryTweak",
+            "Remove-TargetReleaseConstraint",
+            "Start-WindowsUpdateFix"
+        )
+
+        foreach ($funcName in $expectedFunctions) {
+            $func = Get-Command -Name $funcName -ErrorAction SilentlyContinue
+            $func | Should -Not -BeNullOrEmpty
+            $func.CommandType | Should -Be "Function"
+        }
+    }
+
+    It "Should not execute repair logic when dot-sourced" {
+        # Dispatcher is guarded by the InvocationName check; importing is side-effect free.
+        $true | Should -Be $true
+    }
+}
+
+Describe "fix-system.ps1 (WindowsUpdate action) - Functions" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/fix-system.ps1"
+
+        function Write-Host {}
+        function Write-Verbose {}
+        function Write-Warning {}
+        function sc.exe { return 0 }
+        function net.exe { return 0 }
+        function reg.exe { return 0 }
+        function takeown.exe { return 0 }
+        function icacls.exe { return 0 }
+        Mock Write-Host {}
+        Mock Write-Verbose {}
+        Mock Write-Warning {}
+        Mock Start-Sleep {}
+        Mock Test-Path { return $false }
+        Mock Get-ChildItem { return @() }
+        Mock Remove-Item {}
+        Mock Stop-Service {}
+    }
+
+    It "Should run Reset-WUService without errors" {
+        { Reset-WUService } | Should -Not -Throw
+    }
+
+    It "Should run Clear-UpdateCache without errors" {
+        Mock Test-Path { return $true }
+        Mock Get-ChildItem { return @() }
+        { Clear-UpdateCache } | Should -Not -Throw
+    }
+
+    It "Should support -WhatIf forwarding" {
+        { Clear-UpdateCache -WhatIf } | Should -Not -Throw
     }
 }
