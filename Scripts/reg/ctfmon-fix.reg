@@ -1,2 +1,4 @@
-Windows Registry Editor Version 5.00਍嬀䠀䬀䔀夀开䰀伀䌀䄀䰀开䴀䄀䌀䠀䤀一䔀尀匀伀䘀吀圀䄀刀䔀尀䴀椀挀爀漀猀漀昀琀尀䤀渀瀀甀琀崀ഀഀ
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Input]
 "InputServiceEnabledForCCI"=dword:00000000

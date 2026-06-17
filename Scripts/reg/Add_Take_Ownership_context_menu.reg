@@ -1,11 +1,22 @@
-Windows Registry Editor Version 5.00਍ഀഀ
-[HKEY_CLASSES_ROOT\*\shell\TakeOwnership]਍䀀㴀∀吀愀欀攀 伀眀渀攀爀猀栀椀瀀∀ഀഀ
-"HasLUAShield"=""਍∀一漀圀漀爀欀椀渀最䐀椀爀攀挀琀漀爀礀∀㴀∀∀ഀഀ
-"NeverDefault"=""਍ഀഀ
-[HKEY_CLASSES_ROOT\*\shell\TakeOwnership\command]਍䀀㴀∀瀀漀眀攀爀猀栀攀氀氀 ⴀ眀椀渀搀漀眀猀琀礀氀攀 栀椀搀搀攀渀 ⴀ挀漀洀洀愀渀搀 尀∀匀琀愀爀琀ⴀ倀爀漀挀攀猀猀 挀洀搀 ⴀ䄀爀最甀洀攀渀琀䰀椀猀琀 ✀⼀挀 琀愀欀攀漀眀渀 ⼀昀 尀尀尀∀─㄀尀尀尀∀ ☀☀ 椀挀愀挀氀猀 尀尀尀∀─㄀尀尀尀∀ ⼀最爀愀渀琀 ⨀匀ⴀ㄀ⴀ㌀ⴀ㐀㨀䘀 ⼀琀 ⼀挀 ⼀氀 ☀ 瀀愀甀猀攀✀ ⴀ嘀攀爀戀 爀甀渀䄀猀尀∀∀ഀഀ
-"IsolatedCommand"= "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l & pause' -Verb runAs\""਍ഀഀ
-਍嬀䠀䬀䔀夀开䌀䰀䄀匀匀䔀匀开刀伀伀吀尀䐀椀爀攀挀琀漀爀礀尀猀栀攀氀氀尀吀愀欀攀伀眀渀攀爀猀栀椀瀀崀ഀഀ
-@="Take Ownership"਍∀䠀愀猀䰀唀䄀匀栀椀攀氀搀∀㴀∀∀ഀഀ
-"NoWorkingDirectory"=""਍∀一攀瘀攀爀䐀攀昀愀甀氀琀∀㴀∀∀ഀഀ
-਍嬀䠀䬀䔀夀开䌀䰀䄀匀匀䔀匀开刀伀伀吀尀䐀椀爀攀挀琀漀爀礀尀猀栀攀氀氀尀吀愀欀攀伀眀渀攀爀猀栀椀瀀尀挀漀洀洀愀渀搀崀ഀഀ
-@="powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" /r /d y && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l /q & pause' -Verb runAs\""਍∀䤀猀漀氀愀琀攀搀䌀漀洀洀愀渀搀∀㴀∀瀀漀眀攀爀猀栀攀氀氀 ⴀ眀椀渀搀漀眀猀琀礀氀攀 栀椀搀搀攀渀 ⴀ挀漀洀洀愀渀搀 尀∀匀琀愀爀琀ⴀ倀爀漀挀攀猀猀 挀洀搀 ⴀ䄀爀最甀洀攀渀琀䰀椀猀琀 ✀⼀挀 琀愀欀攀漀眀渀 ⼀昀 尀尀尀∀─㄀尀尀尀∀ ⼀爀 ⼀搀 礀 ☀☀ 椀挀愀挀氀猀 尀尀尀∀─㄀尀尀尀∀ ⼀最爀愀渀琀 ⨀匀ⴀ㄀ⴀ㌀ⴀ㐀㨀䘀 ⼀琀 ⼀挀 ⼀氀 ⼀焀 ☀ 瀀愀甀猀攀✀ ⴀ嘀攀爀戀 爀甀渀䄀猀尀∀∀ഀഀ
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\TakeOwnership]
+@="Take Ownership"
+"HasLUAShield"=""
+"NoWorkingDirectory"=""
+"NeverDefault"=""
+
+[HKEY_CLASSES_ROOT\*\shell\TakeOwnership\command]
+@="powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l & pause' -Verb runAs\""
+"IsolatedCommand"= "powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l & pause' -Verb runAs\""
+
+
+[HKEY_CLASSES_ROOT\Directory\shell\TakeOwnership]
+@="Take Ownership"
+"HasLUAShield"=""
+"NoWorkingDirectory"=""
+"NeverDefault"=""
+
+[HKEY_CLASSES_ROOT\Directory\shell\TakeOwnership\command]
+@="powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" /r /d y && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l /q & pause' -Verb runAs\""
+"IsolatedCommand"="powershell -windowstyle hidden -command \"Start-Process cmd -ArgumentList '/c takeown /f \\\"%1\\\" /r /d y && icacls \\\"%1\\\" /grant *S-1-3-4:F /t /c /l /q & pause' -Verb runAs\""
