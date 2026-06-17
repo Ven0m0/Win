@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeDiscovery {
     $scriptExists = Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
@@ -10,6 +10,9 @@ BeforeAll {
 
 Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     BeforeAll {
+        # Pester v5 runs BeforeAll even in skipped Describes; guard to avoid throwing.
+        if (-not (Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1")) { return }
+        . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"
         $script:bo6Source = Join-Path $testDir "Documents\Call of Duty\players"
@@ -26,10 +29,6 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     }
 
     Context "DotfilesPath directory creation" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
-        }
-
         It "Should create DotfilesPath directory if it does not exist" {
             Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke New-Item -ParameterFilter {
@@ -45,10 +44,6 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     }
 
     Context "Black Ops 6 backup" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
-        }
-
         It "Should skip Black Ops 6 backup if source does not exist" {
             Mock Test-Path -ParameterFilter { $Path -eq $bo6Source } -MockWith { return $false }
             Backup-GameConfig -DotfilesPath $dotfilesPath
@@ -96,8 +91,5 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     }
 
     Context "Arc Raiders backup" {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
-        }
     }
 }
