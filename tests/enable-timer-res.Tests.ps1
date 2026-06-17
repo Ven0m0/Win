@@ -1,10 +1,12 @@
 ﻿#Requires -Version 5.1
 
+# Evaluated during Pester discovery (before BeforeAll runs), so must live here.
+$script:IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+    [Security.Principal.WindowsBuiltInRole]::Administrator
+)
+
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    $script:IsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator
-    )
 }
 
 Describe "enable-timer-res.ps1" {

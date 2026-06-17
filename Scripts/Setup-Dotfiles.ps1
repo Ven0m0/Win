@@ -513,6 +513,7 @@ function Start-Bootstrap {
   Write-Host ''
   Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
+  $configRoot = Join-Path $PSScriptRoot '..\user\.dotfiles\config'
   $appData = if ($env:APPDATA) { $env:APPDATA } else { '/tmp/AppData' }
   $firefoxProfilesRoot = Join-Path $appData 'Mozilla\Firefox'
 
