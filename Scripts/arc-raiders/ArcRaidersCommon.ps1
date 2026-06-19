@@ -96,8 +96,10 @@ function Remove-Glob {
                 }
             }
             catch {
-                $sz = (Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
-                        Measure-Object Length -Sum).Sum
+                $sz = 0
+                foreach ($f in Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue) {
+                    $sz += $f.Length
+                }
             }
         }
         else {

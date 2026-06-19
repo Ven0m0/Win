@@ -2,6 +2,7 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
+    function ipconfig {}
     . "$PSScriptRoot/../Scripts/arc-raiders/cleanup-arc-raiders.ps1"
 }
 
@@ -20,6 +21,7 @@ Describe "Cleanup-ArcRaiders Script Initialization" {
 Describe "Cleanup-ArcRaiders Functions" {
     BeforeAll {
         function Write-Host {}
+        function ipconfig {}
         # Storage-module CDXML cmdlets cannot be Pester-mocked: their generated
         # proxies reference dynamic types (e.g. Get-PhysicalDisk.PhysicalDiskUsage)
         # that fail to parse. Plain stub functions shadow them instead.
