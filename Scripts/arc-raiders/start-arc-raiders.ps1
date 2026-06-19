@@ -75,12 +75,12 @@ try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch {
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."
-Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
-    $dl = $_.DriveLetter
+foreach ($item in Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter }) {
+    $dl = $item.DriveLetter
     $med = try {
         (Get-PhysicalDisk | Where-Object {
             (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $_.UniqueId
+                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $item.UniqueId
         } | Select-Object -First 1).MediaType
     } catch { 'Unspecified' }
     if ($med -ne 'HDD') {
@@ -127,8 +127,8 @@ if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
 if ($focus) { $QUICK += " -foreground" }
 
 # ── Steam: update sharedconfig.vdf ────────────────────────────────────────────
-Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
-    $file  = $_.FullName
+foreach ($item in Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse) {
+    $file  = $item.FullName
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"', '{', '}') }
@@ -151,8 +151,8 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
 # ── Steam: update localconfig.vdf ─────────────────────────────────────────────
 $opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
 if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
-Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
-    $file  = $_.FullName
+foreach ($item in Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse) {
+    $file  = $item.FullName
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"', '{', '}') }
