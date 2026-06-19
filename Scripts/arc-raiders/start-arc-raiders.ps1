@@ -110,11 +110,11 @@ try {
 }
 
 # ── Steam: build launch args ──────────────────────────────────────────────────
-$QUICK  = "-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite "
-$QUICK += if ($NoJoystick) { "-nojoy " } else { "" }
-$QUICK += if ($NoShaders)  { "-noshaders " } else { "" }
-$QUICK += if ($NoGPU)      { "-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox " } else { "" }
-$QUICK += "-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console"
+$quickBuilder = [System.Text.StringBuilder]::new("-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite ")
+if ($NoJoystick) { [void]$quickBuilder.Append("-nojoy ") }
+if ($NoShaders)  { [void]$quickBuilder.Append("-noshaders ") }
+if ($NoGPU)      { [void]$quickBuilder.Append("-nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox ") }
+[void]$quickBuilder.Append("-cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console")
 
 # ── Steam: graceful shutdown then force kill ──────────────────────────────────
 $focus = $false
@@ -124,7 +124,8 @@ if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
     $focus = $true
 }
 
-if ($focus) { $QUICK += " -foreground" }
+if ($focus) { [void]$quickBuilder.Append(" -foreground") }
+$QUICK = $quickBuilder.ToString()
 
 # ── Steam: update sharedconfig.vdf ────────────────────────────────────────────
 Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
