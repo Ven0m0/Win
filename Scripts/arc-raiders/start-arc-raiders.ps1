@@ -127,8 +127,8 @@ if (Get-Process -Name 'steam', 'steamwebhelper' -ErrorAction SilentlyContinue) {
 if ($focus) { $QUICK += " -foreground" }
 
 # ── Steam: update sharedconfig.vdf ────────────────────────────────────────────
-Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-Object {
-    $file  = $_.FullName
+foreach ($item in Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse) {
+    $file  = $item.FullName
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"', '{', '}') }
@@ -151,8 +151,8 @@ Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -Recurse | ForEach-O
 # ── Steam: update localconfig.vdf ─────────────────────────────────────────────
 $opt = @{LibraryDisableCommunityContent=1; LibraryLowBandwidthMode=1; LibraryLowPerfMode=1; LibraryDisplayIconInGameList=0}
 if ($ShowGameIcons -eq 1) { $opt.LibraryDisplayIconInGameList = 1 }
-Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse | ForEach-Object {
-    $file  = $_.FullName
+foreach ($item in Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recurse) {
+    $file  = $item.FullName
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"', '{', '}') }
