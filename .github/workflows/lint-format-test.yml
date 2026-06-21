@@ -63,7 +63,7 @@ jobs:
         run: |
             try { Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted' -ErrorAction Stop } catch { Write-Warning "Failed to register OttoMatt repo: $_" }
       - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.2.1
+        uses: potatoqualitee/psmodulecache@v6.3
         continue-on-error: true
         with:
           modules-to-cache: PSScriptAnalyzer,OptimizationRules,powershell-yaml
