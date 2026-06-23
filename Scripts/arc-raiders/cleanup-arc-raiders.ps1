@@ -152,13 +152,17 @@ Write-Host "  Idle tasks queued."
 
 # ── Disk Optimization ─────────────────────────────────────────────────────────
 Write-Host "`n[Disk] Optimizing fixed volumes..."
+$physicalDisks = @(Get-PhysicalDisk -ErrorAction SilentlyContinue)
 Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
     $dl = $_.DriveLetter
     $med = try {
-        (Get-PhysicalDisk | Where-Object {
-            (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $_.UniqueId
-        } | Select-Object -First 1).MediaType
+        $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
+            Get-Disk -ErrorAction SilentlyContinue).UniqueId
+        if ($diskId) {
+            ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
+        } else {
+            'Unspecified'
+        }
     } catch { 'Unspecified' }
 
     Write-Host "  ${dl}: ($($_.FileSystem), $med)"
