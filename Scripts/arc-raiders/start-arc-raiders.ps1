@@ -75,12 +75,12 @@ try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch {
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."
-Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
-    $dl = $_.DriveLetter
+foreach ($item in Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter }) {
+    $dl = $item.DriveLetter
     $med = try {
         (Get-PhysicalDisk | Where-Object {
             (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $_.UniqueId
+                Get-Disk -ErrorAction SilentlyContinue).UniqueId -eq $item.UniqueId
         } | Select-Object -First 1).MediaType
     } catch { 'Unspecified' }
     if ($med -ne 'HDD') {
