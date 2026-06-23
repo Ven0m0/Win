@@ -30,11 +30,6 @@
     # Target:  %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Firefox user.js' -SkipWingetTools -SkipWSL
       description: "Firefox user.js → %APPDATA%\\Mozilla\\Firefox\\<default-release-profile>\\user.js"
-    # ── Brave policies (registry) ───────────────────────────────────────────
-    # Source:  user/.dotfiles/config/brave/brave_debloater.reg
-    # Target:  HKLM\SOFTWARE\Policies\BraveSoftware\Brave  (via reg import)
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Brave policies' -SkipWingetTools -SkipWSL
-      description: "Brave policies → HKLM\\SOFTWARE\\Policies\\BraveSoftware\\Brave"
     # ── CMD aliases ─────────────────────────────────────────────────────────
     # Source:  user/.dotfiles/config/cmd/alias.cmd
     # Target:  %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
@@ -84,7 +79,37 @@
     # Source:  user/.dotfiles/config/nvidia/
     # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA assets' -SkipWingetTools -SkipWSL
-      description: "NVIDIA assets → manual (skipped — apply selectively from user/.dotfiles/config/nvidia/)"
+      description: "NVIDIA assets → manual (apply selectively from user/.dotfiles/config/nvidia/)"
+    # ── NVIDIA Inspector settings ───────────────────────────────────────────
+    # Source:  user/.dotfiles/config/nvidia-inspector/nvidia-settings.ps1
+    # Target:  applies Base.nip via NvidiaProfileInspector + enables legacy sharpen registry key
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA Inspector settings' -SkipWingetTools -SkipWSL
+      description: "NVIDIA Inspector settings → Base.nip + legacy sharpen (auto-elevated)"
+    # ── MSI Afterburner skin (manual) ──────────────────────────────────────
+    # Source:  user/.dotfiles/config/nvidia/msi-afterburner/
+    # Target:  manual — copy skin files to MSI Afterburner Skins directory
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'MSI Afterburner skin' -SkipWingetTools -SkipWSL
+      description: "MSI Afterburner skin → manual (copy to Skins directory)"
+    # ── Custom cursor set (manual) ──────────────────────────────────────────
+    # Source:  user/.dotfiles/config/cursors/
+    # Target:  manual — run setup-cursors.cmd as admin to install scheme
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Custom cursor set' -SkipWingetTools -SkipWSL
+      description: "Custom cursor set → manual (run setup-cursors.cmd as admin)"
+    # ── Kilo AI LSP config ──────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/kilo/lsp.json
+    # Target:  ~/.kilo/lsp.json
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Kilo AI LSP config' -SkipWingetTools -SkipWSL
+      description: "Kilo AI LSP config → ~/.kilo/lsp.json"
+    # ── OpenCode LSP config ─────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/opencode/lsp.json
+    # Target:  ~/.config/opencode/lsp.json
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'OpenCode LSP config' -SkipWingetTools -SkipWSL
+      description: "OpenCode LSP config → ~/.config/opencode/lsp.json"
+    # ── Minecraft modpacks (manual) ─────────────────────────────────────────
+    # Source:  user/.dotfiles/config/games/minecraft/
+    # Target:  manual — open .mrpack files with Prism Launcher or MultiMC
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Minecraft modpacks' -SkipWingetTools -SkipWSL
+      description: "Minecraft modpacks → manual (import .mrpack via Prism Launcher or MultiMC)"
     # ── WSL2 configuration ─────────────────────────────────────────────────
     # Source:  user/.dotfiles/config/wsl/
     # Target:  %USERPROFILE%\.wslconfig (Windows host); /etc/wsl.conf is a manual step inside WSL

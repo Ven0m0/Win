@@ -1,1 +1,0 @@
-create a bleachbit config setup ps1 script that: moves @cleaners/ to @%localappdata%/BleachBit/share/cleaners/ and downloads Winapp2.ini from "https://raw.githubusercontent.com/bleachbit/winapp2.ini/master/Winapp2.ini" and then moves @Winapp2.ini to @%appdata%/BleachBit/
