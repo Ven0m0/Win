@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 function Write-ColorOutput {
     [CmdletBinding()]
     param(
-        [Parameter(Position=0, ValueFromPipeline=$true)]
+        [Parameter(Position = 0, ValueFromPipeline = $true)]
         [System.Object]$Object,
         [System.ConsoleColor]$ForegroundColor,
         [System.ConsoleColor]$BackgroundColor,
@@ -29,10 +29,12 @@ function Write-ColorOutput {
             $text = if ($null -ne $Object) { $Object.ToString() } else { "" }
             if ($NoNewline) {
                 $host.UI.Write($text)
-            } else {
+            }
+            else {
                 $host.UI.WriteLine($text)
             }
-        } finally {
+        }
+        finally {
             $host.UI.RawUI.ForegroundColor = $oldFg
             $host.UI.RawUI.BackgroundColor = $oldBg
         }
@@ -55,7 +57,7 @@ function Request-AdminElevation {
     if (!($principal.IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator'))) {
         Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `
             `"{0}`"" -f $PSCommandPath) -Verb RunAs
-        Exit
+        exit
     }
 }
 #endregion
@@ -152,7 +154,8 @@ function Wait-ForKeyPress {
 
     if ($UseReadHost) {
         $null = Read-Host
-    } else {
+    }
+    else {
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
 }
@@ -220,7 +223,8 @@ function Remove-RegistryValue {
         if ($PSCmdlet.ShouldProcess("$Path\$Name", 'Remove registry value')) {
             $null = reg delete $Path /v $Name /f 2>&1
         }
-    } else {
+    }
+    else {
         if ($PSCmdlet.ShouldProcess($Path, 'Remove registry key')) {
             $null = reg delete $Path /f 2>&1
         }
@@ -341,7 +345,8 @@ function Get-NvidiaGpuSetting {
                     $entry.HDCP = $props.RMHdcpKeyglobZero
                 }
             }
-        } catch {
+        }
+        catch {
             Write-Verbose "Could not access registry path: $($_.Exception.Message)"
         }
 
@@ -381,7 +386,8 @@ function Show-NvidiaGpuSetting {
         if ($Setting -eq "All" -or $Setting -eq "P0State") {
             if ($null -ne $item.P0State) {
                 Write-ColorOutput "  P0 State (DisableDynamicPstate): $($item.P0State)" -ForegroundColor Green
-            } else {
+            }
+            else {
                 Write-ColorOutput "  P0 State: Not configured" -ForegroundColor Gray
             }
         }
@@ -389,7 +395,8 @@ function Show-NvidiaGpuSetting {
         if ($Setting -eq "All" -or $Setting -eq "HDCP") {
             if ($null -ne $item.HDCP) {
                 Write-ColorOutput "  HDCP (RMHdcpKeyglobZero): $($item.HDCP)" -ForegroundColor Green
-            } else {
+            }
+            else {
                 Write-ColorOutput "  HDCP: Not configured" -ForegroundColor Gray
             }
         }
@@ -428,7 +435,8 @@ function Get-RegistryValueSafe {
     try {
         $value = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
         return $value
-    } catch {
+    }
+    catch {
         return $DefaultValue
     }
 }
@@ -458,7 +466,8 @@ function Set-NvidiaSignatureOverride {
 
     if (($bcdNoIntegrityExitCode -eq 0) -and ($bcdTestSigningExitCode -eq 0)) {
         Write-ColorOutput "  [OK] BCDEDIT settings updated ($value)" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-ColorOutput "  [WARN] Failed to update BCDEDIT settings `
             (may require Secure Boot disabled or elevated PowerShell)" `
             -ForegroundColor Yellow
@@ -487,7 +496,8 @@ function Set-NvidiaSignatureOverride {
 
     if (-not $regError) {
         Write-ColorOutput "  [OK] NVIDIA signature registry keys updated" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-ColorOutput "  [WARN] Failed to update one or more NVIDIA signature registry keys" -ForegroundColor Yellow
     }
 }
@@ -506,22 +516,24 @@ function Get-NvidiaSignatureStatus {
 
     $globalVal = `
         Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global" `
-            -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+        -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
     if ($null -ne $globalVal) {
         if ($globalVal -is [array]) {
             $status.GlobalOverride = $globalVal[0] -eq 1
-        } else {
+        }
+        else {
             $status.GlobalOverride = $globalVal -eq 1
         }
     }
 
     $serviceVal = `
         Get-RegistryValueSafe -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm" `
-            -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
+        -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
     if ($null -ne $serviceVal) {
         if ($serviceVal -is [array]) {
             $status.ServiceOverride = $serviceVal[0] -eq 1
-        } else {
+        }
+        else {
             $status.ServiceOverride = $serviceVal -eq 1
         }
     }
@@ -550,7 +562,7 @@ function Get-FileFromWeb {
     )
 
     function Show-Progress {
-    [CmdletBinding()]
+        [CmdletBinding()]
         param(
             [Parameter(Mandatory)][Single]$TotalValue,
             [Parameter(Mandatory)][Single]$CurrentValue,
@@ -562,8 +574,9 @@ function Get-FileFromWeb {
         $percentComplete = $percent * 100
 
         if ($psISE) {
-            Write-Progress "$ProgressText" -id 0 -percentComplete $percentComplete
-        } else {
+            Write-Progress "$ProgressText" -Id 0 -PercentComplete $percentComplete
+        }
+        else {
             Write-ColorOutput -NoNewLine `
                 "`r$ProgressText $($(''.PadRight($BarSize * $percent, [char]9608)).PadRight($BarSize, [char]9617)) $($percentComplete.ToString('##0.00').PadLeft(6)) % "
         }
@@ -578,7 +591,7 @@ function Get-FileFromWeb {
         }
 
         if ($File -match '^\.\\') {
-            $File = Join-Path (Get-Location -PSProvider 'FileSystem') ($File -Split '^\.')[1]
+            $File = Join-Path (Get-Location -PSProvider 'FileSystem') ($File -split '^\.')[1]
         }
 
         if ($File -and !(Split-Path $File)) {
@@ -638,8 +651,9 @@ function Get-MonitorInstance {
     if ($ForceRefresh -or -not $script:CachedMonitorInstances) {
         try {
             $script:CachedMonitorInstances = (Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID `
-                -ErrorAction Stop).InstanceName -replace '_0', ''
-        } catch {
+                    -ErrorAction Stop).InstanceName -replace '_0', ''
+        }
+        catch {
             Write-ColorOutput "Error retrieving monitor information: $($_.Exception.Message)" -ForegroundColor Red
             $script:CachedMonitorInstances = @()
         }
@@ -672,7 +686,8 @@ function Set-FullscreenMode {
             "GameDVR_HonorUserFSEBehaviorMode" -Type REG_DWORD -Data "0"
 
         Write-ColorOutput "Fullscreen Optimizations (FSO) enabled." -ForegroundColor Green
-    } else {
+    }
+    else {
         # Fullscreen Exclusive
         Set-RegistryValue -Path "HKCU\System\GameConfigStore" -Name `
             "GameDVR_DXGIHonorFSEWindowsCompatible" -Type REG_DWORD -Data "1"
@@ -760,10 +775,12 @@ function Show-GamingDisplayStatus {
     if ($null -ne $fseMode) {
         if ($fseMode -eq 2) {
             Write-ColorOutput "Fullscreen Mode: FSE (Fullscreen Exclusive)" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-ColorOutput "Fullscreen Mode: FSO (Fullscreen Optimizations)" -ForegroundColor Green
         }
-    } else {
+    }
+    else {
         Write-ColorOutput "Fullscreen Mode: Not configured" -ForegroundColor Gray
     }
 
@@ -772,24 +789,28 @@ function Show-GamingDisplayStatus {
     if ($null -ne $mpoTest) {
         if ($mpoTest -eq 5) {
             Write-ColorOutput "Multiplane Overlay: Disabled" -ForegroundColor Yellow
-        } else {
+        }
+        else {
             Write-ColorOutput "Multiplane Overlay: Enabled" -ForegroundColor Green
         }
-    } else {
+    }
+    else {
         Write-ColorOutput "Multiplane Overlay: Default (Enabled)" -ForegroundColor Green
     }
 
     # Check DirectX settings
     $dxSettings = `
         Get-RegistryValueSafe -Path "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
-            -Name "DirectXUserGlobalSettings"
+        -Name "DirectXUserGlobalSettings"
     if ($null -ne $dxSettings) {
         if ($dxSettings -like '*SwapEffectUpgradeEnable=1*') {
             Write-ColorOutput "Windowed Game Optimizations: Enabled" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-ColorOutput "Windowed Game Optimizations: Disabled" -ForegroundColor Yellow
         }
-    } else {
+    }
+    else {
         Write-ColorOutput "Windowed Game Optimizations: Not configured" -ForegroundColor Gray
     }
 
@@ -855,7 +876,8 @@ function ConvertTo-VDF {
             ConvertTo-VDF -Data $Data[$key] -Indent $Indent
             $Indent.Value--
             Write-Output "$tabs}`n"
-        } else {
+        }
+        else {
             $tabs = "`t" * $Indent.Value
             Write-Output "$tabs""$key`"`t`t$($Data[$key])`n"
         }
@@ -917,7 +939,8 @@ function New-RestorePoint {
             -RestorePointType "MODIFY_SETTINGS" `
             -ErrorAction Stop
         Write-ColorOutput "  Restore point created successfully" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-ColorOutput "  Warning: Could not create restore point" -ForegroundColor Yellow
         Write-ColorOutput "  Error: $_" -ForegroundColor DarkGray
         Write-ColorOutput "  Continuing anyway..." -ForegroundColor Yellow
@@ -946,10 +969,12 @@ function Remove-AppxPackageSafe {
             Write-ColorOutput "  Removing: $($package.Name)" -ForegroundColor Yellow
             try {
                 Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
-            } catch {
+            }
+            catch {
                 try {
                     Remove-AppxPackage -Package $package.PackageFullName 2>$null
-                } catch {
+                }
+                catch {
                     Write-ColorOutput "    Failed to remove $($package.Name)" -ForegroundColor Red
                 }
             }
@@ -963,7 +988,8 @@ function Remove-AppxPackageSafe {
             Write-ColorOutput "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
             try {
                 Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
-            } catch {
+            }
+            catch {
                 $msg = "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)"
                 Write-ColorOutput $msg -ForegroundColor Red
             }
@@ -983,8 +1009,8 @@ function Set-EDIDOverride {
     $regLocation = 'HKLM\SYSTEM\CurrentControlSet\Enum\'
     $edidHex = `
         '02030400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' + `
-                '0000000000000000000000000000000000000000000000000000000000000000000' + `
-                '00000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
+        '0000000000000000000000000000000000000000000000000000000000000000000' + `
+        '00000000000000000000000000000000000000000000000000000000000000000000000000000000000f7'
     $monitors = Get-MonitorInstance
 
     if ($monitors.Count -eq 0) {
@@ -1063,10 +1089,12 @@ function Show-EDIDStatus {
                 $null = Get-ItemProperty -Path $regPath -Name '1' -ErrorAction Stop
                 Write-ColorOutput "  Status: Override applied" -ForegroundColor Green
                 Write-ColorOutput "  Value: Present" -ForegroundColor Green
-            } catch {
+            }
+            catch {
                 Write-ColorOutput "  Status: No override" -ForegroundColor Gray
             }
-        } else {
+        }
+        else {
             Write-ColorOutput "  Status: No override" -ForegroundColor Gray
         }
         Write-ColorOutput ""
@@ -1103,7 +1131,7 @@ function Set-MSIMode {
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
         $regPath = "HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management" +
-            "\MessageSignaledInterruptProperties"
+        "\MessageSignaledInterruptProperties"
         Set-RegistryValue -Path $regPath -Name "MSISupported" -Type REG_DWORD -Data $msiValue
     }
 
@@ -1113,7 +1141,7 @@ function Set-MSIMode {
     foreach ($gpu in $gpuDevices) {
         $instanceID = $gpu.InstanceId
         $regPath = "Registry::HKLM\SYSTEM\ControlSet001\Enum\$instanceID\Device Parameters\Interrupt Management" +
-            "\MessageSignaledInterruptProperties"
+        "\MessageSignaledInterruptProperties"
 
         Write-ColorOutput "Device: $($gpu.FriendlyName)" -ForegroundColor Yellow
         Write-ColorOutput "  Instance ID: $instanceID" -ForegroundColor Gray
@@ -1123,7 +1151,8 @@ function Set-MSIMode {
             $statusColor = if ($msiSupported -eq 1) { "Green" } else { "Yellow" }
             $statusText = if ($msiSupported -eq 1) { "Enabled (1)" } else { "Disabled (0)" }
             Write-ColorOutput "  MSI Mode: $statusText" -ForegroundColor $statusColor
-        } catch {
+        }
+        catch {
             Write-ColorOutput "  MSI Mode: Not configured or error accessing registry" -ForegroundColor Red
         }
         Write-ColorOutput ""
@@ -1256,7 +1285,7 @@ function Get-FolderSize {
     }
 
     switch ($Unit) {
-        'B'  { return $total }
+        'B' { return $total }
         'KB' { return $total / 1KB }
         'MB' { return $total / 1MB }
         'GB' { return $total / 1GB }
@@ -1279,7 +1308,7 @@ function Format-Size {
         [int]$DecimalPlaces = 2
     )
 
-    $units = 'B','KB','MB','GB','TB'
+    $units = 'B', 'KB', 'MB', 'GB', 'TB'
     $index = 0
 
     while ($Bytes -ge 1024 -and $index -lt $units.Count - 1) {
@@ -1479,28 +1508,30 @@ function Invoke-ServiceOperation {
 }
 
 function Get-SteamPath {
-  <#
+    <#
   .SYNOPSIS
       Returns the Steam installation path, optionally overridden by caller.
   .PARAMETER Override
       If provided, returned as-is without registry lookup.
   #>
-  [CmdletBinding()]
-  [OutputType([string])]
-  param([string]$Override)
+    [CmdletBinding()]
+    [OutputType([string])]
+    param([string]$Override)
 
-  if ($Override) { return $Override }
-  try {
-    $reg = Get-ItemProperty 'HKLM:\SOFTWARE\Wow6432Node\Valve\Steam' `
-      -Name InstallPath -ErrorAction SilentlyContinue
-    if ($reg) { return $reg.InstallPath }
-  } catch { Write-Verbose "Get-SteamPath: HKLM lookup failed: $_" }
-  try {
-    $reg = Get-ItemProperty 'HKCU:\Software\Valve\Steam' `
-      -Name SteamPath -ErrorAction SilentlyContinue
-    if ($reg) { return $reg.SteamPath }
-  } catch { Write-Verbose "Get-SteamPath: HKCU lookup failed: $_" }
-  return "${env:ProgramFiles(x86)}\Steam"
+    if ($Override) { return $Override }
+    try {
+        $reg = Get-ItemProperty 'HKLM:\SOFTWARE\Wow6432Node\Valve\Steam' `
+            -Name InstallPath -ErrorAction SilentlyContinue
+        if ($reg) { return $reg.InstallPath }
+    }
+    catch { Write-Verbose "Get-SteamPath: HKLM lookup failed: $_" }
+    try {
+        $reg = Get-ItemProperty 'HKCU:\Software\Valve\Steam' `
+            -Name SteamPath -ErrorAction SilentlyContinue
+        if ($reg) { return $reg.SteamPath }
+    }
+    catch { Write-Verbose "Get-SteamPath: HKCU lookup failed: $_" }
+    return "${env:ProgramFiles(x86)}\Steam"
 }
 
 
@@ -1564,9 +1595,9 @@ function Measure-Execution {
     $endTime = Get-Date
     $duration = $endTime - $StartTime
     return [pscustomobject]@{
-        StartTime = $StartTime
-        EndTime   = $endTime
-        Duration  = $duration.ToString('hh\:mm\:ss')
+        StartTime    = $StartTime
+        EndTime      = $endTime
+        Duration     = $duration.ToString('hh\:mm\:ss')
         TotalSeconds = $duration.TotalSeconds
     }
 }
@@ -1680,103 +1711,9 @@ function Wait-ForWinget {
     return $ExePath
 }
 
-function Install-WingetPackage {
-    <#
-    .SYNOPSIS
-        Installs a package via winget with safe defaults and exit-code handling.
-    .DESCRIPTION
-        Wraps winget install, automatically waits for the executable if needed,
-        and treats exit codes 0 and -1978335189 (already installed) as success.
-        Uses --scope machine only when running as administrator.
-    .PARAMETER Id
-        Winget package identifier.
-    .PARAMETER Name
-        Human-readable name for status output.
-    .PARAMETER ExePath
-        Optional explicit path to winget.exe.
-    .PARAMETER NoWait
-        Skip Wait-ForWinget (use only when you are certain winget is ready).
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Id,
-
-        [string]$Name,
-        [string]$ExePath
-    )
-
-    if (-not $Name) { $Name = $Id }
-
-    $winget = if ($ExePath) { $ExePath } else { Wait-ForWinget }
-
-    $scopeArg = ''
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator
-    )
-    if ($isAdmin) {
-        $scopeArg = '--scope machine'
-    }
-
-    if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
-        Write-ColorOutput "  Installing $Name..." -ForegroundColor Gray -NoNewline
-        try {
-            $argList = "install --id $Id --silent --accept-source-agreements --accept-package-agreements $scopeArg"
-            $proc = Start-Process -FilePath $winget -ArgumentList $argList -NoNewWindow -Wait -PassThru
-            $ec = $proc.ExitCode
-            if ($ec -eq 0 -or $ec -eq -1978335189) {
-                Write-ColorOutput " [OK]" -ForegroundColor Green
-            } else {
-                Write-ColorOutput ""
-                Write-Warning "  [WARN] $Name - winget exit code: $ec"
-            }
-        } catch {
-            Write-ColorOutput ""
-            Write-Warning "  [WARN] $Name - $_"
-        }
-    }
-}
 #endregion
 
 #region External Command Wrappers
-
-function Invoke-BuildOperation {
-    <#
-    .SYNOPSIS
-        Runs an operation with consistent status reporting.
-    .PARAMETER Name
-        Human-readable operation name.
-    .PARAMETER Action
-        Script block to execute.
-    .PARAMETER SuccessStatus
-        Status string on success (default: 'OK').
-    .OUTPUTS
-        Boolean indicating success.
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Name,
-
-        [Parameter(Mandatory)]
-        [scriptblock]$Action,
-
-        [string]$SuccessStatus = 'OK'
-    )
-
-    $statusColor = 'Cyan'
-    Write-ColorOutput "  [RUNNING] $Name" -ForegroundColor $statusColor
-    try {
-        $null = & $Action
-        $color = switch ($SuccessStatus) { 'OK' { 'Green' } 'SKIP' { 'Yellow' } default { 'Green' } }
-        Write-ColorOutput "  [$SuccessStatus] $Name" -ForegroundColor $color
-        return $true
-    }
-    catch {
-        Write-ColorOutput "  [FAIL] $Name - $($_.Exception.Message)" -ForegroundColor Red
-        return $false
-    }
-}
 
 function Invoke-CommandChecked {
     <#
@@ -1851,7 +1788,7 @@ function Invoke-Winget {
         Write-ColorOutput "  Installing $Name..." -ForegroundColor Gray -NoNewline
         try {
             $fullArgs = "install --id $Id --silent --accept-source-agreements",
-                "--accept-package-agreements $scopeArg $Arguments" -join ' '
+            "--accept-package-agreements $scopeArg $Arguments" -join ' '
             $proc = Start-Process -FilePath $winget -ArgumentList $fullArgs -NoNewWindow -Wait -PassThru
             $ec = $proc.ExitCode
             if ($ec -eq 0 -or $ec -eq -1978335189) {
@@ -1869,32 +1806,12 @@ function Invoke-Winget {
     }
 }
 
-function Invoke-RegImport {
-    <#
-    .SYNOPSIS
-        Imports a .reg file with exit-code checking.
-    .PARAMETER Path
-        Path to the .reg file.
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path
-    )
-
-    if ($PSCmdlet.ShouldProcess($Path, 'Import registry file')) {
-        if (-not (Test-Path $Path)) {
-            throw "Registry file not found: $Path"
-        }
-        Invoke-CommandChecked -FilePath 'reg.exe' -ArgumentList "import `"$Path`"" -SuccessCodes @(0)
-    }
-}
 #endregion
 
 
 function Ensure-Directory {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
-      Justification='Ensure- is a widely-used configuration management convention; renaming would break callers.')]
+        Justification = 'Ensure- is a widely-used configuration management convention; renaming would break callers.')]
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
@@ -1915,17 +1832,6 @@ function vdf_mkdir {
     if ($key -and $vdf.Keys -notcontains $key) { $vdf[$key] = [ordered]@{} }
     if ($recurse) { vdf_mkdir $vdf[$key] $recurse }
 }
-
-function sc-nonew {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',
-        Justification='Intentional terse internal helper')]
-    [CmdletBinding()]
-    param($fn, $txt)
-    if ((Get-Command Set-Content).Parameters['NoNewline']) { Set-Content -LiteralPath $fn $txt -NoNewline -Force }
-    else { [IO.File]::WriteAllText($fn, $txt -join [char]10) }
-}
-
-# Export functions
 
 # Export functions
 try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }

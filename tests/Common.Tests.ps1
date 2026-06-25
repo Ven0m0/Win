@@ -195,56 +195,6 @@ Describe "Show-RestartRequired" {
     }
 }
 
-Describe "Invoke-BuildOperation" {
-    It "Should return true and output OK when action succeeds" {
-        Mock Write-ColorOutput
-
-        $action = { return $true }
-
-        $result = Invoke-BuildOperation -Name "TestOp" -Action $action
-
-        $result | Should -Be $true
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
-            $Object -eq "  [RUNNING] TestOp" -and $ForegroundColor -eq 'Cyan'
-        }
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
-            $Object -eq "  [OK] TestOp" -and $ForegroundColor -eq 'Green'
-        }
-    }
-
-    It "Should return true and output SKIP when action succeeds with SKIP status" {
-        Mock Write-ColorOutput
-
-        $action = { return $true }
-
-        $result = Invoke-BuildOperation -Name "TestOpSkip" -Action $action -SuccessStatus 'SKIP'
-
-        $result | Should -Be $true
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
-            $Object -eq "  [RUNNING] TestOpSkip" -and $ForegroundColor -eq 'Cyan'
-        }
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
-            $Object -eq "  [SKIP] TestOpSkip" -and $ForegroundColor -eq 'Yellow'
-        }
-    }
-
-    It "Should return false and output FAIL when action throws" {
-        Mock Write-ColorOutput
-
-        $action = { throw [System.Exception]::new("Simulated failure") }
-
-        $result = Invoke-BuildOperation -Name "TestOpFail" -Action $action
-
-        $result | Should -Be $false
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter {
-            $Object -eq "  [RUNNING] TestOpFail" -and $ForegroundColor -eq 'Cyan'
-        }
-        Should -Invoke -CommandName Write-ColorOutput -Times 1 -ParameterFilter { $Object -match '\[FAIL\] TestOpFail' }
-    }
-}
-
-
-
 
 Describe "Get-NvidiaGpuRegistryPath" {
     It "Should call Get-ChildItem with correct registry path" {

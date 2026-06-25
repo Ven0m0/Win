@@ -9,33 +9,6 @@
 
 # ── Discovery ─────────────────────────────────────────────────────────────────
 
-function Find-SteamPath {
-    <#
-    .SYNOPSIS
-        Locate the Steam installation directory from registry or default paths.
-    #>
-    [CmdletBinding()]
-    param()
-
-    $steamPath = $null
-    try {
-        $steamPath = Get-ItemProperty 'HKCU:\Software\Valve\Steam' -Name SteamPath -ErrorAction Stop `
-        | Select-Object -ExpandProperty SteamPath
-    }
-    catch { Write-Verbose "ArcRaidersCommon: HKCU Steam lookup failed: $_" }
-    if (-not $steamPath) {
-        try {
-            $steamPath = Get-ItemProperty 'HKLM:\Software\Wow6432Node\Valve\Steam' -Name InstallPath -ErrorAction Stop `
-            | Select-Object -ExpandProperty InstallPath
-        }
-        catch { Write-Verbose "ArcRaidersCommon: HKLM Steam lookup failed: $_" }
-    }
-    if ($steamPath) {
-        $steamPath = $steamPath -replace '/', '\'
-    }
-    return $steamPath
-}
-
 function Find-ArcRaidersInstallPath {
     <#
     .SYNOPSIS
@@ -44,7 +17,7 @@ function Find-ArcRaidersInstallPath {
     [CmdletBinding()]
     param()
 
-    $steamPath = Find-SteamPath
+    $steamPath = Get-SteamPath
     if ($steamPath) {
         $candidate = Join-Path $steamPath 'steamapps\common\Arc Raiders\PioneerGame'
         if (Test-Path $candidate) {
@@ -288,14 +261,15 @@ function Optimize-FixedVolume {
         $dl = $_.DriveLetter
         $med = try {
             $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId
-            if ($diskId) {
-                ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
-            } else {
-                'Unspecified'
+                    Get-Disk -ErrorAction SilentlyContinue).UniqueId
+                if ($diskId) {
+                    ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
+                }
+                else {
+                    'Unspecified'
+                }
             }
-        }
-        catch { 'Unspecified' }
+            catch { 'Unspecified' }
 
             Write-Host "  ${dl}: ($($_.FileSystem), $med)"
             if ($med -ne 'HDD') {
