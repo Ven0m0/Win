@@ -61,6 +61,9 @@ Describe "Phase Functions Execution" {
         Mock Get-AppxProvisionedPackage {}
         function Remove-AppxProvisionedPackage {}
         Mock Remove-AppxProvisionedPackage {}
+        # CIM/WMI resolves internals via SystemRoot — must be restored in AfterAll
+        # or every later test file in this process fails with CimException.
+        $script:origSystemRoot = $env:SystemRoot
         $env:SystemRoot = '/tmp/Windows'
         Mock Get-Service { return @() }
         Mock Set-Service {}
@@ -105,5 +108,9 @@ Describe "Phase Functions Execution" {
         # Pester mocks PowerShell commands/functions, but ipconfig is an external executable.
         # We can mock ipconfig by creating a function override, or by trusting it won't break things.
         { Invoke-SystemCleanup } | Should -Not -Throw
+    }
+
+    AfterAll {
+        $env:SystemRoot = $script:origSystemRoot
     }
 }

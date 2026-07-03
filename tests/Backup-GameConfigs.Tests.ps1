@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 
 BeforeDiscovery {
-    $scriptExists = Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
+    $scriptExists = Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
 }
 
 BeforeAll {
@@ -11,8 +11,8 @@ BeforeAll {
 Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
     BeforeAll {
         # Pester v5 runs BeforeAll even in skipped Describes; guard to avoid throwing.
-        if (-not (Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1")) { return }
-        . "$PSScriptRoot/../Scripts/Backup-GameConfig.ps1"
+        if (-not (Test-Path "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1")) { return }
+        . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"
         $script:bo6Source = Join-Path $testDir "Documents\Call of Duty\players"
@@ -37,7 +37,8 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
         }
 
         It "Should not create DotfilesPath directory if it already exists" {
-            Mock Test-Path -ParameterFilter { $Path -eq $dotfilesPath } -MockWith { return $true }
+            # Ensure-Directory probes with -LiteralPath, not -Path
+            Mock Test-Path -ParameterFilter { $LiteralPath -eq $dotfilesPath } -MockWith { return $true }
             Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke New-Item -Times 0
         }
@@ -71,6 +72,10 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
                 @(
                     [PSCustomObject]@{ FullName = "test1"; Name = "config.cfg"; Directory = $true }
                 )
+            }
+            # Files inside the mocked player folder (second-level enumeration)
+            Mock Get-ChildItem -ParameterFilter { $Path -eq 'test1' } -MockWith {
+                @([PSCustomObject]@{ FullName = 'test1\config.cfg'; Name = 'config.cfg' })
             }
             Backup-GameConfig -DotfilesPath $dotfilesPath
             Should -Invoke Copy-Item -Times 1

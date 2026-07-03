@@ -44,9 +44,9 @@ $ProgressPreference = 'SilentlyContinue'
 # ─────────────────────────────────────────────────────────────────────────────
 #  Constants
 # ─────────────────────────────────────────────────────────────────────────────
-$GAME_NAMES    = @('ARC', 'pioneergame', 'ARC-Win64-Shipping')
+$GAME_NAMES = @('ARC', 'pioneergame', 'ARC-Win64-Shipping')
 $STEAM_GAME_ID = '1808500'
-$STATE_FILE    = "$env:TEMP\arc-boost-state.json"
+$STATE_FILE = "$env:TEMP\arc-boost-state.json"
 
 # Non-essential processes safe to kill for FPS
 # Format: process name (without .exe) -> friendly display name
@@ -129,9 +129,9 @@ function Invoke-SelfElevation {
     if (-not (Test-IsAdmin)) {
         Write-Host "  Requesting administrator privileges..." -ForegroundColor Yellow
         $args_ = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath)
-        if ($NoLaunch)  { $args_ += '-NoLaunch' }
+        if ($NoLaunch) { $args_ += '-NoLaunch' }
         if ($NoRestore) { $args_ += '-NoRestore' }
-        if ($DryRun)    { $args_ += '-DryRun' }
+        if ($DryRun) { $args_ += '-DryRun' }
         if ($WhatIfPreference) { $args_ += '-WhatIf' }
         Start-Process pwsh -ArgumentList $args_ -Verb RunAs
         exit 0
@@ -148,11 +148,11 @@ function Write-H([string]$title) {
     Write-Host ""
 }
 
-function Write-Ok([string]$msg)   { Write-Host "  [+] $msg" -ForegroundColor Green }
+function Write-Ok([string]$msg) { Write-Host "  [+] $msg" -ForegroundColor Green }
 function Write-Warn([string]$msg) { Write-Host "  [!] $msg" -ForegroundColor Yellow }
-function Write-Err([string]$msg)  { Write-Host "  [X] $msg" -ForegroundColor Red }
+function Write-Err([string]$msg) { Write-Host "  [X] $msg" -ForegroundColor Red }
 function Write-Info([string]$msg) { Write-Host "  ... $msg" -ForegroundColor Gray }
-function Write-Dry([string]$msg)  { Write-Host "  [DRY] $msg" -ForegroundColor Cyan }
+function Write-Dry([string]$msg) { Write-Host "  [DRY] $msg" -ForegroundColor Cyan }
 
 function Get-PowerPlan {
     $line = (powercfg /getactivescheme 2>&1) -match 'GUID' | Select-Object -First 1
@@ -163,7 +163,8 @@ function Get-PowerPlan {
 }
 
 function Format-MB([long]$bytes) {
-    return "$([math]::Round($bytes / 1MB, 1)) MB"
+    # Invariant culture: '-f' would render '1,0' on comma-decimal locales
+    return "$(($bytes / 1MB).ToString('0.0', [Globalization.CultureInfo]::InvariantCulture)) MB"
 }
 
 function Get-GameProcess {
@@ -209,7 +210,8 @@ public class ArcBoostMem {
     }
 }
 "@
-    } catch {
+    }
+    catch {
         Write-Verbose "MemApi unavailable: $_"
     }
 }
@@ -236,7 +238,8 @@ function Save-State([string]$powerPlan, [string[]]$killedProcesses) {
             'FullControl', 'Allow')
         $acl.AddAccessRule($rule)
         Set-Acl $STATE_FILE $acl
-    } catch { Write-Verbose "ACL hardening best-effort, skipped: $_" }
+    }
+    catch { Write-Verbose "ACL hardening best-effort, skipped: $_" }
 }
 
 function Import-State {
@@ -260,7 +263,8 @@ function Restore-All([string]$originalPlan, [hashtable]$killedPaths, [switch]$dr
         Write-Info "Restoring power plan: $originalPlan"
         cmd.exe /c "powercfg /setactive $originalPlan" 2>&1 | Out-Null
         Write-Ok "Power plan restored to: $originalPlan"
-    } elseif ($dry) {
+    }
+    elseif ($dry) {
         Write-Dry "Would restore power plan: $originalPlan"
     }
 
@@ -273,15 +277,18 @@ function Restore-All([string]$originalPlan, [hashtable]$killedPaths, [switch]$dr
             if ($path -and (Test-Path $path)) {
                 if ($dry) {
                     Write-Dry "Would restart: $name ($path)"
-                } else {
+                }
+                else {
                     try {
                         Start-Process -FilePath $path -ErrorAction SilentlyContinue
                         Write-Ok "Restarted: $name"
-                    } catch {
+                    }
+                    catch {
                         Write-Warn "Could not restart $name — launch it manually if needed"
                     }
                 }
-            } else {
+            }
+            else {
                 Write-Warn "Path not found for $name — skipping restart"
             }
         }
@@ -294,6 +301,10 @@ function Restore-All([string]$originalPlan, [hashtable]$killedPaths, [switch]$dr
 # ─────────────────────────────────────────────────────────────────────────────
 #  Main
 # ─────────────────────────────────────────────────────────────────────────────
+# Skip main when dot-sourced (e.g. by Pester tests) — the boost flow kills
+# processes, switches power plans, launches the game, and blocks on Read-Host.
+if ($MyInvocation.InvocationName -eq '.') { return }
+
 Invoke-SelfElevation
 
 Write-H "STARTING"
@@ -312,7 +323,8 @@ if ($existingState) {
         Write-Warn "Note: process restart is not available after a crash (paths are not persisted for security)."
         Restore-All -originalPlan $prevPlan -killedPaths @{}
         exit 0
-    } elseif ($choice -eq 'Q') { exit 0 }
+    }
+    elseif ($choice -eq 'Q') { exit 0 }
     Clear-State
 }
 
@@ -320,7 +332,8 @@ if ($existingState) {
 $originalPowerPlan = Get-PowerPlan
 if ($originalPowerPlan) {
     Write-Ok "Current power plan saved: $originalPowerPlan"
-} else {
+}
+else {
     Write-Warn "Could not read current power plan — won't be able to restore it"
 }
 
@@ -330,9 +343,9 @@ Write-Info "Free RAM before: $(Format-MB ($memBefore * 1KB))"
 
 # ── 3. Kill non-essential processes
 Write-H "KILLING BACKGROUND PROCESSES"
-$killedPaths    = @{}
-$killedCount    = 0
-$killedRamKB    = 0L
+$killedPaths = @{}
+$killedCount = 0
+$killedRamKB = 0L
 
 foreach ($procName in $KILL_LIST.Keys) {
     if ($PROTECTED -contains $procName) { continue }
@@ -348,7 +361,8 @@ foreach ($procName in $KILL_LIST.Keys) {
 
         if ($DryRun) {
             Write-Dry "Would kill: $($proc.Name) (PID $($proc.Id)) — $(Format-MB ($ramKB * 1KB))"
-        } else {
+        }
+        else {
             # Capture executable path before killing
             $exePath = try { $proc.MainModule.FileName } catch { '' }
             if ($exePath -and -not $killedPaths.ContainsKey($procName)) {
@@ -359,7 +373,8 @@ foreach ($procName in $KILL_LIST.Keys) {
                 $proc | Stop-Process -Force
                 Write-Ok "Killed: $friendly ($(Format-MB ($ramKB * 1KB)))"
                 $killedCount++
-            } catch {
+            }
+            catch {
                 Write-Warn "Could not kill $($proc.Name): $_"
             }
         }
@@ -377,13 +392,15 @@ if ($DryRun -and $killedCount -eq 0) {
 Write-H "POWER PLAN"
 if ($DryRun) {
     Write-Dry "Would switch to Ultimate/High Performance power plan"
-} else {
+}
+else {
     $planList = powercfg /list 2>&1
     $hasUltimate = $planList -match 'e9a42b02-d5df-448d-aa00-03f14749eb61'
     if ($hasUltimate) {
         cmd.exe /c 'powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61' | Out-Null
         Write-Ok "Ultimate Performance power plan activated"
-    } else {
+    }
+    else {
         cmd.exe /c 'powercfg /setactive scheme_min' | Out-Null
         Write-Ok "High Performance power plan activated"
     }
@@ -391,7 +408,7 @@ if ($DryRun) {
 
 Dism /Get-MountedWimInfo
 DISM /CleanUp-Wim
-rundll32.exe advapi32.dll,ProcessIdleTasks
+rundll32.exe advapi32.dll, ProcessIdleTasks
 
 # ── 5. Set game process priority (if game already running)
 $gameProc = Get-GameProcess
@@ -399,11 +416,13 @@ if ($gameProc) {
     Write-H "GAME PRIORITY"
     if ($DryRun) {
         Write-Dry "Would set $($gameProc.Name) priority to High"
-    } else {
+    }
+    else {
         try {
             $gameProc.PriorityClass = 'High'
             Write-Ok "Game process '$($gameProc.Name)' priority → High"
-        } catch {
+        }
+        catch {
             Write-Warn "Could not set game priority: $_"
         }
     }
@@ -413,16 +432,19 @@ if ($gameProc) {
 Write-H "MEMORY TRIM"
 if ($DryRun) {
     Write-Dry "Would trim working sets of all processes and purge standby list"
-} else {
+}
+else {
     Import-MemApi
     try {
         $trimmed = [ArcBoostMem]::TrimAll()
         Write-Ok "Working sets trimmed ($trimmed processes)"
-    } catch { Write-Warn "Working set trim skipped: $_" }
+    }
+    catch { Write-Warn "Working set trim skipped: $_" }
     try {
         [ArcBoostMem]::PurgeStandby()
         Write-Ok "Standby list purged"
-    } catch { Write-Warn "Standby purge skipped: $_" }
+    }
+    catch { Write-Warn "Standby purge skipped: $_" }
     Start-Sleep -Milliseconds 500
 
     $memAfter = (Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory
@@ -448,7 +470,8 @@ Write-Host ""
 if (-not $NoLaunch -and -not $DryRun) {
     if ($gameProc) {
         Write-Info "Game already running (PID $($gameProc.Id)) — skipping launch"
-    } else {
+    }
+    else {
         Write-Info "Launching Arc Raiders via Steam..."
         Start-Process "steam://rungameid/$STEAM_GAME_ID"
         Write-Ok "Launch command sent to Steam"
@@ -491,7 +514,8 @@ if (-not $DryRun -and $gameProc) {
                 break
             }
             Write-Info "Game process not found (miss $missCount/2) — waiting to confirm..."
-        } else {
+        }
+        else {
             $missCount = 0  # reset on rediscovery (e.g. Steam respawn)
         }
     }
@@ -499,14 +523,17 @@ if (-not $DryRun -and $gameProc) {
     # ── 10. Restore on exit
     if (-not $NoRestore) {
         Restore-All -originalPlan $originalPowerPlan -killedPaths $killedPaths
-    } else {
+    }
+    else {
         Write-Warn "-NoRestore flag set — skipping restore. Run with -NoRestore $false to undo manually."
         Clear-State
     }
-} elseif ($DryRun) {
+}
+elseif ($DryRun) {
     Write-Dry "Would monitor for game exit and restore on close"
     Write-Dry "Restore: power plan → $originalPowerPlan, restart $($KILL_LIST.Count) candidate processes"
-} else {
+}
+else {
     # Game not running and -NoLaunch, or launch failed
     if (-not $NoRestore) {
         Write-Warn "Game not detected — restoring settings now."

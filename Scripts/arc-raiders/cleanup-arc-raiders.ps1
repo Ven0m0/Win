@@ -10,12 +10,16 @@ $ProgressPreference = 'SilentlyContinue'
 
 . "$PSScriptRoot\ArcRaidersCommon.ps1"
 
-$script:totalSize  = 0
+$script:totalSize = 0
 $script:totalCount = 0
 
 function Invoke-GlobClean([string]$Pattern) {
     Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
 }
+
+# Skip main when dot-sourced (e.g. by Pester tests) — the cleanup below deletes
+# caches, runs DISM, and mutates registry/privileges on the live system.
+if ($MyInvocation.InvocationName -eq '.') { return }
 
 # ── Arc Raiders ───────────────────────────────────────────────────────────────
 Write-Host "`n[Arc Raiders]"
@@ -50,7 +54,8 @@ foreach ($reg in @('HKCU:\Software\Valve\Steam', 'HKLM:\Software\Wow6432Node\Val
     try {
         $p = (Get-ItemProperty $reg -ErrorAction Stop).SteamPath
         if ($p) { $steamPath = $p -replace '/', '\'; break }
-    } catch { Write-Verbose "Steam path lookup failed: $_" }
+    }
+    catch { Write-Verbose "Steam path lookup failed: $_" }
 }
 
 if ($steamPath) {
@@ -60,7 +65,8 @@ if ($steamPath) {
     Invoke-GlobClean "$steamPath\steamapps\shadercache\*"
     Invoke-GlobClean "$env:LOCALAPPDATA\Steam\htmlcache\*"
     Write-Host "  Steam path: $steamPath"
-} else {
+}
+else {
     Write-Host "  Steam path not found — skipped."
 }
 
@@ -93,9 +99,9 @@ DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase 2>&1 |
 # ── DirectX / Adapter cache rebuild ───────────────────────────────────────────
 Write-Host "`n[DirectX] Rebuilding caches..."
 foreach ($exe in @(
-    'C:\Windows\System32\directxdatabaseupdater.exe',
-    'C:\Windows\System32\dxgiadaptercache.exe'
-)) {
+        'C:\Windows\System32\directxdatabaseupdater.exe',
+        'C:\Windows\System32\dxgiadaptercache.exe'
+    )) {
     if (Test-Path $exe) {
         Start-Process $exe -WindowStyle Hidden
         Write-Host "  Started: $(Split-Path $exe -Leaf)"
@@ -140,10 +146,10 @@ public class MemUtil {
 }
 "@ -ErrorAction SilentlyContinue
 
-try { [MemUtil]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
+try { [MemUtil]::TrimAll(); Write-Host "  Working sets trimmed." } catch { Write-Host "  WS trim skipped: $_" }
+try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged." } catch { Write-Host "  Standby purge skipped: $_" }
 
-rundll32.exe advapi32.dll,ProcessIdleTasks
+rundll32.exe advapi32.dll, ProcessIdleTasks
 Write-Host "  Idle tasks queued."
 
 [System.GC]::Collect()
@@ -157,28 +163,31 @@ Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | For
     $dl = $_.DriveLetter
     $med = try {
         $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-            Get-Disk -ErrorAction SilentlyContinue).UniqueId
-        if ($diskId) {
-            ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
-        } else {
-            'Unspecified'
+                Get-Disk -ErrorAction SilentlyContinue).UniqueId
+            if ($diskId) {
+                ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
+            }
+            else {
+                'Unspecified'
+            }
         }
-    } catch { 'Unspecified' }
+        catch { 'Unspecified' }
 
-    Write-Host "  ${dl}: ($($_.FileSystem), $med)"
-    if ($med -ne 'HDD') {
-        Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
-        Write-Host "    ReTrim issued."
-    } else {
-        Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
-        Write-Host "    Defrag issued."
+        Write-Host "  ${dl}: ($($_.FileSystem), $med)"
+        if ($med -ne 'HDD') {
+            Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+            Write-Host "    ReTrim issued."
+        }
+        else {
+            Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
+            Write-Host "    Defrag issued."
+        }
     }
-}
 
-# ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
-Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."
+    # ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
+    Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."
 
-Add-Type @"
+    Add-Type @"
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -223,24 +232,24 @@ public class LsaUtil {
 }
 "@ -ErrorAction SilentlyContinue
 
-$currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-$result = [LsaUtil]::Grant($currentUser)
-Write-Host "  $currentUser -> SeLockMemoryPrivilege: $result"
-if ($result -eq 'OK') {
-    Write-Host "  NOTE: Log off and back on (or reboot) for the privilege to take effect."
-}
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    $result = [LsaUtil]::Grant($currentUser)
+    Write-Host "  $currentUser -> SeLockMemoryPrivilege: $result"
+    if ($result -eq 'OK') {
+        Write-Host "  NOTE: Log off and back on (or reboot) for the privilege to take effect."
+    }
 
-# ── PioneerGame IFEO / Priority Registry ─────────────────────────────────────
-Write-Host "`n[Registry] Applying PioneerGame IFEO settings..."
-$ifeo = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe'
-$perf = "$ifeo\PerfOptions"
+    # ── PioneerGame IFEO / Priority Registry ─────────────────────────────────────
+    Write-Host "`n[Registry] Applying PioneerGame IFEO settings..."
+    $ifeo = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe'
+    $perf = "$ifeo\PerfOptions"
 
-New-Item -Path $perf -Force | Out-Null
-Set-ItemProperty -Path $ifeo -Name 'UseLargePages'    -Value 1   -Type DWord
-Write-Host "  UseLargePages=1"
+    New-Item -Path $perf -Force | Out-Null
+    Set-ItemProperty -Path $ifeo -Name 'UseLargePages'    -Value 1   -Type DWord
+    Write-Host "  UseLargePages=1"
 
-# ── Summary ───────────────────────────────────────────────────────────────────
-$mb = [math]::Round($totalSize / 1MB, 2)
-Write-Host "`n══════════════════════════════════════"
-Write-Host " Done. $totalCount item(s) deleted, ${mb} MB freed."
-Write-Host "══════════════════════════════════════"
+    # ── Summary ───────────────────────────────────────────────────────────────────
+    $mb = [math]::Round($totalSize / 1MB, 2)
+    Write-Host "`n══════════════════════════════════════"
+    Write-Host " Done. $totalCount item(s) deleted, ${mb} MB freed."
+    Write-Host "══════════════════════════════════════"

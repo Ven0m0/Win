@@ -3,7 +3,7 @@
 # This script enables global timer resolution and sets up a scheduled task to persist the timer resolution on logon
 
 $ErrorActionPreference = 'Stop'
-$ProgressPreference    = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
 
 # Import shared helpers
 . "$PSScriptRoot\Common.ps1"
@@ -11,7 +11,7 @@ $ProgressPreference    = 'SilentlyContinue'
 # Configuration
 $ExePath = "$env:SystemDrive\SetTimerResolution.exe"
 $DownloadUrl = "https://github.com/valleyofdoom/TimerResolution/releases/download/" + `
-  "SetTimerResolution-v1.0.0/SetTimerResolution.exe"
+    "SetTimerResolution-v1.0.0/SetTimerResolution.exe"
 $TaskName = "SetTimerResolution-AutoStart"
 $Resolution = 5040  # fallback default (0.504ms); overridden by Select-OptimalResolution at runtime
 $ResolutionMinHns = 5000  # 0.5ms in 100ns units
@@ -94,7 +94,7 @@ function Select-OptimalResolution {
     param(
         [uint32]$MinHns = $ResolutionMinHns,
         [uint32]$MaxHns = $ResolutionMaxHns,
-        [uint32]$Step   = 20  # 0.002ms granularity
+        [uint32]$Step = 20  # 0.002ms granularity
     )
     $count = [Math]::Floor(($MaxHns - $MinHns) / $Step) + 1
     Write-StatusMessage "Measuring $count resolution values ($($MinHns/10000.0)ms - $($MaxHns/10000.0)ms, step 0.002ms)..." "Info"
@@ -104,14 +104,14 @@ function Select-OptimalResolution {
     while ($value -le $MaxHns) {
         $r = Measure-TimerResolutionAccuracy -Resolution $value
         Write-StatusMessage ("  {0,6} ({1}ms)  mean={2}ms  stddev={3}ms  score={4}" -f `
-            $r.Resolution, $r.ResolutionMs, $r.MeanMs, $r.StdDevMs, $r.Score) "Info"
+                $r.Resolution, $r.ResolutionMs, $r.MeanMs, $r.StdDevMs, $r.Score) "Info"
         $results.Add($r)
         $value += $Step
     }
 
     $best = $results | Sort-Object Score | Select-Object -First 1
     Write-StatusMessage ("Optimal resolution: {0} ({1}ms)  mean={2}ms  stddev={3}ms" -f `
-        $best.Resolution, $best.ResolutionMs, $best.MeanMs, $best.StdDevMs) "Success"
+            $best.Resolution, $best.ResolutionMs, $best.MeanMs, $best.StdDevMs) "Success"
     return [uint32]$best.Resolution
 }
 
@@ -129,10 +129,12 @@ function Get-TimerResolutionExe {
         if (Test-Path $ExePath) {
             Write-StatusMessage "SetTimerResolution.exe downloaded successfully to $ExePath" "Success"
             return $true
-        } else {
+        }
+        else {
             throw "Download completed but file not found"
         }
-    } catch {
+    }
+    catch {
         Write-StatusMessage "Failed to download SetTimerResolution.exe: $($_.Exception.Message)" "Error"
         return $false
     }
@@ -160,19 +162,20 @@ function Set-TimerResolutionTask {
 
     try {
         $action = New-ScheduledTaskAction -Execute $ExePath -Argument "--resolution $Resolution --no-console"
-        $trigger = New-ScheduledTaskTrigger -AtLogon
+        $trigger = New-ScheduledTaskTrigger -AtLogOn
         $settings = New-ScheduledTaskSettingsSet `
-          -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+            -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
         $null = Register-ScheduledTask -TaskName $TaskName -Action $action `
-          -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop
+            -Trigger $trigger -Settings $settings -Principal $principal -Force -ErrorAction Stop
 
         Write-StatusMessage "Scheduled task '$TaskName' created successfully" "Success"
         Write-StatusMessage "Task will run at: At Logon" "Info"
         Write-StatusMessage ("Timer resolution: {0}ms ({1} * 100ns)" -f ($Resolution / 10000.0), $Resolution) "Info"
         Write-StatusMessage "Executable path: $ExePath" "Info"
         return $true
-    } catch {
+    }
+    catch {
         Write-StatusMessage "Failed to create scheduled task: $($_.Exception.Message)" "Error"
         return $false
     }
@@ -197,7 +200,8 @@ function Start-TimerResolutionNow {
             Write-StatusMessage "Task started via Task Scheduler (State: Running)" "Success"
             return $true
         }
-    } catch {
+    }
+    catch {
         Write-StatusMessage "Could not start via Task Scheduler, trying direct execution..." "Warning"
     }
 
@@ -208,10 +212,11 @@ function Start-TimerResolutionNow {
             return $true
         }
         $process = Start-Process -FilePath $ExePath `
-          -ArgumentList "--resolution $Resolution --no-console" -WindowStyle Hidden -PassThru
+            -ArgumentList "--resolution $Resolution --no-console" -WindowStyle Hidden -PassThru
         Write-StatusMessage "SetTimerResolution started directly (PID: $($process.Id))" "Success"
         return $true
-    } catch {
+    }
+    catch {
         Write-StatusMessage "Failed to start SetTimerResolution: $($_.Exception.Message)" "Error"
         return $false
     }
@@ -223,37 +228,45 @@ function Get-TimerResolutionStatus {
 
     try {
         $globalEnabled = (Get-ItemProperty `
-          -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
-          -Name "GlobalTimerResolutionRequests" `
-          -ErrorAction SilentlyContinue).GlobalTimerResolutionRequests
+                -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
+                -Name "GlobalTimerResolutionRequests" `
+                -ErrorAction SilentlyContinue).GlobalTimerResolutionRequests
         if ($globalEnabled -eq 1) {
             Write-StatusMessage "Global Timer Resolution: ENABLED" "Success"
-        } else {
+        }
+        else {
             Write-StatusMessage "Global Timer Resolution: Not set or disabled" "Warning"
         }
-    } catch {
+    }
+    catch {
         Write-StatusMessage "Global Timer Resolution: Unable to check registry" "Warning"
     }
 
     $runningProcess = Get-Process -Name "SetTimerResolution" -ErrorAction SilentlyContinue
     if ($runningProcess) {
         Write-StatusMessage "SetTimerResolution process: RUNNING (PID: $($runningProcess.Id))" "Success"
-    } else {
+    }
+    else {
         Write-StatusMessage "SetTimerResolution process: Not running" "Warning"
     }
 
     $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if ($task) {
         Write-StatusMessage "Scheduled task: EXISTS (State: $($task.State))" "Success"
-    } else {
+    }
+    else {
         Write-StatusMessage "Scheduled task: NOT FOUND" "Warning"
     }
 }
 
 # ==================== MAIN EXECUTION ====================
 
+# Skip main when dot-sourced (e.g. by Pester tests) — the steps below write
+# registry, register a scheduled task, and 'exit 1' would kill the host process.
+if ($MyInvocation.InvocationName -eq '.') { return }
+
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-  [Security.Principal.WindowsBuiltInRole]::Administrator)
+    [Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdmin) {
     Write-StatusMessage "This script requires Administrator privileges. Please run as administrator." "Error"
     exit 1
@@ -266,7 +279,8 @@ Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 1: Selecting optimal timer resolution (0.5ms - 0.598ms, 0.002ms steps)..." "Info"
 try {
     $Resolution = Select-OptimalResolution
-} catch {
+}
+catch {
     Write-StatusMessage "Resolution measurement failed: $($_.Exception.Message). Using default $Resolution." "Warning"
 }
 Write-StatusMessage "" "Info"
@@ -275,10 +289,11 @@ Write-StatusMessage "" "Info"
 Write-StatusMessage "Step 2: Configuring registry for global timer resolution..." "Info"
 try {
     Set-ItemProperty `
-      -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
-      -Name "GlobalTimerResolutionRequests" -Value 1 -Type DWord -Force -ErrorAction Stop
+        -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
+        -Name "GlobalTimerResolutionRequests" -Value 1 -Type DWord -Force -ErrorAction Stop
     Write-StatusMessage "Registry configured (GlobalTimerResolutionRequests = 1)" "Success"
-} catch {
+}
+catch {
     Write-StatusMessage "Failed to configure registry: $($_.Exception.Message)" "Error"
 }
 

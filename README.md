@@ -180,18 +180,16 @@ If automatic bootstrap fails, configure manually:
 ├── user/.dotfiles/config/
 │   ├── powershell/profile.ps1    # PowerShell profile
 │   ├── windows-terminal/settings.json
-│   ├── firefox/user.js
-│   ├── brave/brave_debloater.reg
+│   ├── browser/firefox/user.js
 │   ├── cmd/alias.cmd
 │   ├── bleachbit/cleaners/
-│   ├── games/(bf2, bo6, bo7)/   # Game-specific configs
+│   ├── games/(arc-raiders, bf2, bo6, fortnite, minecraft)/
 │   ├── nvidia/                   # NVIDIA assets
 │   ├── scoop/                    # Scoop bucket configs
 │   └── winget-configs/
 ├── install.conf.yaml             # dotbot configuration entry point
+├── bootstrap.ps1                 # One-command internet bootstrap
 ├── .github/
-│   ├── scripts/
-│   │   └── bootstrap.ps1         # One-command internet bootstrap
 │   ├── instructions/
 │   │   ├── windows-11-setup.instructions.md
 │   │   ├── powershell.instructions.md

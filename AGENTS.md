@@ -24,7 +24,7 @@
 **Bootstrap layers:**
 1. **Internet** (`bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
 2. **Repo** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — winget packages, hash-based config deployment, PATH setup
-3. **Unattended USB** (`Scripts/auto/autounattend.xml`) — fully self-contained; no companion flat files
+3. **Unattended USB** (`Scripts/auto/autounattend-windows10.xml`) — fully self-contained; no companion flat files
 
 Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 
@@ -36,7 +36,6 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `Scripts/Common.ps1` | Shared helper library — always import, never duplicate |
 | `Scripts/arc-raiders/` | Arc Raiders game-specific scripts |
 | `Scripts/reg/` | Registry `.reg` files and priority tweaks |
-| `Scripts/auto/autounattend.xml` | Unattended Windows 11 USB installer |
 | `Scripts/auto/autounattend-windows10.xml` | Unattended Windows 10 USB installer |
 | `tests/` | Pester test files (`*.Tests.ps1`) |
 | `setup.Tests.ps1` | Root-level Pester tests |
@@ -67,7 +66,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Windows compatibility** → preserve PowerShell 5.1+/7+ support; use `$PSScriptRoot`, `$HOME`, `$env:*`
 - **Reversible changes** → prefer `-Restore` / `-Undo` parameters for system modifications
 - **New script names** → lowercase-with-dashes (e.g., `debloat-windows.ps1`); legacy PascalCase remains as-is
-- **Guidance splits**: `AGENTS.md` canonical; `.kilo/rules/` narrow constraints; `.kilo/skills/` workflows; `.kilo/agents/` agent identity; `.kilo/commands/` documented workflows
+- **Guidance splits**: `AGENTS.md` canonical; `.kilo/rules/` + `.claude/rules/` narrow constraints; `.claude/skills/` workflows; `.kilo/agents/` agent identity; `.kilo/commands/` documented workflows
 
 ## PowerShell Standards
 
@@ -95,7 +94,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/`, `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `windows-terminal/`, `cmd/`, `firefox/`, `brave/`, `bleachbit/`, `DDU/`, `mise/`, `msi-afterburner/`, `nvidia-inspector/`, `scoop/`, `winget-configs/`, `cursors/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `nvidia-inspector/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`
 
 ## Cochange Rules
 
@@ -112,7 +111,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `install.conf.yaml` | Path resolution, hash logic integrity | `README.md` consistency |
 | `Scripts/Setup-Dotfiles.ps1` | ScriptAnalyzer + manifest review | Config paths verification |
 | `user/.dotfiles/config/*` | Format preservation (no cosmetic re-serialization) | Manifest correctness |
-| `Scripts/auto/autounattend.xml` | `$xml = [xml]::new(); $xml.Load(path)` | `ExtractScript` entity encoding |
+| `Scripts/auto/autounattend-windows10.xml` | `$xml = [xml]::new(); $xml.Load(path)` | `ExtractScript` entity encoding |
 | `.kilo/` config changes | JSON/YAML syntax; correct paths | `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes` |
 | `.github/workflows/*` | YAML syntax, tool availability | — |
 
@@ -140,21 +139,19 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `documentation-writer` | Markdown docs, README, AGENTS.md maintenance | New commands/agents, README sync after features |
 | `explore-codebase` | Read-only exploration, symbol location | Finding where a function lives, mapping dependencies |
 
-Load relevant skills first: `win-patterns`, `validation`, `agent-delegation`.
+Load relevant skills first: `win-patterns`, `validation`.
 
 ## Skills & Rules
 
-**Skills** (`.kilo/skills/` = `.claude/skills/` shared):
-`win-patterns`, `bootstrap-deployment`, `validation`, `agent-delegation`, `code-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `mcp-server-management`, `opencode-migration`, `test-relocation`
-
-**Claude Code extras** (`.claude/skills/` only):
-`new-ps-script`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `session-complete`, `todo-scan`
+**Skills** (`.claude/skills/`):
+`win-patterns`, `validation`, `code-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `new-ps-script`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `session-complete`, `todo-scan`
 
 **Rules** (`.kilo/rules/`):
-`powershell.md`, `bootstrap-deployment.md`, `registry-security.md`, `windows-os.md`, `shell-strategy.md`, `agent-orchestration.md`, `morph-tools.md`
+`powershell.md`, `registry-security.md`, `windows-os.md`, `shell-strategy.md`, `morph-tools.md`
+(`.claude/rules/`: `bootstrap-deployment.md`, `powershell.md`, `registry-security.md`, `windows-os.md`)
 
 **Commands** (`.kilo/commands/`):
-`Audit-Security`, `Backup-CurrentConfigs`, `Debloat-Windows`, `Deploy-Configs`, `Invoke-ScriptAnalyzer`, `Lint-Guidance`, `Migrate-Config`, `New-RestorePointSafe`, `Optimize-Gaming`, `Optimize-Repository`, `Review-Code`, `Set-ExecutionPolicySafe`, `Setup-Win11`, `Sync-Configs`, `Test-Environment`, `Update-WingetPackages`, `Validate-Changes`
+`Backup-CurrentConfigs`, `Invoke-ScriptAnalyzer`, `Optimize-Repository`, `Sync-Configs`, `Test-Environment`, `Validate-Changes`
 
 ## Git & Commits
 

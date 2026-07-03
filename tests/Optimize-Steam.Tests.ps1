@@ -97,6 +97,9 @@ Describe "Optimize-Steam.ps1" {
                 [PSCustomObject]@{ InstallPath = 'C:\FakeSteam' }
             } -ParameterFilter { $Path -like '*Wow6432Node*' }
             . "$PSScriptRoot/../Scripts/Optimize-Steam.ps1" -WhatIf
+            # Mock after dot-source: Write-ColorOutput comes from Common.ps1 and
+            # must exist to be mockable; Write-Host mocks don't catch it
+            Mock Write-ColorOutput { }
         }
 
         It "Does not call Remove-Item when WhatIfPreference is set" {
@@ -125,6 +128,7 @@ Describe "Optimize-Steam.ps1" {
             # Steam.exe check must pass to get past the top-level guard on dot-source
             Mock Test-Path { $Path -like '*Steam.exe' }
             . "$PSScriptRoot/../Scripts/Optimize-Steam.ps1" -WhatIf
+            Mock Write-ColorOutput { }
         }
 
         It "Reports DLL not found when neither backup nor DLL exists" {

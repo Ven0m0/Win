@@ -26,7 +26,7 @@
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'BleachBit cleaners' -SkipWingetTools -SkipWSL
       description: "BleachBit cleaners → %APPDATA%\\BleachBit\\cleaners\\"
     # ── Firefox user.js ─────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/firefox/user.js
+    # Source:  user/.dotfiles/config/browser/firefox/user.js
     # Target:  %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Firefox user.js' -SkipWingetTools -SkipWSL
       description: "Firefox user.js → %APPDATA%\\Mozilla\\Firefox\\<default-release-profile>\\user.js"

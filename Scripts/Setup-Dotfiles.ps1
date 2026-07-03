@@ -351,6 +351,7 @@ function Invoke-ConfigManifestEntry {
 
     $sourcePath = Join-Path $configRoot $Entry.Path
     if (-not (Test-Path $sourcePath)) {
+        Write-Warning "  [SKIP] $($Entry.Label) - source not found: $sourcePath"
         return
     }
 
@@ -554,7 +555,7 @@ function Start-Bootstrap {
             ResolveDestination = { "$env:APPDATA\BleachBit\cleaners" }
         },
         @{
-            Path               = 'firefox\user.js'
+            Path               = 'browser\firefox\user.js'
             Mode               = 'file'
             Label              = 'Firefox user.js'
             ResolveDestination = { $profilePath = Get-FirefoxDefaultProfilePath

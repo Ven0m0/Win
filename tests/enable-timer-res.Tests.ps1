@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 
 BeforeDiscovery {
     # Must live here so -Skip: expressions can evaluate it during discovery.
@@ -9,13 +9,29 @@ BeforeDiscovery {
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
+
+    # Dot-source once: the script's dot-source guard skips MAIN EXECUTION,
+    # so only functions (and Common.ps1 helpers) are defined.
+    . "$PSScriptRoot/../Scripts/enable-timer-res.ps1"
+
+    # ScheduledTasks cmdlets are CDXML and cannot be Pester-mocked (their
+    # generated proxies reference dynamic types that fail to parse).
+    # Shadow them with plain functions, which Mock can then replace.
+    function Get-ScheduledTask { $null }
+    function Register-ScheduledTask { }
+    function Unregister-ScheduledTask { }
+    function Start-ScheduledTask { }
+    function New-ScheduledTaskAction { [PSCustomObject]@{} }
+    function New-ScheduledTaskTrigger { [PSCustomObject]@{} }
+    function New-ScheduledTaskSettingsSet { [PSCustomObject]@{} }
+    function New-ScheduledTaskPrincipal { [PSCustomObject]@{} }
 }
 
 Describe "enable-timer-res.ps1" {
     BeforeAll {
-        # Stub Common.ps1 helpers so dot-source does not trigger downloads
-        function Get-FileFromWeb { param([string]$URL, [string]$File) }
-        # Mocks for all system-mutating operations
+        # Mocks for all system-mutating operations. Write-StatusMessage emits
+        # through Common.ps1's Write-ColorOutput, so assertions target that,
+        # not Write-Host (a Write-Host mock never sees those calls).
         Mock Set-ItemProperty { }
         Mock Get-ScheduledTask { $null }
         Mock Register-ScheduledTask { }
@@ -24,41 +40,33 @@ Describe "enable-timer-res.ps1" {
         Mock Start-Process { [PSCustomObject]@{ Id = 9999 } }
         Mock Get-Process { $null }
         Mock Write-Host { }
-        # Prevent the main execution block from running fully
-        Mock Select-OptimalResolution { [uint32]5040 }
+        Mock Write-ColorOutput { }
+        Mock Get-FileFromWeb { }
     }
 
     Context "Write-StatusMessage" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
-        It "Calls Write-Host with the message text" {
+        It "Calls Write-ColorOutput with the message text" {
             Write-StatusMessage "test message" "Info"
-            Should -Invoke Write-Host -ParameterFilter { $Object -match 'test message' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match 'test message' } -Scope It
         }
 
         It "Formats Info status with [INFO] prefix" {
             Write-StatusMessage "info test" "Info"
-            Should -Invoke Write-Host -ParameterFilter { $Object -match '\[INFO\]' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match '\[INFO\]' } -Scope It
         }
 
         It "Formats Success status with [OK] prefix" {
             Write-StatusMessage "ok test" "Success"
-            Should -Invoke Write-Host -ParameterFilter { $Object -match '\[OK\]' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match '\[OK\]' } -Scope It
         }
 
         It "Formats Error status with [ERROR] prefix" {
             Write-StatusMessage "error test" "Error"
-            Should -Invoke Write-Host -ParameterFilter { $Object -match '\[ERROR\]' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match '\[ERROR\]' } -Scope It
         }
     }
 
     Context "Get-TimerResolutionExe — file already present" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
         It "Returns true and skips download when exe exists" {
             Mock Test-Path { $true } -ParameterFilter { $Path -like '*SetTimerResolution.exe' }
             $result = Get-TimerResolutionExe
@@ -68,10 +76,6 @@ Describe "enable-timer-res.ps1" {
     }
 
     Context "Get-TimerResolutionExe — file missing" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
         It "Calls Get-FileFromWeb when exe is not present" {
             Mock Test-Path { $false } -ParameterFilter { $Path -like '*SetTimerResolution.exe' }
             Mock Get-FileFromWeb {
@@ -92,16 +96,8 @@ Describe "enable-timer-res.ps1" {
     }
 
     Context "Set-TimerResolutionTask — task does not exist" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
         It "Registers the scheduled task when it is absent" {
             Mock Get-ScheduledTask { $null }
-            Mock New-ScheduledTaskAction { [PSCustomObject]@{} }
-            Mock New-ScheduledTaskTrigger { [PSCustomObject]@{} }
-            Mock New-ScheduledTaskSettingsSet { [PSCustomObject]@{} }
-            Mock New-ScheduledTaskPrincipal { [PSCustomObject]@{} }
             Mock Register-ScheduledTask { [PSCustomObject]@{ TaskName = 'SetTimerResolution-AutoStart' } }
             $result = Set-TimerResolutionTask
             $result | Should -BeTrue
@@ -110,10 +106,6 @@ Describe "enable-timer-res.ps1" {
     }
 
     Context "Set-TimerResolutionTask — task already exists, no -Force" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
         It "Skips re-registration when task exists and -Force is not set" {
             Mock Get-ScheduledTask { [PSCustomObject]@{ TaskName = 'SetTimerResolution-AutoStart' } }
             $result = Set-TimerResolutionTask
@@ -123,16 +115,12 @@ Describe "enable-timer-res.ps1" {
     }
 
     Context "Get-TimerResolutionStatus" -Skip:(-not $IsAdmin) {
-        BeforeAll {
-            . "$PSScriptRoot/../Scripts/enable-timer-res.ps1" -ErrorAction SilentlyContinue
-        }
-
         It "Reports scheduled task state when task exists" {
             Mock Get-ScheduledTask { [PSCustomObject]@{ TaskName = 'SetTimerResolution-AutoStart'; State = 'Ready' } }
             Mock Get-Process { $null }
             Mock Get-ItemProperty { $null }
             Get-TimerResolutionStatus
-            Should -Invoke Write-Host -ParameterFilter { $Object -match 'EXISTS' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match 'EXISTS' } -Scope It
         }
 
         It "Reports task not found when task is absent" {
@@ -140,7 +128,7 @@ Describe "enable-timer-res.ps1" {
             Mock Get-Process { $null }
             Mock Get-ItemProperty { $null }
             Get-TimerResolutionStatus
-            Should -Invoke Write-Host -ParameterFilter { $Object -match 'NOT FOUND' } -Scope It
+            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match 'NOT FOUND' } -Scope It
         }
     }
 }
