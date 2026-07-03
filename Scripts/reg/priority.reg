@@ -10,7 +10,6 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\cod24-cod.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
-"IoPriority"=dword:00000003
 
 [HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences]
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame-e.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
@@ -45,15 +44,12 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
-"IoPriority"=dword:00000003
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-d.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
-"IoPriority"=dword:00000003
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame-e.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
-"IoPriority"=dword:00000003
 
 ; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
