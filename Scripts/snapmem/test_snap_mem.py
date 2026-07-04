@@ -103,7 +103,12 @@ class TestSnapMem(unittest.TestCase):
 
             capture_epoch = 1672574400.0  # 2023-01-01 12:00:00 UTC
             extracted = snap_mem.extract_zip_atomically(
-                zip_path, "2023-01-01_12-00-00", out_dir, set(), threading.Lock(), capture_epoch
+                zip_path,
+                "2023-01-01_12-00-00",
+                out_dir,
+                set(),
+                threading.Lock(),
+                capture_epoch,
             )
 
             self.assertEqual(len(extracted), 1)

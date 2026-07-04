@@ -46,7 +46,9 @@ DATE_FMT: str = "%Y-%m-%d %H:%M:%S UTC"
 JSON_NAME_RE: re.Pattern[str] = re.compile(r"memories_history\.json$", re.I)
 CHUNK_SIZE: int = 1048576
 MACOS_JUNK_RE: re.Pattern[str] = re.compile(r"^\._")
-LOCATION_RE: re.Pattern[str] = re.compile(r"Latitude,\s*Longitude:\s*([-\d.]+),\s*([-\d.]+)")
+LOCATION_RE: re.Pattern[str] = re.compile(
+    r"Latitude,\s*Longitude:\s*([-\d.]+),\s*([-\d.]+)"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,8 +70,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         prog="snap-mem.py",
         description="Download Snapchat Saved Media from memories_history.json.",
     )
-    p.add_argument("--json", dest="json_path", default="", help="Path to memories_history.json")
-    p.add_argument("--out", dest="out_dir", default="", help="Output directory for downloads")
+    p.add_argument(
+        "--json", dest="json_path", default="", help="Path to memories_history.json"
+    )
+    p.add_argument(
+        "--out", dest="out_dir", default="", help="Output directory for downloads"
+    )
     p.add_argument(
         "--type",
         dest="media_type",
@@ -77,21 +83,32 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         choices=["all", "video", "image"],
         help="Filter media type",
     )
-    p.add_argument("--dry-run", action="store_true", help="List what would be downloaded")
     p.add_argument(
-        "--skip-existing", action="store_true", help="Skip if target file already exists"
+        "--dry-run", action="store_true", help="List what would be downloaded"
+    )
+    p.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="Skip if target file already exists",
     )
     p.add_argument("--timeout", type=float, default=30.0, help="HTTP timeout seconds")
     p.add_argument("--retries", type=int, default=3, help="Retries per file")
-    p.add_argument("--retry-backoff", type=float, default=1.0, help="Base backoff seconds")
+    p.add_argument(
+        "--retry-backoff", type=float, default=1.0, help="Base backoff seconds"
+    )
     p.add_argument(
         "--user-agent",
         default="Mozilla/5.0 (SnapchatMemoryDownloader; +stdlib)",
         help="User-Agent header",
     )
-    p.add_argument("--no-tui", action="store_true", help="Disable TUI prompts; require flags")
     p.add_argument(
-        "--workers", type=int, default=4, help="Number of parallel download workers (default: 4)"
+        "--no-tui", action="store_true", help="Disable TUI prompts; require flags"
+    )
+    p.add_argument(
+        "--workers",
+        type=int,
+        default=4,
+        help="Number of parallel download workers (default: 4)",
     )
     p.add_argument(
         "--exif",
@@ -152,10 +169,14 @@ def build_base_name(date_str: str) -> str:
 
 
 def parse_capture_epoch(date_str: str) -> float:
-    return datetime.strptime(date_str, DATE_FMT).replace(tzinfo=timezone.utc).timestamp()
+    return (
+        datetime.strptime(date_str, DATE_FMT).replace(tzinfo=timezone.utc).timestamp()
+    )
 
 
-def make_unique_name(base: str, suffix: str, existing: set[str], lock: threading.Lock) -> str:
+def make_unique_name(
+    base: str, suffix: str, existing: set[str], lock: threading.Lock
+) -> str:
     with lock:
         name = f"{base}{suffix}"
         n = 1
@@ -166,7 +187,9 @@ def make_unique_name(base: str, suffix: str, existing: set[str], lock: threading
         return name
 
 
-def format_progress_line(idx: int, total: int, base: str, date_str: str, is_video: bool) -> str:
+def format_progress_line(
+    idx: int, total: int, base: str, date_str: str, is_video: bool
+) -> str:
     label = "VIDEO" if is_video else "PHOTO"
     time_str = date_str.split(" ", 1)[1] if " " in date_str else date_str
     return f"[{idx}/{total}] {label} {base} ({time_str})"
@@ -200,7 +223,9 @@ def tui_select_path(*, title: str, start: Path, mode: str) -> Path:
             stdscr.erase()
             h, w = stdscr.getmaxyx()
             stdscr.addnstr(0, 0, f"{title} [{mode}] cwd: {cwd}", w - 1)
-            stdscr.addnstr(1, 0, "↑↓/jk: move Enter: select Backspace: up q: quit", w - 1)
+            stdscr.addnstr(
+                1, 0, "↑↓/jk: move Enter: select Backspace: up q: quit", w - 1
+            )
             row0, max_rows = 3, max(1, h - 4)
             top = max(0, idx - max_rows + 1)
             for i in range(top, min(len(shown), top + max_rows)):
@@ -260,7 +285,11 @@ def download_with_retries(
     for attempt in range(retries + 1):
         try:
             download_to_path(
-                opener=opener, url=url, dest=dest, timeout=timeout, user_agent=user_agent
+                opener=opener,
+                url=url,
+                dest=dest,
+                timeout=timeout,
+                user_agent=user_agent,
             )
             return
         except (HTTPError, URLError, TimeoutError, OSError) as e:
@@ -325,7 +354,10 @@ def _decimal_to_dms(decimal: float) -> tuple[float, float, float]:
 
 
 def write_exif_geotag(
-    jpg_path: Path, capture_dt: datetime, latitude: float | None, longitude: float | None
+    jpg_path: Path,
+    capture_dt: datetime,
+    latitude: float | None,
+    longitude: float | None,
 ) -> None:
     import exif
 
@@ -354,7 +386,9 @@ def main(argv: list[str]) -> int:
             title="Select memories_history.json", start=Path.cwd(), mode="file"
         )
     if out_dir is None and not ns.no_tui:
-        out_dir = tui_select_path(title="Select output directory", start=Path.cwd(), mode="dir")
+        out_dir = tui_select_path(
+            title="Select output directory", start=Path.cwd(), mode="dir"
+        )
     if json_path is None:
         die("Missing --json (or omit --no-tui for TUI).")
     if out_dir is None:
@@ -369,7 +403,8 @@ def main(argv: list[str]) -> int:
         return 0
     existing = {p.name for p in out_dir.iterdir() if p.is_file()}
     existing_prefixes = {
-        name.rsplit("_", 1)[0] if "_" in name else name.rsplit(".", 1)[0] for name in existing
+        name.rsplit("_", 1)[0] if "_" in name else name.rsplit(".", 1)[0]
+        for name in existing
     }
     lock = threading.Lock()
     opener = build_opener()
@@ -427,7 +462,9 @@ def main(argv: list[str]) -> int:
                     capture_dt = datetime.fromtimestamp(capture_epoch, tz=timezone.utc)
                     for name in extracted:
                         if name.endswith(".jpg"):
-                            write_exif_geotag(out_dir / name, capture_dt, it.latitude, it.longitude)
+                            write_exif_geotag(
+                                out_dir / name, capture_dt, it.latitude, it.longitude
+                            )
                 for name in extracted:
                     print(f"✓ {name}")
             else:
