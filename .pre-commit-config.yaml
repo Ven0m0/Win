@@ -78,6 +78,3 @@ repos:
           - "PSAvoidGlobalAliases,PSAvoidUsingConvertToSecureStringWithPlainText,PSAvoidUsingEmptyCatchBlock,PSAvoidUsingInvokeExpression,PSAvoidUsingPositionalParameters,PSAvoidUsingUsernameAndPasswordParams,PSUseBOMForUnicodeEncodedFile,PSUseCorrectCasing,PSProvideCommentHelp,PSReservedCmdletChar,PSReservedParams,PSUseApprovedVerbs,PSUseCmdletCorrectly,PSUseConsistentIndentation,PSUseConsistentWhitespace,PSUseSingularNouns,PSUseSupportsShouldProcess,PSUseVerbosityForRequestedLevel"
         files: ^Scripts/.*\.(ps1|psm1|psd1)$
         stages: [pre-commit]
-      - id: py-psscriptanalyzer-format
-        files: ^Scripts/.*\.(ps1|psm1|psd1)$
-        stages: [pre-commit]

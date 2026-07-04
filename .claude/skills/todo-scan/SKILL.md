@@ -36,19 +36,19 @@ Check if the `gh` CLI is available and the repo has a GitHub remote:
 GH_REMOTE=$(git remote -v 2>/dev/null | grep -oP '(?<=github\.com[/:])[^/]+/[^\s.]+' | head -1)
 
 if command -v gh >/dev/null 2>&1 && [ -n "$GH_REMOTE" ]; then
- echo "=== Open issues with TODO in title ==="
- gh issue list --search "TODO in:title" --state open --limit 20 \
- --json number,title,labels,assignees,createdAt \
- --jq '.[] | "#\(.number) [\(.labels | map(.name) | join(", "))] \(.title)"' 2>/dev/null || \
- gh issue list --search "TODO in:title" --state open --limit 20 2>/dev/null
+echo "=== Open issues with TODO in title ==="
+gh issue list --search "TODO in:title" --state open --limit 20 \
+--json number,title,labels,assignees,createdAt \
+--jq '.[] | "#\(.number) [\(.labels | map(.name) | join(", "))] \(.title)"' 2>/dev/null || \
+gh issue list --search "TODO in:title" --state open --limit 20 2>/dev/null
 
- echo ""
- echo "=== Open issues with FIXME in title ==="
- gh issue list --search "FIXME in:title" --state open --limit 10 \
- --json number,title --jq '.[] | "#\(.number) \(.title)"' 2>/dev/null
+echo ""
+echo "=== Open issues with FIXME in title ==="
+gh issue list --search "FIXME in:title" --state open --limit 10 \
+--json number,title --jq '.[] | "#\(.number) \(.title)"' 2>/dev/null
 else
- echo "gh CLI not available or no GitHub remote detected. Skipping issue search."
- echo "Remote detected: ${GH_REMOTE:-none}"
+echo "gh CLI not available or no GitHub remote detected. Skipping issue search."
+echo "Remote detected: ${GH_REMOTE:-none}"
 fi
 
 ### Phase 3 - Predict Next Work Item
@@ -63,18 +63,18 @@ git status --short 2>/dev/null
 
 echo "=== Most-changed files (last 30 days) ==="
 git log --since="30 days ago" --name-only --format="" 2>/dev/null | \
- grep -v '^$' | sort | uniq -c | sort -rn | head -15
+grep -v '^$' | sort | uniq -c | sort -rn | head -15
 
 echo "=== Open PRs (if gh available) ==="
 command -v gh >/dev/null 2>&1 && \
- gh pr list --state open --limit 10 \
- --json number,title,isDraft \
- --jq '.[] | "#\(.number)\(if .isDraft then " [DRAFT]" else "" end) \(.title)"' 2>/dev/null || \
- echo "gh not available"
+gh pr list --state open --limit 10 \
+--json number,title,isDraft \
+--jq '.[] | "#\(.number)\(if .isDraft then " [DRAFT]" else "" end) \(.title)"' 2>/dev/null || \
+echo "gh not available"
 
 echo "=== Failed CI on recent commits (if gh available) ==="
- gh run list --limit 5 --json conclusion,name,headBranch \
- --jq '.[] | select(.conclusion == "failure") | "\(.name) on \(.headBranch)"' 2>/dev/null || \
+gh run list --limit 5 --json conclusion,name,headBranch \
+--jq '.[] | select(.conclusion == "failure") | "\(.name) on \(.headBranch)"' 2>/dev/null || \
 
 ### Synthesis
 
@@ -111,7 +111,7 @@ Output format:
 
 - [CRITICAL] src/foo/bar.py:42 - FIXME: null check missing before deref
 - [NORMAL] src/baz/qux.py:17 - TODO: add retry logic for API timeout
-...
+  ...
 
 #### GitHub Issues (N_FOUND found)
 

@@ -12,6 +12,7 @@ Scaffold a new PowerShell script with best-practice boilerplate and helper utili
 ## Purpose
 
 Generates a `.ps1` script template that:
+
 - Includes required headers (#Requires, Common.ps1 import)
 - Sets up admin elevation & console UI
 - Provides interactive menu structure
@@ -111,22 +112,23 @@ while ($true) {
 
 ## Template Customization Points
 
-| Section | Example | Use For |
-|---------|---------|---------|
-| `#Requires` | `-RunAsAdministrator` | Admin scripts only |
-| `.SYNOPSIS` | "One-line summary" | Help text |
-| `.DESCRIPTION` | Multi-line explanation | Detailed help |
+| Section                       | Example                       | Use For              |
+| ----------------------------- | ----------------------------- | -------------------- |
+| `#Requires`                   | `-RunAsAdministrator`         | Admin scripts only   |
+| `.SYNOPSIS`                   | "One-line summary"            | Help text            |
+| `.DESCRIPTION`                | Multi-line explanation        | Detailed help        |
 | `Initialize-ConsoleUI -Title` | "Script Name (Administrator)" | Console window title |
-| Function names | `Enable-Feature` | Verb-Noun pattern |
-| Registry paths | `HKLM\SOFTWARE\...` | System config |
-| Error handling | `try/catch`, `Set-StrictMode` | Production safety |
-| Menu options | `@("Option 1", "Option 2")` | Interactive UI |
+| Function names                | `Enable-Feature`              | Verb-Noun pattern    |
+| Registry paths                | `HKLM\SOFTWARE\...`           | System config        |
+| Error handling                | `try/catch`, `Set-StrictMode` | Production safety    |
+| Menu options                  | `@("Option 1", "Option 2")`   | Interactive UI       |
 
 ---
 
 ## Common Script Types
 
 ### Registry Tweak Script
+
 ```powershell
 function Set-NvidiaOptimization {
   $gpuPaths = Get-NvidiaGpuRegistryPaths
@@ -137,6 +139,7 @@ function Set-NvidiaOptimization {
 ```
 
 ### Download & Execute Script
+
 ```powershell
 function Install-Tool {
   param([string]$ToolName, [string]$Url, [string]$Destination)
@@ -146,6 +149,7 @@ function Install-Tool {
 ```
 
 ### Directory Cleanup Script
+
 ```powershell
 function Clean-Temp {
   Clear-DirectorySafe -Path "C:\Temp"
@@ -154,6 +158,7 @@ function Clean-Temp {
 ```
 
 ### Steam Configuration Script
+
 ```powershell
 function Update-SteamConfig {
   $vdfPath = "$env:PROGRAMFILES (x86)\Steam\userdata\*\config\localconfig.vdf"

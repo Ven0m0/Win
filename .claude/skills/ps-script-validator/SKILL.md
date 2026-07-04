@@ -12,6 +12,7 @@ Automated validation for PowerShell scripts against this repo's conventions (AGE
 ## Purpose
 
 Ensures new/modified `.ps1` scripts adhere to:
+
 - **Common.ps1** reuse (no code duplication)
 - **Admin elevation** checks
 - **Registry path** patterns (NVIDIA discovery, HKLM vs HKCU)
@@ -28,6 +29,7 @@ Ensures new/modified `.ps1` scripts adhere to:
 When a `.ps1` script is created or modified, this skill validates:
 
 ### 1. Header Requirements
+
 ```
 ✓ #Requires -RunAsAdministrator present
 ✓ . "$PSScriptRoot\Common.ps1" imported
@@ -36,6 +38,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 2. Error Handling
+
 ```
 ✓ Set-StrictMode -Version Latest in functions
 ✓ $ErrorActionPreference = "Stop" in functions
@@ -44,6 +47,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 3. Code Reuse (Common.ps1)
+
 ```
 ✓ Registry ops use Set-RegistryValue / Remove-RegistryValue
 ✓ File downloads use Get-FileFromWeb
@@ -54,6 +58,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 4. Registry Patterns
+
 ```
 ✓ NVIDIA GPU paths use Get-NvidiaGpuRegistryPaths (not hardcoded)
 ✓ HKLM paths (system-wide settings)
@@ -63,6 +68,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 5. Paths
+
 ```
 ✓ No hardcoded "C:\Users\", "D:\", etc.
 ✓ Uses $PSScriptRoot, $HOME, $env:* only
@@ -70,6 +76,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 6. Documentation
+
 ```
 ✓ All functions have comment-based help:
   - .SYNOPSIS
@@ -80,6 +87,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 7. Style (shared lint settings + repo conventions)
+
 ```
 ✓ Shared lint rules come from `/PSScriptAnalyzerSettings.psd1`
 ✓ `.editorconfig` + `.gitattributes` cover `.ps1`, `.psm1`, and `.psd1`
@@ -92,6 +100,7 @@ When a `.ps1` script is created or modified, this skill validates:
 ```
 
 ### 8. Testing
+
 ```
 ✓ If function is complex (>20 lines), corresponding .Tests.ps1 should exist
 ✓ Tests use Pester (Arrange-Act-Assert)
@@ -102,14 +111,14 @@ When a `.ps1` script is created or modified, this skill validates:
 
 ## Common Issues & Fixes
 
-| Issue | Fix |
-|-------|-----|
-| `Common.ps1 not found` | Ensure script is in `Scripts/` directory |
-| Hardcoded `C:\Users\...` | Use `$HOME` or `$env:USERPROFILE` |
-| Registry path hardcoded | Use `Get-NvidiaGpuRegistryPaths` for GPU paths |
-| No comment-based help | Add `<# .SYNOPSIS ... .EXAMPLE ... #>` block |
+| Issue                         | Fix                                                                      |
+| ----------------------------- | ------------------------------------------------------------------------ |
+| `Common.ps1 not found`        | Ensure script is in `Scripts/` directory                                 |
+| Hardcoded `C:\Users\...`      | Use `$HOME` or `$env:USERPROFILE`                                        |
+| Registry path hardcoded       | Use `Get-NvidiaGpuRegistryPaths` for GPU paths                           |
+| No comment-based help         | Add `<# .SYNOPSIS ... .EXAMPLE ... #>` block                             |
 | Function missing error checks | Add `Set-StrictMode -Version Latest` + `$ErrorActionPreference = "Stop"` |
-| Duplicated menu logic | Use `Show-Menu` + `Get-MenuChoice` from Common.ps1 |
+| Duplicated menu logic         | Use `Show-Menu` + `Get-MenuChoice` from Common.ps1                       |
 
 ---
 

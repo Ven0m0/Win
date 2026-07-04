@@ -92,7 +92,6 @@ function Disable-UnnecessaryService {
     @{ Name = "wercplsupport"; Desc = "Problem Reports Control Panel" }
     @{ Name = "Fax"; Desc = "Fax Service" }
   )
-
   $servicesToManual = @(
     @{ Name = "SysMain"; Desc = "Superfetch" }
     @{ Name = "WSearch"; Desc = "Windows Search" }

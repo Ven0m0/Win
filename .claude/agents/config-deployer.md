@@ -54,13 +54,13 @@ Any work involving dotfile deployment, tracked config changes, dotbot YAML, or h
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `install.conf.yaml` | dotbot manifest |
+| File                         | Purpose                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `install.conf.yaml`          | dotbot manifest                                                  |
 | `Scripts/Setup-Dotfiles.ps1` | PowerShell driver: loads dotbot, runs pre/post tasks, PATH, dirs |
-| `user/.dotfiles/config/**` | All tracked configuration content |
-| `README.md` setup section | User-facing bootstrap instructions |
-| `bootstrap.ps1` | Internet bootstrap |
+| `user/.dotfiles/config/**`   | All tracked configuration content                                |
+| `README.md` setup section    | User-facing bootstrap instructions                               |
+| `bootstrap.ps1`              | Internet bootstrap                                               |
 
 ## Working with install.conf.yaml
 
@@ -68,13 +68,13 @@ YAML structure:
 
 ```yaml
 - clean:
-  - '~'
+    - "~"
 - create:
-  - ~/.config/powershell: mkdir
+    - ~/.config/powershell: mkdir
 - link:
-  - ~/.config/powershell: user/.dotfiles/config/powershell
+    - ~/.config/powershell: user/.dotfiles/config/powershell
 - shell:
-  - pwsh -Command "& { ... }"
+    - pwsh -Command "& { ... }"
 ```
 
 ## Deployment Order

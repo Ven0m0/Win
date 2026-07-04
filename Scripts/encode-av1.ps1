@@ -29,6 +29,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
 $svtParams = 'tbr=4000:tune=0:film-grain=8:enable-variance-boost=1:tile-columns=0:tile-rows=0:scd=1'
 

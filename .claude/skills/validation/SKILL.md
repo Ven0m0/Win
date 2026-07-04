@@ -32,12 +32,14 @@ CI enforces `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPla
 ### Bootstrap or Tracked Config Changes
 
 When `install.conf.yaml` or `Scripts/Setup-Dotfiles.ps1` changes:
+
 - Verify referenced source and destination paths exist in the repo
 - Check that hash-based deployment logic still correctly computes SHA256
 - Review `README.md` and `AGENTS.md` for consistency (setup instructions should match)
 - If deployment PowerShell logic changed, run ScriptAnalyzer on those scripts
 
 When a file under `user/.dotfiles/config/` changes:
+
 - Confirm native application file format preserved (no cosmetic re-serialization)
 - If a deployment script references it, verify the manifest entry still points at the correct source path
 
@@ -50,6 +52,7 @@ $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 ```
 
 Also verify:
+
 - All embedded `<File path="...">` scripts inside `<Extensions>` use XML entity encoding (`&amp;`, `&gt;`, etc.)
 - `ExtractScript` paths resolve to `C:\Windows\Setup\Scripts\` at runtime
 - Execution order: specialize → FirstLogon → install.ps1 → stage2.ps1 → WinUtil RunOnce matches expectations
@@ -57,6 +60,7 @@ Also verify:
 ### Guidance or Workflow Changes Under `.github/`
 
 After editing any file in `.github/`:
+
 - Verify every referenced path and command exists in the repo
 - Run repository context lint:
 
@@ -69,6 +73,7 @@ Use `--fix` only if the task explicitly asks for autofix. Keep `.github/copilot-
 ### Pester Tests
 
 Run `Invoke-Pester -Path Scripts/ -Output Minimal` **only** when:
+
 - Tests already exist for the affected area, OR
 - You are adding new testable PowerShell logic
 
@@ -83,12 +88,12 @@ Do not invent or widen test scope solely to satisfy validation.
 
 ## Quick Reference Matrix
 
-| Area Changed | Primary Check | Secondary Checks |
-|---|---|---|
-| Any `.ps1` | `Invoke-ScriptAnalyzer` | — |
-| `install.conf.yaml` | Path resolution, hash logic | `README.md` consistency |
-| `Setup-Dotfiles.ps1` | ScriptAnalyzer, hash deployment | Config paths review |
-| `user/.dotfiles/config/*` | Format preservation | Deployment manifest |
-| `Scripts/auto/autounattend.xml` | XML validate, entity encoding | Script embed review |
-| `.kilo/*` | JSON/YAML syntax, path references | `ctxlint` |
-| `.github/workflows/*` | YAML syntax, tool availability | — |
+| Area Changed                    | Primary Check                     | Secondary Checks        |
+| ------------------------------- | --------------------------------- | ----------------------- |
+| Any `.ps1`                      | `Invoke-ScriptAnalyzer`           | —                       |
+| `install.conf.yaml`             | Path resolution, hash logic       | `README.md` consistency |
+| `Setup-Dotfiles.ps1`            | ScriptAnalyzer, hash deployment   | Config paths review     |
+| `user/.dotfiles/config/*`       | Format preservation               | Deployment manifest     |
+| `Scripts/auto/autounattend.xml` | XML validate, entity encoding     | Script embed review     |
+| `.kilo/*`                       | JSON/YAML syntax, path references | `ctxlint`               |
+| `.github/workflows/*`           | YAML syntax, tool availability    | —                       |

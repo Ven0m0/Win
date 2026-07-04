@@ -11,18 +11,19 @@ Migrate configuration files from a legacy location or format into the current re
 
 2. **Determine the target path** — map to `user/.dotfiles/config/<category>/<filename>` following existing conventions:
 
-   | Config type | Target subdirectory |
-   |-------------|-------------------|
-   | PowerShell profile | `powershell/` |
-   | Windows Terminal | `windows-terminal/` |
-   | Firefox | `firefox/` |
-   | Game configs | `games/<game-name>/` |
-   | Registry tweaks | under `Scripts/reg/` |
-   | Cursor theme | `cursors/` |
+   | Config type        | Target subdirectory  |
+   | ------------------ | -------------------- |
+   | PowerShell profile | `powershell/`        |
+   | Windows Terminal   | `windows-terminal/`  |
+   | Firefox            | `firefox/`           |
+   | Game configs       | `games/<game-name>/` |
+   | Registry tweaks    | under `Scripts/reg/` |
+   | Cursor theme       | `cursors/`           |
 
 3. **Copy the file** preserving its original format — never reformat JSON, YAML, REG, or INI files.
 
 4. **Update `install.conf.yaml`** — add the deployment entry:
+
    ```yaml
    - link:
        - <destination-path>: user/.dotfiles/config/<category>/<filename>
@@ -31,6 +32,7 @@ Migrate configuration files from a legacy location or format into the current re
 5. **Verify the destination path** — confirm it exists or will be created by the `create:` section.
 
 6. **Test with dry-run:**
+
    ```powershell
    dotbot -c install.conf.yaml -p
    ```

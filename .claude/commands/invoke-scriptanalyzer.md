@@ -24,10 +24,12 @@ Invoke-ScriptAnalyzer -Path Scripts/<file>.ps1 -Settings PSScriptAnalyzerSetting
 ```
 
 **CI-enforced rules** (pipeline fails if violated):
+
 - `PSAvoidGlobalAliases` — no aliases in script scope
 - `PSAvoidUsingConvertToSecureStringWithPlainText` — no plaintext secure strings
 
 **CI-warned rules** (surfaced but do not fail pipeline):
+
 - `AvoidUsingCmdletAliases`, `AvoidUsingWriteHost`, `ProvideCommentHelp`
 - `UseShouldProcessForStateChangingFunctions`, `AvoidUsingPositionalParameters`
 

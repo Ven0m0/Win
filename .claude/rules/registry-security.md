@@ -12,14 +12,14 @@ Governs registry modification practices. Applies to any script that reads or wri
 
 ## Registry Value Data Types
 
-| Registry Type | .NET Type | Example |
-|---------------|-----------|---------|
-| REG_DWORD | `[int]` (or `[uint32]`) | `-Name "EnableFullscreenOptimization" -Value 0 -Type DWORD` |
-| REG_QWORD | `[long]` | `-Name "SomeQwordValue" -Value 1 -Type QWORD` |
-| REG_SZ | `[string]` | `-Name "ExePath" -Value "C:\Program Files\App\app.exe"` |
+| Registry Type | .NET Type                 | Example                                                          |
+| ------------- | ------------------------- | ---------------------------------------------------------------- |
+| REG_DWORD     | `[int]` (or `[uint32]`)   | `-Name "EnableFullscreenOptimization" -Value 0 -Type DWORD`      |
+| REG_QWORD     | `[long]`                  | `-Name "SomeQwordValue" -Value 1 -Type QWORD`                    |
+| REG_SZ        | `[string]`                | `-Name "ExePath" -Value "C:\Program Files\App\app.exe"`          |
 | REG_EXPAND_SZ | `[string]` (with `%ENV%`) | `-Name "Path" -Value "%SystemRoot%\System32" -Type ExpandString` |
-| REG_MULTI_SZ | `[string[]]` | `-Name "AllowedApps" -Value @("app1","app2") -Type MultiString` |
-| REG_BINARY | `[byte[]]` | `-Name "BinaryData" -Value (0x01,0x02,0x03) -Type Binary` |
+| REG_MULTI_SZ  | `[string[]]`              | `-Name "AllowedApps" -Value @("app1","app2") -Type MultiString`  |
+| REG_BINARY    | `[byte[]]`                | `-Name "BinaryData" -Value (0x01,0x02,0x03) -Type Binary`        |
 
 ## Safe Write Pattern
 
@@ -50,6 +50,7 @@ function Set-MyRegistryTweak {
 - **HKLM**: system-wide; **requires admin**; request elevation at script start
 
 Always test `Test-Path` before operating:
+
 ```powershell
 if (-not (Test-Path $keyPath)) {
   New-Item -Path $keyPath -Force | Out-Null

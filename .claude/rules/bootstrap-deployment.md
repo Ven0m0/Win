@@ -19,6 +19,7 @@ Applies to bootstrap and deployment scripts: `**/Setup-Win11.ps1`, `**/bootstrap
 **Do not** add flat `.ps1` or `.cmd` files alongside the XML in `Scripts/auto/`; they become stale duplicates.
 
 **Validate the XML** after any edit:
+
 ```powershell
 $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 ```

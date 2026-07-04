@@ -6,6 +6,7 @@ allowed-tools: Read, Bash
 Guide the user through backing up their current Windows system state before making changes. $ARGUMENTS
 
 The backup captures:
+
 - **Registry** — key HKCU/HKLM areas to `.reg` files
 - **Packages** — `winget list`, installed Appx packages, provisioned Appx
 - **Services** — name, display name, status, start type

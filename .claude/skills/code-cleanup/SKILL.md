@@ -78,6 +78,7 @@ rg "^##" --type ps1
 ### Step 1: Identify differences
 
 Document exactly what changes between the two scripts:
+
 ```powershell
 # Example: steam.ps1 vs arc-raiders/steam.ps1
 # $NoGPU: 1 (default) vs 0 (ArcRaiders)
@@ -137,13 +138,13 @@ rg "arc-raiders.*steam|steam.*arc-raiders" --type ps1   # verify no orphaned imp
 
 ### Inventory first
 
-| Category | Examples | Action |
-|---|---|---|
-| Code | `.ps1`, `.bat`, `.ahk` | Keep; refactor if needed |
-| Config | `.json`, `.yaml`, `.reg`, `.xml` | Keep; validate format |
-| Tests | `*.Tests.ps1` | Keep; move to `tests/` if misplaced |
-| Docs | `*.md` | Review for duplication/staleness |
-| Build artifacts | `dist/`, `node_modules/` | Delete; add to `.gitignore` |
+| Category        | Examples                         | Action                              |
+| --------------- | -------------------------------- | ----------------------------------- |
+| Code            | `.ps1`, `.bat`, `.ahk`           | Keep; refactor if needed            |
+| Config          | `.json`, `.yaml`, `.reg`, `.xml` | Keep; validate format               |
+| Tests           | `*.Tests.ps1`                    | Keep; move to `tests/` if misplaced |
+| Docs            | `*.md`                           | Review for duplication/staleness    |
+| Build artifacts | `dist/`, `node_modules/`         | Delete; add to `.gitignore`         |
 
 ### Canonical layout (Ven0m0/Win)
 
@@ -208,6 +209,7 @@ $xml = [xml]::new(); $xml.Load('Scripts/auto/autounattend.xml')
 ```
 
 Structural checks:
+
 - [ ] No orphaned files referenced in `install.conf.yaml` or `AGENTS.md`
 - [ ] All `Scripts/**/*.ps1` pass `Invoke-ScriptAnalyzer`
 - [ ] Bootstrap scripts still execute without error

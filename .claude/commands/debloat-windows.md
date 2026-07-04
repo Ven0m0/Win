@@ -27,6 +27,7 @@ pwsh -File Scripts/debloat-windows.ps1 -Undo
 ```
 
 **Before running:**
+
 1. A system restore point is created automatically (skip with `-NoRestorePoint`)
 2. Requires an elevated PowerShell session (the script self-elevates if not already admin)
 3. Run `-WhatIf` first on an unfamiliar machine to preview changes

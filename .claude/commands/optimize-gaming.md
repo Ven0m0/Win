@@ -8,6 +8,7 @@ Apply gaming performance optimizations. $ARGUMENTS
 Read the relevant scripts first to understand current state, then guide the user:
 
 **Full gaming optimization suite:**
+
 ```powershell
 # Requires elevated session
 pwsh -File Scripts/Optimize-Gaming.ps1
@@ -20,6 +21,7 @@ pwsh -File Scripts/Optimize-Gaming.ps1 -NoRestorePoint
 ```
 
 **Targeted optimizations:**
+
 ```powershell
 # Only fullscreen/MPO registry tweaks
 pwsh -File Scripts/gpu-display-manager.ps1
@@ -32,6 +34,7 @@ pwsh -File Scripts/DLSS-force-latest.ps1
 ```
 
 **What each step does:**
+
 - **Fullscreen & MPO**: registry tweaks under `HKCU:\System\GameConfig` for exclusive fullscreen; NVIDIA MultiPlane Overlay disable
 - **Shader cache**: clears `%LOCALAPPDATA%\Temp`, Steam shader cache, NVIDIA/AMD cache directories
 - **DLSS update**: finds DLSS `.dll` files in game directories and replaces with latest version

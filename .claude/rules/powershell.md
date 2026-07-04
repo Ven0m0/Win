@@ -7,6 +7,7 @@ Applies to all PowerShell files: `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, and set
 ## 1. Naming Conventions
 
 ### Commands and Parameters
+
 - Use `Verb-Noun` convention for all functions; run `Get-Verb` for the approved verb list
 - PascalCase for **all** public identifiers: module names, function names, class names, parameters, global variables
 - Nouns must be **singular** and may be compound-word PascalCase (`Get-DiskInfo`, not `Get-DiskInfos`)
@@ -16,12 +17,14 @@ Applies to all PowerShell files: `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, and set
 - Match standard PowerShell parameter names: `$ComputerName`, `$Path`, `$Credential`
 
 ### Variables
+
 - Script-level private variables may use camelCase to distinguish from PascalCase parameters
 - Scope shared variables explicitly: `$Script:State`, `$Global:DebugPreference`
 - PowerShell language keywords are **lowercase**: `foreach`, `if`, `switch`, `-eq`, `-match`
 - Comment-based help keywords are **UPPERCASE**: `.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`
 
 ### Paths
+
 - Always use `$PSScriptRoot` for script-relative paths; never unanchored `.\` or `..\`
 - Use `$HOME` or `$env:USERPROFILE` for user home — never hardcode `C:\Users\...`
 - Never use `~`: its meaning depends on the current provider
@@ -39,6 +42,7 @@ Get-Content -Path "$PSScriptRoot\README.md"
 ## 2. Code Layout and Formatting
 
 ### Braces — One True Brace Style (OTBS)
+
 Opening brace at the **end** of the line; closing brace at the **beginning** of a line.
 
 ```powershell
@@ -50,9 +54,11 @@ if ($condition) {
 ```
 
 ### Indentation
+
 **2-space** indentation (matches existing codebase style).
 
 ### Line Length
+
 Keep lines to **115 characters** maximum. Use **splatting** instead of backtick continuation:
 
 ```powershell
@@ -69,6 +75,7 @@ Get-WmiObject @params
 ```
 
 ### Whitespace
+
 - Single space around operators and parameter names
 - No trailing whitespace on any line
 - No semicolons as line terminators
@@ -80,6 +87,7 @@ Get-WmiObject @params
 ## 3. Function Structure
 
 ### Always Start With CmdletBinding
+
 ```powershell
 [CmdletBinding()]
 param ()
@@ -90,12 +98,15 @@ end {
 ```
 
 ### No `return` in Advanced Functions
+
 Do not use `return` to emit objects — place the object on its own line inside `process {}`.
 
 ### OutputType
+
 Declare `[OutputType()]` on every advanced function that returns objects.
 
 ### SupportsShouldProcess
+
 Add `SupportsShouldProcess` to any function that modifies system state:
 
 ```powershell
@@ -143,13 +154,13 @@ catch {
 
 ## 6. Output and Streams
 
-| Stream | Cmdlet | When to use |
-|--------|--------|-------------|
-| Success | pipeline (implicit) | Results consumed by callers |
-| Verbose | `Write-Verbose` | Execution status; enabled by `-Verbose` |
-| Warning | `Write-Warning` | Non-fatal conditions |
-| Error | `Write-Error` | Recoverable errors |
-| Host | `Write-Host` | Interactive UI only |
+| Stream  | Cmdlet              | When to use                             |
+| ------- | ------------------- | --------------------------------------- |
+| Success | pipeline (implicit) | Results consumed by callers             |
+| Verbose | `Write-Verbose`     | Execution status; enabled by `-Verbose` |
+| Warning | `Write-Warning`     | Non-fatal conditions                    |
+| Error   | `Write-Error`       | Recoverable errors                      |
+| Host    | `Write-Host`        | Interactive UI only                     |
 
 Do not use `Write-Host` for general output. Use `Write-Verbose`/`Write-Warning`/`Write-Error`.
 

@@ -1,36 +1,50 @@
 {
-  "$schema": "https://json.schemastore.org/schema.json",
-  "languages": {
-    "python": {
-      "command": "basedpyright-langserver",
-      "args": ["--stdio"],
-      "initializationOptions": {
-        "pythonVersion": "3.13"
-      }
-    },
-    "bash": {
-      "command": "bash-language-server",
-      "args": ["start"]
-    },
-    "yaml": {
-      "command": "yaml-language-server",
-      "args": ["--stdio"]
-    },
-    "json": {
-      "command": "json-language-server",
-      "args": ["--stdio"]
-    },
-    "toml": {
-      "command": "taplo",
-      "args": ["lsp", "stdio"]
-    },
-    "typescript": {
-      "command": "vtsls",
-      "args": ["--stdio"]
-    },
-    "javascript": {
-      "command": "vtsls",
-      "args": ["--stdio"]
+  "python": {
+    "command": "basedpyright-langserver",
+    "args": ["--stdio"],
+    "extensionToLanguage": { ".py": "python", ".pyi": "python" },
+    "initializationOptions": {
+      "pythonVersion": "3.13"
+    }
+  },
+  "bash": {
+    "command": "bash-language-server",
+    "args": ["start"],
+    "extensionToLanguage": { ".sh": "shellscript", ".bash": "shellscript" }
+  },
+  "yaml": {
+    "command": "yaml-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": { ".yaml": "yaml", ".yml": "yaml" }
+  },
+  "json": {
+    "command": "json-language-server",
+    "args": ["--stdio"],
+    "extensionToLanguage": { ".json": "json", ".jsonc": "jsonc" }
+  },
+  "toml": {
+    "command": "taplo",
+    "args": ["lsp", "stdio"],
+    "extensionToLanguage": { ".toml": "toml" }
+  },
+  "typescript": {
+    "command": "vtsls",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".ts": "typescript",
+      ".tsx": "typescriptreact",
+      ".mts": "typescript",
+      ".cts": "typescript"
+    }
+  },
+  "javascript": {
+    "command": "vtsls",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".js": "javascript",
+      ".jsx": "javascriptreact",
+      ".mjs": "javascript",
+      ".cjs": "javascript"
     }
   }
 }

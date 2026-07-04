@@ -6,6 +6,7 @@ allowed-tools: Read, Glob, Grep, Bash
 Run comprehensive validation checks on local changes before committing. $ARGUMENTS
 
 **1. PowerShell linting** — run on all modified `.ps1` files:
+
 ```powershell
 # Get changed PS files
 $changed = git diff --name-only --diff-filter=ACM | Where-Object { $_ -match '\.ps1$' }
@@ -18,11 +19,13 @@ $changed | ForEach-Object {
 ```
 
 If no files are specified in $ARGUMENTS and no staged changes exist, lint all files in `Scripts/`:
+
 ```powershell
 Invoke-ScriptAnalyzer -Path Scripts/ -Settings PSScriptAnalyzerSettings.psd1 -Recurse
 ```
 
 **2. autounattend.xml validation** (if modified):
+
 ```powershell
 if (Test-Path Scripts/auto/autounattend.xml) {
   $xml = [xml]::new()
@@ -32,6 +35,7 @@ if (Test-Path Scripts/auto/autounattend.xml) {
 ```
 
 **3. Pester tests** — if a test file exists for a changed script, run it:
+
 ```powershell
 $changed | ForEach-Object {
   $testFile = "tests/$([System.IO.Path]::GetFileNameWithoutExtension($_)).Tests.ps1"
@@ -42,6 +46,7 @@ $changed | ForEach-Object {
 ```
 
 **4. Guidance lint** (if `.kilo/` or `.claude/` files changed):
+
 ```bash
 npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes
 ```

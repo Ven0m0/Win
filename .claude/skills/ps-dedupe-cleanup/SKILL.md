@@ -43,30 +43,30 @@ rg -L "Common\.ps1" Scripts/*.ps1
 
 Cross-reference against Common.ps1's public API (from AGENTS.md):
 
-| Category | Helpers |
-|----------|---------|
-| Output | `Write-ColorOutput` |
-| Admin / UI | `Request-AdminElevation`, `Initialize-ConsoleUI`, `Show-Menu`, `Get-MenuChoice`, `Wait-ForKeyPress` |
-| Registry | `Set-RegistryValue`, `Remove-RegistryValue`, `Get-RegistryValueSafe` |
-| Downloads | `Get-FileFromWeb` — handles `$ProgressPreference` internally |
-| Files / dirs | `Clear-DirectorySafe`, `Clear-PathSafe`, `Ensure-Directory` |
-| System | `New-RestorePoint`, `Remove-AppxPackageSafe`, `Invoke-ServiceOperation`, `Invoke-CommandChecked`, `Invoke-RegImport`, `Invoke-Winget`, `Wait-ForWinget` |
-| Logging | `Add-Log`, `Get-Log`, `Clear-Log` |
-| Utilities | `ConvertFrom-VDF`, `ConvertTo-VDF`, `Get-FolderSize`, `Format-Size`, `Measure-Execution`, `Show-Summary` |
-| NVIDIA | `Get-NvidiaGpuRegistryPath`, `Get-NvidiaGpuPath`, `Set-NvidiaGpuRegistryValue`, `Set-NvidiaSignatureOverride`, `Get-NvidiaSignatureStatus`, `Set-FullscreenMode`, `Set-MultiPlaneOverlay` |
+| Category     | Helpers                                                                                                                                                                                   |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Output       | `Write-ColorOutput`                                                                                                                                                                       |
+| Admin / UI   | `Request-AdminElevation`, `Initialize-ConsoleUI`, `Show-Menu`, `Get-MenuChoice`, `Wait-ForKeyPress`                                                                                       |
+| Registry     | `Set-RegistryValue`, `Remove-RegistryValue`, `Get-RegistryValueSafe`                                                                                                                      |
+| Downloads    | `Get-FileFromWeb` — handles `$ProgressPreference` internally                                                                                                                              |
+| Files / dirs | `Clear-DirectorySafe`, `Clear-PathSafe`, `Ensure-Directory`                                                                                                                               |
+| System       | `New-RestorePoint`, `Remove-AppxPackageSafe`, `Invoke-ServiceOperation`, `Invoke-CommandChecked`, `Invoke-RegImport`, `Invoke-Winget`, `Wait-ForWinget`                                   |
+| Logging      | `Add-Log`, `Get-Log`, `Clear-Log`                                                                                                                                                         |
+| Utilities    | `ConvertFrom-VDF`, `ConvertTo-VDF`, `Get-FolderSize`, `Format-Size`, `Measure-Execution`, `Show-Summary`                                                                                  |
+| NVIDIA       | `Get-NvidiaGpuRegistryPath`, `Get-NvidiaGpuPath`, `Set-NvidiaGpuRegistryValue`, `Set-NvidiaSignatureOverride`, `Get-NvidiaSignatureStatus`, `Set-FullscreenMode`, `Set-MultiPlaneOverlay` |
 
 ---
 
 ## Step 3: Classify each duplicate
 
-| Situation | Action |
-|-----------|--------|
-| Exact or near-exact duplicate; script already imports Common.ps1 | Remove local definition |
-| Exact or near-exact duplicate; script does NOT import Common.ps1 | Add `. "$PSScriptRoot\Common.ps1"` after `$ErrorActionPreference`/`$ProgressPreference` setup, then remove local definition |
-| Same function name, clearly different semantics | Leave it — dissimilar things must not be merged |
-| Locally scoped inside a function body with a different status vocabulary | Leave it — intentional scoping, not global pollution |
+| Situation                                                                | Action                                                                                                                      |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Exact or near-exact duplicate; script already imports Common.ps1         | Remove local definition                                                                                                     |
+| Exact or near-exact duplicate; script does NOT import Common.ps1         | Add `. "$PSScriptRoot\Common.ps1"` after `$ErrorActionPreference`/`$ProgressPreference` setup, then remove local definition |
+| Same function name, clearly different semantics                          | Leave it — dissimilar things must not be merged                                                                             |
+| Locally scoped inside a function body with a different status vocabulary | Leave it — intentional scoping, not global pollution                                                                        |
 
-**Why the locally-scoped rule matters:** `Install-Packages.ps1` and `Setup-Win11.ps1` define `Write-Status` *inside* a function, with status codes like `'RUNNING'`, `'FAIL'`, `'SKIP'` that have no equivalent in Common.ps1. These are intentionally self-contained, not duplicates.
+**Why the locally-scoped rule matters:** `Install-Packages.ps1` and `Setup-Win11.ps1` define `Write-Status` _inside_ a function, with status codes like `'RUNNING'`, `'FAIL'`, `'SKIP'` that have no equivalent in Common.ps1. These are intentionally self-contained, not duplicates.
 
 ---
 

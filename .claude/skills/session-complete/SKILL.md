@@ -60,6 +60,7 @@ git remote prune origin # prune stale remote-tracking branches
 ## Step 6 — Verify
 
 Confirm all of the following are true before proceeding:
+
 - `git status` shows nothing to commit, up to date with origin
 - No uncommitted changes in `Scripts/`, `user/`, `.claude/`
 - Quality gates passed (or no code changed)
@@ -67,6 +68,7 @@ Confirm all of the following are true before proceeding:
 ## Step 7 — Hand Off
 
 Summarize for the next session:
+
 - What was completed this session
 - What issues were filed for follow-up
 - Any in-progress work and its current state

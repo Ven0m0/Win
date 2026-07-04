@@ -26,13 +26,13 @@ Read-only code review, audit, and structured feedback on PowerShell scripts and 
 
 ### 1. PSScriptAnalyzer Rules
 
-| Rule | Check |
-|------|-------|
-| `PSAvoidGlobalAliases` | No aliases (`select`, `%`, `?`, `cd`) in script body |
-| `PSAvoidUsingConvertToSecureStringWithPlainText` | No plaintext secure string conversions |
-| `PSUseShouldProcessForStateChangingFunctions` | `SupportsShouldProcess` on system-modifying functions |
-| `PSAvoidUsingInvokeExpression` | No `Invoke-Expression` with variable/untrusted input |
-| `PSProvideCommentHelp` | Comment-based help on public functions |
+| Rule                                             | Check                                                 |
+| ------------------------------------------------ | ----------------------------------------------------- |
+| `PSAvoidGlobalAliases`                           | No aliases (`select`, `%`, `?`, `cd`) in script body  |
+| `PSAvoidUsingConvertToSecureStringWithPlainText` | No plaintext secure string conversions                |
+| `PSUseShouldProcessForStateChangingFunctions`    | `SupportsShouldProcess` on system-modifying functions |
+| `PSAvoidUsingInvokeExpression`                   | No `Invoke-Expression` with variable/untrusted input  |
+| `PSProvideCommentHelp`                           | Comment-based help on public functions                |
 
 ### 2. Security Patterns
 

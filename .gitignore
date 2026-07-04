@@ -9,8 +9,9 @@
 
 ## Local dotfile customizations (not tracked)
 .config/powershell/local.ps1
+.claude/settings.local.json
 
-## Visual Studio & Windows
+## Logs, temp, locks
 *.bak
 *.log
 *.log.*
@@ -19,6 +20,7 @@ logs/
 *.old
 *.tmp
 tmp/
+*.part
 *.kate-swp
 *swp.*
 token
@@ -27,9 +29,7 @@ nohup.out
 *.lock
 *.lck
 .cache
-.nv/ComputeCache/
 npm-debug.log*
-/package-lock.json
 pids
 *.pid
 *.seed
@@ -42,61 +42,43 @@ pids
 .fuse_hidden*
 *~
 .nfs*
-*.com
-*.dll
+
+## Downloaded binaries (not tracked)
 *.exe
+*.dll
 *.o
 *.so
+
+## Python (Scripts/snapmem)
+.venv/
 __pycache__/
 .pytest_cache/
 *.py[cod]
-*$py.class
+$py.class
 pip-log.txt
 pip-delete-this-directory.txt
-go/
-jspm_packages/
-dependencies/composer/vendor
-target/
-build/
-.rustup/
-.cargo/
-!.cargo/config.toml
-**/*.rs.bk
-*.mutants.out*/
-.npm
-*.tgz
-dist
-node_modules/
-*.db
-*.pdb
-*.tmp
-.vs/
-*.env
-.idea
 .ruff_cache/
+
+## Node/TypeScript (.kilo/plugins, .kilo/tools)
+node_modules/
+.npm
+npm-debug.log*
+*.tgz
 .eslintcache
 /package-lock.json
-github-step-summary.md
-megalinter-reports/
-**/megalinter-reports/*
-mega-linter.report
-*megalinter_file_names_cspell.txt
+
+## Databases & env
+*.db
+*.env
+.idea
 
 ## User/Editor/Session files
 *.rsuser
 *.suo
 *.user
-*.userosscache
-*.sln.docstates
-*.userprefs
-mono_crash.*
-*-hst
-*history
-.*history
-fishd.*
-.*hist
 .thumbnails/
 .DS_Store
+.history/
 
 ## XDG User Directories
 Desktop/
@@ -121,146 +103,6 @@ Videos/
 *.orig
 *.rej
 *.TAG
-false.*
-*_i.c
-*_p.c
-*_h.h
-*.ilk
-*.meta
-*.obj
-*.idb
-*.iobj
-*.pch
-*.ipdb
-*.pgc
-*.pgd
-*.rsp
-*.sbr
-*.tlb
-*.tli
-*.tlh
-*.tmp
-*.tmp_proj
-*_wpftmp.csproj
-*.log
-*.tlog
-*.vspscc
-*.vssscc
-.builds
-*.pidb
-*.svclog
-*.scc
-
-## Build/CMake/Artifacts
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-bld/
-[Oo]bj/
-[Oo]ut/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-[Aa][Rr][Mm]64[Ee][Cc]/
-x64/
-x86/
-[Oo]bj/
-[Oo]ut/
-[Ll]og/
-[Ll]ogs/
-**/[Bb]in/*
-# Uncomment if you have tasks that rely on *.refresh files to move binaries
-#!**/[Bb]in/*.refresh
-Generated\ Files/
-TestResult.xml
-*.trx
-*.received.*
-[Dd]ebugPS/
-[Rr]eleasePS/
-dlldata.c
-BenchmarkDotNet.Artifacts/
-project.lock.json
-project.fragment.lock.json
-artifacts/
-ScaffoldingReadMe.txt
-StyleCopReport.xml
-*_i.c
-*_p.c
-*_h.h
-*.ilk
-*.meta
-*.obj
-*.idb
-*.iobj
-*.pch
-*.ipdb
-*.pgc
-*.pgd
-*.rsp
-!Directory.Build.rsp
-*.sbr
-*.tlb
-*.tli
-*.tlh
-*.tmp
-*.tmp_proj
-*_wpftmp.csproj
-.tlog
-*.vspscc
-*.vssscc
-.builds
-*.pidb
-*.svclog
-*.scc
-_Chutzpah*
-*.psess
-*.vsp
-*.vspx
-*.sap
-*.e2e
-*.VisualState.xml
-nunit-*.xml
-ApprovalTests*
-*.coverage
-*.coveragexml
-coverage*.json
-coverage*.xml
-coverage*.info
-healthchecksdb
-
-## MSBuild/C#
-*.binlog
-MSBuild_Logs/
-dlldata.c
-orleans.codegen.cs
-
-## Node, NuGet, Python, Rust, Go, Npm, Paket, Cake, Fody, VSIX
-.npm
-npm-debug.log*
-*.nupkg
-*.snupkg
-**/[Pp]ackages/*
-!**/[Pp]ackages/build/
-*.nuget.props
-*.nuget.targets
-csx/
-*.build.csdef
-AppPackages/
-BundleArtifacts/
-Package.StoreAssociation.xml
-_pkginfo.txt
-*.appx
-*.appxbundle
-*.appxupload
-*.dbmdl
-*.dbproj.schemaview
-*.jfm
-*.pfx
-*.publishsettings
-paket-files/
-**/.fake/
-*.vsix
 
 ## VS Code
 .vscode/*
@@ -270,58 +112,28 @@ paket-files/
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 
-## Editor tools & Linter
-.history/
-.axoCover/*
-!.axoCover/settings.json
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-_TeamCity*
-*.dotCover
-*.jmconfig
-OpenCover/
-ASALocalRun/
-AWS SAM Build and Temporary Artifacts folder
-.aws-sam
-*.nvuser
-**/.cr/personal
-**/.ionide/
-FodyWeavers.xsd
-
 ## Misc / System
-.DS_Store
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
-.nfs*
 
-# Beads / Dolt files (added by bd init)
-.dolt/
-.beads-credential-key
-.logs/
+## Local machine indexes (not tracked)
 .omc/
 .omg/
 .cachebro/
 .opencode
+.serena/
+.codegraph/
+.claudelint-cache
 
 ## Build artifacts
 psscriptanalyzer_report.json
 *.sarif
 results.sarif
-
-## PowerShell log files
 *.psscriptanalyzer.log
-
-!.claude/plans/
-.claude/settings.local.json
-
-‎.agents_tmp/
-.agents_tmp/*
-
-## CodeGraph (local machine index, not tracked)
-.codegraph/
 
 ## Tool UI state (machine-specific)
 Scripts/reg/DeviceCleanup.ini
+
+!.claude/plans/

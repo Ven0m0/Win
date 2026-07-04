@@ -25,6 +25,7 @@ refactor: extract registry helpers to Common.ps1
 ```
 
 Emoji prefixes appear on automated/PR commits — do not use them manually:
+
 - `🧪` tests · `⚡` performance · `🧹` cleanup · `🔒` security
 
 PR merges append `(#N)`: `fix: harden bootstrap (#52)`
@@ -92,6 +93,7 @@ while ($true) {
 ```
 
 Key rules:
+
 - OTBS braces, 2-space indent
 - `$PSScriptRoot` for all relative paths — never hardcode drive letters
 - `$env:SystemRoot`, `$env:TEMP`, `$env:LOCALAPPDATA` — never `C:\Windows\...`

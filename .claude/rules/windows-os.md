@@ -39,11 +39,11 @@ if ($isWin11) {
 
 ## Telemetry and Privacy Tweaks
 
-| Setting | Path | Notes |
-|---------|------|-------|
-| Telemetry | `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection` | `AllowTelemetry` DWORD; 0-3 |
-| Advertising ID | `HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo` | Disable `Enabled` |
-| Suggested apps | `HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager` | `SilentInstalledAppsEnabled` |
+| Setting        | Path                                                                      | Notes                        |
+| -------------- | ------------------------------------------------------------------------- | ---------------------------- |
+| Telemetry      | `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection` | `AllowTelemetry` DWORD; 0-3  |
+| Advertising ID | `HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo`         | Disable `Enabled`            |
+| Suggested apps | `HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager`  | `SilentInstalledAppsEnabled` |
 
 ## Before Removing a Built-In App
 
