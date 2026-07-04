@@ -59,23 +59,23 @@
 #>
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
 param (
-  [Parameter(Position = 0)]
-  [string]$Path,
-  [Alias('h')]
-  [switch]$Help,
-  [switch]$Apply,
-  [switch]$Force,
-  [switch]$SkipExact,
-  [switch]$SkipDup,
-  [switch]$SkipImages,
-  [switch]$SkipVideos,
-  [switch]$SkipEmptyFiles,
-  [ValidateRange(0, 40)]
-  [int]$ImageDifference = 5,
-  [ValidateRange(0, 20)]
-  [int]$VideoTolerance = 10,
-  [ValidateRange(1, 20)]
-  [int]$VideoWindowCount = 3
+    [Parameter(Position = 0)]
+    [string]$Path,
+    [Alias('h')]
+    [switch]$Help,
+    [switch]$Apply,
+    [switch]$Force,
+    [switch]$SkipExact,
+    [switch]$SkipDup,
+    [switch]$SkipImages,
+    [switch]$SkipVideos,
+    [switch]$SkipEmptyFiles,
+    [ValidateRange(0, 40)]
+    [int]$ImageDifference = 5,
+    [ValidateRange(0, 20)]
+    [int]$VideoTolerance = 10,
+    [ValidateRange(1, 20)]
+    [int]$VideoWindowCount = 3
 )
 
 Set-StrictMode -Version Latest
@@ -88,72 +88,74 @@ $ProgressPreference = 'SilentlyContinue'
 # "-h" typed by habit lands in the positional -Path argument instead of
 # binding to a parameter; check for it explicitly alongside -Help/-h.
 if ($Help -or $Path -in @('-h', '--help', '/?')) {
-  $width = 120
-  try {
-    $width = $Host.UI.RawUI.WindowSize.Width
-  } catch {
-    Write-Verbose "Could not determine console width; using default of $width."
-  }
-  (Get-Help -Full -Name $PSCommandPath | Out-String -Width $width).TrimEnd() -replace '(\r?\n[ \t]*){3,}', "`n`n"
-  return
+    $width = 120
+    try {
+        $width = $Host.UI.RawUI.WindowSize.Width
+    }
+    catch {
+        Write-Verbose "Could not determine console width; using default of $width."
+    }
+    (Get-Help -Full -Name $PSCommandPath | Out-String -Width $width).TrimEnd() -replace '(\r?\n[ \t]*){3,}', "`n`n"
+    return
 }
 
 # Image and video extensions used to scope the exact-duplicate pass.
 $mediaExtensions = @(
-  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif', 'avif',
-  'mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg', 'ts', 'm2ts'
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff', 'tif', 'heic', 'heif', 'avif',
+    'mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg', 'ts', 'm2ts'
 )
 
 
 function Select-FolderDialog {
-  [CmdletBinding()]
-  [OutputType([string])]
-  param()
-  process {
-    Add-Type -AssemblyName System.Windows.Forms
-    $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-    $dialog.Description = 'Select the folder to deduplicate'
-    $dialog.ShowNewFolderButton = $false
-    try {
-      if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
-        throw 'No folder selected.'
-      }
-      $dialog.SelectedPath
-    } finally {
-      $dialog.Dispose()
+    [CmdletBinding()]
+    [OutputType([string])]
+    param()
+    process {
+        Add-Type -AssemblyName System.Windows.Forms
+        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.Description = 'Select the folder to deduplicate'
+        $dialog.ShowNewFolderButton = $false
+        try {
+            if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
+                throw 'No folder selected.'
+            }
+            $dialog.SelectedPath
+        }
+        finally {
+            $dialog.Dispose()
+        }
     }
-  }
 }
 
 
 function Resolve-Tool {
-  [CmdletBinding()]
-  [OutputType([string])]
-  param(
-    [Parameter(Mandatory)]
-    [string[]]$Name
-  )
-  process {
-    foreach ($candidate in $Name) {
-      $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue |
-        Select-Object -First 1
-      if ($command) {
-        $command.Source
-        return
-      }
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Name
+    )
+    process {
+        foreach ($candidate in $Name) {
+            $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($command) {
+                $command.Source
+                return
+            }
+        }
+        throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
     }
-    throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
-  }
 }
 
 
 function Write-Phase {
-  [CmdletBinding()]
-  param([Parameter(Mandatory)][string]$Message)
-  process {
-    Write-Host ''
-    Write-Host "==> $Message" -ForegroundColor Cyan
-  }
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Message)
+    process {
+        Write-Host ''
+        Write-Host "==> $Message" -ForegroundColor Cyan
+    }
 }
 
 
@@ -163,199 +165,205 @@ $binaryUnits = @{ B = 1; KiB = 1024; MiB = 1024 * 1024; GiB = 1024 * 1024 * 1024
 
 
 function Get-ReclaimedByteCount {
-  [CmdletBinding()]
-  [OutputType([double])]
-  param(
-    [Parameter(Mandatory)][string]$Text,
-    [Parameter(Mandatory)][string]$Pattern,
-    [Parameter(Mandatory)][hashtable]$Units
-  )
-  process {
-    $match = [regex]::Match($Text, $Pattern)
-    if (-not $match.Success) {
-      return 0.0
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Mandatory)][string]$Text,
+        [Parameter(Mandatory)][string]$Pattern,
+        [Parameter(Mandatory)][hashtable]$Units
+    )
+    process {
+        $match = [regex]::Match($Text, $Pattern)
+        if (-not $match.Success) {
+            return 0.0
+        }
+        [double]$match.Groups[1].Value * $Units[$match.Groups[2].Value]
     }
-    [double]$match.Groups[1].Value * $Units[$match.Groups[2].Value]
-  }
 }
 
 
 function Invoke-ToolAboveNormal {
-  [CmdletBinding()]
-  [OutputType([PSCustomObject])]
-  param(
-    [Parameter(Mandatory)][string]$FilePath,
-    [Parameter(Mandatory)][string[]]$ArgumentList,
-    [string]$StandardInputPath
-  )
-  process {
-    $stdOutFile = [System.IO.Path]::GetTempFileName()
-    $stdErrFile = [System.IO.Path]::GetTempFileName()
-    try {
-      $startArgs = @{
-        FilePath               = $FilePath
-        ArgumentList           = $ArgumentList
-        NoNewWindow            = $true
-        PassThru               = $true
-        RedirectStandardOutput = $stdOutFile
-        RedirectStandardError  = $stdErrFile
-      }
-      if ($StandardInputPath) {
-        $startArgs.RedirectStandardInput = $StandardInputPath
-      }
-      $proc = Start-Process @startArgs
-      try {
-        $proc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
-      } catch {
-        Write-Verbose "Could not raise priority for $FilePath (PID $($proc.Id)): $($_.Exception.Message)"
-      }
-
-      # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
-      # child process and does not inherit our priority bump, so poll for it
-      # and raise it too for as long as the parent tool is still running.
-      while (-not $proc.HasExited) {
-        Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue |
-          Where-Object { $_.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal } |
-          ForEach-Object {
-            $ffmpegProc = $_
-            try {
-              $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
-            } catch {
-              Write-Verbose "Could not raise priority for ffmpeg (PID $($ffmpegProc.Id)): $($_.Exception.Message)"
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [Parameter(Mandatory)][string[]]$ArgumentList,
+        [string]$StandardInputPath
+    )
+    process {
+        $stdOutFile = [System.IO.Path]::GetTempFileName()
+        $stdErrFile = [System.IO.Path]::GetTempFileName()
+        try {
+            $startArgs = @{
+                FilePath               = $FilePath
+                ArgumentList           = $ArgumentList
+                NoNewWindow            = $true
+                PassThru               = $true
+                RedirectStandardOutput = $stdOutFile
+                RedirectStandardError  = $stdErrFile
             }
-          }
-        Start-Sleep -Milliseconds 250
-      }
+            if ($StandardInputPath) {
+                $startArgs.RedirectStandardInput = $StandardInputPath
+            }
+            $proc = Start-Process @startArgs
+            try {
+                $proc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+            }
+            catch {
+                Write-Verbose "Could not raise priority for $FilePath (PID $($proc.Id)): $($_.Exception.Message)"
+            }
 
-      [PSCustomObject]@{
-        Output   = @(Get-Content -LiteralPath $stdOutFile -ErrorAction SilentlyContinue) +
-                    @(Get-Content -LiteralPath $stdErrFile -ErrorAction SilentlyContinue)
-        ExitCode = $proc.ExitCode
-      }
-    } finally {
-      Remove-Item -LiteralPath $stdOutFile, $stdErrFile -ErrorAction SilentlyContinue
+            # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
+            # child process and does not inherit our priority bump, so poll for it
+            # and raise it too for as long as the parent tool is still running.
+            while (-not $proc.HasExited) {
+                Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue |
+                    Where-Object { $_.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal } |
+                    ForEach-Object {
+                        $ffmpegProc = $_
+                        try {
+                            $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+                        }
+                        catch {
+                            Write-Verbose "Could not raise priority for ffmpeg (PID $($ffmpegProc.Id)): $($_.Exception.Message)"
+                        }
+                    }
+                Start-Sleep -Milliseconds 250
+            }
+
+            [PSCustomObject]@{
+                Output   = @(Get-Content -LiteralPath $stdOutFile -ErrorAction SilentlyContinue) +
+                @(Get-Content -LiteralPath $stdErrFile -ErrorAction SilentlyContinue)
+                ExitCode = $proc.ExitCode
+            }
+        }
+        finally {
+            Remove-Item -LiteralPath $stdOutFile, $stdErrFile -ErrorAction SilentlyContinue
+        }
     }
-  }
 }
 
 
 function Invoke-FclonesPass {
-  [CmdletBinding()]
-  [OutputType([double])]
-  param(
-    [Parameter(Mandatory)][string]$Tool,
-    [Parameter(Mandatory)][string]$TargetPath,
-    [Parameter(Mandatory)][string[]]$NameGlob,
-    [Parameter(Mandatory)][string]$ReportPath,
-    [Parameter(Mandatory)][bool]$DryRun
-  )
-  process {
-    Write-Phase "fclones: scanning for exact duplicates in $TargetPath"
-    $groupResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList @('group', '--output', $ReportPath, $TargetPath)
-    $groupResult.Output | ForEach-Object { Write-Host $_ }
-    if ($groupResult.ExitCode -ne 0) {
-      throw "fclones group failed (exit $($groupResult.ExitCode))."
-    }
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Mandatory)][string]$Tool,
+        [Parameter(Mandatory)][string]$TargetPath,
+        [Parameter(Mandatory)][string[]]$NameGlob,
+        [Parameter(Mandatory)][string]$ReportPath,
+        [Parameter(Mandatory)][bool]$DryRun
+    )
+    process {
+        Write-Phase "fclones: scanning for exact duplicates in $TargetPath"
+        $groupResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList @('group', '--output', $ReportPath, $TargetPath)
+        $groupResult.Output | ForEach-Object { Write-Host $_ }
+        if ($groupResult.ExitCode -ne 0) {
+            throw "fclones group failed (exit $($groupResult.ExitCode))."
+        }
 
-    $removeArgs = [System.Collections.Generic.List[string]]::new()
-    $removeArgs.Add('remove')
-    if ($DryRun) {
-      $removeArgs.Add('--dry-run')
-    }
-    foreach ($glob in $NameGlob) {
-      $removeArgs.Add('--name')
-      $removeArgs.Add($glob)
-    }
+        $removeArgs = [System.Collections.Generic.List[string]]::new()
+        $removeArgs.Add('remove')
+        if ($DryRun) {
+            $removeArgs.Add('--dry-run')
+        }
+        foreach ($glob in $NameGlob) {
+            $removeArgs.Add('--name')
+            $removeArgs.Add($glob)
+        }
 
-    if ($DryRun) {
-      Write-Phase 'fclones: previewing removals (nothing deleted)'
-    } else {
-      Write-Phase 'fclones: removing exact duplicates'
-    }
-    $removeResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $removeArgs -StandardInputPath $ReportPath
-    $removeResult.Output | ForEach-Object { Write-Host $_ }
-    if ($removeResult.ExitCode -ne 0) {
-      throw "fclones remove failed (exit $($removeResult.ExitCode))."
-    }
+        if ($DryRun) {
+            Write-Phase 'fclones: previewing removals (nothing deleted)'
+        }
+        else {
+            Write-Phase 'fclones: removing exact duplicates'
+        }
+        $removeResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $removeArgs -StandardInputPath $ReportPath
+        $removeResult.Output | ForEach-Object { Write-Host $_ }
+        if ($removeResult.ExitCode -ne 0) {
+            throw "fclones remove failed (exit $($removeResult.ExitCode))."
+        }
 
-    # e.g. "Would process 1 files and reclaim 100.0 KB space" / "Processed 1 files and reclaimed 100.0 KB space"
-    Get-ReclaimedByteCount -Text ($removeResult.Output -join "`n") -Pattern 'reclaim(?:ed)? ([\d.]+) (B|KB|MB|GB|TB) space' -Units $decimalUnits
-  }
+        # e.g. "Would process 1 files and reclaim 100.0 KB space" / "Processed 1 files and reclaimed 100.0 KB space"
+        Get-ReclaimedByteCount -Text ($removeResult.Output -join "`n") -Pattern 'reclaim(?:ed)? ([\d.]+) (B|KB|MB|GB|TB) space' -Units $decimalUnits
+    }
 }
 
 
 function Invoke-CzkawkaPass {
-  [CmdletBinding()]
-  [OutputType([double])]
-  param(
-    [Parameter(Mandatory)][string]$Tool,
-    [Parameter(Mandatory)][ValidateSet('image', 'video', 'dup', 'empty-files')][string]$Mode,
-    [Parameter(Mandatory)][string]$TargetPath,
-    [int]$Threshold,
-    [int]$WindowCount,
-    [string[]]$AllowedExtensions,
-    [Parameter(Mandatory)][string]$ReportPath,
-    [Parameter(Mandatory)][bool]$DryRun
-  )
-  process {
-    $label = switch ($Mode) {
-      'image' { 'similar images' }
-      'video' { 'similar videos' }
-      'dup' { 'duplicate files (hash)' }
-      'empty-files' { 'empty files' }
-    }
-    Write-Phase "czkawka: scanning for $label in $TargetPath"
+    [CmdletBinding()]
+    [OutputType([double])]
+    param(
+        [Parameter(Mandatory)][string]$Tool,
+        [Parameter(Mandatory)][ValidateSet('image', 'video', 'dup', 'empty-files')][string]$Mode,
+        [Parameter(Mandatory)][string]$TargetPath,
+        [int]$Threshold,
+        [int]$WindowCount,
+        [string[]]$AllowedExtensions,
+        [Parameter(Mandatory)][string]$ReportPath,
+        [Parameter(Mandatory)][bool]$DryRun
+    )
+    process {
+        $label = switch ($Mode) {
+            'image' { 'similar images' }
+            'video' { 'similar videos' }
+            'dup' { 'duplicate files (hash)' }
+            'empty-files' { 'empty files' }
+        }
+        Write-Phase "czkawka: scanning for $label in $TargetPath"
 
-    $cliArgs = [System.Collections.Generic.List[string]]::new()
-    $cliArgs.Add($Mode)
-    $cliArgs.Add('--directories'); $cliArgs.Add($TargetPath)
-    foreach ($ext in $AllowedExtensions) {
-      $cliArgs.Add('--allowed-extensions')
-      $cliArgs.Add($ext)
-    }
-    switch ($Mode) {
-      'image' { $cliArgs.Add('--max-difference'); $cliArgs.Add([string]$Threshold) }
-      'video' {
-        $cliArgs.Add('--tolerance'); $cliArgs.Add([string]$Threshold)
-        $cliArgs.Add('--window-count'); $cliArgs.Add([string]$WindowCount)
-      }
-    }
-    $cliArgs.Add('--file-to-save'); $cliArgs.Add($ReportPath)
-    $cliArgs.Add('--ignore-error-code-on-found')
-    if ($Mode -eq 'empty-files') {
-      $cliArgs.Add('--delete-files')
-    } else {
-      # AEN = keep the newest file in each group, remove the rest.
-      $cliArgs.Add('--delete-method'); $cliArgs.Add('AEN')
-    }
-    if ($DryRun) {
-      $cliArgs.Add('--dry-run')
-    } else {
-      # Move matches to the Recycle Bin instead of permanent deletion.
-      $cliArgs.Add('--move-to-trash')
-    }
+        $cliArgs = [System.Collections.Generic.List[string]]::new()
+        $cliArgs.Add($Mode)
+        $cliArgs.Add('--directories'); $cliArgs.Add($TargetPath)
+        foreach ($ext in $AllowedExtensions) {
+            $cliArgs.Add('--allowed-extensions')
+            $cliArgs.Add($ext)
+        }
+        switch ($Mode) {
+            'image' { $cliArgs.Add('--max-difference'); $cliArgs.Add([string]$Threshold) }
+            'video' {
+                $cliArgs.Add('--tolerance'); $cliArgs.Add([string]$Threshold)
+                $cliArgs.Add('--window-count'); $cliArgs.Add([string]$WindowCount)
+            }
+        }
+        $cliArgs.Add('--file-to-save'); $cliArgs.Add($ReportPath)
+        $cliArgs.Add('--ignore-error-code-on-found')
+        if ($Mode -eq 'empty-files') {
+            $cliArgs.Add('--delete-files')
+        }
+        else {
+            # AEN = keep the newest file in each group, remove the rest.
+            $cliArgs.Add('--delete-method'); $cliArgs.Add('AEN')
+        }
+        if ($DryRun) {
+            $cliArgs.Add('--dry-run')
+        }
+        else {
+            # Move matches to the Recycle Bin instead of permanent deletion.
+            $cliArgs.Add('--move-to-trash')
+        }
 
-    $result = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $cliArgs
-    $result.Output | ForEach-Object { Write-Host $_ }
-    # czkawka returns non-zero when it finds matches; -W keeps that at 0.
-    if ($result.ExitCode -ne 0) {
-      throw "czkawka $Mode failed (exit $($result.ExitCode))."
-    }
-    Write-Host "    report: $ReportPath" -ForegroundColor DarkGray
+        $result = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $cliArgs
+        $result.Output | ForEach-Object { Write-Host $_ }
+        # czkawka returns non-zero when it finds matches; -W keeps that at 0.
+        if ($result.ExitCode -ne 0) {
+            throw "czkawka $Mode failed (exit $($result.ExitCode))."
+        }
+        Write-Host "    report: $ReportPath" -ForegroundColor DarkGray
 
-    # e.g. "Found 1 duplicated files which in 1 groups which takes 97.66 KiB."
-    Get-ReclaimedByteCount -Text ($result.Output -join "`n") -Pattern 'which takes ([\d.]+) (B|KiB|MiB|GiB|TiB)' -Units $binaryUnits
-  }
+        # e.g. "Found 1 duplicated files which in 1 groups which takes 97.66 KiB."
+        Get-ReclaimedByteCount -Text ($result.Output -join "`n") -Pattern 'which takes ([\d.]+) (B|KiB|MiB|GiB|TiB)' -Units $binaryUnits
+    }
 }
 
 
 if (-not $PSBoundParameters.ContainsKey('Path')) {
-  $Path = Select-FolderDialog
+    $Path = Select-FolderDialog
 }
 
 $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
 if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
-  throw "Path is not a folder: $resolvedPath"
+    throw "Path is not a folder: $resolvedPath"
 }
 
 $fclones = Resolve-Tool -Name 'fclones'
@@ -363,22 +371,22 @@ $czkawka = Resolve-Tool -Name 'czkawka_cli', 'windows_czkawka_cli'
 
 $dryRun = -not $Apply
 if ($WhatIfPreference) {
-  $dryRun = $true
+    $dryRun = $true
 }
 
 if (-not $dryRun -and -not $Force) {
-  $target = "Delete duplicate media under '$resolvedPath'"
-  $caption = 'Confirm deletion'
-  $warning = "Exact duplicates are removed permanently; fuzzy matches go to the Recycle Bin.`nContinue?"
-  if (-not $PSCmdlet.ShouldProcess($target, $caption) -or
-      -not $PSCmdlet.ShouldContinue($warning, $caption)) {
-    Write-Warning 'Aborted by user.'
-    return
-  }
+    $target = "Delete duplicate media under '$resolvedPath'"
+    $caption = 'Confirm deletion'
+    $warning = "Exact duplicates are removed permanently; fuzzy matches go to the Recycle Bin.`nContinue?"
+    if (-not $PSCmdlet.ShouldProcess($target, $caption) -or
+        -not $PSCmdlet.ShouldContinue($warning, $caption)) {
+        Write-Warning 'Aborted by user.'
+        return
+    }
 }
 
 if ($dryRun) {
-  Write-Host 'PREVIEW MODE - no files will be deleted. Re-run with -Apply to act.' -ForegroundColor Yellow
+    Write-Host 'PREVIEW MODE - no files will be deleted. Re-run with -Apply to act.' -ForegroundColor Yellow
 }
 
 $reportDir = Join-Path -Path $env:TEMP -ChildPath 'dedupe-media'
@@ -387,46 +395,48 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $reclaimedBytes = 0.0
 
 if (-not $SkipExact) {
-  $mediaGlob = [System.Collections.Generic.List[string]]::new()
-  foreach ($ext in $mediaExtensions) {
-    $mediaGlob.Add("*.$ext")
-  }
-  $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
-    -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
+    $mediaGlob = [System.Collections.Generic.List[string]]::new()
+    foreach ($ext in $mediaExtensions) {
+        $mediaGlob.Add("*.$ext")
+    }
+    $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
+        -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
 }
 
 if (-not $SkipDup) {
-  $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-    -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
+    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
+        -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
 }
 
 if (-not $SkipImages) {
-  $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
-    -Threshold $ImageDifference -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
+    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
+        -Threshold $ImageDifference -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
 }
 
 if (-not $SkipVideos) {
-  $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
-    -Threshold $VideoTolerance -WindowCount $VideoWindowCount `
-    -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
+    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
+        -Threshold $VideoTolerance -WindowCount $VideoWindowCount `
+        -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
 }
 
 if (-not $SkipEmptyFiles) {
-  $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'empty-files' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-    -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
+    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'empty-files' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
+        -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
 }
 
 Write-Host ''
 if ($dryRun) {
-  Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
-  Write-Host '(Preview totals may double-count exact duplicates: fclones only simulates removal in a dry run, so the later czkawka dup pass still sees and reports the same files.)' -ForegroundColor DarkGray
-} else {
-  Write-Host "Space freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
+    Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
+    Write-Host '(Preview totals may double-count exact duplicates: fclones only simulates removal in a dry run, so the later czkawka dup pass still sees and reports the same files.)' -ForegroundColor DarkGray
+}
+else {
+    Write-Host "Space freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
 }
 
 Write-Host ''
 if ($dryRun) {
-  Write-Host 'Preview complete. Review the reports above, then re-run with -Apply.' -ForegroundColor Green
-} else {
-  Write-Host 'Deduplication complete.' -ForegroundColor Green
+    Write-Host 'Preview complete. Review the reports above, then re-run with -Apply.' -ForegroundColor Green
+}
+else {
+    Write-Host 'Deduplication complete.' -ForegroundColor Green
 }

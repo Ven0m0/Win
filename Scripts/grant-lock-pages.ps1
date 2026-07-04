@@ -18,13 +18,13 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 
 $ErrorActionPreference = 'Stop'
 $priv = 'SeLockMemoryPrivilege'
-$sid  = ([Security.Principal.NTAccount]"$env:USERNAME").Translate([Security.Principal.SecurityIdentifier]).Value
+$sid = ([Security.Principal.NTAccount]"$env:USERNAME").Translate([Security.Principal.SecurityIdentifier]).Value
 Write-Host "Account: $env:USERNAME  ($sid)"
 
 $work = Join-Path $env:TEMP 'lpim_grant'
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $inf = Join-Path $work 'userrights.inf'
-$db  = Join-Path $work 'userrights.sdb'
+$db = Join-Path $work 'userrights.sdb'
 
 secedit /export /areas USER_RIGHTS /cfg $inf | Out-Null
 $content = Get-Content $inf
@@ -37,7 +37,8 @@ $new = foreach ($l in $content) {
         $sids = ($l -split '=', 2)[1].Trim()
         if ($sids -match [regex]::Escape($sid)) { $already = $true; $l }
         else { "$priv = $sids,*$sid" }
-    } else { $l }
+    }
+    else { $l }
 }
 if (-not $found) {
     $new = foreach ($l in $content) {
@@ -48,7 +49,8 @@ if (-not $found) {
 
 if ($already) {
     Write-Host "Already granted to $env:USERNAME. No change needed." -ForegroundColor Green
-} else {
+}
+else {
     Set-Content -Path $inf -Value $new -Encoding Unicode
     secedit /configure /db $db /cfg $inf /areas USER_RIGHTS | Out-Null
     Write-Host "Granted '$priv' to $env:USERNAME." -ForegroundColor Green
