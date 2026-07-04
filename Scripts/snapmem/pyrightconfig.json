@@ -1,0 +1,10 @@
+{
+  "include": ["snap-mem.py", "test_snap_mem.py"],
+  "typeCheckingMode": "standard",
+  "reportAny": false,
+  "reportUnusedCallResult": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownVariableType": false,
+  "reportUnknownArgumentType": false,
+  "reportUnknownParameterType": false
+}
