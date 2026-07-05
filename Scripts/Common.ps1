@@ -1828,7 +1828,8 @@ function vdf_mkdir {
     [CmdletBinding()]
     param($vdf, [string]$path = '')
     $s = $path -split '\\', 2
-    $key, $recurse = $s[0], $s.Count -gt 1 ? $s[1] : $null
+    $key = $s[0]
+    $recurse = if ($s.Count -gt 1) { $s[1] } else { $null }
     if ($key -and $vdf.Keys -notcontains $key) { $vdf[$key] = [ordered]@{} }
     if ($recurse) { vdf_mkdir $vdf[$key] $recurse }
 }

@@ -58,7 +58,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `fix-system.ps1`              | Repair hub (`-Action System\|WindowsUpdate\|All`)            |
 | `DLSS-force-latest.ps1`       | Force latest DLSS version across games                       |
 | `New-SteamShortcut.ps1`       | Steam shortcut creator                                       |
-| `encode-av1.ps1`              | Batch-encode MP4 → AV1/Opus MKV                              |
+| `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp) + encode video to H.265/Opus |
 
 ## High-Signal Rules
 
