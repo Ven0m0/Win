@@ -11,11 +11,11 @@
         result is smaller (jpegoptim's default behavior; see -Force).
       - WEBP -> cwebp -q<ImageQuality>. Result size is compared manually and
         the original is kept unless the result is smaller (see -Force).
-    Videos are re-encoded to H.265 MKV with stereo Opus audio, preferring
-    hevc_nvenc for speed and falling back to libx265 on the CPU. Files
-    already named "*.h265.mkv" are treated as prior output and skipped as
-    sources. Automatically prefers ffzap for parallel encoding when
-    available; falls back to sequential ffmpeg.
+    Videos are re-encoded to H.265 MP4 (10-bit, hvc1 tag, faststart) with
+    stereo Opus audio via libx265 on the CPU. Files already named
+    "*.h265.mp4" are treated as prior output and skipped as sources.
+    Automatically prefers ffzap for parallel encoding when available; falls
+    back to sequential ffmpeg.
     Progress for both passes is shown via Write-Progress.
 .PARAMETER Path
     Folder to scan recursively. If omitted, a folder picker dialog opens.
@@ -29,14 +29,10 @@
 .PARAMETER ImageQuality
     JPEG/WEBP quality factor, 0 (worst) to 100 (best). Default 90. PNG is
     always lossless regardless of this value.
-.PARAMETER VideoEncoder
-    Auto (default, prefers hevc_nvenc when an NVIDIA GPU is detected), NVENC,
-    or CPU (libx265).
 .PARAMETER VideoQuality
-    Constant-quality factor for the video encoder (cq for NVENC, crf for
-    libx265), 0 (best/largest) to 51 (worst/smallest). Default 23.
+    libx265 crf, 0 (best/largest) to 51 (worst/smallest). Default 24.
 .PARAMETER AudioBitrate
-    Opus audio bitrate. Default 96k.
+    Opus audio bitrate. Default 128k.
 .PARAMETER VideoTool
     Auto (default, prefers ffzap when available), FFmpeg, or FFzap.
 .PARAMETER Threads
@@ -46,8 +42,6 @@
     overwrite existing video outputs.
 .EXAMPLE
     .\optimize-media.ps1 -Path 'D:\Pictures'
-.EXAMPLE
-    .\optimize-media.ps1 -Path 'D:\Videos' -SkipImages -VideoEncoder CPU
 .EXAMPLE
     .\optimize-media.ps1 -Help
     Show full help and exit.
@@ -62,11 +56,9 @@ param (
     [switch]$SkipVideo,
     [ValidateRange(0, 100)]
     [int]$ImageQuality = 90,
-    [ValidateSet('Auto', 'NVENC', 'CPU')]
-    [string]$VideoEncoder = 'Auto',
     [ValidateRange(0, 51)]
-    [int]$VideoQuality = 23,
-    [string]$AudioBitrate = '96k',
+    [int]$VideoQuality = 24,
+    [string]$AudioBitrate = '128k',
     [ValidateSet('Auto', 'FFmpeg', 'FFzap')]
     [string]$VideoTool = 'Auto',
     [int]$Threads = 4,
@@ -95,6 +87,14 @@ if ($Help -or $Path -in @('-h', '--help', '/?')) {
 }
 
 $videoExtensions = @('mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'wmv', 'flv', 'mpg', 'mpeg', 'ts', 'm2ts')
+
+# Quality-preserving libx265 tuning: no spaces so the string survives the ffzap -join ' '.
+# sao=0: SAO's edge/band smoothing fights psy-rd's detail retention, so it stays off rather
+# than lowering psy-rd. rc-lookahead raised from the preset default to give bframes=8 more
+# frames to plan against.
+$x265Params = 'aq-mode=3:aq-strength=0.8:qcomp=0.7:rd=4:rdoq-level=2:bframes=8:ref=5:' +
+    'limit-refs=1:strong-intra-smoothing=1:deblock=-1,-1:me=3:subme=5:psy-rd=2.0:psy-rdoq=1.0:' +
+    'sao=0:rc-lookahead=48'
 
 
 function Select-FolderDialog {
@@ -185,37 +185,6 @@ function Resolve-VideoTool {
             throw 'ffmpeg not found in PATH. Install via: winget install Gyan.FFmpeg.Shared'
         }
         return 'ffmpeg'
-    }
-}
-
-
-function Resolve-VideoEncoderArgument {
-    [CmdletBinding()]
-    [OutputType([string[]])]
-    <#
-    .SYNOPSIS
-        Returns the ffmpeg video-codec arguments for the chosen encoder.
-    .PARAMETER Encoder
-        Auto, NVENC, or CPU.
-    .PARAMETER Quality
-        Constant-quality factor (cq for NVENC, crf for libx265).
-    #>
-    param(
-        [string]$Encoder = 'Auto',
-        [Parameter(Mandatory)][int]$Quality
-    )
-    process {
-        $useNvenc = switch ($Encoder) {
-            'NVENC' { $true }
-            'CPU' { $false }
-            default { [bool](Get-Command nvidia-smi -ErrorAction SilentlyContinue) }
-        }
-        if ($useNvenc) {
-            Write-Host 'Video encoder : hevc_nvenc (GPU)' -ForegroundColor Cyan
-            return @('-c:v', 'hevc_nvenc', '-preset', 'p5', '-cq', "$Quality", '-b:v', '0')
-        }
-        Write-Host 'Video encoder : libx265 (CPU)' -ForegroundColor Cyan
-        return @('-c:v', 'libx265', '-preset', 'medium', '-crf', "$Quality")
     }
 }
 
@@ -316,13 +285,13 @@ function Invoke-VideoPass {
     [OutputType([int])]
     <#
     .SYNOPSIS
-        Re-encodes video files to H.265/Opus MKV and returns the failure count.
+        Re-encodes video files to H.265/Opus MP4 and returns the failure count.
     .PARAMETER TargetPath
         Folder to scan recursively.
     .PARAMETER Tool
         'ffzap' or 'ffmpeg'.
     .PARAMETER EncoderArgs
-        ffmpeg video-codec arguments from Resolve-VideoEncoderArgument.
+        ffmpeg libx265 video-codec arguments (see $x265Params).
     .PARAMETER AudioBitrate
         Opus audio bitrate.
     .PARAMETER Threads
@@ -341,7 +310,7 @@ function Invoke-VideoPass {
     process {
         $files = @(Get-ChildItem -Path $TargetPath -Recurse -File | Where-Object {
                 ($videoExtensions -contains $_.Extension.TrimStart('.').ToLowerInvariant()) -and
-                ($_.Name -notmatch '\.h265\.mkv$')
+                ($_.Name -notmatch '\.h265\.mp4$')
             })
 
         if ($files.Count -eq 0) {
@@ -358,7 +327,7 @@ function Invoke-VideoPass {
             Write-Progress -Activity 'Re-encoding videos' -Status "$($file.Name) ($i/$($files.Count))" `
                 -PercentComplete (($i / $files.Count) * 100)
 
-            $output = Join-Path $file.DirectoryName "$($file.BaseName).h265.mkv"
+            $output = Join-Path $file.DirectoryName "$($file.BaseName).h265.mp4"
 
             $existingOutput = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
             if ($existingOutput -and -not $Force) {
@@ -374,7 +343,10 @@ function Invoke-VideoPass {
             if ($Tool -eq 'ffzap') {
                 # ffzap writes its status text to stdout, which PowerShell would otherwise fold into
                 # this function's captured return value; route it through Write-Host instead.
-                $ffArgs = ($EncoderArgs + @('-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2')) -join ' '
+                $ffArgs = ($EncoderArgs + @(
+                        '-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2', '-vbr', 'on',
+                        '-compression_level', '10', '-application', 'audio', '-movflags', '+faststart'
+                    )) -join ' '
                 & ffzap -t $Threads --overwrite --eta -i $file.FullName -f $ffArgs -o $output |
                     ForEach-Object { Write-Host $_ }
             }
@@ -383,7 +355,8 @@ function Invoke-VideoPass {
                 # so it must stay unredirected here: 2>&1 combined with $ErrorActionPreference = 'Stop'
                 # would turn ffmpeg's normal stderr banner into a terminating error.
                 $overwriteFlag = if ($Force) { '-y' } else { '-n' }
-                & ffmpeg $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 $output
+                & ffmpeg $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 `
+                    -vbr on -compression_level 10 -application audio -movflags +faststart $output
             }
 
             $outputOk = ($LASTEXITCODE -eq 0) -and (Test-Path -LiteralPath $output) -and
@@ -393,7 +366,7 @@ function Invoke-VideoPass {
                 $errors++
             }
             else {
-                Write-Host "  [ OK ] $($file.BaseName).h265.mkv" -ForegroundColor Green
+                Write-Host "  [ OK ] $($file.BaseName).h265.mp4" -ForegroundColor Green
             }
         }
         Write-Progress -Activity 'Re-encoding videos' -Completed
@@ -420,7 +393,10 @@ if (-not $SkipImages) {
 
 if (-not $SkipVideo) {
     $tool = Resolve-VideoTool -Preference $VideoTool
-    $encoderArgs = Resolve-VideoEncoderArgument -Encoder $VideoEncoder -Quality $VideoQuality
+    $encoderArgs = @(
+        '-c:v', 'libx265', '-preset', 'slow', '-crf', "$VideoQuality",
+        '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-x265-params', $x265Params
+    )
     $videoErrors = Invoke-VideoPass -TargetPath $resolvedPath -Tool $tool -EncoderArgs $encoderArgs `
         -AudioBitrate $AudioBitrate -Threads $Threads -Force:$Force
 }
