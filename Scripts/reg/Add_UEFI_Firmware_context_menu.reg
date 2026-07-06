@@ -1,9 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\DesktopBackground\Shell\Firmware]
-@="Restart to UEFI Firmware Settings"
-"Icon"="shell32.dll,79"
-"Position"="Bottom"
-
-[HKEY_CLASSES_ROOT\DesktopBackground\Shell\Firmware\command]
-@="shutdown.exe /r /fw /t 0"
