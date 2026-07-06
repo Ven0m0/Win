@@ -12,3 +12,6 @@ nestedVirtualization=true
 # Enable experimental features
 experimental.autoMemoryReclaim=true
 experimental.sparseVhd=true
+
+# Cap virtual disk growth
+defaultVhdSize=256GB

@@ -7,6 +7,8 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
     [System.Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', 'true' `
         , [System.EnvironmentVariableTarget]::Machine)
 }
+$env:DOTNET_CLI_TELEMETRY_OPTOUT = 'true'
+$env:VCPKG_DISABLE_METRICS = 'true'
 
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
     . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Out-String)))

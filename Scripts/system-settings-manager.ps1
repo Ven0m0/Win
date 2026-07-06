@@ -173,6 +173,191 @@ function Enable-KeyboardShortcut {
 #endregion
 
 
+#region Security Hardening
+function Set-SecurityHardening {
+    <#
+  .SYNOPSIS
+      Applies network/credential security hardening tweaks
+  .PARAMETER IncludeOptInExtra
+      Also apply opt-in extras that trade compatibility for security:
+      SMB AES-256 cipher preference and disabling default admin shares
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [switch]$IncludeOptInExtra
+    )
+
+    Clear-Host
+    Write-Host "Applying Security Hardening..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [*] Disabling SMB1..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1" `
+        -Type REG_DWORD -Data "0"
+
+    Write-Host "  [*] Enforcing SMB signing..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+        -Name "RequireSecuritySignature" -Type REG_DWORD -Data "1"
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+        -Name "EnableSecuritySignature" -Type REG_DWORD -Data "1"
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -Name "RequireSecuritySignature" -Type REG_DWORD -Data "1"
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -Name "EnableSecuritySignature" -Type REG_DWORD -Data "1"
+
+    Write-Host "  [*] Disabling WPAD..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Wpad" `
+        -Name "WpadOverride" -Type REG_DWORD -Data "1"
+
+    Write-Host "  [*] Disabling LLMNR..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\Software\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" `
+        -Type REG_DWORD -Data "0"
+
+    Write-Host "  [*] Disabling WDigest cleartext credential caching..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Control\SecurityProviders\Wdigest" `
+        -Name "UseLogonCredential" -Type REG_DWORD -Data "0"
+
+    if ($IncludeOptInExtra) {
+        Write-Host "  [*] Preferring SMB AES-256 ciphers..." -ForegroundColor Gray
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+            -Name "CipherSuiteOrder" -Type REG_MULTI_SZ -Data "AES_256_GCM\0AES_256_CCM"
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+            -Name "CipherSuiteOrder" -Type REG_MULTI_SZ -Data "AES_256_GCM\0AES_256_CCM"
+
+        Write-Host "  [*] Disabling default admin shares..." -ForegroundColor Gray
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+            -Name "AutoShareServer" -Type REG_DWORD -Data "0"
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+            -Name "AutoShareWks" -Type REG_DWORD -Data "0"
+    }
+
+    Write-Host ""
+    Write-Host "Security hardening applied." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Note: SMB1/signing changes require a restart to take effect." -ForegroundColor Yellow
+}
+
+function Restore-DefaultSecurityHardening {
+    <#
+  .SYNOPSIS
+      Restores default network/credential security settings
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    Clear-Host
+    Write-Host "Restoring Default Security Settings..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+        -Name "RequireSecuritySignature"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+        -Name "EnableSecuritySignature"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -Name "RequireSecuritySignature"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -Name "EnableSecuritySignature"
+    Remove-RegistryValue -Path "HKLM\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Wpad" `
+        -Name "WpadOverride"
+    Remove-RegistryValue -Path "HKLM\Software\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Control\SecurityProviders\Wdigest" `
+        -Name "UseLogonCredential"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+        -Name "CipherSuiteOrder"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" `
+        -Name "CipherSuiteOrder"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" -Name "AutoShareServer"
+    Remove-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\LanmanServer\Parameters" -Name "AutoShareWks"
+
+    Write-Host ""
+    Write-Host "Default security settings restored." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Note: Some settings require a restart to take effect." -ForegroundColor Yellow
+}
+#endregion
+
+
+#region System Tweaks
+function Set-SystemTweak {
+    <#
+  .SYNOPSIS
+      Applies miscellaneous QoL and Windows 11 feature tweaks
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    Clear-Host
+    Write-Host "Applying System Tweaks..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [*] Disabling reserved storage..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\ReserveManager" `
+        -Name "ShippedWithReserves" -Type REG_DWORD -Data "0"
+
+    Write-Host "  [*] Enabling full powerdown after shutdown..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" `
+        -Name "PowerdownAfterShutdown" -Type REG_DWORD -Data "1"
+
+    Write-Host "  [*] Enabling NumLock on startup..." -ForegroundColor Gray
+    Set-RegistryValue -Path "Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard" -Name "InitialKeyboardIndicators" `
+        -Type REG_SZ -Data "2147483650"
+
+    Write-Host "  [*] Disabling drive autorun..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" `
+        -Name "NoDriveTypeAutoRun" -Type REG_DWORD -Data "255"
+
+    Write-Host "  [*] Skipping app relaunch after update reboot..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "RestartApps" `
+        -Type REG_DWORD -Data "0"
+
+    Write-Host "  [*] Fixing multi-monitor cursor deadzone jumping..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKCU\Control Panel\Cursors" -Name "CursorDeadzoneJumpingSetting" `
+        -Type REG_DWORD -Data "0"
+
+    Write-Host "  [*] Enabling scroll-inactive-window-under-cursor..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKCU\Control Panel\Desktop" -Name "MouseWheelRouting" -Type REG_DWORD -Data "0"
+
+    $osVersion = [Environment]::OSVersion.Version
+    if ($osVersion.Major -eq 10 -and $osVersion.Build -ge 26100) {
+        Write-Host "  [*] Enabling Windows 11 sudo command..." -ForegroundColor Gray
+        Set-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo" -Name "Enabled" `
+            -Type REG_DWORD -Data "1"
+    } else {
+        Write-Verbose "Skipping sudo enable: requires Windows 11 24H2 (build 26100) or later"
+    }
+
+    Write-Host ""
+    Write-Host "System tweaks applied." -ForegroundColor Green
+}
+
+function Restore-DefaultSystemTweak {
+    <#
+  .SYNOPSIS
+      Restores default values for the miscellaneous system tweaks
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    Clear-Host
+    Write-Host "Restoring Default System Tweaks..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\ReserveManager" -Name "ShippedWithReserves"
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "PowerdownAfterShutdown"
+    Remove-RegistryValue -Path "Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard" -Name "InitialKeyboardIndicators"
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoDriveTypeAutoRun"
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name "RestartApps"
+    Remove-RegistryValue -Path "HKCU\Control Panel\Cursors" -Name "CursorDeadzoneJumpingSetting"
+    Remove-RegistryValue -Path "HKCU\Control Panel\Desktop" -Name "MouseWheelRouting"
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo" -Name "Enabled"
+
+    Write-Host ""
+    Write-Host "Default system tweaks restored." -ForegroundColor Green
+}
+#endregion
+
+
 #region NVIDIA GPU Settings
 function Set-P0State {
     [CmdletBinding(SupportsShouldProcess)]
@@ -373,6 +558,59 @@ function Show-GamingDisplayMenu {
     }
 }
 
+function Show-SecurityMenu {
+    [CmdletBinding()]
+    param()
+    Show-Menu -Title "Security Hardening" -Options @(
+        "Apply Security Hardening"
+        "Apply Security Hardening (incl. opt-in SMB extras)"
+        "Restore Default Settings"
+        "Back to Main Menu"
+    )
+
+    $choice = Get-MenuChoice -Min 1 -Max 4
+
+    switch ($choice) {
+        1 {
+            Set-SecurityHardening
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        2 {
+            Set-SecurityHardening -IncludeOptInExtra
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        3 {
+            Restore-DefaultSecurityHardening
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        4 { return }
+    }
+}
+
+function Show-SystemTweaksMenu {
+    [CmdletBinding()]
+    param()
+    Show-Menu -Title "System Tweaks" -Options @(
+        "Apply System Tweaks"
+        "Restore Default Settings"
+        "Back to Main Menu"
+    )
+
+    $choice = Get-MenuChoice -Min 1 -Max 3
+
+    switch ($choice) {
+        1 {
+            Set-SystemTweak
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        2 {
+            Restore-DefaultSystemTweak
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        3 { return }
+    }
+}
+
 function Show-MainMenu {
     [CmdletBinding()]
     param()
@@ -383,6 +621,8 @@ function Show-MainMenu {
         "MSI Mode Configuration"
         "EDID Override Manager"
         "Gaming Display Optimizations"
+        "Security Hardening"
+        "System Tweaks"
         "Exit"
     )
 }
@@ -398,7 +638,7 @@ function Start-SystemSettingsManager {
 
     while ($true) {
         Show-MainMenu
-        $choice = Get-MenuChoice -Min 1 -Max 7
+        $choice = Get-MenuChoice -Min 1 -Max 9
 
         switch ($choice) {
             1 { Show-PerformanceMenu }
@@ -407,7 +647,9 @@ function Start-SystemSettingsManager {
             4 { Show-MSIMenu }
             5 { Show-EDIDMenu }
             6 { Show-GamingDisplayMenu }
-            7 { exit }
+            7 { Show-SecurityMenu }
+            8 { Show-SystemTweaksMenu }
+            9 { exit }
         }
     }
 }

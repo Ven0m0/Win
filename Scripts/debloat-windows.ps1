@@ -132,6 +132,7 @@ function Disable-WindowsFeature {
         @{ Name = "WorkFolders-Client"; Desc = "Work Folders Client" }
         @{ Name = "WindowsMediaPlayer"; Desc = "Windows Media Player" }
         @{ Name = "Printing-Foundation-InternetPrinting-Client"; Desc = "Internet Printing Client" }
+        @{ Name = "Recall"; Desc = "Windows Recall" }
     )
 
     foreach ($feature in $featuresToDisable) {
@@ -273,6 +274,51 @@ function Invoke-RegistryTweak {
         @{ Path = "HKCU\Control Panel\Desktop";
             Name = "MenuShowDelay"; Value = "50";
             Type = "REG_SZ"; Desc = "Reduce menu show delay"
+        }
+        # Additional privacy hardening
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive";
+            Name = "DisableFileSyncNGSC"; Value = 1;
+            Type = "REG_DWORD"; Desc = "Disable OneDrive file sync"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\System";
+            Name = "EnableSmartScreen"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable SmartScreen"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter";
+            Name = "EnabledV9"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable Edge phishing filter"
+        }
+        @{ Path = "HKLM\SOFTWARE\Microsoft\PolicyManager\default\WiFi";
+            Name = "AllowWiFiHotSpotReporting"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable WiFi Sense hotspot reporting"
+        }
+        @{ Path = "HKLM\SOFTWARE\Microsoft\PolicyManager\default\WiFi";
+            Name = "AllowAutoConnectToWiFiSenseHotspots"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable WiFi Sense auto-connect"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization";
+            Name = "DODownloadMode"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable Delivery Optimization P2P"
+        }
+        @{ Path = "HKCU\Software\Microsoft\Clipboard";
+            Name = "EnableClipboardHistory"; Value = 0;
+            Type = "REG_DWORD"; Desc = "Disable clipboard history"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
+            Name = "LimitDiagnosticLogCollection"; Value = 1;
+            Type = "REG_DWORD"; Desc = "Limit diagnostic log collection"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection";
+            Name = "DisableOneSettingsDownloads"; Value = 1;
+            Type = "REG_DWORD"; Desc = "Disable OneSettings downloads"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\CredUI";
+            Name = "DisablePasswordReveal"; Value = 1;
+            Type = "REG_DWORD"; Desc = "Disable password reveal button"
+        }
+        @{ Path = "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy";
+            Name = "LetAppsRunInBackground"; Value = 2;
+            Type = "REG_DWORD"; Desc = "Restrict apps running in background"
         }
     )
 

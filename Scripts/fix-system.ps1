@@ -8,6 +8,7 @@
     Consolidates two repair tools behind a single -Action switch:
       System         - DISM, SFC (x2), CHKDSK, network, WMI, WU service reset, component cleanup (default)
       WindowsUpdate  - reset WU services/caches/catroot2, re-register DLLs, apply WU registry tweaks
+      DriverCleanup  - remove orphaned/unused driver packages from the driver store
       All            - run System, then WindowsUpdate
 .PARAMETER Action
     Which repair to run. Defaults to System.
@@ -38,7 +39,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('System', 'WindowsUpdate', 'All')]
+  [ValidateSet('System', 'WindowsUpdate', 'DriverCleanup', 'All')]
   [string]$Action = 'System',
   [switch]$QuickScan,
   [switch]$SkipDiskCheck,
@@ -479,7 +480,6 @@ function Clear-UpdateCache {
   $paths = @(
     'C:\Windows\Temp'
     'C:\Windows\Prefetch'
-    'C:\Windows\SoftwareDistribution'
     "$env:ALLUSERSPROFILE\application data\Microsoft\Network\downloader"
   )
 
@@ -494,6 +494,16 @@ function Clear-UpdateCache {
       }
     }
   }
+
+  # Rename (not delete) so SoftwareDistribution matches the recoverable backup
+  # Start-SystemFix already produces for the same directory.
+  $swDistribPath = "$env:SystemRoot\SoftwareDistribution"
+  if (Test-Path -Path $swDistribPath) {
+    $backupName = "SoftwareDistribution-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    if ($PSCmdlet.ShouldProcess($swDistribPath, "Rename to $backupName")) {
+      Rename-Item -Path $swDistribPath -NewName $backupName -Force -ErrorAction SilentlyContinue
+    }
+  }
 }
 
 function Reset-Catroot2 {
@@ -501,14 +511,10 @@ function Reset-Catroot2 {
   param()
 
   $catroot = "$env:SystemRoot\system32\catroot2"
-  if ($PSCmdlet.ShouldProcess($catroot, 'Reset catroot2')) {
-    try {
-      if (Test-Path $catroot) {
-        Remove-Item $catroot -Recurse -Force -ErrorAction SilentlyContinue
-      }
-      $null = New-Item -ItemType Directory -Path $catroot -Force
-    } catch {
-      Write-Warning "Could not reset catroot2 : $_"
+  if (Test-Path $catroot) {
+    $backupName = "CatRoot2-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+    if ($PSCmdlet.ShouldProcess($catroot, "Rename to $backupName")) {
+      Rename-Item -Path $catroot -NewName $backupName -Force -ErrorAction SilentlyContinue
     }
   }
 }
@@ -519,6 +525,8 @@ function Register-WuDll {
 
   $dlls = @(
     'atl.dll'
+    'urlmon.dll'
+    'mshtml.dll'
     'msxml2.dll'
     'msxml3.dll'
     'msxml.dll'
@@ -641,6 +649,18 @@ function Start-WindowsUpdateFix {
   Reset-WUService -Name 'AppReadiness' -StartupType 'manual'
   Reset-WUService -Name 'CryptSvc' -StartupType 'auto'
 
+  foreach ($svcName in @('msiserver', 'appidsvc')) {
+    $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue
+    if ($svc -and $PSCmdlet.ShouldProcess($svcName, 'Stop service')) {
+      Stop-Service -Name $svcName -Force -ErrorAction SilentlyContinue
+    }
+  }
+
+  if ($PSCmdlet.ShouldProcess('TrustedInstaller', 'Set start=auto and start service')) {
+    $null = sc.exe config trustedinstaller start= auto
+    Start-Service -Name 'TrustedInstaller' -ErrorAction SilentlyContinue
+  }
+
   # 2. Clear caches
   Clear-UpdateCache
 
@@ -674,6 +694,21 @@ function Start-WindowsUpdateFix {
 
 
 # ===========================================================================
+# Driver store cleanup
+# ===========================================================================
+function Start-DriverCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
+
+  Write-Information 'Removing orphaned/unused driver packages from the driver store...'
+  if ($PSCmdlet.ShouldProcess('Driver store', 'Clean unused driver packages')) {
+    $null = & rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN
+  }
+  Write-Information 'Driver cleanup complete.'
+}
+
+
+# ===========================================================================
 # Dispatcher
 # ===========================================================================
 if ($MyInvocation.InvocationName -ne '.') {
@@ -684,6 +719,9 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
     'WindowsUpdate' {
       Start-WindowsUpdateFix -Restore:$Restore
+    }
+    'DriverCleanup' {
+      Start-DriverCleanup
     }
     'All' {
       Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
