@@ -116,6 +116,78 @@ function Restore-DefaultPerformanceSetting {
 #endregion
 
 
+#region Explorer / Visual Effects Settings
+function Set-ExplorerPerformanceSetting {
+    <#
+  .SYNOPSIS
+      Trims Start menu ads/suggestions and reduces visual-effects overhead
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    Clear-Host
+    Write-Host "Applying Explorer / Visual Effects Settings..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [*] Disabling Start menu ads and suggestions..." -ForegroundColor Gray
+    $cdm = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    foreach ($name in 'SoftLandingEnabled', 'SystemPaneSuggestionsEnabled', 'SilentInstalledAppsEnabled',
+        'RotatingLockScreenEnabled', 'RotatingLockScreenOverlayEnabled') {
+        Set-RegistryValue -Path $cdm -Name $name -Type REG_DWORD -Data "0"
+    }
+    Set-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" `
+        -Name "DisableWindowsSpotlightFeatures" -Type REG_DWORD -Data "1"
+
+    Write-Host "  [*] Reducing visual-effects overhead..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" `
+        -Name "VisualFXSetting" -Type REG_DWORD -Data "3"
+    Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
+        -Name "TaskbarAnimations" -Type REG_DWORD -Data "0"
+    Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
+        -Name "ListviewShadow" -Type REG_DWORD -Data "0"
+    Set-RegistryValue -Path "HKCU\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type REG_SZ -Data "0"
+    Set-RegistryValue -Path "HKCU\Control Panel\Desktop" -Name "MenuShowDelay" -Type REG_SZ -Data "0"
+
+    Write-Host ""
+    Write-Host "Explorer settings applied." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Note: Some settings require signing out or a restart to take effect." -ForegroundColor Yellow
+}
+
+function Restore-DefaultExplorerSetting {
+    <#
+  .SYNOPSIS
+      Restores default Start menu suggestions and visual-effects settings
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    Clear-Host
+    Write-Host "Restoring Default Explorer Settings..." -ForegroundColor Cyan
+    Write-Host ""
+
+    Write-Host "  [*] Restoring Start menu suggestions..." -ForegroundColor Gray
+    $cdm = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+    foreach ($name in 'SoftLandingEnabled', 'SystemPaneSuggestionsEnabled', 'SilentInstalledAppsEnabled',
+        'RotatingLockScreenEnabled', 'RotatingLockScreenOverlayEnabled') {
+        Remove-RegistryValue -Path $cdm -Name $name
+    }
+    Remove-RegistryValue -Path "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableWindowsSpotlightFeatures"
+
+    Write-Host "  [*] Restoring visual effects..." -ForegroundColor Gray
+    Set-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" `
+        -Name "VisualFXSetting" -Type REG_DWORD -Data "0"
+    Remove-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations"
+    Remove-RegistryValue -Path "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow"
+    Set-RegistryValue -Path "HKCU\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type REG_SZ -Data "1"
+    Set-RegistryValue -Path "HKCU\Control Panel\Desktop" -Name "MenuShowDelay" -Type REG_SZ -Data "400"
+
+    Write-Host ""
+    Write-Host "Default Explorer settings restored." -ForegroundColor Green
+}
+#endregion
+
+
 #region Keyboard Shortcuts
 function Disable-KeyboardShortcut {
     <#
@@ -611,6 +683,30 @@ function Show-SystemTweaksMenu {
     }
 }
 
+function Show-ExplorerMenu {
+    [CmdletBinding()]
+    param()
+    Show-Menu -Title "Explorer / Visual Effects" -Options @(
+        "Apply Explorer Optimizations"
+        "Restore Default Settings"
+        "Back to Main Menu"
+    )
+
+    $choice = Get-MenuChoice -Min 1 -Max 3
+
+    switch ($choice) {
+        1 {
+            Set-ExplorerPerformanceSetting
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        2 {
+            Restore-DefaultExplorerSetting
+            Wait-ForKeyPress -Message "Press Enter to continue..." -UseReadHost
+        }
+        3 { return }
+    }
+}
+
 function Show-MainMenu {
     [CmdletBinding()]
     param()
@@ -623,6 +719,7 @@ function Show-MainMenu {
         "Gaming Display Optimizations"
         "Security Hardening"
         "System Tweaks"
+        "Explorer / Visual Effects"
         "Exit"
     )
 }
@@ -638,7 +735,7 @@ function Start-SystemSettingsManager {
 
     while ($true) {
         Show-MainMenu
-        $choice = Get-MenuChoice -Min 1 -Max 9
+        $choice = Get-MenuChoice -Min 1 -Max 10
 
         switch ($choice) {
             1 { Show-PerformanceMenu }
@@ -649,7 +746,8 @@ function Start-SystemSettingsManager {
             6 { Show-GamingDisplayMenu }
             7 { Show-SecurityMenu }
             8 { Show-SystemTweaksMenu }
-            9 { exit }
+            9 { Show-ExplorerMenu }
+            10 { exit }
         }
     }
 }

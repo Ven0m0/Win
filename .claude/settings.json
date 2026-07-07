@@ -121,6 +121,18 @@
             "statusMessage": "Validating autounattend.xml..."
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notlike '*.ps1') { exit 0 }; $name = [IO.Path]::GetFileNameWithoutExtension($fp); $t = Join-Path 'tests' \"$name.Tests.ps1\"; if (-not (Test-Path $t)) { exit 0 }; Invoke-Pester -Path $t -Output Minimal",
+            "shell": "powershell",
+            "statusMessage": "Running matching Pester test...",
+            "timeout": 60
+          }
+        ]
       }
     ]
   },

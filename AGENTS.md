@@ -166,3 +166,7 @@ Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handlin
 
 - Keep `.github/copilot-instructions.md` minimal (startup only); broader rules → `AGENTS.md`; narrow rules → `.kilo/rules/`
 - After editing `.kilo/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
+
+## Implementation Plans
+
+`PLAN.md` (repo root) is generated with the `superpowers:writing-plans` skill — pass it the root path explicitly, since its default target is `docs/superpowers/plans/`. Use `oh-my-claudecode:plan` only for interview-style scoping or high-stakes consensus review of a plan before it's written; hand the result to `writing-plans` to produce the actual `PLAN.md`.

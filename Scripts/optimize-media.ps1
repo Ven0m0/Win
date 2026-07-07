@@ -16,6 +16,10 @@
     "*.h265.mp4" are treated as prior output and skipped as sources.
     Automatically prefers ffzap for parallel encoding when available; falls
     back to sequential ffmpeg.
+    Before a file is touched (image compression) or re-encoded (video), its
+    original is copied into a sibling "<FolderName>-bak" directory (mirroring
+    the same relative subpath), so neither in-place compression nor
+    re-encoding ever risks the only copy.
     Progress for both passes is shown via Write-Progress.
 .PARAMETER Path
     Folder to scan recursively. If omitted, a folder picker dialog opens.
@@ -199,12 +203,16 @@ function Invoke-ImagePass {
         Folder to scan recursively.
     .PARAMETER Quality
         JPEG/WEBP quality factor.
+    .PARAMETER BackupPath
+        Folder to mirror pre-optimization originals into before each file is
+        compressed in place.
     .PARAMETER Force
         Keep the optimized result even if not smaller than the original.
     #>
     param(
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][int]$Quality,
+        [Parameter(Mandatory)][string]$BackupPath,
         [bool]$Force
     )
     process {
@@ -231,6 +239,19 @@ function Invoke-ImagePass {
             $i++
             Write-Progress -Activity 'Optimizing images' -Status "$($file.Name) ($i/$($files.Count))" `
                 -PercentComplete (($i / $files.Count) * 100)
+            Write-Host "[$i/$($files.Count)] $($file.Name)"
+
+            $relative = $file.FullName.Substring($TargetPath.Length).TrimStart('\', '/')
+            $backupFile = Join-Path $BackupPath $relative
+            if (-not (Test-Path -LiteralPath $backupFile)) {
+                if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before optimizing')) {
+                    $backupDir = Split-Path -Parent $backupFile
+                    if (-not (Test-Path -LiteralPath $backupDir)) {
+                        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+                    }
+                    Copy-Item -LiteralPath $file.FullName -Destination $backupFile
+                }
+            }
 
             $before = $file.Length
             $ext = $file.Extension.ToLowerInvariant()
@@ -296,6 +317,8 @@ function Invoke-VideoPass {
         Opus audio bitrate.
     .PARAMETER Threads
         Parallel jobs passed to ffzap.
+    .PARAMETER BackupPath
+        Folder to mirror original source videos into before each is re-encoded.
     .PARAMETER Force
         Overwrite existing output files.
     #>
@@ -305,6 +328,7 @@ function Invoke-VideoPass {
         [Parameter(Mandatory)][string[]]$EncoderArgs,
         [Parameter(Mandatory)][string]$AudioBitrate,
         [Parameter(Mandatory)][int]$Threads,
+        [Parameter(Mandatory)][string]$BackupPath,
         [bool]$Force
     )
     process {
@@ -327,7 +351,23 @@ function Invoke-VideoPass {
             Write-Progress -Activity 'Re-encoding videos' -Status "$($file.Name) ($i/$($files.Count))" `
                 -PercentComplete (($i / $files.Count) * 100)
 
-            $output = Join-Path $file.DirectoryName "$($file.BaseName).h265.mp4"
+            # Strip any pre-existing ".h265" tag (from the source's own filename, or a prior
+            # partial run) before re-appending it once, so the output name never stacks the
+            # tag (".h265.h265.mp4") regardless of what the source was already named.
+            $cleanBase = ConvertTo-SafeFileName -Name ($file.BaseName -replace '(?i)\.h265', '')
+            $output = Join-Path $file.DirectoryName "$cleanBase.h265.mp4"
+
+            $relative = $file.FullName.Substring($TargetPath.Length).TrimStart('\', '/')
+            $backupFile = Join-Path $BackupPath $relative
+            if (-not (Test-Path -LiteralPath $backupFile)) {
+                if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before re-encoding')) {
+                    $backupDir = Split-Path -Parent $backupFile
+                    if (-not (Test-Path -LiteralPath $backupDir)) {
+                        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+                    }
+                    Copy-Item -LiteralPath $file.FullName -Destination $backupFile
+                }
+            }
 
             $existingOutput = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
             if ($existingOutput -and -not $Force) {
@@ -362,11 +402,11 @@ function Invoke-VideoPass {
             $outputOk = ($LASTEXITCODE -eq 0) -and (Test-Path -LiteralPath $output) -and
                 ((Get-Item -LiteralPath $output).Length -gt 0)
             if (-not $outputOk) {
-                Write-Warning "  [FAIL] $($file.Name)"
+                Write-Warning "  [FAIL] ($i/$($files.Count)) $($file.Name)"
                 $errors++
             }
             else {
-                Write-Host "  [ OK ] $($file.BaseName).h265.mp4" -ForegroundColor Green
+                Write-Host "  [ OK ] ($i/$($files.Count)) $($file.BaseName).h265.mp4" -ForegroundColor Green
             }
         }
         Write-Progress -Activity 'Re-encoding videos' -Completed
@@ -384,11 +424,15 @@ if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
     throw "Path is not a folder: $resolvedPath"
 }
 
+$backupPath = Join-Path -Path (Split-Path -Parent $resolvedPath) `
+    -ChildPath "$(Split-Path -Leaf $resolvedPath)-bak"
+
 $bytesSaved = 0L
 $videoErrors = 0
 
 if (-not $SkipImages) {
-    $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -Force:$Force
+    $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -BackupPath $backupPath `
+        -Force:$Force
 }
 
 if (-not $SkipVideo) {
@@ -398,7 +442,7 @@ if (-not $SkipVideo) {
         '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-x265-params', $x265Params
     )
     $videoErrors = Invoke-VideoPass -TargetPath $resolvedPath -Tool $tool -EncoderArgs $encoderArgs `
-        -AudioBitrate $AudioBitrate -Threads $Threads -Force:$Force
+        -AudioBitrate $AudioBitrate -Threads $Threads -BackupPath $backupPath -Force:$Force
 }
 
 Write-Host ''

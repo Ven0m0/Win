@@ -7,8 +7,7 @@
 .DESCRIPTION
     Consolidates two repair tools behind a single -Action switch:
       System         - DISM, SFC (x2), CHKDSK, network, WMI, WU service reset, component cleanup (default)
-      WindowsUpdate  - reset WU services/caches/catroot2, re-register DLLs, apply WU registry tweaks
-      DriverCleanup  - remove orphaned/unused driver packages from the driver store
+      WindowsUpdate  - reset WU services/caches/catroot2, re-register DLLs
       All            - run System, then WindowsUpdate
 .PARAMETER Action
     Which repair to run. Defaults to System.
@@ -28,8 +27,6 @@
     System action: don't prompt about rebooting after network/WU resets.
 .PARAMETER NoReport
     System action: skip writing report file.
-.PARAMETER Restore
-    WindowsUpdate action: remove the registry tweaks applied by this script instead of applying them.
 .EXAMPLE
     .\fix-system.ps1 -Action System -DryRun
 .EXAMPLE
@@ -39,7 +36,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('System', 'WindowsUpdate', 'DriverCleanup', 'All')]
+  [ValidateSet('System', 'WindowsUpdate', 'All')]
   [string]$Action = 'System',
   [switch]$QuickScan,
   [switch]$SkipDiskCheck,
@@ -48,8 +45,7 @@ param(
   [switch]$ScheduleChkdsk,
   [switch]$DryRun,
   [switch]$NoReboot,
-  [switch]$NoReport,
-  [switch]$Restore
+  [switch]$NoReport
 )
 
 $ErrorActionPreference = 'Stop'
@@ -548,98 +544,11 @@ function Register-WuDll {
   }
 }
 
-function Set-WURegistryTweak {
-  [CmdletBinding(SupportsShouldProcess)]
-  param()
-
-  $tweaks = @(
-    # Disable "Get updates ASAP"
-    @{
-      Path = 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'
-      Name = 'IsContinuousInnovationOptedIn'
-      Type = 'REG_DWORD'
-      Data = '0'
-    }
-    @{
-      Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
-      Name = 'AllowOptionalContent'
-      Type = 'REG_DWORD'
-      Data = '0'
-    }
-    @{
-      Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
-      Name = 'SetAllowOptionalContent'
-      Type = 'REG_DWORD'
-      Data = '0'
-    }
-  )
-
-  foreach ($tweak in $tweaks) {
-    if ($PSCmdlet.ShouldProcess("$($tweak.Path)\$($tweak.Name)", 'Set registry value')) {
-      Set-RegistryValue -Path $tweak.Path -Name $tweak.Name -Type $tweak.Type -Data $tweak.Data
-    }
-  }
-}
-
-function Remove-WURegistryTweak {
-  [CmdletBinding(SupportsShouldProcess)]
-  param()
-
-  $keys = @(
-    @{ Path = 'HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings'; Name = 'IsContinuousInnovationOptedIn' }
-    @{ Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'; Name = 'AllowOptionalContent' }
-    @{ Path = 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'; Name = 'SetAllowOptionalContent' }
-  )
-
-  foreach ($key in $keys) {
-    if ($PSCmdlet.ShouldProcess("$($key.Path)\$($key.Name)", 'Remove registry value')) {
-      Remove-RegistryValue -Path $key.Path -Name $key.Name
-    }
-  }
-}
-
-function Remove-TargetReleaseConstraint {
-  [CmdletBinding(SupportsShouldProcess)]
-  param()
-
-  $values = @(
-    'TargetReleaseVersionInfo'
-    'TargetReleaseVersion'
-    'ProductVersion'
-    'DisableOSUpgrade'
-    'DisableWindowsUpdateAccess'
-    'DoNotConnectToWindowsUpdateInternetLocations'
-  )
-
-  foreach ($value in $values) {
-    if ($PSCmdlet.ShouldProcess("HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\$value", 'Delete')) {
-      Remove-RegistryValue -Path 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate' -Name $value
-    }
-  }
-
-  if ($PSCmdlet.ShouldProcess('HKLM\SOFTWARE\Policies\Microsoft\WindowsStore\DisableOSUpgrade', 'Delete')) {
-    Remove-RegistryValue -Path 'HKLM\SOFTWARE\Policies\Microsoft\WindowsStore' -Name DisableOSUpgrade
-  }
-
-  if ($PSCmdlet.ShouldProcess('HKLM\SYSTEM\Setup\UpgradeNotification\UpgradeAvailable', 'Delete')) {
-    Remove-RegistryValue -Path 'HKLM\SYSTEM\Setup\UpgradeNotification' -Name UpgradeAvailable
-  }
-}
-
 function Start-WindowsUpdateFix {
   [CmdletBinding(SupportsShouldProcess)]
-  param(
-    [switch]$Restore
-  )
+  param()
 
   Set-StrictMode -Version Latest
-
-  if ($Restore) {
-    Write-Information 'Restoring Windows Update registry tweaks...'
-    Remove-WURegistryTweak
-    Write-Information 'Restore complete.'
-    return
-  }
 
   Write-Information 'Fixing Windows Update components...'
 
@@ -678,11 +587,7 @@ function Start-WindowsUpdateFix {
     Invoke-ExternalCommand -FilePath 'netsh.exe' -ArgumentList 'winsock reset'
   }
 
-  # 6. Registry tweaks
-  Set-WURegistryTweak
-  Remove-TargetReleaseConstraint
-
-  # 7. gpupdate
+  # 6. gpupdate
   if ($PSCmdlet.ShouldProcess('Group Policy', 'Update')) {
     Invoke-ExternalCommand -FilePath 'gpupdate.exe' -ArgumentList '/force'
   }
@@ -690,21 +595,6 @@ function Start-WindowsUpdateFix {
   Write-Information ''
   Write-Information 'Windows Update repair complete. A reboot is recommended.'
   Write-Information 'Run this script with -WhatIf to preview changes.'
-}
-
-
-# ===========================================================================
-# Driver store cleanup
-# ===========================================================================
-function Start-DriverCleanup {
-  [CmdletBinding(SupportsShouldProcess)]
-  param()
-
-  Write-Information 'Removing orphaned/unused driver packages from the driver store...'
-  if ($PSCmdlet.ShouldProcess('Driver store', 'Clean unused driver packages')) {
-    $null = & rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN
-  }
-  Write-Information 'Driver cleanup complete.'
 }
 
 
@@ -718,15 +608,12 @@ if ($MyInvocation.InvocationName -ne '.') {
         -SkipWUReset:$SkipWUReset -ScheduleChkdsk:$ScheduleChkdsk -DryRun:$DryRun -NoReboot:$NoReboot -NoReport:$NoReport
     }
     'WindowsUpdate' {
-      Start-WindowsUpdateFix -Restore:$Restore
-    }
-    'DriverCleanup' {
-      Start-DriverCleanup
+      Start-WindowsUpdateFix
     }
     'All' {
       Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
         -SkipWUReset:$SkipWUReset -ScheduleChkdsk:$ScheduleChkdsk -DryRun:$DryRun -NoReboot:$NoReboot -NoReport:$NoReport
-      Start-WindowsUpdateFix -Restore:$Restore
+      Start-WindowsUpdateFix
     }
   }
 }

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 ## Common.ps1 - Shared utility functions for Windows optimization scripts
 # This module provides reusable functions to avoid code duplication
@@ -1821,6 +1821,35 @@ function Ensure-Directory {
         if ($PSCmdlet.ShouldProcess($Path, 'Create directory')) {
             New-Item -ItemType Directory -Path $Path -Force | Out-Null
         }
+    }
+}
+
+function ConvertTo-SafeFileName {
+    <#
+    .SYNOPSIS
+        Sanitizes a filename component to a portable, Linux-safe ASCII form.
+    .DESCRIPTION
+        Strips diacritics, replaces any character outside [A-Za-z0-9._-] with an
+        underscore, and collapses repeated separators. Does not touch the
+        extension; pass only the name component you want sanitized.
+    .PARAMETER Name
+        Filename component to sanitize.
+    .EXAMPLE
+        ConvertTo-SafeFileName -Name 'Café Photo (1)'
+        Returns 'Cafe_Photo_1'.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [string]$Name
+    )
+    process {
+        $normalized = $Name.Normalize([Text.NormalizationForm]::FormD) -replace '\p{Mn}', ''
+        $safe = ($normalized -replace '[^A-Za-z0-9._-]', '_') -replace '_+', '_'
+        $safe = $safe.Trim('_', '.', '-')
+        if ([string]::IsNullOrEmpty($safe)) { return 'file' }
+        $safe
     }
 }
 

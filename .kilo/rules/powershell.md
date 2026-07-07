@@ -9,6 +9,7 @@ Sources: [PoshCode Style Guide](https://poshcode.gitbook.io/powershell-practice-
 ## 1. Naming Conventions
 
 ### Commands and Parameters
+
 - Use `Verb-Noun` convention for all functions; run `Get-Verb` for the approved verb list
 - PascalCase for **all** public identifiers: module names, function names, class names, parameters, global variables
 - Nouns must be **singular** and may be compound-word PascalCase (`Get-DiskInfo`, not `Get-DiskInfos`)
@@ -18,12 +19,14 @@ Sources: [PoshCode Style Guide](https://poshcode.gitbook.io/powershell-practice-
 - Match standard PowerShell parameter names: `$ComputerName`, `$Path`, `$Credential`, not `$Param_Computer`
 
 ### Variables
+
 - Script-level private variables may use camelCase to distinguish from PascalCase parameters (optional style)
 - Scope shared variables explicitly: `$Script:State`, `$Global:DebugPreference`
 - PowerShell language keywords are **lowercase**: `foreach`, `if`, `switch`, `-eq`, `-match`
 - Comment-based help keywords are **UPPERCASE**: `.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`
 
 ### Paths
+
 - Always use `$PSScriptRoot` for script-relative paths; never unanchored `.\` or `..\`
 - Use `$HOME` or `$env:USERPROFILE` for user home — never hardcode `C:\Users\...`
 - Never use `~`: its meaning depends on the current provider and breaks outside the `FileSystem` provider
@@ -43,6 +46,7 @@ Get-Content -Path "$PSScriptRoot\README.md"
 ## 2. Code Layout and Formatting
 
 ### Braces — One True Brace Style (OTBS)
+
 Opening brace at the **end** of the line; closing brace at the **beginning** of a line. No exceptions for control flow.
 
 ```powershell
@@ -57,9 +61,11 @@ Get-ChildItem | Where-Object { $_.Length -gt 10mb }
 ```
 
 ### Indentation
+
 This repo uses **2-space** indentation (deviates from PoshCode's 4-space recommendation to match the existing codebase style). Continuation lines may indent further to align with method calls.
 
 ### Line Length
+
 Keep lines to **115 characters** maximum. Use **splatting** instead of backtick continuation:
 
 ```powershell
@@ -86,6 +92,7 @@ $count = (Get-ChildItem -Path $PSScriptRoot -Recurse |
 ```
 
 ### Whitespace
+
 - Single space around operators and parameter names: `$x = $y + 2`, `Get-Item -Path $p`
 - Single space after commas and semicolons
 - Single space **inside** `$( ... )` subexpressions and `{ ... }` scriptblocks
@@ -95,6 +102,7 @@ $count = (Get-ChildItem -Path $PSScriptRoot -Recurse |
 - One blank line at the end of each file
 
 ### Hashtables
+
 Each key-value pair on its own line; no trailing semicolons:
 
 ```powershell
@@ -105,14 +113,12 @@ $options = @{
 }
 ```
 
-### Avoid Backticks for Line Continuation
-Backticks are invisible, fragile, and break silently on a trailing space. Use splatting or implied continuation (inside parens/brackets) instead.
-
 ---
 
 ## 3. Function Structure
 
 ### Always Start With CmdletBinding
+
 Every function and script should begin with `[CmdletBinding()]`, even if blocks are later pruned. This enables common parameters (`-Verbose`, `-ErrorAction`, `-WhatIf`, `-?`):
 
 ```powershell
@@ -125,9 +131,11 @@ end {
 ```
 
 ### Block Order
+
 Write blocks in execution order: `param`, `begin`, `process`, `end`. Always name blocks explicitly — avoid the anonymous end-block shorthand and the `filter` keyword.
 
 ### No `return` in Advanced Functions
+
 Do not use `return` to emit objects — place the object on its own line inside `process {}`. The `return` keyword exits the current execution block (begin/process/end), which can lead to skipped logic if used prematurely.
 
 ```powershell
@@ -141,6 +149,7 @@ process {
 ```
 
 ### OutputType
+
 Declare `[OutputType()]` on every advanced function that returns objects. When parameter sets return different types, declare one per set:
 
 ```powershell
@@ -149,6 +158,7 @@ Declare `[OutputType()]` on every advanced function that returns objects. When p
 ```
 
 ### Parameter Sets
+
 When any parameter uses `ParameterSetName`, always set `DefaultParameterSetName` in `[CmdletBinding()]`:
 
 ```powershell
@@ -156,6 +166,7 @@ When any parameter uses `ParameterSetName`, always set `DefaultParameterSetName`
 ```
 
 ### Pipeline Parameters
+
 Any function that accepts pipeline input **must** have a `process {}` block. Emit output from `process {}` only — never from `begin {}` or `end {}`, which defeats the streaming advantage of the pipeline.
 
 ```powershell
@@ -169,6 +180,7 @@ process {
 ```
 
 ### Parameter Validation — Attributes Over Body Logic
+
 Use declarative validation attributes instead of manual `if` checks in the function body:
 
 | Attribute | Use case |
@@ -183,6 +195,7 @@ Use declarative validation attributes instead of manual `if` checks in the funct
 | `[AllowNull()]` / `[AllowEmptyString()]` | Permit null/empty on mandatory params |
 
 ### SupportsShouldProcess
+
 Add `SupportsShouldProcess` to any function that modifies system state. Grade severity with `ConfirmImpact`:
 
 ```powershell
@@ -241,6 +254,7 @@ process {
 ## 4. Documentation and Comments
 
 ### Comment-Based Help (Required on Exported Functions)
+
 Place help **inside** the function body, immediately after the opening brace:
 
 ```powershell
@@ -282,6 +296,7 @@ param (
 ```
 
 ### Comment Philosophy
+
 - Comments explain **why**, not **what** — the code shows what
 - Block comments indent to the same level as the code they describe
 - Use `<# ... #>` only for multi-paragraph prose (help text); single `#` for all other comments
@@ -306,16 +321,18 @@ param (
 | Host | `Write-Host` | **Interactive UI only** — writes to Information stream (6), intended for display only |
 
 ### Write-Host Restriction
+
 Do not use `Write-Host` for general output. It bypasses all output streams and cannot be redirected or captured by callers. Use it only for:
+
 - `Show-*` / `Format-*` verb functions explicitly presenting to the screen
 - Interactive prompts requiring styled/colored text
 - `Initialize-ConsoleUI` / `Show-Menu` helpers in `Common.ps1`
 
 ### Output One Type Per Command
+
 Avoid mixing different object types from a single command — the formatter will produce empty rows or switch unexpectedly between table and list layouts. Declare `[OutputType()]` to make the contract explicit.
 
-### Tools Output Raw Data
-Reusable tool functions emit the most granular representation (bytes, not gigabytes; raw objects, not formatted strings). Format or convert in a controller script or a `.format.ps1xml` view file attached to a module.
+Tools should emit raw, granular data and leave formatting to the caller — see §9 Building Reusable Tools for the tool/controller split.
 
 ---
 
@@ -352,12 +369,18 @@ try {
 ```
 
 ### ERR-04 — Avoid `$?`
+
 `$?` only reports whether the last command *considered itself* successful — it carries no detail about what failed. Use `try/catch` with `-ErrorAction Stop` instead.
 
 ### ERR-05 — Avoid null-variable as error sentinel
+
 Null checks (`if ($result) { ... } else { ... }`) as error conditions are logically contorted and harder to debug than a proper `try/catch`. Prefer terminating errors.
 
-### ERR-06 — Copy `$_` immediately inside `catch`
+### ERR-06 — Never leave a `catch` block empty
+
+Swallowing an error silently hides failures just like global `SilentlyContinue` does. At minimum, log or re-throw. CI enforces this: `PSAvoidUsingEmptyCatchBlock`.
+
+### ERR-07 — Copy `$_` immediately inside `catch`
 
 ```powershell
 catch {
@@ -382,6 +405,7 @@ catch {
 ## 8. Security
 
 ### Credentials — Always PSCredential
+
 - Accept `[PSCredential]` parameters — never accept passwords as plain `[string]`
 - Apply `[System.Management.Automation.Credential()]` attribute to coerce bare user-name strings:
 
@@ -401,6 +425,7 @@ $api.SetPassword($Credential.GetNetworkCredential().Password)
 ```
 
 ### Storing Credentials and Secrets
+
 - Persist credentials with `Export-CliXml` (DPAPI-protected, user+machine-locked):
 
 ```powershell
@@ -419,15 +444,15 @@ $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 
 ### Prohibited Patterns
 
-- ❌ `$ErrorActionPreference = 'SilentlyContinue'` globally — hides failures
-- ❌ `Invoke-Expression` with variable or user-derived input — code injection risk (CI: `PSAvoidUsingInvokeExpression`)
-- ❌ `ConvertTo-SecureString -AsPlainText` with literal key material (CI: `PSAvoidUsingConvertToSecureStringWithPlainText`)
-- ❌ Global aliases in script/module scope (CI: `PSAvoidGlobalAliases`)
-- ❌ `-Password` / `-Username` plain-string parameters — use `[PSCredential]` (CI: `UsePSCredentialType`)
-- ❌ Hardcoded `ComputerName` literals (CI: `AvoidUsingComputerNameHardcoded`)
-- ❌ Hardcoded user paths `C:\Users\...` — use `$HOME`, `$env:USERPROFILE`, `$PSScriptRoot`
-- ❌ Bare `curl` in PowerShell — use `curl.exe` when targeting the curl binary
-- ❌ Touching `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`
+- `$ErrorActionPreference = 'SilentlyContinue'` globally — hides failures
+- `Invoke-Expression` with variable or user-derived input — code injection risk (CI: `PSAvoidUsingInvokeExpression`)
+- `ConvertTo-SecureString -AsPlainText` with literal key material (CI: `PSAvoidUsingConvertToSecureStringWithPlainText`)
+- Global aliases in script/module scope (CI: `PSAvoidGlobalAliases`)
+- `-Password` / `-Username` plain-string parameters — use `[PSCredential]` (CI: `PSAvoidUsingUsernameAndPasswordParams`)
+- Hardcoded `ComputerName` literals — use a parameter
+- Hardcoded user paths `C:\Users\...` — use `$HOME`, `$env:USERPROFILE`, `$PSScriptRoot`
+- Bare `curl` in PowerShell — use `curl.exe` when targeting the curl binary
+- Touching `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`
 
 ---
 
@@ -443,6 +468,7 @@ $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 Tools accept input only via parameters and produce output only as objects on the pipeline. Controllers orchestrate tools and may write to the screen or a log file.
 
 ### Design Principles
+
 - Modularize working code into functions in script modules — keep logic out of controller scripts
 - Emit raw, granular data from tools (bytes, not GB); let controllers or `.format.ps1xml` view files format it
 - Use standard PowerShell parameter names: `$ComputerName`, `$Path`, `$Credential`
@@ -451,6 +477,7 @@ Tools accept input only via parameters and produce output only as objects on the
 - Single responsibility: each function should do one thing
 
 ### Prefer Native PowerShell
+
 Use native cmdlets over COM, WMI (`Get-WmiObject`), or .NET classes when a native equivalent exists. Prefer `Get-CimInstance` over `Get-WmiObject` (CIM works over WinRM on both PS 5.1 and 7+). When a non-native approach is necessary, document why.
 
 ---
@@ -458,6 +485,7 @@ Use native cmdlets over COM, WMI (`Get-WmiObject`), or .NET classes when a nativ
 ## 10. Version and Compatibility
 
 ### `#Requires` Statement
+
 Every standalone script must declare the minimum PowerShell version:
 
 ```powershell
@@ -465,6 +493,7 @@ Every standalone script must declare the minimum PowerShell version:
 ```
 
 ### Dual-Version Support (5.1 + 7+)
+
 This repo targets both Windows PowerShell 5.1 and PowerShell 7+. Guard 7+-only features explicitly:
 
 ```powershell
@@ -568,7 +597,6 @@ Prefer `Get-FileFromWeb` from `Common.ps1`, which handles this automatically.
 - `.NET` string methods are **case-sensitive** by default; pass `'CurrentCultureIgnoreCase'` or use PowerShell's `-eq`/`-like` operators (case-insensitive) for string comparisons
 - External commands: use `&` operator with quoted arguments: `& git.exe commit -m "$message"`
 - Suppress output with `$null = <expr>`, not `| Out-Null` (the pipeline form is significantly slower)
-- `return` in an advanced function exits the current pipeline iteration — it does not emit a value
 
 ---
 
@@ -585,5 +613,5 @@ Prefer `Get-FileFromWeb` from `Common.ps1`, which handles this automatically.
 
 - Lint before committing: `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1`
 - Run tests when the changed area has coverage: `Invoke-Pester -Path tests/ -Output Minimal`
-- CI-enforced (pipeline fails): `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
-- CI warnings surfaced: `AvoidUsingCmdletAliases`, `AvoidUsingWriteHost`, `ProvideCommentHelp`, `UseShouldProcessForStateChangingFunctions`, `AvoidUsingPositionalParameters`
+- `PSScriptAnalyzerSettings.psd1` is the source of truth for what's enforced — any `Warning`- or `Error`-severity hit from its `IncludeRules` fails the `lint-format-test.yml` job. That list currently includes (among others): `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`, `PSAvoidUsingEmptyCatchBlock`, `PSAvoidUsingInvokeExpression`, `PSAvoidUsingPositionalParameters`, `PSAvoidUsingUsernameAndPasswordParams`, `PSProvideCommentHelp`, `PSUseApprovedVerbs`, `PSUseSingularNouns`, `PSUseSupportsShouldProcess`, `PSUseConsistentIndentation`, `PSUseConsistentWhitespace`
+- Explicitly excluded — do not expect a lint hit for these, even though the style rules above still apply: `PSAvoidUsingWriteHost` (repo relies on it for colored console output), `PSUseOutputTypeCorrectly`, `PSReviewUnusedParameter`

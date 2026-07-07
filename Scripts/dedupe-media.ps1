@@ -11,6 +11,10 @@
       3. czkawka - finds perceptually similar images (fuzzy).
       4. czkawka - finds perceptually similar videos (fuzzy, slowest).
       5. czkawka - removes zero-byte media files.
+    The dup/image/video passes use Lanczos3 image resampling (highest-quality
+    hashing input) and include files below czkawka's default minimum size, so
+    small media is no longer silently skipped. Match strictness (ImageDifference,
+    VideoTolerance) is unchanged from czkawka's own defaults.
     Runs in preview mode by default; nothing is deleted until you pass -Apply.
     Only the fclones exact-duplicate pass deletes permanently (files are
     byte-identical). Every czkawka pass - dup, image, video, empty-files -
@@ -43,10 +47,17 @@
 .PARAMETER VideoTolerance
     czkawka max video difference, 0 (identical) to 20 (loose). Default 10.
 .PARAMETER VideoWindowCount
-    Temporal windows czkawka samples per video, 1 to 20. Default 3 (czkawka's
-    own default is 5); fewer windows means less ffmpeg decoding, the dominant
-    cost of the video pass, at a small recall cost. Raise back to 5+ if the
-    video pass is missing matches you expect it to find.
+    Temporal windows czkawka samples per video, 1 to 20. Default 8 (above
+    czkawka's own default of 5) for better match accuracy; more windows means
+    more ffmpeg decoding, the dominant cost of the video pass. Lower it for
+    faster, less-thorough scans.
+.PARAMETER MatchRotated
+    Also match mirrored and 90-degree-rotated image variants as duplicates
+    (czkawka --geometric-invariance mirror-flip-rotate90). Roughly 3x the
+    image-pass work; off by default.
+.PARAMETER CheckAudio
+    Also compare videos by audio fingerprint, not just visual frames
+    (czkawka --check-audio-content). Very resource-intensive; off by default.
 .EXAMPLE
     .\dedupe-media.ps1 -Path 'D:\Pictures'
     Preview duplicates without deleting anything.
@@ -75,7 +86,9 @@ param (
     [ValidateRange(0, 20)]
     [int]$VideoTolerance = 10,
     [ValidateRange(1, 20)]
-    [int]$VideoWindowCount = 3
+    [int]$VideoWindowCount = 8,
+    [switch]$MatchRotated,
+    [switch]$CheckAudio
 )
 
 Set-StrictMode -Version Latest
@@ -300,6 +313,8 @@ function Invoke-CzkawkaPass {
         [int]$Threshold,
         [int]$WindowCount,
         [string[]]$AllowedExtensions,
+        [switch]$MatchRotated,
+        [switch]$CheckAudio,
         [Parameter(Mandatory)][string]$ReportPath,
         [Parameter(Mandatory)][bool]$DryRun
     )
@@ -319,11 +334,24 @@ function Invoke-CzkawkaPass {
             $cliArgs.Add('--allowed-extensions')
             $cliArgs.Add($ext)
         }
+        if ($Mode -in 'dup', 'image', 'video') {
+            # Include small media that czkawka's own default minimum size would otherwise skip.
+            $cliArgs.Add('--minimal-file-size'); $cliArgs.Add('1')
+        }
         switch ($Mode) {
-            'image' { $cliArgs.Add('--max-difference'); $cliArgs.Add([string]$Threshold) }
+            'image' {
+                $cliArgs.Add('--max-difference'); $cliArgs.Add([string]$Threshold)
+                $cliArgs.Add('--image-filter'); $cliArgs.Add('Lanczos3')
+                if ($MatchRotated) {
+                    $cliArgs.Add('--geometric-invariance'); $cliArgs.Add('mirror-flip-rotate90')
+                }
+            }
             'video' {
                 $cliArgs.Add('--tolerance'); $cliArgs.Add([string]$Threshold)
                 $cliArgs.Add('--window-count'); $cliArgs.Add([string]$WindowCount)
+                if ($CheckAudio) {
+                    $cliArgs.Add('--check-audio-content')
+                }
             }
         }
         $cliArgs.Add('--file-to-save'); $cliArgs.Add($ReportPath)
@@ -410,12 +438,13 @@ if (-not $SkipDup) {
 
 if (-not $SkipImages) {
     $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
-        -Threshold $ImageDifference -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
+        -Threshold $ImageDifference -MatchRotated:$MatchRotated `
+        -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
 }
 
 if (-not $SkipVideos) {
     $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
-        -Threshold $VideoTolerance -WindowCount $VideoWindowCount `
+        -Threshold $VideoTolerance -WindowCount $VideoWindowCount -CheckAudio:$CheckAudio `
         -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
 }
 

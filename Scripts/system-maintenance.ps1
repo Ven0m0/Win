@@ -8,7 +8,9 @@
     Defrag  - optimize/retrim volumes (defrag.exe) and clean MSI Afterburner skins/docs (default)
     Disk    - interactive WinForms disk-cleanup GUI (cleanmgr categories + cache/log purge)
     Shader  - clear Steam/GPU shader, log, and crash caches
-    Extra   - DISM component cleanup, cache rebuilds, BITS/DNS/temp cleanup, optional restore point
+    Extra   - DISM component/Wim/mountpoint cleanup, cache rebuilds, BITS/DNS/temp/recycle-bin/event-log cleanup,
+              Windows Update download cache purge, optional restore point
+    DriverCleanup - remove orphaned/unused driver packages from the driver store
     All     - run Defrag, Shader, then Extra (Disk is interactive and must be selected explicitly)
 .PARAMETER Action
   Which maintenance task to run. Defaults to Defrag.
@@ -39,7 +41,7 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'DryRun', Justification = 'Used inside nested functions Invoke-DefragCommand and Invoke-MsiCleanup')]
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('Defrag', 'Disk', 'Shader', 'Extra', 'All')]
+  [ValidateSet('Defrag', 'Disk', 'Shader', 'Extra', 'DriverCleanup', 'All')]
   [string]$Action = 'Defrag',
   [string]$Volume = 'C:',
   [switch]$AllVolumes,
@@ -226,6 +228,19 @@ function Start-AdditionalMaintenance {
   Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
     -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
 
+  # 2c. DISM Wim/Mountpoint cleanup (stale offline-image mounts and superseded WIM resources)
+  Invoke-Operation -Name 'DISM_WimCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
+    -Action {} -Command 'DISM' -ArgumentList '/Cleanup-Wim'
+  Invoke-Operation -Name 'DISM_MountpointCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
+    -Action {} -Command 'DISM' -ArgumentList '/Cleanup-Mountpoints'
+
+  # 2d. Windows Update download cache
+  Invoke-Operation -Name 'WindowsUpdateCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    Invoke-ServiceOperation -Name 'wuauserv' -Action {
+      Clear-DirectorySafe -Path "$env:SystemRoot\SoftwareDistribution\Download"
+    }
+  }
+
   # 3. Clear Windows Store Cache
   Invoke-Operation -Name 'StoreCacheClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' `
     -Action {} -Command 'wsreset.exe' -ArgumentList '-i'
@@ -272,7 +287,8 @@ function Start-AdditionalMaintenance {
     $tempPaths = @(
       $env:TEMP,
       "$env:SystemRoot\Temp",
-      "$env:LOCALAPPDATA\Temp"
+      "$env:LOCALAPPDATA\Temp",
+      "$HOME\AppData\LocalLow\Temp"
     )
     $cleared = 0
     foreach ($path in $tempPaths) {
@@ -282,6 +298,23 @@ function Start-AdditionalMaintenance {
       }
     }
     Write-Success "Temp files cleaned from $cleared locations"
+  }
+
+  # 10. Empty Recycle Bin
+  Invoke-Operation -Name 'RecycleBin' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+  }
+
+  # 11. Remove powercfg energy report
+  Invoke-Operation -Name 'PowerEnergyReport' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    Clear-PathSafe -Path "$env:SystemRoot\System32\energy-report.html"
+  }
+
+  # 12. Clear Application/System event logs
+  Invoke-Operation -Name 'EventLogs' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    foreach ($log in @('Application', 'System')) {
+      & wevtutil.exe cl $log
+    }
   }
 
   # Display summary
@@ -632,6 +665,21 @@ function Invoke-ShaderCacheCleanup {
 
 
 # ---------------------------------------------------------------------------
+# DriverCleanup action: remove orphaned/unused driver packages from the driver store
+# ---------------------------------------------------------------------------
+function Start-DriverCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
+
+  Write-Information 'Removing orphaned/unused driver packages from the driver store...'
+  if ($PSCmdlet.ShouldProcess('Driver store', 'Clean unused driver packages')) {
+    $null = & rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN
+  }
+  Write-Information 'Driver cleanup complete.'
+}
+
+
+# ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
 if ($MyInvocation.InvocationName -ne '.') {
@@ -659,6 +707,9 @@ if ($MyInvocation.InvocationName -ne '.') {
       }
       'Extra' {
         Start-AdditionalMaintenance -DryRun:$DryRun -NoRestorePoint:$NoRestorePoint
+      }
+      'DriverCleanup' {
+        Start-DriverCleanup
       }
       'All' {
         if (-not $NoDefrag) {
