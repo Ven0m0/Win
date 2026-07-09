@@ -705,6 +705,11 @@ function Complete-StepState {
     }
 }
 
+# --- Topgrade preference --------------------------------------------------------
+# ponytail: topgrade covers package managers + dev tools in one pass; manual steps are the fallback
+$script:UseTopgrade = Test-Command 'topgrade'
+if ($script:UseTopgrade) { Write-Detail "Topgrade detected; using it for package managers and dev tools." -Type Info }
+
 # --- Package Managers (can run in parallel) ------------------------------------
 $script:ParallelJobs = @()
 
@@ -940,8 +945,18 @@ function Invoke-WingetUpgradeHook {
 }
 
 # --- Execute managers -----------------------------------------------------------
-foreach ($mgr in $managers) {
-    Invoke-Update -Name $mgr.Name -Title $mgr.Title -Action $mgr.Action -RequiresCommand $mgr.RequiresCommand -Disabled:$mgr.Disabled -RequiresAdmin:$mgr.RequiresAdmin -SlowOperation:$mgr.SlowOperation
+if ($script:UseTopgrade) {
+    Invoke-Update -Name 'Topgrade' -Title 'Topgrade (all-in-one updater)' -Action {
+        $topgradeRun = Invoke-StreamingCapture -ScriptBlock { topgrade --yes --no-retry }
+        $out = Read-CapturedOutput $topgradeRun.OutputPath
+        $script:stepChanged = $true
+        $script:stepMessage = 'topgrade run completed (package managers + dev tools)'
+    }
+}
+else {
+    foreach ($mgr in $managers) {
+        Invoke-Update -Name $mgr.Name -Title $mgr.Title -Action $mgr.Action -RequiresCommand $mgr.RequiresCommand -Disabled:$mgr.Disabled -RequiresAdmin:$mgr.RequiresAdmin -SlowOperation:$mgr.SlowOperation
+    }
 }
 
 # --- Dev Tools -----------------------------------------------------------------
@@ -955,10 +970,6 @@ if (-not $SkipWindowsUpdate) {
         $wuModule = Get-Module -ListAvailable -Name PSWindowsUpdate -ErrorAction SilentlyContinue
         if (-not $wuModule) {
             Write-Detail "PSWindowsUpdate module not found, installing..." -Type Info
-            $nuget = Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction SilentlyContinue
-            if (-not $nuget) {
-                Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ErrorAction Stop
-            }
             if (Get-Command Set-PSRepository -ErrorAction SilentlyContinue) {
                 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction SilentlyContinue
             }
@@ -966,7 +977,7 @@ if (-not $SkipWindowsUpdate) {
         }
         Import-Module PSWindowsUpdate
         try {
-            $wuParams = @{ Install = $true; AcceptAll = $true; NotCategory = 'Drivers'; IgnoreReboot = $true; RecurseCycle = 3; Verbose = $false; Confirm = $false }
+            $wuParams = @{ MicrosoftUpdate = $true; Install = $true; AcceptAll = $true; NotCategory = 'Drivers'; IgnoreReboot = $true; RecurseCycle = 3; Verbose = $false; Confirm = $false }
             $wuRun = Invoke-StreamingCapture -ScriptBlock { Get-WindowsUpdate @wuParams }
             $wuOut = Read-CapturedOutput $wuRun.OutputPath
             if ($wuOut -match 'No updates found|There are no applicable updates') {
@@ -1039,6 +1050,10 @@ Invoke-Update -Name 'DefenderSignatures' -Title 'Microsoft Defender Signatures' 
 }
 
 # Development tools - sequential
+if ($script:UseTopgrade) {
+    $updateResults.Skipped.Add([pscustomobject]@{ Name = 'dev-tools'; Reason = 'handled by topgrade' })
+}
+else {
 Write-Host "`n[Sequential] Running dev tool updates..." -ForegroundColor DarkCyan
 
 Invoke-Update -Name 'npm' -Title 'npm (Node.js)' -RequiresCommand 'npm' -Disabled:$SkipNode -Action {
@@ -1459,6 +1474,7 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
     else {
         $script:stepMessage = 'PowerShell modules and help checked'
     }
+}
 }
 
 
