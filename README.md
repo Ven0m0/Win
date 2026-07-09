@@ -122,7 +122,7 @@ The bootstrap script will:
 
 1. **PowerShell Profile**:
    ```pwsh
-   Copy-Item "$HOME\user\.dotfiles\config\powershell\profile.ps1" $PROFILE -Force
+   Copy-Item "$HOME\user\.dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1" $PROFILE -Force
    ```
 
 2. **Windows Terminal Settings**:
@@ -141,7 +141,7 @@ If automatic bootstrap fails, configure manually:
 
 2. **PowerShell Profile**:
    ```pwsh
-   Copy-Item "$HOME\user\.dotfiles\config\powershell\profile.ps1" $PROFILE -Force
+   Copy-Item "$HOME\user\.dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1" $PROFILE -Force
    ```
 
 3. **Windows Terminal Settings**:
@@ -178,7 +178,7 @@ If automatic bootstrap fails, configure manually:
 │   │   └── BuildHosts.ps1        # Hosts file builder
 │   └── Common.Tests.ps1          # Pester tests
 ├── user/.dotfiles/config/
-│   ├── powershell/profile.ps1    # PowerShell profile
+│   ├── powershell/Microsoft.PowerShell_profile.ps1    # PowerShell profile
 │   ├── windows-terminal/settings.json
 │   ├── browser/firefox/user.js
 │   ├── cmd/alias.cmd
@@ -304,7 +304,7 @@ Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
 
 ## PowerShell Profile Features
 
-The PowerShell profile (`~/.config/powershell/profile.ps1`) includes:
+The PowerShell profile (`~/.config/powershell/Microsoft.PowerShell_profile.ps1`) includes:
 
 ### Aliases
 

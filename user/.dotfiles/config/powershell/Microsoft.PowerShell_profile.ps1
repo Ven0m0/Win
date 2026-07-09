@@ -1,5 +1,5 @@
 ## PowerShell Profile
-# Location: $HOME\.dotfiles\config\powershell\profile.ps1
+# Location: $HOME\.dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1
 # Managed by dotbot
 
 #opt-out of telemetry before doing anything, only if PowerShell is run as admin
@@ -10,15 +10,38 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = 'true'
 $env:VCPKG_DISABLE_METRICS = 'true'
 
+# Async init queue: defers heavy prompt/module startup to idle time so the prompt appears
+# instantly. One queued step runs per PowerShell.OnIdle tick; the subscription
+# self-unregisters once the queue drains.
+[System.Collections.Queue]$global:__initQueue = [System.Collections.Queue]::new()
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Out-String)))
+    $__initQueue.Enqueue({
+        . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Out-String)))
+        [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
+    })
 }
-# Terminal icons
+if (Get-Command mise -ErrorAction SilentlyContinue) {
+    $__initQueue.Enqueue({
+        $miseInit = (& mise activate pwsh) | Out-String
+        if ($miseInit) { . ([scriptblock]::Create($miseInit)) }
+    })
+}
 if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    Import-Module -Name Terminal-Icons
+    $__initQueue.Enqueue({
+        try {
+            Import-Module -Name Terminal-Icons -ErrorAction Stop
+        } catch {
+            # Terminal-Icons rewrites its theme cache on every load and re-reads it without
+            # guarding against a partial/concurrent write, which throws a corrupt-CLIXML error.
+            # The cache is regenerated from built-in data, so clearing it and retrying is a
+            # lossless self-heal.
+            $tiCache = Join-Path $env:APPDATA 'powershell\Community\Terminal-Icons'
+            Remove-Item -Path (Join-Path $tiCache '*.xml') -Force -ErrorAction SilentlyContinue
+            Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
+        }
+    })
 }
-$miseInit = (& mise activate pwsh) | Out-String
-if ($miseInit) { . ([scriptblock]::Create($miseInit)) }
+# Registration happens once, after zoxide (below) has had a chance to enqueue its own init step.
 
 #region UI Configuration
 # Set window title
@@ -56,11 +79,6 @@ if (-not $EDITOR) {
 Set-Alias -Name ~ -Value Set-LocationHome -Option AllScope
 function Set-LocationHome { Set-Location $HOME }
 
-# Common commands
-Set-Alias -Name which -Value Get-Command
-Set-Alias -Name grep -Value Select-String
-
-function su { powershell Start-Process powershell -Verb runAs }
 function pwdd { $("$PWD".replace($HOME, '~')) }
 
 function New-Symlink ($target, $link) {
@@ -132,6 +150,7 @@ function ..... { Set-Location ../../../.. }
 
 # Common directories
 function dotfiles { Set-Location -Path (Join-Path $env:USERPROFILE ".dotfiles\$args") }
+function docs { Set-Location -Path ([Environment]::GetFolderPath('MyDocuments')) }
 #endregion
 
 #region Functions
@@ -199,7 +218,7 @@ function Edit-Profile {
     .SYNOPSIS
         Edit PowerShell profile
     #>
-    & $env:EDITOR (Join-Path $HOME ".dotfiles\config\powershell\profile.ps1")
+    & $env:EDITOR (Join-Path $HOME ".dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1")
 }
 
 function Get-PublicIP {
@@ -306,9 +325,6 @@ function mkcd {
     }
 }
 
-# Network Utilities
-function Get-PubIP { (Invoke-WebRequest https://ifconfig.me/ip).Content }
-
 # Open WinUtil full-release
 function winutil {
   $temporaryFile = New-TemporaryFile
@@ -317,6 +333,22 @@ function winutil {
 
   try {
     Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
+    & $winutilInstaller
+  } finally {
+    if (Test-Path -LiteralPath $winutilInstaller) {
+      Remove-Item -LiteralPath $winutilInstaller -Force
+    }
+  }
+}
+
+# Dev-channel companion to winutil
+function winutildev {
+  $temporaryFile = New-TemporaryFile
+  $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
+  Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
+
+  try {
+    Invoke-RestMethod -Uri 'https://christitus.com/windev' -OutFile $winutilInstaller
     & $winutilInstaller
   } finally {
     if (Test-Path -LiteralPath $winutilInstaller) {
@@ -336,9 +368,6 @@ function admin {
 }
 Set-Alias -Name sudo -Value admin
 Set-Alias -Name su -Value admin
-function Update-Profile {
-    & $profile
-}
 function unzip ($file) {
     Write-Output("Extracting", $file, "to", $pwd)
     $fullFile = Get-ChildItem -Path $pwd -Filter $file | ForEach-Object { $_.FullName }
@@ -350,9 +379,6 @@ function grep($regex, $dir) {
         return
     }
     $input | select-string $regex
-}
-function df {
-    get-volume
 }
 
 function sed($file, $find, $replace) {
@@ -386,6 +412,8 @@ function tail {
 }
 # Quick File Creation
 function nf { param($name) New-Item -ItemType "file" -Path . -Name $name }
+# Recursive find-file-by-name
+function ff { param($Name) Get-ChildItem -Recurse -Filter $Name -File | Select-Object -ExpandProperty FullName }
 
 
 function trash($path) {
@@ -420,6 +448,11 @@ function k9 { Stop-Process -Name $args[0] }
 # Enhanced Listing
 function la { Get-ChildItem | Format-Table -AutoSize }
 function ll { Get-ChildItem -Force | Format-Table -AutoSize }
+if (Get-Command eza -ErrorAction SilentlyContinue) {
+    # ls is a built-in alias for Get-ChildItem; remove it so the function below takes over.
+    Remove-Item -Path Alias:ls -Force -ErrorAction SilentlyContinue
+    function ls { eza -la @args }
+}
 # Git Shortcuts
 function gs { git status }
 function ga { git add -A }
@@ -438,6 +471,7 @@ function lazyg {
 }
 # Quick Access to System Information
 function sysinfo { Get-ComputerInfo }
+function uptime { (Get-Date) - (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime | Select-Object Days, Hours, Minutes, Seconds }
 
 # Networking Utilities
 function flushdns {
@@ -448,50 +482,134 @@ function flushdns {
 function cpy { Set-Clipboard $args[0] }
 function pst { Get-Clipboard }
 
-# Enhanced PSReadLine Configuration
-$PSReadLineOptions = @{
-    EditMode = 'Windows'
-    HistoryNoDuplicates = $true
-    HistorySearchCursorMovesToEnd = $true
-    PredictionSource = 'History'
-    PredictionViewStyle = 'ListView'
-    BellStyle = 'None'
+function Show-Help {
+    <#
+    .SYNOPSIS
+        Lists the functions and aliases defined in this profile
+    #>
+    # $PSStyle is PowerShell 7.2+ only; fall back to no color under Windows PowerShell 5.1.
+    $useColor = $PSVersionTable.PSVersion.Major -ge 7 -and $PSVersionTable.PSVersion.Minor -ge 2 -or $PSVersionTable.PSVersion.Major -ge 8
+    $title   = if ($useColor) { $PSStyle.Foreground.BrightMagenta } else { '' }
+    $section = if ($useColor) { $PSStyle.Foreground.BrightBlue } else { '' }
+    $command = if ($useColor) { $PSStyle.Foreground.BrightGreen } else { '' }
+    $desc    = if ($useColor) { $PSStyle.Foreground.BrightWhite } else { '' }
+    $accent  = if ($useColor) { $PSStyle.Foreground.BrightYellow } else { '' }
+    $dim     = if ($useColor) { $PSStyle.Foreground.BrightBlack } else { '' }
+    $reset   = if ($useColor) { $PSStyle.Reset } else { '' }
+
+    Write-Host @"
+${title}PowerShell Profile Help${reset}
+${dim}------------------------------------------------------------${reset}
+
+${section}Git shortcuts${reset}
+  ${command}gs/ga/gc/gpush/gpull/gd/gl${reset} ${accent}->${reset} ${desc}status/add/commit/push/pull/diff/log (per VCS prefix)${reset}
+  ${command}gcom <message>${reset}      ${accent}->${reset} ${desc}add + commit${reset}
+  ${command}lazyg <message>${reset}     ${accent}->${reset} ${desc}add + commit + push${reset}
+
+${section}Navigation${reset}
+  ${command}docs${reset}                ${accent}->${reset} ${desc}Documents folder${reset}
+  ${command}dotfiles${reset}            ${accent}->${reset} ${desc}~/.dotfiles${reset}
+  ${command}.. / ... / ....${reset}     ${accent}->${reset} ${desc}up N directories${reset}
+
+${section}Files${reset}
+  ${command}ff <name>${reset}           ${accent}->${reset} ${desc}find file recursively${reset}
+  ${command}nf <name>${reset}           ${accent}->${reset} ${desc}new file${reset}
+  ${command}touch <path>${reset}        ${accent}->${reset} ${desc}create/update timestamp${reset}
+  ${command}mkcd <dir>${reset}          ${accent}->${reset} ${desc}create + enter dir${reset}
+  ${command}trash <path>${reset}        ${accent}->${reset} ${desc}move to Recycle Bin${reset}
+  ${command}la / ll${reset}             ${accent}->${reset} ${desc}list files${reset}
+  ${command}du / df${reset}             ${accent}->${reset} ${desc}file size / disk usage${reset}
+
+${section}System${reset}
+  ${command}sysinfo${reset}             ${accent}->${reset} ${desc}Get-ComputerInfo${reset}
+  ${command}uptime${reset}              ${accent}->${reset} ${desc}system uptime${reset}
+  ${command}flushdns${reset}            ${accent}->${reset} ${desc}clear DNS cache${reset}
+  ${command}myip${reset}                ${accent}->${reset} ${desc}public IP address${reset}
+  ${command}winutil / winutildev${reset} ${accent}->${reset} ${desc}run WinUtil (stable / dev)${reset}
+  ${command}Clear-TempFile${reset}      ${accent}->${reset} ${desc}clear temp files${reset}
+  ${command}supdate / pupdate${reset}   ${accent}->${reset} ${desc}update PowerShell tools / all winget packages${reset}
+
+${section}Misc${reset}
+  ${command}which <name>${reset}        ${accent}->${reset} ${desc}locate command${reset}
+  ${command}grep <pattern> [dir]${reset} ${accent}->${reset} ${desc}search text${reset}
+  ${command}sed <file> <find> <replace>${reset} ${accent}->${reset} ${desc}replace text${reset}
+  ${command}pgrep/pkill/k9 <name>${reset} ${accent}->${reset} ${desc}find/stop process${reset}
+  ${command}export <name> <value>${reset} ${accent}->${reset} ${desc}set env var${reset}
+  ${command}sreload${reset}             ${accent}->${reset} ${desc}reload this profile${reset}
+  ${command}Edit-Profile${reset}        ${accent}->${reset} ${desc}open this profile in \$EDITOR${reset}
+
+${dim}------------------------------------------------------------${reset}
+"@
 }
-Set-PSReadLineOption @PSReadLineOptions
-# Custom key handlers
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
-Set-PSReadLineKeyHandler -Chord 'Ctrl+d' -Function DeleteChar
-Set-PSReadLineKeyHandler -Chord 'Ctrl+w' -Function BackwardDeleteWord
-Set-PSReadLineKeyHandler -Chord 'Alt+d' -Function DeleteWord
-Set-PSReadLineKeyHandler -Chord 'Ctrl+LeftArrow' -Function BackwardWord
-Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
-Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
-Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
-function Set-PredictionSource {
-    # If function "Set-PredictionSource_Override" is defined in profile.ps1 file
-    # then call it instead.
-    if (Get-Command -Name "Set-PredictionSource_Override" -ErrorAction SilentlyContinue) {
-        Set-PredictionSource_Override;
-    } else {
-  # Improved prediction settings
-  Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-  Set-PSReadLineOption -MaximumHistoryCount 10000
+
+# PSReadLine Configuration (single consolidated block; see #region below for key handlers)
+if (Get-Module -ListAvailable -Name PSReadLine) {
+    $PSReadLineOptions = @{
+        EditMode                     = 'Windows'
+        HistoryNoDuplicates           = $true
+        HistorySearchCursorMovesToEnd = $true
+        BellStyle                     = 'None'
+    }
+    Set-PSReadLineOption @PSReadLineOptions
+    # ListView prediction requires a VT-capable console; falls back to plain history prediction
+    # under redirected output or non-VT hosts (CI, some remoting sessions).
+    # Any non-default PredictionSource requires a VT-capable, non-redirected console;
+    # setting one under redirected output (CI, some remoting/agent shells) throws.
+    if ($Host.UI.SupportsVirtualTerminal -and -not [System.Console]::IsOutputRedirected) {
+        if ($PSVersionTable.PSVersion.Major -ge 7) {
+            Set-PSReadLineOption -PredictionSource HistoryAndPlugin -PredictionViewStyle ListView -MaximumHistoryCount 10000
+        } else {
+            Set-PSReadLineOption -PredictionSource History
+        }
+    }
+    Set-PSReadLineOption -Colors @{
+        Command   = 'Cyan'
+        Parameter = 'Gray'
+        Operator  = 'White'
+        Variable  = 'Green'
+        String    = 'Yellow'
+        Number    = 'Magenta'
+        Type      = 'DarkCyan'
+        Comment   = 'DarkGray'
+    }
+    # Custom key handlers
+    Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+    Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+d' -Function DeleteChar
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+w' -Function BackwardDeleteWord
+    Set-PSReadLineKeyHandler -Chord 'Alt+d' -Function DeleteWord
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+LeftArrow' -Function BackwardWord
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+RightArrow' -Function ForwardWord
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
+    Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
+    # Allow local.ps1 to override prediction settings
+    if (Get-Command -Name 'Set-PredictionSource_Override' -ErrorAction SilentlyContinue) {
+        Set-PredictionSource_Override
     }
 }
-Set-PredictionSource
 if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String)))
+    $__initQueue.Enqueue({ . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String))) })
 } else {
     Write-Host "zoxide command not found. Attempting to install via winget..."
     try {
         winget install -e --id ajeetdsouza.zoxide
         Write-Host "zoxide installed successfully. Initializing..."
-        . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String)))
+        $__initQueue.Enqueue({ . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String))) })
     } catch {
         Write-Error "Failed to install zoxide. Error: $_"
     }
+}
+if ($__initQueue.Count -gt 0) {
+    Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -SupportEvent -Action {
+        if ($__initQueue.Count -gt 0) {
+            & $__initQueue.Dequeue()
+        }
+        else {
+            Unregister-Event -SubscriptionId $EventSubscriber.SubscriptionId -Force
+            Remove-Variable -Name '__initQueue' -Scope Global -Force
+        }
+    } | Out-Null
 }
 
 function Get-CommandPath {
@@ -547,40 +665,6 @@ function pupdate {
 }
 #endregion
 
-#region PSReadLine Configuration
-if (Get-Module -ListAvailable -Name PSReadLine) {
-    Import-Module PSReadLine -ErrorAction SilentlyContinue
-
-    # Set edit mode to Emacs (or Vi if you prefer)
-    Set-PSReadLineOption -EditMode Emacs
-
-    # History configuration
-    Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-    Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
-
-    # Tab completion
-    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
-
-    # Prediction
-    if ($PSVersionTable.PSVersion.Major -ge 7) {
-        Set-PSReadLineOption -PredictionSource History
-        Set-PSReadLineOption -PredictionViewStyle ListView
-    }
-
-    # Colors
-    Set-PSReadLineOption -Colors @{
-        Command = 'Cyan'
-        Parameter = 'Gray'
-        Operator = 'White'
-        Variable = 'Green'
-        String = 'Yellow'
-        Number = 'Magenta'
-        Type = 'DarkCyan'
-        Comment = 'DarkGray'
-    }
-}
-#endregion
-
 #region Chocolatey Profile
 # Import Chocolatey Profile to enable tab-completions
 $ChocolateyProfile = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
@@ -589,49 +673,7 @@ if (Test-Path($ChocolateyProfile)) {
 }
 #endregion
 
-#region Prompt
-# Starship PreCommand Hook
-function Invoke-Starship-PreCommand {
-    $host.ui.RawUI.WindowTitle = (Get-Item $pwd).Name
-}
-
-# Initialize Starship prompt (if available)
-if (Get-Command starship -ErrorAction SilentlyContinue) {
-    . ([scriptblock]::Create((starship init powershell | Out-String)))
-} else {
-    # Fallback to custom prompt if Starship is not installed
-    function prompt {
-        $location = Get-Location
-        $drive = Split-Path -Qualifier $location
-        $path = Split-Path -NoQualifier $location
-
-        # Shorten path if too long
-        if ($path.Length -gt 30) {
-            $pathParts = $path.Split('\\')
-            if ($pathParts.Count -gt 3) {
-                $path = "\..\ $($pathParts[-2])\$($pathParts[-1])"
-            }
-        }
-
-        # Git branch (if in a git repo)
-        $gitBranch = ""
-        if (Get-Command git -ErrorAction SilentlyContinue) {
-            $branch = git branch --show-current 2>$null
-            if ($branch) {
-                $gitBranch = " [$branch]"
-            }
-        }
-
-        # Build prompt
-        Write-Host "$drive$path" -NoNewline -ForegroundColor Cyan
-        if ($gitBranch) {
-            Write-Host $gitBranch -NoNewline -ForegroundColor Yellow
-        }
-
-        return "> "
-    }
-}
-#endregion
+# Prompt is provided by oh-my-posh, initialized asynchronously via $__initQueue above.
 
 #region Startup Message
 # Minimal startup for faster loading

@@ -43,7 +43,7 @@ Win/
 │   ├── arc-raiders/            # Game-specific optimization scripts
 │   └── auto/                   # Unattended Windows setup XML
 ├── user/.dotfiles/config/      # Active config files (NOT .config/ — deprecated)
-│   ├── powershell/profile.ps1  # Main PS profile (frequently changed)
+│   ├── powershell/Microsoft.PowerShell_profile.ps1  # Main PS profile (frequently changed)
 │   ├── nvidia/                 # NVIDIA inspector/performance scripts
 │   └── games/                  # Per-game configs
 ├── tests/                      # Pester tests

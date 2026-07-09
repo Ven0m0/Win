@@ -37,7 +37,7 @@ Use this agent for any work involving dotfile deployment, tracked config changes
 
 ### 2. Path Mapping Rules
 
-- Source (repo): `user/.dotfiles/config/<category>/<file>` (e.g., `powershell/profile.ps1`)
+- Source (repo): `user/.dotfiles/config/<category>/<file>` (e.g., `powershell/Microsoft.PowerShell_profile.ps1`)
 - Dest (system): resolved at runtime using PowerShell expressions or environment variables
 - Always use Windows-native paths in dotbot destinations (`$env:USERPROFILE`, `%APPDATA%`, `%LOCALAPPDATA%`)
 - For PowerShell profile: `$PROFILE` is resolved by `Setup-Dotfiles.ps1` to actual path
