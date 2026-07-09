@@ -633,6 +633,13 @@ function Start-Bootstrap {
             GetSkipReason      = { 'Topgrade not installed or %APPDATA% missing' }
         },
         @{
+            Path               = 'ohmyposh\zen.toml'
+            Mode               = 'file'
+            Label              = 'oh-my-posh zen theme'
+            ResolveDestination = { Join-Path $HOME '.config\ohmyposh\zen.toml' }
+            GetSkipReason      = { 'oh-my-posh not installed' }
+        },
+        @{
             Path               = 'winget-configs\settings.json'
             Mode               = 'file'
             Label              = 'Winget settings'

@@ -1,0 +1,55 @@
+version = 3
+final_space = true
+
+[[blocks]]
+type = 'prompt'
+alignment = 'left'
+
+  [[blocks.segments]]
+  type = 'path'
+  style = 'plain'
+  foreground = '#61AFEF'
+  template = '{{ .Path }}'
+
+    [blocks.segments.properties]
+    style = 'agnoster_short'
+    max_depth = 2
+
+  [[blocks.segments]]
+  type = 'git'
+  style = 'plain'
+  foreground = '#98C379'
+  template = ' {{ .HEAD }}{{ if .Working.Changed }} *{{ end }}'
+
+    [blocks.segments.properties]
+    fetch_status = true
+
+  [[blocks.segments]]
+  type = 'text'
+  style = 'plain'
+  foreground = '#E06C75'
+  template = '{{ if ne .Code 0 }} x{{ end }}'
+
+[[blocks]]
+type = 'prompt'
+alignment = 'right'
+
+  [[blocks.segments]]
+  type = 'time'
+  style = 'plain'
+  foreground = '#5C6370'
+  template = '{{ .CurrentDate | date .Format }}'
+
+    [blocks.segments.properties]
+    time_format = '15:04:05'
+
+[[blocks]]
+type = 'prompt'
+alignment = 'left'
+newline = true
+
+  [[blocks.segments]]
+  type = 'text'
+  style = 'plain'
+  foreground = '#61AFEF'
+  template = '❯'
