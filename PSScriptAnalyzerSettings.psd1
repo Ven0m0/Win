@@ -4,9 +4,7 @@
     # Avoid problematic patterns
     'PSAvoidGlobalAliases'
     'PSAvoidUsingConvertToSecureStringWithPlainText'
-    'PSAvoidUsingEmptyCatchBlock'
     'PSAvoidUsingInvokeExpression'
-    'PSAvoidUsingPositionalParameters'
     'PSAvoidUsingUsernameAndPasswordParams'
     'PSUseBOMForUnicodeEncodedFile'
     'PSUseCorrectCasing'
@@ -18,7 +16,6 @@
     'PSUseCmdletCorrectly'
     'PSUseConsistentIndentation'
     'PSUseConsistentWhitespace'
-    'PSUseSingularNouns'
     'PSUseSupportsShouldProcess'
     'PSUseVerbosityForRequestedLevel'
   )
@@ -30,6 +27,12 @@
     'PSAvoidUsingWriteHost'
     # Exclude unused parameter warnings for CLI scripts with optional params
     'PSReviewUnusedParameter'
+    'PSUseApprovedVerbs'
+    'PSAvoidUsingPositionalParameters'
+    'PSAvoidAssignmentToAutomaticVariable'
+    'PSUseSingularNouns'
+    'PSUseShouldProcessForStateChangingFunctions'
+    'PSAvoidUsingEmptyCatchBlock'
   )
   # Severity levels: Error, Warning, Information
   Severity = 'Warning'
