@@ -272,23 +272,51 @@ function Invoke-PauseBack {
 # ─────────────────────────────────────────────────────────────────────────────
 #  INI helpers
 # ─────────────────────────────────────────────────────────────────────────────
-function Set-IniValue {
+function Set-IniPresetValue {
+    <#
+    .SYNOPSIS
+        Updates preset key/value pairs in a GameUserSettings.ini, section-aware.
+    .DESCRIPTION
+        GameUserSettings.ini splits preset keys across multiple sections
+        (e.g. sg.* under [ScalabilityGroups], DLSSMode/RTXGIQuality/bUseVSync under
+        [/Script/EmbarkUserSettings.EmbarkGameUserSettings]) and the file legitimately
+        contains the same key name in more than one section (e.g. bEnableMouseSmoothing
+        under both [/Script/Engine.GameUserSettings] and [/Script/Engine.InputSettings]).
+        A flat whole-file text match/replace can silently update the wrong section or, for
+        a missing key, append it after the file's last section header. This updates a key
+        only inside whichever section(s) currently contain it.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [ref]$Text,
+        [string]$IniPath,
         [Parameter(Mandatory)]
-        [string]$Key,
-        [Parameter(Mandatory)]
-        [string]$Value
+        [hashtable]$Values
     )
-    $escaped = [regex]::Escape($Key)
-    if ($Text.Value -match "(?m)^$escaped=") {
-        $Text.Value = $Text.Value -replace "(?m)^$escaped=.*", "$Key=$Value"
+    if (-not (Get-Module -ListAvailable -Name PsIni)) {
+        throw "PsIni module not found. Install it with: Install-Module -Name PsIni -Scope CurrentUser"
     }
-    else {
-        $Text.Value = $Text.Value.TrimEnd() + "`r`n$Key=$Value`r`n"
+    Import-Module -Name PsIni -ErrorAction Stop
+
+    $ini = Import-Ini -Path $IniPath
+    foreach ($kv in $Values.GetEnumerator()) {
+        $placed = $false
+        foreach ($sectionName in @($ini.Keys)) {
+            if ($ini[$sectionName].Contains($kv.Key)) {
+                $ini[$sectionName][$kv.Key] = $kv.Value
+                $placed = $true
+            }
+        }
+        if (-not $placed) {
+            # First-run file missing this key: sg.* belongs under ScalabilityGroups,
+            # everything else under the Embark settings section (matches the tracked
+            # sample at user/.dotfiles/config/games/arc-raiders/GameUserSettings.ini).
+            $section = if ($kv.Key -like 'sg.*') { 'ScalabilityGroups' } else { '/Script/EmbarkUserSettings.EmbarkGameUserSettings' }
+            if (-not $ini.Contains($section)) { $ini[$section] = [ordered]@{} }
+            $ini[$section][$kv.Key] = $kv.Value
+        }
     }
+    Export-Ini -InputObject $ini -FilePath $IniPath -Force -Encoding UTF8
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -319,11 +347,7 @@ function Invoke-ApplyPreset {
     $p = $PRESETS[$PresetName]
     if (-not $p) { Write-Err -Message "Unknown preset: $PresetName"; return $false }
 
-    $ini = Get-Content -LiteralPath $IniPath -Raw
-    foreach ($kv in $p.GetEnumerator()) {
-        Set-IniValue -Text ([ref]$ini) -Key $kv.Key -Value $kv.Value
-    }
-    Set-Content -LiteralPath $IniPath -Value $ini -Encoding UTF8 -NoNewline
+    Set-IniPresetValue -IniPath $IniPath -Values $p
     Write-Ok -Message "Preset '$PresetName' applied to config"
     Write-Info -Message "Settings: ViewDist=$($p['sg.ViewDistanceQuality']) Texture=$($p['sg.TextureQuality']) DLSS=$($p['DLSSMode']) RTX=$($p['RTXGIQuality'])"
     return $true

@@ -155,41 +155,24 @@ function Import-RegistryConfig {
 
 function Get-FirefoxDefaultProfilePath {
     $profilesIni = Join-Path $env:APPDATA 'Mozilla\Firefox\profiles.ini'
-    if (-not (Test-Path $profilesIni)) {
+    if (-not (Test-Path $profilesIni) -or -not (Get-Module -ListAvailable -Name PsIni)) {
+        return $null
+    }
+    Import-Module -Name PsIni -ErrorAction Stop
+
+    $ini = Import-Ini -Path $profilesIni
+    $profileSections = @($ini.Keys | Where-Object { $_ -like 'Profile*' })
+    if ($profileSections.Count -eq 0) {
         return $null
     }
 
-    $profiles = [System.Collections.Generic.List[hashtable]]::new()
-    $currentProfile = $null
-
-    foreach ($line in [System.IO.File]::ReadLines($profilesIni)) {
-        if ($line -match '^\[(?<section>[^\]]+)\]$') {
-            if ($currentProfile -and $currentProfile.Section -like 'Profile*') {
-                $profiles.Add($currentProfile)
-            }
-            $currentProfile = @{ Section = $matches.section }
-            continue
-        }
-
-        if ($currentProfile -and $line -match '^(?<key>[^=]+)=(?<value>.*)$') {
-            $currentProfile[$matches.key] = $matches.value
-        }
+    $defaultSection = $profileSections | Where-Object { $ini[$_].Default -eq '1' } | Select-Object -First 1
+    if (-not $defaultSection) {
+        $defaultSection = $profileSections[0]
     }
+    $defaultProfile = $ini[$defaultSection]
 
-    if ($currentProfile -and $currentProfile.Section -like 'Profile*') {
-        $profiles.Add($currentProfile)
-    }
-
-    if ($profiles.Count -eq 0) {
-        return $null
-    }
-
-    $defaultProfile = $profiles | Where-Object { $_.Default -eq '1' } | Select-Object -First 1
-    if (-not $defaultProfile) {
-        $defaultProfile = $profiles | Select-Object -First 1
-    }
-
-    if (-not $defaultProfile.Path) {
+    if (-not $defaultProfile.Contains('Path')) {
         return $null
     }
 
@@ -532,7 +515,7 @@ function Start-Bootstrap {
 
     $configManifest = @(
         @{
-            Path               = 'powershell\profile.ps1'
+            Path               = 'powershell\Microsoft.PowerShell_profile.ps1'
             Mode               = 'file'
             Label              = 'PowerShell profile'
             ResolveDestination = { $PROFILE }
@@ -641,6 +624,13 @@ function Start-Bootstrap {
             Label              = 'Scoop config'
             ResolveDestination = { Join-Path $HOME '.config\scoop\config.json' }
             GetSkipReason      = { 'Scoop not installed or .config directory missing' }
+        },
+        @{
+            Path               = 'topgrade\topgrade.toml'
+            Mode               = 'file'
+            Label              = 'Topgrade config'
+            ResolveDestination = { Join-Path $env:APPDATA 'topgrade.toml' }
+            GetSkipReason      = { 'Topgrade not installed or %APPDATA% missing' }
         },
         @{
             Path               = 'winget-configs\settings.json'

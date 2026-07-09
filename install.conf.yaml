@@ -11,7 +11,7 @@
       stderr: true
 - shell:
     # ── PowerShell profile ──────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/powershell/profile.ps1
+    # Source:  user/.dotfiles/config/powershell/Microsoft.PowerShell_profile.ps1
     # Target:  ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTools -SkipWSL
       description: "PowerShell profile → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
@@ -65,6 +65,11 @@
     # Target:  ~/.config/scoop/config.json
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Scoop config' -SkipWingetTools -SkipWSL
       description: "Scoop config → ~/.config/scoop/config.json"
+    # ── Topgrade config ─────────────────────────────────────────────────────
+    # Source:  user/.dotfiles/config/topgrade/topgrade.toml
+    # Target:  %APPDATA%\topgrade.toml
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Topgrade config' -SkipWingetTools -SkipWSL
+      description: "Topgrade config → %APPDATA%\\topgrade.toml"
     # ── winget settings ─────────────────────────────────────────────────────
     # Source:  user/.dotfiles/config/winget-configs/settings.json
     # Target:  %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json

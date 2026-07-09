@@ -1,0 +1,16 @@
+# Topgrade config for Windows.
+# Deployed to %APPDATA%\topgrade.toml (see Scripts/Setup-Dotfiles.ps1).
+# Matches how system-update.ps1 invokes topgrade: `topgrade --yes --no-retry`.
+
+[misc]
+no_retry = true
+cleanup = true
+disable = ["gem", "ruby_gems", "containers"]
+
+[windows]
+# Let scoop/cargo upgrade the topgrade binary mid-run (only relevant if topgrade
+# was installed via a package manager rather than a standalone binary).
+self_rename = true
+
+[git]
+max_concurrency = 8
