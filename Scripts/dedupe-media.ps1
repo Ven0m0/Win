@@ -119,59 +119,6 @@ $mediaExtensions = @(
 )
 
 
-function Select-FolderDialog {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param()
-    process {
-        Add-Type -AssemblyName System.Windows.Forms
-        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-        $dialog.Description = 'Select the folder to deduplicate'
-        $dialog.ShowNewFolderButton = $false
-        try {
-            if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
-                throw 'No folder selected.'
-            }
-            $dialog.SelectedPath
-        }
-        finally {
-            $dialog.Dispose()
-        }
-    }
-}
-
-
-function Resolve-Tool {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param(
-        [Parameter(Mandatory)]
-        [string[]]$Name
-    )
-    process {
-        foreach ($candidate in $Name) {
-            $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue |
-                Select-Object -First 1
-            if ($command) {
-                $command.Source
-                return
-            }
-        }
-        throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
-    }
-}
-
-
-function Write-Phase {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Message)
-    process {
-        Write-Host ''
-        Write-Host "==> $Message" -ForegroundColor Cyan
-    }
-}
-
-
 # Unit multipliers: fclones reports decimal (KB=1000), czkawka reports binary (KiB=1024).
 $decimalUnits = @{ B = 1; KB = 1000; MB = 1000 * 1000; GB = 1000 * 1000 * 1000; TB = 1000 * 1000 * 1000 * 1000 }
 $binaryUnits = @{ B = 1; KiB = 1024; MiB = 1024 * 1024; GiB = 1024 * 1024 * 1024; TiB = 1024 * 1024 * 1024 * 1024 }
@@ -386,7 +333,7 @@ function Invoke-CzkawkaPass {
 
 
 if (-not $PSBoundParameters.ContainsKey('Path')) {
-    $Path = Select-FolderDialog
+    $Path = Select-FolderDialog -Description 'Select the folder to deduplicate'
 }
 
 $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path

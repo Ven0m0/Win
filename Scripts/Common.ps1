@@ -43,6 +43,18 @@ function Write-ColorOutput {
 #endregion
 
 #region Admin Elevation
+function Test-IsAdmin {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    <#
+    .SYNOPSIS
+        Returns whether the current process is running elevated.
+    #>
+    param()
+    ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        [Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
 function Request-AdminElevation {
     [CmdletBinding()]
     <#
@@ -1222,6 +1234,21 @@ function Write-Info {
     param([string]$Text)
     Write-ColorOutput "[INFO] $Text" -ForegroundColor White
 }
+
+function Write-Phase {
+    <#
+    .SYNOPSIS
+        Displays a phase/section header.
+    .PARAMETER Message
+        The phase heading text.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Message)
+    process {
+        Write-Host ''
+        Write-Host "==> $Message" -ForegroundColor Cyan
+    }
+}
 #endregion
 
 #region Logging
@@ -1808,6 +1835,134 @@ function Invoke-Winget {
 
 #endregion
 
+
+function New-Shortcut {
+    <#
+    .SYNOPSIS
+        Creates a .lnk shortcut.
+    .PARAMETER ShortcutPath
+        Destination path for the .lnk file.
+    .PARAMETER TargetPath
+        Path to the executable the shortcut launches.
+    .PARAMETER IconLocation
+        Optional path to an .ico file to use as the shortcut icon.
+    .PARAMETER WorkingDirectory
+        Optional working directory; defaults to the target's parent folder.
+    .PARAMETER Arguments
+        Optional command-line arguments passed to the target.
+    .PARAMETER Description
+        Optional shortcut description/tooltip.
+    .PARAMETER WindowStyle
+        Optional window style (1 = normal, 3 = maximized, 7 = minimized).
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$ShortcutPath,
+
+        [Parameter(Mandatory)]
+        [string]$TargetPath,
+
+        [string]$IconLocation,
+
+        [string]$WorkingDirectory,
+
+        [string]$Arguments,
+
+        [string]$Description,
+
+        [int]$WindowStyle
+    )
+    if ($PSCmdlet.ShouldProcess($ShortcutPath, 'Create shortcut')) {
+        $wsh = New-Object -ComObject WScript.Shell
+        $lnk = $wsh.CreateShortcut($ShortcutPath)
+        $lnk.TargetPath = $TargetPath
+        $lnk.WorkingDirectory = if ($WorkingDirectory) { $WorkingDirectory } else { Split-Path -Path $TargetPath -Parent }
+        if ($IconLocation -and (Test-Path -LiteralPath $IconLocation)) {
+            $lnk.IconLocation = $IconLocation
+        }
+        if ($Arguments) { $lnk.Arguments = $Arguments }
+        if ($Description) { $lnk.Description = $Description }
+        if ($WindowStyle) { $lnk.WindowStyle = $WindowStyle }
+        $lnk.Save()
+        Write-Success "Shortcut created: $ShortcutPath"
+    }
+}
+
+function Get-7zPath {
+    <#
+    .SYNOPSIS
+        Resolves the path to 7z.exe (PATH first, then the default install location).
+    #>
+    [CmdletBinding()]
+    param()
+    $cmd = Get-Command -Name '7z.exe' -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    $fallback = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+    if (Test-Path -LiteralPath $fallback) { return $fallback }
+    throw '7-Zip (7z.exe) not found. Install it first: winget install 7zip.7zip'
+}
+
+function Resolve-Tool {
+    [CmdletBinding()]
+    [OutputType([string])]
+    <#
+    .SYNOPSIS
+        Resolves an executable's full path from a list of candidate names.
+    .PARAMETER Name
+        Candidate executable names, tried in order.
+    .PARAMETER Optional
+        Return $null instead of throwing when no candidate is found.
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Name,
+        [switch]$Optional
+    )
+    process {
+        foreach ($candidate in $Name) {
+            $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($command) {
+                $command.Source
+                return
+            }
+        }
+        if ($Optional) {
+            return $null
+        }
+        throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
+    }
+}
+
+function Select-FolderDialog {
+    [CmdletBinding()]
+    [OutputType([string])]
+    <#
+    .SYNOPSIS
+        Prompts for a folder via a Windows folder picker dialog.
+    .PARAMETER Description
+        Prompt text shown in the dialog.
+    #>
+    param(
+        [string]$Description = 'Select a folder'
+    )
+    process {
+        Add-Type -AssemblyName System.Windows.Forms
+        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.Description = $Description
+        $dialog.ShowNewFolderButton = $false
+        try {
+            if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
+                throw 'No folder selected.'
+            }
+            $dialog.SelectedPath
+        }
+        finally {
+            $dialog.Dispose()
+        }
+    }
+}
 
 function Ensure-Directory {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseApprovedVerbs', '',

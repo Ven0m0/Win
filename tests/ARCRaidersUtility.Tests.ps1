@@ -4,25 +4,28 @@ BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
     $scriptPath = Join-Path $PSScriptRoot '../Scripts/arc-raiders/ARCRaidersUtility.ps1'
-    $tokens = $null
-    $parseErrors = $null
-    $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
-
-    $parseErrors | Should -BeNullOrEmpty
-
+    $commonPath = Join-Path $PSScriptRoot '../Scripts/Common.ps1'
     $definitions = New-Object System.Collections.Generic.List[string]
 
-    $isFuncAst = { param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }
-    foreach ($functionAst in $ast.FindAll($isFuncAst, $true)) {
-        $definitions.Add($functionAst.Extent.Text)
-    }
+    foreach ($path in @($commonPath, $scriptPath)) {
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$parseErrors)
 
-    $isAssignAst = { param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }
-    foreach ($assignmentAst in $ast.FindAll($isAssignAst, $true)) {
-        if ($assignmentAst.Left -is [System.Management.Automation.Language.VariableExpressionAst]) {
-            $variableName = $assignmentAst.Left.VariablePath.UserPath
-            if ($variableName -in @('PRESETS', 'CACHE_PATHS')) {
-                $definitions.Add($assignmentAst.Extent.Text)
+        $parseErrors | Should -BeNullOrEmpty
+
+        $isFuncAst = { param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] }
+        foreach ($functionAst in $ast.FindAll($isFuncAst, $true)) {
+            $definitions.Add($functionAst.Extent.Text)
+        }
+
+        $isAssignAst = { param($node) $node -is [System.Management.Automation.Language.AssignmentStatementAst] }
+        foreach ($assignmentAst in $ast.FindAll($isAssignAst, $true)) {
+            if ($assignmentAst.Left -is [System.Management.Automation.Language.VariableExpressionAst]) {
+                $variableName = $assignmentAst.Left.VariablePath.UserPath
+                if ($variableName -in @('PRESETS', 'CACHE_PATHS')) {
+                    $definitions.Add($assignmentAst.Extent.Text)
+                }
             }
         }
     }

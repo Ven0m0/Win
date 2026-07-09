@@ -47,7 +47,6 @@ Win/
 │   ├── nvidia/                 # NVIDIA inspector/performance scripts
 │   └── games/                  # Per-game configs
 ├── tests/                      # Pester tests
-├── setup.ps1                   # Main entry point (most-changed file in repo)
 ├── AGENTS.md                   # Authoritative AI guide (CLAUDE.md symlinks here)
 └── .github/workflows/          # CI: PSScriptAnalyzer + Pester
 ```

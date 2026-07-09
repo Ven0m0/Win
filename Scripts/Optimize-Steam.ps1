@@ -336,16 +336,8 @@ function Invoke-CreateShortcut {
         return
     }
 
-    if ($PSCmdlet.ShouldProcess($shortcutPath, 'Create Steam shortcut')) {
-        $wsh = New-Object -ComObject WScript.Shell
-        $lnk = $wsh.CreateShortcut($shortcutPath)
-        $lnk.TargetPath       = $steamExe
-        $lnk.Arguments        = $launchArgs
-        $lnk.Description      = 'Steam (Optimized) - performance-focused launch'
-        $lnk.WorkingDirectory = $SteamPath
-        $lnk.Save()
-        Write-ColorOutput "Shortcut created: $shortcutPath" -ForegroundColor Green
-    }
+    New-Shortcut -ShortcutPath $shortcutPath -TargetPath $steamExe -Arguments $launchArgs `
+        -Description 'Steam (Optimized) - performance-focused launch' -WorkingDirectory $SteamPath
 }
 #endregion
 

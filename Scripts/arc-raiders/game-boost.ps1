@@ -38,6 +38,7 @@ param(
 )
 
 Set-StrictMode -Version Latest
+. "$PSScriptRoot\..\Common.ps1"
 $ErrorActionPreference = 'Continue'
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -120,11 +121,6 @@ $PROTECTED = @(
 # ─────────────────────────────────────────────────────────────────────────────
 #  Helpers
 # ─────────────────────────────────────────────────────────────────────────────
-function Test-IsAdmin {
-    ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
 function Invoke-SelfElevation {
     if (-not (Test-IsAdmin)) {
         Write-Host "  Requesting administrator privileges..." -ForegroundColor Yellow

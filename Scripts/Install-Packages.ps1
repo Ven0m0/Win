@@ -18,6 +18,8 @@
     Skip PowerShell module installations.
 .PARAMETER SkipNotepadReplacer
     Skip Notepad Replacer setup.
+.PARAMETER SkipPeripherals
+    Skip peripheral driver/tool installs (GMK Driver, DS4Windows, Endgame Gear OP1 8k tools).
 .PARAMETER ApplyPostInstall
     Apply post-install Windows configuration (from autounattend.xml).
 .PARAMETER PostInstallTimeZone
@@ -41,6 +43,7 @@ param(
     [switch]$SkipSystemFeatures,
     [switch]$SkipPowerShellModules,
     [switch]$SkipNotepadReplacer,
+    [switch]$SkipPeripherals,
     [switch]$ApplyPostInstall,
     [string]$PostInstallTimeZone = 'W. Europe Standard Time',
     [string]$PostInstallInputLocale = 'en-US',
@@ -62,6 +65,7 @@ function Start-InstallPackage {
         [switch]$SkipSystemFeatures,
         [switch]$SkipPowerShellModules,
         [switch]$SkipNotepadReplacer,
+        [switch]$SkipPeripherals,
         [switch]$ApplyPostInstall,
         [string]$PostInstallTimeZone = 'W. Europe Standard Time',
         [string]$PostInstallInputLocale = 'en-US',
@@ -141,7 +145,7 @@ function Start-InstallPackage {
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
-          'SkipPowerShellModules', 'SkipNotepadReplacer', 'ApplyPostInstall') {
+          'SkipPowerShellModules', 'SkipNotepadReplacer', 'SkipPeripherals', 'ApplyPostInstall') {
             if ((Get-Variable -Name $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -269,6 +273,34 @@ function Start-InstallPackage {
                 }
             } catch {
                 Write-Status "Notepad Replacer - $($_.Exception.Message)" -Status 'FAIL'
+            }
+        }
+    }
+
+    # ============================================================================
+    # Phase 7.6: Peripheral drivers/tools (GMK Driver, DS4Windows, Endgame Gear OP1 8k)
+    # ============================================================================
+    if (-not $SkipPeripherals) {
+        Write-Host ''
+        Write-Host '[7.6/11] Installing peripheral drivers...' -ForegroundColor Cyan
+
+        foreach ($peripheral in @(
+                @{ Name = 'GMK Driver'; Script = 'gmk\install-gmk-driver.ps1' }
+                @{ Name = 'DS4Windows'; Script = 'ds4windows\install-ds4windows.ps1' }
+                @{ Name = 'Endgame Gear OP1 8k Tools'; Script = 'endgame-gear\install-op1-tools.ps1' }
+            )) {
+            $scriptPath = Join-Path $PSScriptRoot $peripheral.Script
+            if (-not (Test-Path -LiteralPath $scriptPath)) {
+                Write-Status "$($peripheral.Name) - script not found, skipping" -Status 'SKIP'
+                continue
+            }
+            try {
+                if ($PSCmdlet.ShouldProcess($peripheral.Name, 'Install')) {
+                    & $scriptPath
+                    Write-Status "$($peripheral.Name) installed" -Status 'OK'
+                }
+            } catch {
+                Write-Status "$($peripheral.Name) - $($_.Exception.Message)" -Status 'FAIL'
             }
         }
     }

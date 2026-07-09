@@ -450,14 +450,10 @@ if ($HomeWorkstation) {
 # Startup shortcut for scoop-tray
 if (-not (Test-Path -LiteralPath "$Env:AppData\Microsoft\Windows\Start Menu\Programs\Startup\scoop-tray.lnk")) {
   Write-Verbose "Create scoop-tray shortcut in shell:startup..."
-  $WSHShell = New-Object -ComObject WScript.Shell
-  $Shortcut = $WSHShell.CreateShortcut("$Env:AppData\Microsoft\Windows\Start Menu\Programs\Startup\scoop-tray.lnk")
-  $Shortcut.TargetPath = "$Env:UserProfile\scoop\apps\scoop-tray\current\scoop-tray.bat"
-  $Shortcut.WindowStyle = 7
-  $Shortcut.IconLocation = "%USERPROFILE%\scoop\apps\scoop-tray\current\updates-available.ico"
-  $Shortcut.Description = "scoop-tray.bat"
-  $Shortcut.WorkingDirectory = Split-Path "$Env:UserProfile\scoop\apps\scoop-tray\current\scoop-tray.bat" -Resolve
-  $Shortcut.Save()
+  New-Shortcut -ShortcutPath "$Env:AppData\Microsoft\Windows\Start Menu\Programs\Startup\scoop-tray.lnk" `
+    -TargetPath "$Env:UserProfile\scoop\apps\scoop-tray\current\scoop-tray.bat" -WindowStyle 7 `
+    -IconLocation "%USERPROFILE%\scoop\apps\scoop-tray\current\updates-available.ico" -Description "scoop-tray.bat" `
+    -WorkingDirectory (Split-Path "$Env:UserProfile\scoop\apps\scoop-tray\current\scoop-tray.bat" -Resolve)
 }
 
 # GO env

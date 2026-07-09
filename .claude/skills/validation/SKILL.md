@@ -10,7 +10,7 @@ Use this skill when you need to validate changes in the Ven0m0/Win repository. R
 
 ## Identify Changed Area
 
-- `Scripts/**/*.ps1`, `*.psm1`, `*.psd1` or standalone `setup.ps1`
+- `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`
 - `user/.dotfiles/config/**` — tracked configuration
 - `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md`
 - `.github/` — workflows, instructions, skills

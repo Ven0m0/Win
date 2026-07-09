@@ -171,14 +171,9 @@ foreach ($item in Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recu
 }
 
 # ── Steam: refresh desktop shortcut ──────────────────────────────────────────
-$wsh  = New-Object -ComObject WScript.Shell
-$lnk  = $wsh.CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Steam_min.lnk")
-$lnk.Description  = "$STEAM\steam.exe"
-$lnk.IconLocation = "$STEAM\steam.exe,0"
-$lnk.WindowStyle  = 7
-$lnk.TargetPath   = "powershell"
-$lnk.Arguments    = "-nop -nol -ep remotesigned -file `"$PSCommandPath`""
-$lnk.Save()
+New-Shortcut -ShortcutPath "$([Environment]::GetFolderPath('Desktop'))\Steam_min.lnk" -TargetPath 'powershell' `
+    -Arguments "-nop -nol -ep remotesigned -file `"$PSCommandPath`"" -Description "$STEAM\steam.exe" `
+    -IconLocation "$STEAM\steam.exe,0" -WindowStyle 7
 
 # ── Steam: launch ─────────────────────────────────────────────────────────────
 Start-Process -FilePath "$STEAM\Steam.exe" -ArgumentList $QUICK

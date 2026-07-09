@@ -4,8 +4,9 @@
     Arc Raiders - Skip Videos Mod (PowerShell)
 .DESCRIPTION
     Removes intro, match, and quest video files from Arc Raiders
-    to skip cutscenes. Place this script in the Arc Raiders
-    installation directory and run.
+    to skip cutscenes. Auto-detects the install path via Steam/Epic;
+    only needs to sit in the game folder if that detection fails.
+    Requires Scripts/Common.ps1 (same repo checkout).
 .PARAMETER Option
     Menu option: 1=Intro, 2=Match, 3=Quest, 4=All, 5=Diagnostics, 6=Credit, 0=Exit
 .NOTES
@@ -18,6 +19,7 @@ param(
     [string]$Option
 )
 $ProgressPreference = 'SilentlyContinue'
+. "$PSScriptRoot\..\Common.ps1"
 $script:Warn = '[!]'
 $script:Esc  = [char]27
 
@@ -210,8 +212,7 @@ function Show-Diagnostic {
         Write-Host "      ${esc}[91m[X]${esc}[0m Cannot check write permissions - path missing" -ForegroundColor Red
     }
 
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    if ($isAdmin) {
+    if (Test-IsAdmin) {
         Write-Host "      ${esc}[92m[v]${esc}[0m Running as Administrator" -ForegroundColor Green
     } else {
         Write-Host "      ${esc}[93m!WARN!${esc}[0m Not running as Administrator" -ForegroundColor Yellow

@@ -12,7 +12,7 @@
       ⟲  Rollback       — restore a previous backup
 
     Run as Administrator for: network reset, power plan, process priority.
-    No external dependencies — pure PowerShell + .NET built-ins.
+    Requires Scripts/Common.ps1 (same repo checkout).
 
 .NOTES
     Config path auto-detected; override with -ConfigPath.
@@ -26,6 +26,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
+
+. "$PSScriptRoot\..\Common.ps1"
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  Paths
@@ -202,14 +204,6 @@ function Write-UtilityLog {
     param([string]$Message)
     "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss.fff')  $Message" |
         Add-Content -LiteralPath $LOG_FILE -Encoding UTF8
-}
-
-function Test-IsAdmin {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param()
-    ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 function Find-RtxGpu {

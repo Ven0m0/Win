@@ -101,75 +101,6 @@ $x265Params = 'aq-mode=3:aq-strength=0.8:qcomp=0.7:rd=4:rdoq-level=2:bframes=8:r
     'sao=0:rc-lookahead=48'
 
 
-function Select-FolderDialog {
-    [CmdletBinding()]
-    [OutputType([string])]
-    <#
-    .SYNOPSIS
-        Prompts for a folder via a Windows folder picker dialog.
-    #>
-    param()
-    process {
-        Add-Type -AssemblyName System.Windows.Forms
-        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-        $dialog.Description = 'Select the folder to optimize'
-        $dialog.ShowNewFolderButton = $false
-        try {
-            if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
-                throw 'No folder selected.'
-            }
-            $dialog.SelectedPath
-        }
-        finally {
-            $dialog.Dispose()
-        }
-    }
-}
-
-
-function Resolve-Tool {
-    [CmdletBinding()]
-    [OutputType([string])]
-    <#
-    .SYNOPSIS
-        Resolves an executable's full path from a list of candidate names.
-    .PARAMETER Name
-        Candidate executable names, tried in order.
-    .PARAMETER Optional
-        Return $null instead of throwing when no candidate is found.
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string[]]$Name,
-        [switch]$Optional
-    )
-    process {
-        foreach ($candidate in $Name) {
-            $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue |
-                Select-Object -First 1
-            if ($command) {
-                $command.Source
-                return
-            }
-        }
-        if ($Optional) {
-            return $null
-        }
-        throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
-    }
-}
-
-
-function Write-Phase {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Message)
-    process {
-        Write-Host ''
-        Write-Host "==> $Message" -ForegroundColor Cyan
-    }
-}
-
-
 function Resolve-VideoTool {
     [CmdletBinding()]
     [OutputType([string])]
@@ -416,7 +347,7 @@ function Invoke-VideoPass {
 
 
 if (-not $PSBoundParameters.ContainsKey('Path')) {
-    $Path = Select-FolderDialog
+    $Path = Select-FolderDialog -Description 'Select the folder to optimize'
 }
 
 $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
