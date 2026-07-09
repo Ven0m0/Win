@@ -35,6 +35,8 @@
     "@tarquinen/opencode-dcp@3.1.9",
     "openslimedit@1.0.4",
     "@morphllm/opencode-morph-plugin@2.0.9",
+    "opencode-session-handoff@1.1.6",
+    "opencode-websearch@0.5.0",
     "superpowers@git+https://github.com/obra/superpowers.git",
     ".kilo/plugins/context-shield.ts",
     ".kilo/plugins/json-healer.ts",
