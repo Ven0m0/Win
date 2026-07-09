@@ -124,6 +124,10 @@ $RECYCLE.BIN/
 .cachebro/
 .opencode
 .serena/
+.serena/.gitignore
+.serena/project.local.yml
+.serena/cache
+!.serena/project.yml
 .codegraph/
 .claudelint-cache
 
