@@ -1,0 +1,11 @@
+{
+  "bf": 0,
+  "cqp": 18,
+  "multipass": "disabled",
+  "preset": "p2",
+  "profile": "main",
+  "psycho_aq": false,
+  "rate_control": "CQP",
+  "lookahead": false,
+  "adaptive_quantization": false
+}

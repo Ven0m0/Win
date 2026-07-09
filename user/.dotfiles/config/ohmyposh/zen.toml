@@ -30,6 +30,12 @@ alignment = 'left'
   foreground = '#E06C75'
   template = '{{ if ne .Code 0 }} x{{ end }}'
 
+  [[blocks.segments]]
+  type = 'text'
+  style = 'plain'
+  foreground = '#61AFEF'
+  template = ' ❯'
+
 [[blocks]]
 type = 'prompt'
 alignment = 'right'
@@ -42,14 +48,3 @@ alignment = 'right'
 
     [blocks.segments.properties]
     time_format = '15:04:05'
-
-[[blocks]]
-type = 'prompt'
-alignment = 'left'
-newline = true
-
-  [[blocks.segments]]
-  type = 'text'
-  style = 'plain'
-  foreground = '#61AFEF'
-  template = '❯'
