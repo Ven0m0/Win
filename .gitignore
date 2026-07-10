@@ -141,3 +141,6 @@ results.sarif
 Scripts/reg/DeviceCleanup.ini
 
 !.claude/plans/
+
+undefined/
+.opencode/memory/

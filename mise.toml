@@ -24,20 +24,10 @@ package_manager = "bun"
 cli_telemetry_optout = true
 
 [tools]
-powershell = "latest"
 python = "3.14"
-uv = "latest"
-bun = "latest"
-node = "24"
-ruff = "latest"
-# ty = "latest"
-prek = "latest"
 "pipx:pytest" = "latest"
 "pipx:basedpyright" = "latest"
 "pipx:py-psscriptanalyzer" = "0.3.1"
-#"pipx:powershell-yaml" = "latest"
-ripgrep = "latest"
-fd = "latest"
 "pipx:dotbot" = "latest"
 # Dotbot compatible cli https://pypi.org/project/dotfiles-cli/
 "pipx:dotfiles-cli" = "latest"
