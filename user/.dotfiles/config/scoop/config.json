@@ -4,6 +4,7 @@
   "scoop_branch": "master",
   "use_lessmsi": true,
   "aria2-enabled": true,
+  "aria2-warning-enabled": false,
   "use_sqlite_cache": true,
   "use_isolated_path": true
 }
