@@ -33,15 +33,10 @@
     "opencode-agent-skills@0.6.5",
     "@openspoon/subtask2@0.3.9",
     "@tarquinen/opencode-dcp@3.1.9",
-    "openslimedit@1.0.4",
-    "@morphllm/opencode-morph-plugin@2.0.9",
     "opencode-session-handoff@1.1.6",
     "opencode-websearch@0.5.0",
     "superpowers@git+https://github.com/obra/superpowers.git",
-    ".kilo/plugins/context-shield.ts",
-    ".kilo/plugins/json-healer.ts",
-    ".kilo/plugins/custom-tools.ts",
-    ".kilo/plugins/gitingest.ts"
+    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git"
   ],
   "formatter": {
     "biome": {

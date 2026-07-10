@@ -148,8 +148,9 @@ Load relevant skills first: `win-patterns`, `validation`.
 `win-patterns`, `validation`, `code-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `new-ps-script`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `session-complete`, `todo-scan`
 
 **Rules** (`.kilo/rules/`):
-`powershell.md`, `registry-security.md`, `windows-os.md`, `shell-strategy.md`, `morph-tools.md`
+`powershell.md`, `registry-security.md`, `windows-os.md`
 (`.claude/rules/`: `bootstrap-deployment.md`, `powershell.md`, `registry-security.md`, `windows-os.md`)
+(`shell-strategy` guidance is provided by the `kilo-tools` git plugin — see `.kilo/kilo.json` `plugin` array)
 
 **Commands** (`.kilo/commands/`):
 `Backup-CurrentConfigs`, `Invoke-ScriptAnalyzer`, `Optimize-Repository`, `Sync-Configs`, `Test-Environment`, `Validate-Changes`
