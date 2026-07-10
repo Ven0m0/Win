@@ -16,7 +16,7 @@ $env:VCPKG_DISABLE_METRICS = 'true'
 [System.Collections.Queue]$global:__initQueue = [System.Collections.Queue]::new()
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
     $__initQueue.Enqueue({
-        . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\zen.toml") | Out-String)))
+        . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\cobalt2.omp.json") | Out-String)))
         [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
     })
 }

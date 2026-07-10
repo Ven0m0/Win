@@ -637,6 +637,13 @@ function Start-Bootstrap {
             GetSkipReason      = { 'oh-my-posh not installed' }
         },
         @{
+            Path               = 'ohmyposh\cobalt2.omp.json'
+            Mode               = 'file'
+            Label              = 'oh-my-posh cobalt2 theme'
+            ResolveDestination = { Join-Path $HOME '.config\ohmyposh\cobalt2.omp.json' }
+            GetSkipReason      = { 'oh-my-posh not installed' }
+        },
+        @{
             Path               = 'winget-configs\settings.json'
             Mode               = 'file'
             Label              = 'Winget settings'
@@ -666,7 +673,7 @@ function Start-Bootstrap {
             GetSkipReason      = { 'OBS Studio config directory (%APPDATA%\obs-studio) not found' }
         },
         @{
-            Path   = 'nvidia-inspector'
+            Path   = 'nvidia'
             Mode   = 'script'
             Label  = 'NVIDIA Inspector settings'
             Invoke = {
