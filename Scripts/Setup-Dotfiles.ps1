@@ -1,6 +1,5 @@
 #!/usr/bin/env pwsh
 #Requires -Version 5.1
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Deploys dotfiles and sets up a Windows development environment.
@@ -444,15 +443,13 @@ function Start-Bootstrap {
     catch {
         Write-Verbose "Could not determine admin status: $($_.Exception.Message)"
     }
-    if (-not $isAdmin -and (Get-Variable IsWindows -ValueOnly -ErrorAction SilentlyContinue)) {
-        Write-Host 'Relaunching as administrator...' -ForegroundColor Yellow
-        $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
-        $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
-        $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        if ($WhatIfPreference) { $argList += ' -WhatIf' }
-        Start-Process -FilePath $shell -ArgumentList $argList -Verb RunAs
-        return
+    if (-not $isAdmin) {
+        Write-Host 'Not running as administrator - deploying user-scoped configs only.' -ForegroundColor Yellow
+        Write-Host '  (admin-only steps, e.g. NVIDIA Inspector settings, will be skipped)' -ForegroundColor Yellow
     }
+
+    # Collects deployment failures (and admin-skip notices) for the end-of-run summary.
+    $deployFailures = [System.Collections.Generic.List[pscustomobject]]::new()
 
     # ---------------------------------------------------------------------------
     # Phase 1: Prerequisites & execution policy
@@ -656,11 +653,29 @@ function Start-Bootstrap {
             GetSkipReason      = { 'DDU program data directory not found' }
         },
         @{
+            Path               = 'obs'
+            Mode               = 'directory'
+            Label              = 'OBS Studio config'
+            Filter             = '*'
+            Recurse            = $true
+            ResolveDestination = {
+                $obsRoot = Join-Path $env:APPDATA 'obs-studio'
+                if (Test-Path $obsRoot) { return $obsRoot }
+                return $null
+            }
+            GetSkipReason      = { 'OBS Studio config directory (%APPDATA%\obs-studio) not found' }
+        },
+        @{
             Path   = 'nvidia-inspector'
             Mode   = 'script'
             Label  = 'NVIDIA Inspector settings'
             Invoke = {
                 param($sourceDir, $label)
+                if (-not $isAdmin) {
+                    Write-Warning "  [SKIP] $label - requires administrator privileges (re-run elevated to apply)"
+                    $deployFailures.Add([pscustomobject]@{ Label = $label; Error = 'Skipped - requires administrator privileges' })
+                    return
+                }
                 $script = Join-Path $sourceDir 'nvidia-settings.ps1'
                 if (Test-Path $script) {
                     & $script -Mode Apply
@@ -732,7 +747,14 @@ function Start-Bootstrap {
 
     foreach ($entry in $configManifest) {
         if ($Target -and $Target -notcontains $entry.Label) { continue }
-        Invoke-ConfigManifestEntry -Entry $entry
+        try {
+            Invoke-ConfigManifestEntry -Entry $entry
+        }
+        catch {
+            $err = $_
+            Write-Warning "  [FAIL] $($entry.Label) - $($err.Exception.Message)"
+            $deployFailures.Add([pscustomobject]@{ Label = $entry.Label; Error = $err.Exception.Message })
+        }
     }
 
     # ---------------------------------------------------------------------------
@@ -797,13 +819,32 @@ function Start-Bootstrap {
         }
     }
 
+    if ($deployFailures.Count -gt 0) {
+        Write-Host ''
+        Write-Host 'STEPS THAT FAILED (fix manually):' -ForegroundColor Red
+        foreach ($f in $deployFailures) {
+            Write-Host "  [FAIL] $($f.Label): $($f.Error)" -ForegroundColor Red
+        }
+    }
+    else {
+        Write-Host ''
+        Write-Host '  All config deployments succeeded.' -ForegroundColor Green
+    }
+
     Write-Host ''
     Write-Host 'Bootstrap complete. Restart your terminal to apply the new profile.' -ForegroundColor Cyan
     Write-Host ''
+
+    return [pscustomobject]@{ FailureCount = $deployFailures.Count }
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    Start-Bootstrap @PSBoundParameters
-    $ec = Get-Variable -Name LASTEXITCODE -ValueOnly -ErrorAction SilentlyContinue
-    if ($null -ne $ec) { exit $ec } else { exit 0 }
+    $bootstrapResult = Start-Bootstrap @PSBoundParameters
+    $failureCount = if ($bootstrapResult -and $bootstrapResult.PSObject.Properties['FailureCount']) {
+        $bootstrapResult.FailureCount
+    }
+    else {
+        0
+    }
+    exit ([int]($failureCount -gt 0))
 }

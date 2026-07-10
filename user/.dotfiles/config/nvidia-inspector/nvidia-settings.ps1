@@ -30,16 +30,31 @@ if (-not $isAdmin) {
   return
 }
 
-$inspectorExe = Join-Path $env:TEMP 'Inspector.exe'
+function Resolve-NvidiaProfileInspector {
+  <#
+  .SYNOPSIS
+      Resolves the nvpi.exe path for the NVIDIA Profile Inspector winget package
+      (Orbmu2k.nvidiaProfileInspector, installed by Scripts/packages.psd1).
+  #>
+  [CmdletBinding()]
+  [OutputType([string])]
+  param()
+
+  $wingetLinks = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links'
+  if ((Test-Path $wingetLinks) -and ($env:PATH -notlike "*$wingetLinks*")) {
+    $env:PATH = "$wingetLinks;$env:PATH"
+  }
+
+  $nvpiCmd = Get-Command -Name 'nvpi', 'nvpi-r' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  if (-not $nvpiCmd) {
+    throw 'nvpi.exe / nvpi-r.exe not found on PATH. Install NVIDIA Profile Inspector first (winget install Orbmu2k.nvidiaProfileInspector, or run the package install step).'
+  }
+  return $nvpiCmd.Source
+}
+
+$inspectorExe = Resolve-NvidiaProfileInspector
 $baseNip = Join-Path $PSScriptRoot '..\nvidia\profiles\Base.nip'
 $drsPath = 'C:\ProgramData\NVIDIA Corporation\Drs'
-
-if (-not (Test-Path $inspectorExe)) {
-  Write-Host '  Downloading NvidiaProfileInspector...' -ForegroundColor Cyan
-  $ProgressPreference = 'SilentlyContinue'
-  Invoke-WebRequest -Uri 'https://github.com/FR33THYFR33THY/files/raw/main/Inspector.exe' `
-    -OutFile $inspectorExe -UseBasicParsing
-}
 
 if (Test-Path $drsPath) {
   Get-ChildItem -Path $drsPath -Recurse | Unblock-File

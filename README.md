@@ -33,42 +33,46 @@ The following package managers are recommended for Windows:
 
 ## Fresh Windows 11 Install (One-Command)
 
-For a clean Windows 11 system, clone the repo and run the full setup script. It chains all phases:
-
-```pwsh
-git clone https://github.com/Ven0m0/Win.git "$HOME\Win"
-pwsh -File "$HOME\Win\Scripts\Setup-Win11.ps1"
-```
-
-The script runs these phases:
-1. Install winget, Git, PowerShell 7+ (if missing)
-2. Clone / pull this repository
-3. **Debloat Windows** — removes ~40 bloat appx packages via `packages.psd1`
-4. **Install all software** — ~150 packages: winget (core, runtimes, toolchains, dev tools, CLI tools, ~110 apps), Scoop buckets + packages, Chocolatey packages, Windows features, PowerShell modules
-5. **Deploy all configs** — every tracked config to its correct path via dotbot + `Setup-Dotfiles.ps1`
-6. Optionally install WSL2
-
-**Unattended mode** (zero prompts):
-
-```pwsh
-pwsh -File "$HOME\Win\Scripts\Setup-Win11.ps1" -Unattended
-```
-
-**Skip phases** as needed:
-
-| Flag | Effect |
-|---|---|
-| `-SkipDebloat` | Don't remove bloatware |
-| `-SkipPackages` | Don't run the full software install |
-| `-SkipWSL` | Don't install WSL2 |
-
-**Internet bootstrap** (minimal — prereqs + dotfiles only, no full package catalog):
+On a completely clean Windows 11 machine with nothing installed, run:
 
 ```pwsh
 iwr -useb "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1" | iex
 ```
 
-Alternatively, deploy configs only (no software install):
+This single command chains the whole setup:
+1. Install winget, Git, Python, [mise](https://mise.jdx.dev), and [uv](https://docs.astral.sh/uv) (if missing)
+2. Shallow-clone this repository into `$env:USERPROFILE\project\Win`
+3. Invoke `Scripts/Setup-Win11.ps1`, which runs:
+   - **Debloat Windows** — removes ~40 bloat appx packages via `packages.psd1`
+   - **Install all software** — winget (core, runtimes, toolchains, dev tools, CLI tools, apps), Scoop, Bun/npm globals, Cargo, PowerShell modules — see `packages.psd1`
+   - **Deploy all configs** — every tracked config to its correct path via mise-managed dotbot (`mise install` + `mise run bootstrap`)
+   - Optionally install WSL2
+
+`Setup-Win11.ps1` no longer clones the repository itself — it operates on wherever it's located (`bootstrap.ps1`'s clone, or a manual checkout) and assumes prerequisites are already installed.
+
+**Unattended mode** (zero prompts) — piping into `iex` can't forward parameters, so use `ScriptBlock.Create` instead:
+
+```pwsh
+&([ScriptBlock]::Create((irm "https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1"))) -Unattended
+```
+
+**Skip phases** as needed — these flags are exposed on both `bootstrap.ps1` and `Setup-Win11.ps1` and forward through the chain:
+
+| Flag | Effect |
+|---|---|
+| `-SkipDebloat` | Don't remove bloatware |
+| `-SkipPackages` | Don't run the full software install |
+| `-SkipWingetTools` | Skip installing tools via winget (use existing installations) |
+| `-SkipWSL` | Don't install WSL2 |
+| `-Force` | Re-run setup even if already configured |
+
+If you already have the repo cloned and just want the full local setup without re-cloning:
+
+```pwsh
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\Setup-Win11.ps1"
+```
+
+Alternatively, deploy configs only (no software install, no debloat):
 
 ```pwsh
 # Clone using git
@@ -88,26 +92,30 @@ iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicPar
 ```
 This single command will automatically:
 - Install [winget](https://winstall.app) (Windows Package Manager) if missing
-- Install Git, PowerShell 7+, and dotbot
-- Clone this repository
-- Run the full bootstrap
+- Install Git, Python, [mise](https://mise.jdx.dev), and [uv](https://docs.astral.sh/uv)
+- Shallow-clone this repository into `$env:USERPROFILE\project\Win`
+- Chain into `Scripts/Setup-Win11.ps1` for the full setup (debloat, software catalog, mise-managed dotbot config deploy)
 - Optionally set up WSL2
 
 ### Option 2: Manual Setup
 If you prefer explicit control or the one-command script fails, install prerequisites manually:
 
-1. **Install dotbot** (the dotfile manager):
+1. **Install mise** (manages dotbot, Python, and other tools declared in `mise.toml`):
+   ```pwsh
+   winget install jdx.mise
+   ```
+   Then from the repo root, install everything `mise.toml` declares (including dotbot via pipx):
+   ```pwsh
+   mise install
+   ```
+   Or install dotbot directly, without mise:
    ```pwsh
    pip install dotbot
-   ```
-   Or via mise:
-   ```pwsh
-   mise install dotbot
    ```
 
 2. **Recommended tools** (bootstrap will install these if missing, but you can pre-install):
    ```pwsh
-   winget install -h Git.Git Microsoft.PowerShell Microsoft.WindowsTerminal
+   winget install -h Git.Git Microsoft.PowerShell Microsoft.WindowsTerminal astral-sh.uv
    ```
 
 The bootstrap script will:
@@ -185,6 +193,7 @@ If automatic bootstrap fails, configure manually:
 │   ├── bleachbit/cleaners/
 │   ├── games/(arc-raiders, bf2, bo6, fortnite, minecraft)/
 │   ├── nvidia/                   # NVIDIA assets
+│   ├── obs/                      # OBS Studio profiles, scenes, plugin_config
 │   ├── scoop/                    # Scoop bucket configs
 │   └── winget-configs/
 ├── install.conf.yaml             # dotbot configuration entry point
@@ -210,7 +219,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Setup & Bootstrap
 
-- **`Setup-Win11.ps1`** — Full fresh Windows 11 setup: debloat → install all software → deploy all configs
+- **`Setup-Win11.ps1`** — Full fresh Windows 11 setup: debloat → install all software → deploy all configs. Chained from `bootstrap.ps1`; does not clone the repo itself, operates on wherever it's located
 - **`Install-Packages.ps1`** — Install the full software catalog from `packages.psd1` (can run standalone)
 - **`packages.psd1`** — Canonical package catalog (winget/scoop/choco/modules/features/appx-remove lists)
 - **`Setup-Dotfiles.ps1`** — Deploy tracked configs (called by dotbot / `mise run deploy`)
@@ -445,7 +454,7 @@ Make sure dotbot is installed:
 where.exe dotbot
 ```
 
-If not found, reinstall dotbot via pip or mise.
+If not found, run `mise install` from the repo root (installs dotbot via pipx per `mise.toml`), or fall back to `pip install dotbot`.
 
 ## Contributing
 

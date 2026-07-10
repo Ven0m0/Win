@@ -27,29 +27,25 @@ Describe "Start-SetupWin11" {
     Context "When prerequisites are present" {
         It "Should succeed" {
             Mock Get-Command { return [pscustomobject]@{ Name = $Name; Source = "$Name.exe" } } `
-                -ParameterFilter { $Name -in @('winget', 'git', 'pwsh', 'python', 'dotbot', 'pip', 'wsl') }
+                -ParameterFilter { $Name -in @('winget', 'git', 'pwsh', 'mise', 'wsl') }
             Mock Get-Command { return [pscustomobject]@{ Name = 'cmd'; Source = 'cmd.exe' } }
 
             Mock Test-Path { return $true }
             Mock Remove-Item {}
             Mock Write-Host {}
             Mock Start-Process {}
-            Mock Start-Process {}
+            Mock Push-Location {}
+            Mock Pop-Location {}
 
             function wsl {}
             function git {}
-            function dotbot {}
-            function pushd {}
-            function popd {}
             function winget {}
+            function mise { $global:LASTEXITCODE = 0 }
 
-            # The script does `pushd $repoDir`. Because we mocked `pushd` and `popd`, the real pushd is NOT running.
-            # Wait, the script says `ItemNotFoundException`. It might not be using our mocked `pushd`.
-            # Pester 5 Mocks are scoped. But we define `function pushd {}`. Let's use `Mock pushd {}`.
-            Mock pushd {}
-            Mock popd {}
-
-            $result = Start-SetupWin11 -Unattended -SkipWSL
+            # -SkipDebloat/-SkipPackages are required here: Test-Path being mocked $true does NOT
+            # intercept `& $debloatScript`/`& $installScript` (those invoke real files by path), so
+            # without these switches this test would actually run the live debloat/package scripts.
+            $result = Start-SetupWin11 -Unattended -SkipWSL -SkipDebloat -SkipPackages
             $result | Should -Be $true
         }
     }

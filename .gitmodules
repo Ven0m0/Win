@@ -2,18 +2,9 @@
 	path = meta/dotbot
 	url = https://github.com/anishathalye/dotbot
 	ignore = dirty
-[submodule "dotbot-plugins/gh-extension"]
-	path = dotbot-plugins/gh-extension
-	url = https://github.com/fundor333/dotbot-gh-extension.git
 [submodule "dotbot-plugins/firefox"]
 	path = dotbot-plugins/firefox
 	url = https://github.com/kurtmckee/dotbot-firefox.git
 [submodule "dotbot-plugins/windows"]
 	path = dotbot-plugins/windows
 	url = https://github.com/kurtmckee/dotbot-windows.git
-[submodule "dotbot-plugins/winget"]
-	path = dotbot-plugins/winget
-	url = https://github.com/zknx/dotbot-winget.git
-[submodule "dotbot-plugins/scoop"]
-	path = dotbot-plugins/scoop
-	url = https://github.com/JamJar00/dotbot-scoop.git

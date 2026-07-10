@@ -1,13 +1,15 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
-    Complete Windows 11 setup: installs prerequisites, clones dotfiles, runs bootstrap.
+    Complete Windows 11 setup: debloat, install software catalog, deploy dotfiles.
 .DESCRIPTION
-    One-command fresh Windows 11 setup. Detects and installs missing prerequisites
-    (winget, Git, PowerShell 7), clones the dotfiles repository via git, and
-    runs the full bootstrap process via dotbot.
+    Full machine setup for an already-cloned Ven0m0/Win checkout. Debloats Windows,
+    installs the software catalog (Install-Packages.ps1), and deploys tracked dotfiles
+    via mise-managed dotbot. Intended to be chained from bootstrap.ps1, which installs
+    prerequisites (git/python/mise/uv) and clones the repository before invoking this
+    script - it no longer clones or pulls the repository itself.
 .PARAMETER Unattended
     Skip all prompts and use defaults (no user interaction).
 .PARAMETER Force
@@ -58,6 +60,7 @@ function Start-SetupWin11 {
 
     $script:StartTime = Get-Date
     $script:Results = @{}
+    $repoRoot = Split-Path -Path $PSScriptRoot -Parent
 
     function Write-Status {
         param([string]$Message, [string]$Status = 'INFO')
@@ -100,9 +103,9 @@ function Start-SetupWin11 {
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     # ---------------------------------------------------------------------------
-    # Phase 1: Prerequisites (winget, Git, PowerShell 7)
+    # Phase 1: Prerequisites (winget, Git, PowerShell 7, mise)
     # ---------------------------------------------------------------------------
-    Write-Host '[1/7] Checking prerequisites...' -ForegroundColor Cyan
+    Write-Host '[1/6] Checking prerequisites...' -ForegroundColor Cyan
 
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         if (Test-Path "$PSScriptRoot\shell-setup.ps1") {
@@ -134,73 +137,20 @@ function Start-SetupWin11 {
         }
     } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
+    if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {
+        Write-Status 'mise not found - run bootstrap.ps1 first (installs git/python/mise/uv and clones the repo)' -Status 'FAIL'
+        return $false
+    } else { Write-Status 'mise is available' -Status 'OK' }
 
     # ---------------------------------------------------------------------------
-    # Phase 2: Clone or update dotfiles repository
-    # ---------------------------------------------------------------------------
-    Write-Host ''
-    Write-Host '[2/7] Setting up dotfiles repository...' -ForegroundColor Cyan
-
-    $repoUrl = 'https://github.com/Ven0m0/Win.git'
-    $repoDir = Join-Path $HOME 'Win'
-
-    if (Test-Path $repoDir) {
-        if ($Force) {
-            Write-Status 'Existing repo found - forcing re-clone' -Status 'RUNNING'
-            Remove-Item -Path $repoDir -Recurse -Force -ErrorAction SilentlyContinue
-        } else {
-            Write-Status 'Repository already initialized - pulling latest changes' `
-                -Status 'RUNNING'
-            try {
-                & git -C $repoDir pull
-                if ($LASTEXITCODE -ne 0) { throw "git pull failed with exit code $LASTEXITCODE" }
-                Write-Status 'Dotfiles updated' -Status 'OK'
-            }
-            catch { Write-Status "Pull failed: $_" -Status 'WARN' }
-        }
-    }
-
-    if (-not (Test-Path $repoDir)) {
-        Write-Status "Cloning dotfiles from $repoUrl" -Status 'RUNNING'
-        try {
-            & git clone $repoUrl $repoDir
-            if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE" }
-            Write-Status 'Repository cloned' -Status 'OK'
-        }
-        catch { Write-Status "Clone failed: $_" -Status 'FAIL'; return $false }
-    }
-
-    # Ensure Python and dotbot are installed
-    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-        Write-Status 'Installing Python via winget...' -Status 'RUNNING'
-        try {
-            $ProgressPreference = 'SilentlyContinue'
-            & winget install --id Python.Python.3.14 --silent --accept-source-agreements `
-                --accept-package-agreements
-            if ($LASTEXITCODE -notin @(0, -1978335189)) { throw "python install failed with exit code $LASTEXITCODE" }
-            Write-Status 'Python installed' -Status 'OK'
-        }
-        catch { Write-Status "Python installation failed: $_" -Status 'WARN' }
-    }
-
-    if (-not (Get-Command dotbot -ErrorAction SilentlyContinue)) {
-        Write-Status 'Installing dotbot via pip...' -Status 'RUNNING'
-        try {
-            $null = & pip install dotbot
-            Write-Status 'dotbot installed' -Status 'OK'
-        }
-        catch { Write-Status "dotbot installation failed: $_" -Status 'WARN' }
-    }
-
-    # ---------------------------------------------------------------------------
-    # Phase 3: Debloat Windows
+    # Phase 2: Debloat Windows
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[3/7] Debloating Windows...' -ForegroundColor Cyan
+    Write-Host '[2/6] Debloating Windows...' -ForegroundColor Cyan
     if ($SkipDebloat) {
         Write-Status 'Debloat skipped (-SkipDebloat)' -Status 'SKIP'
     } else {
-        $debloatScript = Join-Path $repoDir 'Scripts\debloat-windows.ps1'
+        $debloatScript = Join-Path $repoRoot 'Scripts\debloat-windows.ps1'
         if (Test-Path $debloatScript) {
             $null = Invoke-Operation -Name 'Windows debloat' -Action {
                 & $debloatScript -NoRestorePoint -Unattended
@@ -211,14 +161,14 @@ function Start-SetupWin11 {
     }
 
     # ---------------------------------------------------------------------------
-    # Phase 4: Install all software
+    # Phase 3: Install all software
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[4/7] Installing software catalog...' -ForegroundColor Cyan
+    Write-Host '[3/6] Installing software catalog...' -ForegroundColor Cyan
     if ($SkipPackages) {
         Write-Status 'Package install skipped (-SkipPackages)' -Status 'SKIP'
     } else {
-        $installScript = Join-Path $repoDir 'Scripts\Install-Packages.ps1'
+        $installScript = Join-Path $repoRoot 'Scripts\Install-Packages.ps1'
         if (Test-Path $installScript) {
             $null = Invoke-Operation -Name 'Full software install' -Action {
                 & $installScript
@@ -229,15 +179,17 @@ function Start-SetupWin11 {
     }
 
     # ---------------------------------------------------------------------------
-    # Phase 5: Run bootstrap via dotbot
+    # Phase 4: Deploy configs via mise-managed dotbot
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[5/7] Deploying configs via dotbot...' -ForegroundColor Cyan
+    Write-Host '[4/6] Deploying configs via mise/dotbot...' -ForegroundColor Cyan
 
-    # Change to repository directory and run dotbot
-    Push-Location -Path $repoDir
+    Push-Location -Path $repoRoot
     try {
-        & dotbot -c install.conf.yaml
+        mise install
+        if ($LASTEXITCODE -ne 0) { throw "mise install failed with exit code $LASTEXITCODE" }
+        mise run bootstrap
+        if ($LASTEXITCODE -ne 0) { throw "mise run bootstrap failed with exit code $LASTEXITCODE" }
         Write-Status 'Bootstrap completed' -Status 'OK'
     } catch {
         Write-Status "Bootstrap failed: $_" -Status 'FAIL'
@@ -247,11 +199,11 @@ function Start-SetupWin11 {
     Pop-Location
 
     # ---------------------------------------------------------------------------
-    # Phase 6: Optional WSL2
+    # Phase 5: Optional WSL2
     # ---------------------------------------------------------------------------
     if (-not $SkipWSL) {
         Write-Host ''
-        Write-Host '[6/7] Optional: WSL2 setup' -ForegroundColor Cyan
+        Write-Host '[5/6] Optional: WSL2 setup' -ForegroundColor Cyan
         $null = & wsl.exe --status 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Status 'WSL is already installed' -Status 'OK'
@@ -272,10 +224,10 @@ function Start-SetupWin11 {
     }
 
     # ---------------------------------------------------------------------------
-    # Phase 7: Summary
+    # Phase 6: Summary
     # ---------------------------------------------------------------------------
     Write-Host ''
-    Write-Host '[7/7] Setup Summary' -ForegroundColor Cyan
+    Write-Host '[6/6] Setup Summary' -ForegroundColor Cyan
     Write-Host ''
     foreach ($key in $script:Results.Keys | Sort-Object) {
         $status = $script:Results[$key]

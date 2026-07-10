@@ -1,131 +1,46 @@
 ---
 # Dotbot configuration for Ven0m0/Win
-# Each shell entry deploys one config group to its real Windows path.
 # Deployment uses hash-based file copying (no symlinks — works without admin).
-# Run all:  dotbot -c install.conf.yaml
-# Run one:  pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'
+# Run:  dotbot -c install.conf.yaml   (or: mise run deploy)
+#
+# All config groups are deployed by a single call into Scripts/Setup-Dotfiles.ps1,
+# which walks its own manifest and never aborts on a single failing entry — any
+# step that fails is collected and printed under "STEPS THAT FAILED" at the end
+# of the run, alongside a per-entry OK/SKIP/UP-TO-DATE line as it happens.
+# For a single config group only, run the script directly with -Target:
+#   pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'
+#
+# Source → Target map (see Scripts/Setup-Dotfiles.ps1 $configManifest for the
+# authoritative, executable version of this list):
+#   powershell\Microsoft.PowerShell_profile.ps1  → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+#   windows-terminal\settings.json                → %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
+#   bleachbit\cleaners\*.xml                       → %APPDATA%\BleachBit\cleaners\
+#   browser\firefox\user.js                        → %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
+#   cmd\alias.cmd                                  → %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
+#   games\bf2\                                     → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
+#   games\bo6\                                      → ~/Documents/Call of Duty/players/
+#   games\arc-raiders\                             → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
+#   games\fortnite\*.ini                           → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
+#   mise\config.toml                               → ~/.config/mise/config.toml
+#   scoop\config.json                              → ~/.config/scoop/config.json
+#   topgrade\topgrade.toml                         → %APPDATA%\topgrade.toml
+#   ohmyposh\zen.toml                              → ~/.config/ohmyposh/zen.toml
+#   winget-configs\settings.json                   → %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
+#   DDU\Settings\Settings.xml                      → %PROGRAMDATA%\DDU\Settings.xml
+#   obs\                                           → %APPDATA%\obs-studio\ (basic profiles/scenes + plugin_config)
+#   nvidia\                                        → manual — mixed scripts/.reg/.nip files for selective use
+#   nvidia-inspector\nvidia-settings.ps1            → applies Base.nip via NvidiaProfileInspector + legacy sharpen registry key (admin only)
+#   nvidia\msi-afterburner\                        → manual — copy skin files to MSI Afterburner Skins directory
+#   cursors\                                       → manual — run setup-cursors.cmd as admin
+#   kilo\lsp.json                                  → ~/.kilo/lsp.json
+#   opencode\lsp.json                              → ~/.config/opencode/lsp.json
+#   games\minecraft\                               → manual — open .mrpack files with Prism Launcher or MultiMC
+#   wsl\                                           → %USERPROFILE%\.wslconfig (host) + staged ~/.config/wsl.conf for manual /etc/wsl.conf copy
 - defaults:
     shell:
       stdin: false
       stdout: true
       stderr: true
 - shell:
-    # ── PowerShell profile ──────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/powershell/Microsoft.PowerShell_profile.ps1
-    # Target:  ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile' -SkipWingetTools -SkipWSL
-      description: "PowerShell profile → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
-    # ── Windows Terminal ────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/windows-terminal/settings.json
-    # Target:  %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Windows Terminal settings' -SkipWingetTools -SkipWSL
-      description: "Windows Terminal → %LOCALAPPDATA%\\Packages\\Microsoft.WindowsTerminal_*\\LocalState\\settings.json"
-    # ── BleachBit cleaners ──────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/bleachbit/cleaners/*.xml
-    # Target:  %APPDATA%\BleachBit\cleaners\
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'BleachBit cleaners' -SkipWingetTools -SkipWSL
-      description: "BleachBit cleaners → %APPDATA%\\BleachBit\\cleaners\\"
-    # ── Firefox user.js ─────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/browser/firefox/user.js
-    # Target:  %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Firefox user.js' -SkipWingetTools -SkipWSL
-      description: "Firefox user.js → %APPDATA%\\Mozilla\\Firefox\\<default-release-profile>\\user.js"
-    # ── CMD aliases ─────────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/cmd/alias.cmd
-    # Target:  %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'CMD aliases' -SkipWingetTools -SkipWSL
-      description: "CMD aliases → %USERPROFILE%\\alias.cmd + HKCU AutoRun registry"
-    # ── Star Wars Battlefront II configs ────────────────────────────────────
-    # Source:  user/.dotfiles/config/games/bf2/
-    # Target:  ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Star Wars Battlefront II (2017) configs' -SkipWingetTools -SkipWSL
-      description: "BF2 configs → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/"
-    # ── Call of Duty Black Ops 6 configs ────────────────────────────────────
-    # Source:  user/.dotfiles/config/games/bo6/
-    # Target:  ~/Documents/Call of Duty/players/
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Call of Duty Black Ops 6 configs' -SkipWingetTools -SkipWSL
-      description: "CoD BO6 configs → ~/Documents/Call of Duty/players/"
-    # ── Arc Raiders configs ─────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/games/arc-raiders/
-    # Target:  %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Arc Raiders configs' -SkipWingetTools -SkipWSL
-      description: 'Arc Raiders configs → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor'
-    # ── Fortnite configs ────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/games/fortnite/
-    # Target:  %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Fortnite configs' -SkipWingetTools -SkipWSL
-      description: "Fortnite configs → %LOCALAPPDATA%\\FortniteGame\\Saved\\Config\\WindowsClient\\"
-    # ── mise config ─────────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/mise/config.toml
-    # Target:  ~/.config/mise/config.toml
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'mise config' -SkipWingetTools -SkipWSL
-      description: "mise config → ~/.config/mise/config.toml"
-    # ── Scoop config ────────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/scoop/config.json
-    # Target:  ~/.config/scoop/config.json
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Scoop config' -SkipWingetTools -SkipWSL
-      description: "Scoop config → ~/.config/scoop/config.json"
-    # ── Topgrade config ─────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/topgrade/topgrade.toml
-    # Target:  %APPDATA%\topgrade.toml
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Topgrade config' -SkipWingetTools -SkipWSL
-      description: "Topgrade config → %APPDATA%\\topgrade.toml"
-    # ── oh-my-posh zen theme ────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/ohmyposh/zen.toml
-    # Target:  ~/.config/ohmyposh/zen.toml
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'oh-my-posh zen theme' -SkipWingetTools -SkipWSL
-      description: "oh-my-posh zen theme → ~/.config/ohmyposh/zen.toml"
-    # ── winget settings ─────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/winget-configs/settings.json
-    # Target:  %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Winget settings' -SkipWingetTools -SkipWSL
-      description: "Winget settings → %LOCALAPPDATA%\\Packages\\Microsoft.DesktopAppInstaller_*\\LocalState\\settings.json"
-    # ── DDU settings ────────────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/DDU/Settings/Settings.xml
-    # Target:  %PROGRAMDATA%\DDU\Settings.xml
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'DDU settings' -SkipWingetTools -SkipWSL
-      description: "DDU settings → %PROGRAMDATA%\\DDU\\Settings.xml"
-    # ── NVIDIA assets (manual) ──────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/nvidia/
-    # Target:  manual — contains mixed scripts, .reg, .nip files for selective use
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA assets' -SkipWingetTools -SkipWSL
-      description: "NVIDIA assets → manual (apply selectively from user/.dotfiles/config/nvidia/)"
-    # ── NVIDIA Inspector settings ───────────────────────────────────────────
-    # Source:  user/.dotfiles/config/nvidia-inspector/nvidia-settings.ps1
-    # Target:  applies Base.nip via NvidiaProfileInspector + enables legacy sharpen registry key
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'NVIDIA Inspector settings' -SkipWingetTools -SkipWSL
-      description: "NVIDIA Inspector settings → Base.nip + legacy sharpen (auto-elevated)"
-    # ── MSI Afterburner skin (manual) ──────────────────────────────────────
-    # Source:  user/.dotfiles/config/nvidia/msi-afterburner/
-    # Target:  manual — copy skin files to MSI Afterburner Skins directory
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'MSI Afterburner skin' -SkipWingetTools -SkipWSL
-      description: "MSI Afterburner skin → manual (copy to Skins directory)"
-    # ── Custom cursor set (manual) ──────────────────────────────────────────
-    # Source:  user/.dotfiles/config/cursors/
-    # Target:  manual — run setup-cursors.cmd as admin to install scheme
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Custom cursor set' -SkipWingetTools -SkipWSL
-      description: "Custom cursor set → manual (run setup-cursors.cmd as admin)"
-    # ── Kilo AI LSP config ──────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/kilo/lsp.json
-    # Target:  ~/.kilo/lsp.json
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Kilo AI LSP config' -SkipWingetTools -SkipWSL
-      description: "Kilo AI LSP config → ~/.kilo/lsp.json"
-    # ── OpenCode LSP config ─────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/opencode/lsp.json
-    # Target:  ~/.config/opencode/lsp.json
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'OpenCode LSP config' -SkipWingetTools -SkipWSL
-      description: "OpenCode LSP config → ~/.config/opencode/lsp.json"
-    # ── Minecraft modpacks (manual) ─────────────────────────────────────────
-    # Source:  user/.dotfiles/config/games/minecraft/
-    # Target:  manual — open .mrpack files with Prism Launcher or MultiMC
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'Minecraft modpacks' -SkipWingetTools -SkipWSL
-      description: "Minecraft modpacks → manual (import .mrpack via Prism Launcher or MultiMC)"
-    # ── WSL2 configuration ─────────────────────────────────────────────────
-    # Source:  user/.dotfiles/config/wsl/
-    # Target:  %USERPROFILE%\.wslconfig (Windows host); /etc/wsl.conf is a manual step inside WSL
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -Target 'WSL config' -SkipWingetTools -SkipWSL
-      description: "WSL2 config → %USERPROFILE%\\.wslconfig (manual step for /etc/wsl.conf in WSL)"
-- plugin: dotbot-firefox
-  source: dotbot-plugins/firefox
-- plugin: dotbot-windows
-  source: dotbot-plugins/windows
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -SkipWingetTools
+      description: "Deploy all tracked dotfiles configs (see source->target map above)"

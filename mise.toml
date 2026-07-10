@@ -29,8 +29,6 @@ python = "3.14"
 "pipx:basedpyright" = "latest"
 "pipx:py-psscriptanalyzer" = "0.3.1"
 "pipx:dotbot" = "latest"
-# Dotbot compatible cli https://pypi.org/project/dotfiles-cli/
-"pipx:dotfiles-cli" = "latest"
 #"pipx:dotbot-firefox" = "latest"
 #"pipx:dotbot-windows" = "latest"
 

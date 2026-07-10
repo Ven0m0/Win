@@ -23,9 +23,11 @@
 
 **Bootstrap layers:**
 
-1. **Internet** (`bootstrap.ps1`) — one-command entry; self-elevates, installs prereqs, clones repo
-2. **Repo** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — winget packages, hash-based config deployment, PATH setup
+1. **Internet** (`bootstrap.ps1`) — one-command entry; self-elevates, installs Git/Python/mise/uv via winget, shallow-clones to `$env:USERPROFILE\project\Win`, then chains into `Scripts/Setup-Win11.ps1` for the full setup (debloat, packages, dotbot deploy, WSL)
+2. **Repo** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — single deploy-all dotbot call (not per-target), hash-based config deployment, PATH setup. Works without admin; a failing manifest entry is caught and reported in a "STEPS THAT FAILED" summary at the end instead of aborting the run. Deploy itself runs via mise (`mise install` + `mise run bootstrap`), not bare `dotbot`
 3. **Unattended USB** (`Scripts/auto/autounattend-windows10.xml`) — fully self-contained; no companion flat files
+
+`Scripts/Setup-Win11.ps1` no longer clones the repo itself — it operates on `Split-Path -Parent $PSScriptRoot`, assuming layer 1 already put it somewhere.
 
 Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 
@@ -42,6 +44,8 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `setup.Tests.ps1`                         | Root-level Pester tests                                 |
 | `user/.dotfiles/config/`                  | Tracked dotfile content (deploy targets)                |
 | `install.conf.yaml`                       | Dotbot configuration                                    |
+| `mise.toml`                                | Tool manifest — Python/uv, pipx-managed dotbot, `mise run bootstrap`/`deploy` tasks |
+| `Scripts/packages.psd1`                    | Canonical package catalog — winget/scoop/choco/Bun/npm/Cargo/PS-modules/DISM-features/Appx-removal |
 | `.kilo/`                                  | Kilo AI configuration (skills, agents, rules, commands) |
 | `.github/workflows/`                      | CI pipeline definitions                                 |
 
@@ -97,12 +101,17 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 
 **Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `nvidia-inspector/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`
 
+## Gotchas
+
+- **`packages.psd1` `BunPackages`/`NpmPackages`/`CargoPackages` are catalog-only** — `Scripts/Install-Packages.ps1` does not yet read or install them (only `WingetCore`/`ScoopPackages`/`ChocoPackages`/`PsModules` are wired up). Adding an entry tracks it; it does not install it until that gap is closed.
+- **Pester mocks on `Test-Path` do not stop `& $scriptPath` from running real files.** `Setup-Win11.Tests.ps1` invokes `debloat-windows.ps1`/`Install-Packages.ps1` by computed path; mocking `Test-Path` to return `$true` only fakes the existence check, not the invocation. Always call `Start-SetupWin11` with `-SkipDebloat -SkipPackages` in tests — omitting them can execute live debloat/package-install operations on the test machine.
+
 ## Cochange Rules
 
 **Arc Raiders** — all six scripts and config change together:
 `arc-raiders/ARCRaidersUtility.ps1`, `ArcRaidersCommon.ps1`, `game-boost.ps1`, `start-arc-raiders.ps1`, `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `user/.dotfiles/config/games/arc-raiders/`
 
-**Bootstrap** — always change together: `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections)
+**Bootstrap** — always change together: `bootstrap.ps1`, `Scripts/Setup-Win11.ps1`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections). `bootstrap.ps1` and `Setup-Win11.ps1` share a parameter surface (`-Unattended -Force -SkipWingetTools -SkipWSL -SkipPackages -SkipDebloat`) that must stay in sync since one forwards to the other.
 
 ## Validation Matrix
 
@@ -126,7 +135,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
 | `secret-scan.yml`      | all push/PR                  | Gitleaks secret detection                     |
 
-**Pester:** 24 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 25 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## Agent Delegation
 

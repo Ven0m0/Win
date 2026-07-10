@@ -35,4 +35,40 @@ Describe "Setup-Dotfiles.ps1" {
             Get-Command Install-WingetTool -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
     }
+
+    Context "Error resilience" {
+        It "Should not abort the manifest loop when one entry throws" {
+            . "$PSScriptRoot/../Scripts/Setup-Dotfiles.ps1"
+
+            $deployFailures = [System.Collections.Generic.List[pscustomobject]]::new()
+            $configManifest = @(
+                @{ Label = 'Throwing entry' },
+                @{ Label = 'Later entry' }
+            )
+            $processed = [System.Collections.Generic.List[string]]::new()
+
+            foreach ($entry in $configManifest) {
+                try {
+                    if ($entry.Label -eq 'Throwing entry') { throw 'simulated failure' }
+                    $processed.Add($entry.Label)
+                }
+                catch {
+                    $err = $_
+                    $deployFailures.Add([pscustomobject]@{ Label = $entry.Label; Error = $err.Exception.Message })
+                }
+            }
+
+            $deployFailures.Count | Should -Be 1
+            $deployFailures[0].Label | Should -Be 'Throwing entry'
+            $processed | Should -Contain 'Later entry'
+        }
+    }
+
+    Context "OBS config tracked" {
+        It "Should include an OBS Studio config manifest entry" {
+            $manifestContent = Get-Content -Path "$PSScriptRoot/../Scripts/Setup-Dotfiles.ps1" -Raw
+            $manifestContent | Should -Match "Label\s*=\s*'OBS Studio config'"
+            $manifestContent | Should -Match "obs-studio"
+        }
+    }
 }

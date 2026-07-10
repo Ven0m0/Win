@@ -27,13 +27,22 @@
         'Microsoft.DotNet.DesktopRuntime.8'
         'Microsoft.DotNet.DesktopRuntime.7'
         'Microsoft.DotNet.DesktopRuntime.6'
+        'Microsoft.DotNet.Native.Runtime'
         'Microsoft.DotNet.Framework.DeveloperPack_4'
+        'Microsoft.DotNet.Framework.DeveloperPack.4.6'
         'Microsoft.DirectX'
         'KhronosGroup.VulkanRT'
         'Microsoft.XNARedist'
         'Microsoft.EdgeWebView2Runtime'
         'Oracle.JavaRuntimeEnvironment'
-        'EclipseAdoptium.Temurin.25.JRE'
+        'Microsoft.AppInstaller'
+        'Microsoft.UI.Xaml.2.8'
+        'Microsoft.VCLibs.14'
+        'Microsoft.VCLibs.Desktop.14'
+        'Microsoft.WindowsAppRuntime.1.8'
+        'Microsoft.WindowsAppRuntime.2.1'
+        'Microsoft.GameInput'
+        'Microsoft.VSTOR'
     )
 
     # ---------------------------------------------------------------------------
@@ -46,9 +55,10 @@
         'Microsoft.VisualStudio.BuildTools'
         'astral-sh.uv'
         'Oven-sh.Bun'
-        'BiomeJS.Biome'
-        'ast-grep.ast-grep'
         'SQLite.SQLite'
+        'Mozilla.sccache'
+        'tamasfe.taplo'
+        'DenoLand.Deno'
     )
 
     # ---------------------------------------------------------------------------
@@ -63,7 +73,6 @@
         'OpenJS.NodeJS'
         'Python.Python.3.14'
         'Python.Launcher'
-        'PuTTY.PuTTY'
         'jdx.mise'
         'topgrade-rs.topgrade'
         'sinelaw.fresh-editor'
@@ -80,10 +89,10 @@
         'sharkdp.fd'
         'sharkdp.bat'
         'JanDeDobbeleer.OhMyPosh'
-        'Starship.Starship'
         'ajeetdsouza.zoxide'
         'DEVCOM.JetBrainsMonoNerdFont'
         'marlocarlo.psmux'
+        'bootandy.dust'
     )
 
     # ---------------------------------------------------------------------------
@@ -97,9 +106,9 @@
         'OBSProject.OBSStudio'
         #'Meltytech.Shotcut'
         'KDE.Kdenlive'
-        'Audacity.Audacity'
         'HandBrake.HandBrake'
         'Gyan.FFmpeg.Shared'
+        'CodeF0x.ffzap'
         # Image / graphics
         'GIMP.GIMP'
         'KDE.Krita'
@@ -107,10 +116,14 @@
         'Greenshot.Greenshot'
         'XnSoft.XnConvert'
         'SaeraSoft.CaesiumImageCompressor'
+        'OliverBetz.ExifTool'
+        'TimoKokkonen.Jpegoptim'
+        'Google.Libwebp'
         # Compression / files
         '7zip.7zip'
-        'Nikkho.FileOptimizer'
         'aria2.aria2'
+        'LIGHTNINGUK.ImgBurn'
+        'qarmin.czkawka.cli'
         # Browsers / launchers
         'Ablaze.Floorp'
         'ImputNet.Helium'
@@ -124,9 +137,12 @@
         'voidtools.Everything'
         'AutoHotkey.AutoHotkey'
         'ONLYOFFICE.DesktopEditors'
-        'gerardog.gsudo'
         'Microsoft.Sysinternals.Autoruns'
         'Microsoft.Sysinternals.Autologon'
+        'Obsidian.Obsidian'
+        'memstechtips.Winhance'
+        'Nextcloud.NextcloudDesktop'
+        'Microsoft.WSL'
         # Package managers / install helpers
         'Devolutions.UniGetUI'
         # System / drivers / hardware
@@ -142,8 +158,13 @@
         'REALiX.HWiNFO'
         'Intel.IntelExtremeTuningUtility'
         'Ventoy.Ventoy'
+        'Rufus.Rufus'
+        'WinFsp.WinFsp'
+        'ClockworkMod.UniversalADBDriver'
+        'Google.PlatformTools'
         # Disk / storage / cleanup
         'BleachBit.BleachBit'
+        'maharmstone.btrfs'
         # Uninstallers / maintenance
         'RevoUninstaller.RevoUninstaller'
     )
@@ -166,8 +187,43 @@
     # ---------------------------------------------------------------------------
     # Chocolatey
     # ---------------------------------------------------------------------------
-    ChocoPackages      = @(
-        'winbtrfs'
+    # winbtrfs removed 2026-07-10: same upstream project (maharmstone/btrfs) is
+    # tracked via winget as 'maharmstone.btrfs' in WingetApplications, sourced
+    # directly from the author rather than a community re-package.
+    ChocoPackages      = @()
+
+    # ---------------------------------------------------------------------------
+    # Bun global packages
+    # ---------------------------------------------------------------------------
+    BunPackages        = @(
+        '@ast-grep/cli'
+        '@biomejs/biome'
+        '@colbymchenry/codegraph'
+        '@kilocode/cli'
+        '@vtsls/language-server'
+        '@zed-industries/vscode-langservers-extracted'
+        'typescript-language-server'
+        'yaml-language-server'
+    )
+
+    # ---------------------------------------------------------------------------
+    # npm global packages
+    # ---------------------------------------------------------------------------
+    NpmPackages        = @(
+        'oh-my-claude-sisyphus'
+    )
+
+    # ---------------------------------------------------------------------------
+    # Cargo packages (cargo-binstall)
+    # ---------------------------------------------------------------------------
+    # Plain strings install from crates.io (`cargo install <name>`). A hashtable
+    # entry with a Git key installs from that repository instead
+    # (`cargo install --git <url>`) - used for packages not published to crates.io.
+    CargoPackages      = @(
+        'cargo-binstall'
+        'cargo-cache'
+        'cargo-update'
+        @{ Name = 'rtk'; Git = 'https://github.com/rtk-ai/rtk' }
     )
 
     # ---------------------------------------------------------------------------
