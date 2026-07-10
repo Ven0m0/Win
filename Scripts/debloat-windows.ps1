@@ -360,7 +360,7 @@ function Invoke-SystemCleanup {
             if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
                 Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
             }
-            Clear-PathSafe -Path "$($cp.Path)\*" -Recurse
+            Clear-PathSafe -Path "$($cp.Path)\*"
             if ($cp.Desc -eq "Windows Update Cache" -and $wuauservWasRunning) {
                 Start-Service -Name wuauserv -ErrorAction SilentlyContinue
             }

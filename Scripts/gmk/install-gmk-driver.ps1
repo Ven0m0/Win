@@ -38,7 +38,7 @@ function Uninstall-GmkDriver {
         'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
     $entries = Get-ItemProperty -Path $uninstallKeys -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -match 'Gaming Mod Kits' }
+        Where-Object { $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -match 'Gaming Mod Kits' }
 
     if (-not $entries) {
         Write-Info 'No existing GMK driver installation found.'

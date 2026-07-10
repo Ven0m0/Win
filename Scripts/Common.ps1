@@ -87,10 +87,12 @@ function Initialize-ConsoleUI {
         [string]$Title = $myInvocation.MyCommand.Definition + " (Administrator)"
     )
     try { $Host.UI.RawUI.WindowTitle = $Title } catch { Write-Verbose "WindowTitle not supported on this host: $_" }
-    $Host.UI.RawUI.BackgroundColor = "Black"
-    $Host.PrivateData.ProgressBackgroundColor = "Black"
-    $Host.PrivateData.ProgressForegroundColor = "White"
-    Clear-Host
+    try { $Host.UI.RawUI.BackgroundColor = "Black" } catch { Write-Verbose "BackgroundColor not supported on this host: $_" }
+    try {
+        $Host.PrivateData.ProgressBackgroundColor = "Black"
+        $Host.PrivateData.ProgressForegroundColor = "White"
+    } catch { Write-Verbose "ProgressBar colors not supported on this host: $_" }
+    try { Clear-Host } catch { Write-Verbose "Clear-Host not supported on this host (no console buffer, e.g. redirected output): $_" }
 }
 
 function Show-Menu {
@@ -108,7 +110,7 @@ function Show-Menu {
         [string[]]$Options
     )
 
-    Clear-Host
+    try { Clear-Host } catch { Write-Verbose "Clear-Host not supported on this host (no console buffer, e.g. redirected output): $_" }
     if ($Title) {
         Write-ColorOutput $Title -ForegroundColor Cyan
         Write-ColorOutput ""
@@ -656,7 +658,7 @@ function Get-FileFromWeb {
         $percent = $CurrentValue / $TotalValue
         $percentComplete = $percent * 100
 
-        if ($psISE) {
+        if (Test-Path -Path variable:global:psISE) {
             Write-Progress "$ProgressText" -Id 0 -PercentComplete $percentComplete
         }
         else {
@@ -1654,15 +1656,12 @@ function Clear-PathSafe {
     .SYNOPSIS
         Safely clears a directory, file, or file pattern with error suppression
     .PARAMETER Path
-        Path to clear - can be a directory, file, or wildcard pattern (e.g., C:\Temp\*)
-    .PARAMETER Recurse
-        Use recursive deletion (implied for wildcards and directories)
-    .PARAMETER UseRobocopy
-        Use robocopy mirror method for large directories (default for directories)
+        Path to clear - can be a directory, file, or wildcard pattern (e.g., C:\Temp\*).
+        Wildcards and directories are always cleared recursively.
     .EXAMPLE
         Clear-PathSafe -Path "$env:TEMP\*"
         Clear-PathSafe -Path "C:\Logs\old.log"
-        Clear-PathSafe -Path "C:\Cache" -Recurse
+        Clear-PathSafe -Path "C:\Cache"
     #>
     param(
         [Parameter(Mandatory)][string]$Path
@@ -2006,18 +2005,19 @@ function Invoke-Winget {
 
     $winget = Wait-ForWinget
 
-    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltInRole]::Administrator
-    )
-    $scopeArg = if ($isAdmin) { '--scope machine' } else { '' }
-
     if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
         Write-ColorOutput "  Installing $Name..." -ForegroundColor Gray -NoNewline
         try {
-            $fullArgs = "install --id $Id --silent --accept-source-agreements",
-            "--accept-package-agreements $scopeArg $Arguments" -join ' '
-            $proc = Start-Process -FilePath $winget -ArgumentList $fullArgs -NoNewWindow -Wait -PassThru
-            $ec = $proc.ExitCode
+            # Invoked directly (not via Start-Process -NoNewWindow) because -NoNewWindow throws
+            # "0x8000ffff Catastrophic failure" when there is no console to attach to, e.g. when
+            # stdout is redirected to a file or the script runs under a headless/scheduled host.
+            # --scope machine is deliberately omitted: it throws that same catastrophic-failure
+            # COM error for packages that only ship a user-scope installer (e.g. ViGEmBus), instead
+            # of the documented -1978335230 "no applicable installer for scope" exit code.
+            $wingetArgs = @('install', '--id', $Id, '--silent', '--accept-source-agreements', '--accept-package-agreements')
+            if ($Arguments) { $wingetArgs += ($Arguments -split '\s+') }
+            & $winget @wingetArgs *>$null
+            $ec = $LASTEXITCODE
             if ($ec -eq 0 -or $ec -eq -1978335189) {
                 Write-ColorOutput " [OK]" -ForegroundColor Green
             }

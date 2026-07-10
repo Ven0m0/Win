@@ -1,12 +1,12 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Applies NVIDIA Inspector Base Profile settings and enables legacy sharpening.
+    Applies all tracked NVIDIA Inspector profiles and enables legacy sharpening.
 .DESCRIPTION
-    Applies the tracked Base.nip profile via NvidiaProfileInspector and toggles the
-    legacy sharpening registry key. Elevates automatically if not already admin.
+    Imports every .nip profile under the tracked profiles\ folder via NvidiaProfileInspector
+    and toggles the legacy sharpening registry key. Elevates automatically if not already admin.
 .PARAMETER Mode
-    Apply (default): imports Base.nip and enables legacy sharpen.
+    Apply (default): imports every .nip profile and enables legacy sharpen.
     Restore: resets Base Profile to Inspector defaults and disables legacy sharpen.
 .EXAMPLE
     .\nvidia-settings.ps1
@@ -53,7 +53,7 @@ function Resolve-NvidiaProfileInspector {
 }
 
 $inspectorExe = Resolve-NvidiaProfileInspector
-$baseNip = Join-Path $PSScriptRoot '..\nvidia\profiles\Base.nip'
+$profilesDir = Join-Path $PSScriptRoot '..\nvidia\profiles'
 $drsPath = 'C:\ProgramData\NVIDIA Corporation\Drs'
 
 if (Test-Path $drsPath) {
@@ -62,12 +62,18 @@ if (Test-Path $drsPath) {
 
 switch ($Mode) {
   'Apply' {
-    if (-not (Test-Path $baseNip)) {
-      Write-Warning "  [SKIP] NVIDIA Inspector settings - Base.nip not found: $baseNip"
+    $nipFiles = Get-ChildItem -Path $profilesDir -Filter '*.nip' -ErrorAction SilentlyContinue
+    if (-not $nipFiles) {
+      Write-Warning "  [SKIP] NVIDIA Inspector settings - no .nip files found in: $profilesDir"
       return
     }
-    if ($PSCmdlet.ShouldProcess('NVIDIA Base Profile', 'Import Base.nip and enable legacy sharpen')) {
-      Start-Process -FilePath $inspectorExe -ArgumentList "`"$baseNip`"" -Wait
+    foreach ($nipFile in $nipFiles) {
+      if ($PSCmdlet.ShouldProcess($nipFile.Name, 'Import NVIDIA Inspector profile')) {
+        Start-Process -FilePath $inspectorExe -ArgumentList "`"$($nipFile.FullName)`"" -Wait
+        Write-Host "  [OK] Imported $($nipFile.Name)" -ForegroundColor Green
+      }
+    }
+    if ($PSCmdlet.ShouldProcess('Legacy sharpen registry key', 'Enable')) {
       $null = & reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f 2>&1
       $null = & reg.exe add 'HKLM\SYSTEM\ControlSet001\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f 2>&1
       $null = & reg.exe add 'HKLM\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS' /v 'EnableGR535' /t REG_DWORD /d '0' /f 2>&1

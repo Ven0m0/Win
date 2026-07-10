@@ -20,6 +20,8 @@ param(
     [string[]]$Target
 )
 
+. "$PSScriptRoot\Common.ps1"
+
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -392,11 +394,10 @@ function Install-WingetTool {
         [string]$Name
     )
 
-    $winget = Wait-ForWinget
-
     if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
         Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
         try {
+            $winget = Wait-ForWinget
             $wingetArgs = @('install', '--id', $Id, '--silent', '--accept-source-agreements', '--accept-package-agreements')
             if ($isAdmin) { $wingetArgs += @('--scope', 'machine') }
             & $winget @wingetArgs *>$null
