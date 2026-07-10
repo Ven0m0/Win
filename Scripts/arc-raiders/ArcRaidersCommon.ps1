@@ -3,9 +3,12 @@
 .SYNOPSIS
     Shared helpers for Arc Raiders scripts (game-boost, cleanup, start, skip-videos).
 .DESCRIPTION
-    Centralizes duplicated process-control, memory-trimming, Steam-discovery,
-    file-glob-removal, and error-handling patterns used across all Arc Raiders scripts.
+    Centralizes duplicated process-control, Steam-discovery, and VDF/disk-optimization
+    patterns used across all Arc Raiders scripts. File-glob-removal and memory-trim
+    helpers live in Common.ps1 (Remove-Glob, Set-ContentNoNewline, Invoke-MemoryTrim).
 #>
+
+. "$PSScriptRoot\..\Common.ps1"
 
 # ── Discovery ─────────────────────────────────────────────────────────────────
 
@@ -41,115 +44,6 @@ function Find-ArcRaidersInstallPath {
     }
 
     return $null
-}
-
-# ── File Cleanup ──────────────────────────────────────────────────────────────
-
-function Remove-Glob {
-    <#
-    .SYNOPSIS
-        Remove files matching a glob pattern and track total size/count.
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Pattern,
-        [ref]$TotalSize,
-        [ref]$TotalCount
-    )
-
-    $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
-    foreach ($item in $items) {
-        $sz = 0
-        if ($item.PSIsContainer) {
-            try {
-                $dirInfo = [System.IO.DirectoryInfo]::new($item.FullName)
-                foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
-                    $sz += $f.Length
-                }
-            }
-            catch {
-                $sz = 0
-                foreach ($f in Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue) {
-                    $sz += $f.Length
-                }
-            }
-        }
-        else {
-            $sz = $item.Length
-        }
-        if ($TotalSize) { $TotalSize.Value += [long]$sz }
-        if ($TotalCount) { $TotalCount.Value++ }
-        if ($PSCmdlet.ShouldProcess($item.FullName, 'Remove')) {
-            Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
-        }
-        Write-Host "  DEL  $($item.FullName)"
-    }
-}
-
-# ── Memory Utilities ──────────────────────────────────────────────────────────
-
-function Invoke-MemoryTrim {
-    <#
-    .SYNOPSIS
-        Trim working sets of all processes and purge the standby list.
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [string]$TypeName = 'MemUtil'
-    )
-
-    Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class $TypeName {
-    [DllImport("psapi.dll")]
-    public static extern bool EmptyWorkingSet(IntPtr hProcess);
-    [DllImport("kernel32.dll", SetLastError=true)]
-    public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
-    [DllImport("kernel32.dll")]
-    public static extern bool CloseHandle(IntPtr h);
-    [DllImport("ntdll.dll")]
-    public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
-
-    public static void TrimAll() {
-        foreach (var p in System.Diagnostics.Process.GetProcesses()) {
-            try {
-                IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
-                if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch { System.Diagnostics.Debug.WriteLine("TrimAll process failed: " + p.ProcessName); }
-        }
-    }
-    public static void PurgeStandby() {
-        IntPtr buf = Marshal.AllocHGlobal(4);
-        Marshal.WriteInt32(buf, 4);
-        NtSetSystemInformation(80, buf, 4);
-        Marshal.FreeHGlobal(buf);
-    }
-}
-"@ -ErrorAction SilentlyContinue
-
-    if ($PSCmdlet.ShouldProcess('All processes', 'Trim working sets')) {
-        try {
-            $method = [type]$TypeName
-            $method::TrimAll()
-            Write-Host "  Working sets trimmed."
-        }
-        catch {
-            Write-Verbose "Working set trim skipped: $_"
-        }
-    }
-
-    if ($PSCmdlet.ShouldProcess('Standby list', 'Purge')) {
-        try {
-            $method = [type]$TypeName
-            $method::PurgeStandby()
-            Write-Host "  Standby list purged."
-        }
-        catch {
-            Write-Verbose "Standby purge skipped: $_"
-        }
-    }
 }
 
 # ── Process / Game Helpers ────────────────────────────────────────────────────
@@ -208,27 +102,6 @@ function Get-ArcRaidersGameProcess {
 
 # ── VDF / Steam Config Helpers ────────────────────────────────────────────────
 
-function Set-ContentNoNewline {
-    <#
-    .SYNOPSIS
-        Write content to a file without a trailing newline.
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path,
-        [string[]]$Content
-    )
-    if ($PSCmdlet.ShouldProcess($Path, 'Write content')) {
-        if ((Get-Command Set-Content).Parameters['NoNewline']) {
-            Set-Content -LiteralPath $Path -Value $Content -NoNewline -Force
-        }
-        else {
-            [System.IO.File]::WriteAllText($Path, ($Content -join [char]10))
-        }
-    }
-}
-
 function Set-VdfValue {
     <#
     .SYNOPSIS
@@ -262,41 +135,41 @@ function Optimize-FixedVolume {
         $med = try {
             $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
                     Get-Disk -ErrorAction SilentlyContinue).UniqueId
-                if ($diskId) {
-                    ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
-                }
-                else {
-                    'Unspecified'
-                }
-            }
-            catch { 'Unspecified' }
-
-            Write-Host "  ${dl}: ($($_.FileSystem), $med)"
-            if ($med -ne 'HDD') {
-                if ($PSCmdlet.ShouldProcess("${dl}:", 'ReTrim')) {
-                    Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
-                }
+            if ($diskId) {
+                ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
             }
             else {
-                if ($PSCmdlet.ShouldProcess("${dl}:", 'Defrag')) {
-                    Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
-                }
+                'Unspecified'
+            }
+        }
+        catch { 'Unspecified' }
+
+        Write-Host "  ${dl}: ($($_.FileSystem), $med)"
+        if ($med -ne 'HDD') {
+            if ($PSCmdlet.ShouldProcess("${dl}:", 'ReTrim')) {
+                Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+            }
+        }
+        else {
+            if ($PSCmdlet.ShouldProcess("${dl}:", 'Defrag')) {
+                Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
             }
         }
     }
+}
 
-    # ── Output ────────────────────────────────────────────────────────────────────
+# ── Output ────────────────────────────────────────────────────────────────────
 
-    $script:ARC_TOTAL_SIZE = 0
-    $script:ARC_TOTAL_COUNT = 0
+$script:ARC_TOTAL_SIZE = 0
+$script:ARC_TOTAL_COUNT = 0
 
-    function Write-ArcSummary {
-        [CmdletBinding()]
-        param()
+function Write-ArcSummary {
+    [CmdletBinding()]
+    param()
 
-        $mb = [math]::Round($script:ARC_TOTAL_SIZE / 1MB, 2)
-        Write-Host ""
-        Write-Host "══════════════════════════════════════"
-        Write-Host " Cleaned: $($script:ARC_TOTAL_COUNT) item(s), ${mb} MB freed."
-        Write-Host "══════════════════════════════════════"
-    }
+    $mb = [math]::Round($script:ARC_TOTAL_SIZE / 1MB, 2)
+    Write-Host ""
+    Write-Host "══════════════════════════════════════"
+    Write-Host " Cleaned: $($script:ARC_TOTAL_COUNT) item(s), ${mb} MB freed."
+    Write-Host "══════════════════════════════════════"
+}

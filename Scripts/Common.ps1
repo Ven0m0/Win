@@ -417,6 +417,77 @@ function Show-NvidiaGpuSetting {
     }
 }
 
+function Watch-GpuMetrics {
+    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Samples live GPU telemetry (utilization, temperature, power draw, VRAM)
+    .DESCRIPTION
+        Uses nvidia-smi when available for full telemetry. Falls back to WMI
+        (Win32_VideoController) when nvidia-smi is missing, though utilization,
+        temperature, and power draw are not exposed via WMI and report as $null.
+    .PARAMETER IntervalSeconds
+        Seconds to wait between samples when -Loop is set
+    .PARAMETER Loop
+        Keep sampling until -Count is reached or Ctrl+C is pressed
+    .PARAMETER Count
+        Maximum number of samples when looping (0 = infinite)
+    .EXAMPLE
+        Watch-GpuMetrics
+    .EXAMPLE
+        Watch-GpuMetrics -Loop -Count 3 -IntervalSeconds 1
+    #>
+    param(
+        [int]$IntervalSeconds = 2,
+        [switch]$Loop,
+        [int]$Count = 0
+    )
+
+    $nvidiaSmi = Get-Command -Name 'nvidia-smi' -ErrorAction SilentlyContinue
+    $iteration = 0
+
+    do {
+        $iteration++
+
+        if ($nvidiaSmi) {
+            $fields = 'name,utilization.gpu,temperature.gpu,power.draw,memory.used,memory.total'
+            $csv = & $nvidiaSmi.Source --query-gpu=$fields --format=csv,noheader,nounits 2>$null
+
+            foreach ($line in $csv) {
+                $parts = $line -split ',\s*'
+                [pscustomobject]@{
+                    Timestamp           = Get-Date
+                    GpuName             = $parts[0]
+                    UtilizationPercent  = [int]$parts[1]
+                    TemperatureC        = [int]$parts[2]
+                    PowerDrawW          = [double]$parts[3]
+                    MemoryUsedMB        = [int]$parts[4]
+                    MemoryTotalMB       = [int]$parts[5]
+                }
+            }
+        }
+        else {
+            Write-Warning 'nvidia-smi not found on PATH; falling back to WMI. Utilization, temperature, and power draw are unavailable via WMI.'
+
+            foreach ($gpu in Get-CimInstance -ClassName Win32_VideoController) {
+                [pscustomobject]@{
+                    Timestamp           = Get-Date
+                    GpuName             = $gpu.Name
+                    UtilizationPercent  = $null
+                    TemperatureC        = $null
+                    PowerDrawW          = $null
+                    MemoryUsedMB        = $null
+                    MemoryTotalMB       = if ($gpu.AdapterRAM) { [int]($gpu.AdapterRAM / 1MB) } else { $null }
+                }
+            }
+        }
+
+        if ($Loop -and ($Count -le 0 -or $iteration -lt $Count)) {
+            Start-Sleep -Seconds $IntervalSeconds
+        }
+    } while ($Loop -and ($Count -le 0 -or $iteration -lt $Count))
+}
+
 function Get-RegistryValueSafe {
     [CmdletBinding()]
     <#
@@ -922,6 +993,135 @@ function Clear-DirectorySafe {
     Get-ChildItem "$Path" -Recurse -File -Force `
         -ErrorAction SilentlyContinue | Remove-Item -Force `
         -ErrorAction SilentlyContinue
+}
+
+function Remove-Glob {
+    <#
+    .SYNOPSIS
+        Remove files matching a glob pattern and track total size/count.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Pattern,
+        [ref]$TotalSize,
+        [ref]$TotalCount
+    )
+
+    $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
+    foreach ($item in $items) {
+        $sz = 0
+        if ($item.PSIsContainer) {
+            try {
+                $dirInfo = [System.IO.DirectoryInfo]::new($item.FullName)
+                foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
+                    $sz += $f.Length
+                }
+            }
+            catch {
+                $sz = 0
+                foreach ($f in Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue) {
+                    $sz += $f.Length
+                }
+            }
+        }
+        else {
+            $sz = $item.Length
+        }
+        if ($TotalSize) { $TotalSize.Value += [long]$sz }
+        if ($TotalCount) { $TotalCount.Value++ }
+        if ($PSCmdlet.ShouldProcess($item.FullName, 'Remove')) {
+            Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        Write-Host "  DEL  $($item.FullName)"
+    }
+}
+
+function Set-ContentNoNewline {
+    <#
+    .SYNOPSIS
+        Write content to a file without a trailing newline.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [string[]]$Content
+    )
+    if ($PSCmdlet.ShouldProcess($Path, 'Write content')) {
+        if ((Get-Command Set-Content).Parameters['NoNewline']) {
+            Set-Content -LiteralPath $Path -Value $Content -NoNewline -Force
+        }
+        else {
+            [System.IO.File]::WriteAllText($Path, ($Content -join [char]10))
+        }
+    }
+}
+
+function Invoke-MemoryTrim {
+    <#
+    .SYNOPSIS
+        Trim working sets of all processes and purge the standby list.
+    .PARAMETER TypeName
+        Name for the generated Add-Type class. Use a distinct name per call site
+        within the same process to avoid colliding with an earlier Invoke-MemoryTrim.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [string]$TypeName = 'MemUtil'
+    )
+
+    Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class $TypeName {
+    [DllImport("psapi.dll")]
+    public static extern bool EmptyWorkingSet(IntPtr hProcess);
+    [DllImport("kernel32.dll", SetLastError=true)]
+    public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
+    [DllImport("kernel32.dll")]
+    public static extern bool CloseHandle(IntPtr h);
+    [DllImport("ntdll.dll")]
+    public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
+
+    public static void TrimAll() {
+        foreach (var p in System.Diagnostics.Process.GetProcesses()) {
+            try {
+                IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
+                if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
+            } catch { System.Diagnostics.Debug.WriteLine("TrimAll process failed: " + p.ProcessName); }
+        }
+    }
+    public static void PurgeStandby() {
+        IntPtr buf = Marshal.AllocHGlobal(4);
+        Marshal.WriteInt32(buf, 4);
+        NtSetSystemInformation(80, buf, 4);
+        Marshal.FreeHGlobal(buf);
+    }
+}
+"@ -ErrorAction SilentlyContinue
+
+    if ($PSCmdlet.ShouldProcess('All processes', 'Trim working sets')) {
+        try {
+            $method = [type]$TypeName
+            $method::TrimAll()
+            Write-Host "  Working sets trimmed."
+        }
+        catch {
+            Write-Verbose "Working set trim skipped: $_"
+        }
+    }
+
+    if ($PSCmdlet.ShouldProcess('Standby list', 'Purge')) {
+        try {
+            $method = [type]$TypeName
+            $method::PurgeStandby()
+            Write-Host "  Standby list purged."
+        }
+        catch {
+            Write-Verbose "Standby purge skipped: $_"
+        }
+    }
 }
 #endregion
 

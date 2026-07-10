@@ -77,6 +77,46 @@ Describe "fix-system.ps1 (System action)" {
     }
 }
 
+Describe "fix-system.ps1 (Health action)" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/fix-system.ps1"
+    }
+
+    BeforeEach {
+        Mock -CommandName Write-Header -MockWith { }
+        Mock -CommandName Write-Info -MockWith { }
+        Mock -CommandName Write-Warn -MockWith { }
+        Mock -CommandName Write-Success -MockWith { }
+        Mock -CommandName Add-Log -MockWith { }
+        Mock -CommandName Clear-Log -MockWith { }
+        Mock -CommandName Get-Log -MockWith { return @() }
+        Mock -CommandName Show-Summary -MockWith { }
+        Mock -CommandName Measure-Execution -MockWith { return @{ EndTime = (Get-Date); Duration = [timespan]::Zero } }
+        Mock -CommandName Get-PhysicalDisk -MockWith { return @() }
+        Mock -CommandName Get-Volume -MockWith { return @() }
+        Mock -CommandName Get-Service -MockWith { return @() }
+        Mock -CommandName Get-FolderSize -MockWith { return 0 }
+        Mock -CommandName Get-ItemProperty -MockWith { return $null }
+        Mock -CommandName Get-ChildItem -MockWith { return @() }
+        Mock -CommandName Test-Path -MockWith { return $false }
+        Mock -CommandName Set-Content -MockWith { }
+        Mock -CommandName Write-Host -MockWith { }
+    }
+
+    It "Should run Start-SystemHealthCheck in DryRun mode without errors" {
+        { Start-SystemHealthCheck -DryRun -NoReport } | Should -Not -Throw
+    }
+
+    It "Should skip live checks in DryRun mode" {
+        Start-SystemHealthCheck -DryRun -NoReport
+        Assert-MockCalled -CommandName Get-PhysicalDisk -Times 0 -Exactly
+    }
+
+    It "Should run the live checks without errors" {
+        { Start-SystemHealthCheck -NoReport } | Should -Not -Throw
+    }
+}
+
 Describe "fix-system.ps1 (WindowsUpdate action) - Initialization" {
     BeforeAll {
         . "$PSScriptRoot/../Scripts/fix-system.ps1"

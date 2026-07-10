@@ -39,39 +39,7 @@ Invoke-GlobClean "$env:windir\Temp\*"
 
 # ── Memory: trim working sets + purge standby list ────────────────────────────
 Write-Host "`n[Memory] Trimming..."
-
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class MemUtil2 {
-    [DllImport("psapi.dll")]
-    public static extern bool EmptyWorkingSet(IntPtr hProcess);
-    [DllImport("kernel32.dll", SetLastError=true)]
-    public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
-    [DllImport("kernel32.dll")]
-    public static extern bool CloseHandle(IntPtr h);
-    [DllImport("ntdll.dll")]
-    public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
-
-    public static void TrimAll() {
-        foreach (var p in System.Diagnostics.Process.GetProcesses()) {
-            try {
-                IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
-                if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch { Write-Verbose "MemUtil2.TrimAll process failed: $_" }
-        }
-    }
-    public static void PurgeStandby() {
-        IntPtr buf = Marshal.AllocHGlobal(4);
-        Marshal.WriteInt32(buf, 4);
-        NtSetSystemInformation(80, buf, 4);
-        Marshal.FreeHGlobal(buf);
-    }
-}
-"@ -ErrorAction SilentlyContinue
-
-try { [MemUtil2]::TrimAll();      Write-Host "  Working sets trimmed."  } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil2]::PurgeStandby(); Write-Host "  Standby list purged."  } catch { Write-Host "  Standby purge skipped: $_" }
+Invoke-MemoryTrim -TypeName 'MemUtil2'
 
 # ── SSD optimize (ReTrim) ─────────────────────────────────────────────────────
 Write-Host "`n[SSD] Optimizing..."

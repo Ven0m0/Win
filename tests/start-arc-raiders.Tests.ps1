@@ -3,15 +3,15 @@
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
 
-    # Remove-Glob lives in ArcRaidersCommon.ps1 (shared helper library);
+    # Remove-Glob lives in Common.ps1 (shared helper library);
     # start-arc-raiders.ps1 consumes it via its Invoke-GlobClean wrapper.
-    $scriptPath = Join-Path $PSScriptRoot "../Scripts/arc-raiders/ArcRaidersCommon.ps1"
+    $scriptPath = Join-Path $PSScriptRoot "../Scripts/Common.ps1"
     $tokens = $null
     $parseErrors = $null
     $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$tokens, [ref]$parseErrors)
 
     if ($parseErrors) {
-        throw "Failed to parse ArcRaidersCommon.ps1: $($parseErrors[0].Message)"
+        throw "Failed to parse Common.ps1: $($parseErrors[0].Message)"
     }
 
     $removeGlobDefinition = $ast.Find(
@@ -24,7 +24,7 @@ BeforeAll {
     )
 
     if (-not $removeGlobDefinition) {
-        throw "Remove-Glob function was not found in ArcRaidersCommon.ps1."
+        throw "Remove-Glob function was not found in Common.ps1."
     }
 
     . ([ScriptBlock]::Create($removeGlobDefinition.Extent.Text))

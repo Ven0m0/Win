@@ -1,166 +1,221 @@
-# Implementation Plan: Reference-Repo Evaluation (Ven0m0/Win)
+# Implementation Plan: Feature Ideas (Ven0m0/Win)
 
-## Context
+## Handoff Context
 
-`TODO.md` and this file carry two buckets of pending work: (A) evaluating a set of
-external reference repositories for patterns/tweaks worth adopting, and (B) three
-concrete new features. Per the scoping decision for this handoff, **this plan covers
-bucket (A) only** — the reference-repo evaluation. The three features are explicitly
-deferred (see "Deferred" at the end) with their scoping already captured so a later
-session can pick them up cleanly.
+This plan covers the three "Feature Ideas" from `TODO.md`. Scope decisions were made with the
+user before writing this plan — do not re-litigate them:
 
-The deliverable of bucket (A) is **an evaluation, not a blind port**: for each external
-repo, produce a findings table (pattern → does our repo already cover it? → adopt /
-skip / adapt → where it would land), then implement only the accepted items behind a
-user approval gate. The repo already has mature coverage in most of these areas, so the
-main risk is re-adding things that exist under different names.
+- **Depth: MVP-first.** Smallest working version of each feature. No new abstractions beyond what's
+  listed below.
+- **Placement: fold into existing files.** No new top-level scripts except where explicitly called out.
+- Work the three features **in the order listed** — each section is independent of the others except
+  where noted, so they can also be split across sessions.
 
-This is a research + review task first, a coding task second. Treat "skip, already
-covered" as a first-class, valuable outcome — do not manufacture changes.
+Read `AGENTS.md` and the rule files under `.claude/rules/` before editing (PowerShell style, registry
+safety, bootstrap conventions). This repo targets PS 5.1 + 7 compatibility.
 
-## Current-Repo Baseline (what already exists — compare against this before adopting anything)
+## Baseline (verified against current code — re-check if this plan is picked up much later)
 
-Established during exploration; use it to reject redundant suggestions:
+- `Scripts/Common.ps1` (2022 lines) — shared helpers. Has `Get-NvidiaGpuSetting` (registry-based
+  static GPU config, NOT live telemetry), `New-RestorePoint`, `Get-FolderSize`, `Invoke-Operation`
+  (DryRun/error-handling wrapper + `-Command`/`-CaptureOutput` for external processes),
+  `Invoke-ServiceOperation`, `Show-Summary` (status-string color coding: `HEALTHY|COMPLETE|...` = green,
+  `FAIL|ERROR` = red, `SKIP|DRY RUN` = yellow, `PARTIAL|SCHEDULED` = cyan), `Invoke-CommandChecked`.
+  No `nvidia-smi` invocation or live-metrics helper exists today — this is a net-new capability.
+- `Scripts/fix-system.ps1` (619 lines) — `-Action System|WindowsUpdate|All`, already wired through
+  `Invoke-Operation`/`Show-Summary`.
+- `Scripts/system-maintenance.ps1` (731 lines) — `-Action Defrag|Disk|Shader|Extra|DriverCleanup|All`.
+- `Scripts/arc-raiders/game-boost.ps1` (542 lines) — the actual generic engine to generalize (see
+  Feature 2). Already game-agnostic in structure: kill-list, power-plan swap/restore, memory trim,
+  process-priority, launch, monitor-until-exit, crash-recovery state file
+  (`$env:TEMP\arc-boost-state.json`). Only `$GAME_NAMES` and `$STEAM_GAME_ID` (plus cosmetic
+  `ARC RAIDERS` banner strings) are Arc-Raiders-specific.
+- `Scripts/arc-raiders/start-arc-raiders.ps1` (194 lines) and `cleanup-arc-raiders.ps1` (255 lines) —
+  **not** targets for generalization. These are deeply Arc-Raiders/Steam-specific (VDF file rewriting
+  for `sharedconfig.vdf`/`localconfig.vdf`, Steam friends-UI toggles, `SetTimerResolution.exe` path).
+  Leave them alone.
+- `Scripts/arc-raiders/ArcRaidersCommon.ps1` (302 lines) — shared arc-raiders helpers: `Remove-Glob`,
+  `Invoke-MemoryTrim`, `Set-GameProcessPriority`, `Set-ContentNoNewline`, `Optimize-FixedVolume`,
+  `Set-VdfValue`, `Find-ArcRaidersInstallPath`.
 
-- **Bootstrap**: `bootstrap.ps1` (internet entry, self-elevate, clone) → `install.conf.yaml` +
-  `Scripts/Setup-Dotfiles.ps1` (winget packages, SHA256 hash-based config deploy, PATH).
-  Cochange group: `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md`.
-- **PowerShell profile**: tracked under `user/.dotfiles/config/powershell/`.
-- **WSL config**: tracked area `user/.dotfiles/config/wsl/` already exists.
-- **Scoop config**: tracked area `user/.dotfiles/config/scoop/` already exists.
-- **Debloat / privacy**: `Scripts/debloat-windows.ps1` (bloatware removal, telemetry),
-  `Remove-AppxPackageSafe` in `Common.ps1`, telemetry/advertising/suggested-apps keys
-  documented in `.claude/rules/windows-os.md`.
-- **Repair**: `Scripts/fix-system.ps1` — hub with `-Action System|WindowsUpdate|All`
-  (SFC/DISM/WU repair inline). This is the integration target for Windows-Repair-Tool.
-- **Maintenance**: `Scripts/system-maintenance.ps1` — `-Action Defrag|Disk|Shader|Extra|All`.
-- **System settings**: `Scripts/system-settings-manager.ps1` — power, visual, privacy,
-  GPU/display, keyboard.
-- **Shared helpers**: `Scripts/Common.ps1` (~1838 lines) — registry (`Set-RegistryValue`,
-  `Get-NvidiaGpuRegistryPath`), restore points (`New-RestorePoint`), UI/menu, logging,
-  service ops (`Invoke-ServiceOperation`), operation runner + summary
-  (`Invoke-Operation` / `Show-Summary`), appx removal, winget wrappers.
+## Feature 1 — `Watch-GpuMetrics` (new helper in `Common.ps1`)
 
-## Reference Repos to Evaluate
+**Goal:** single-pass or `-Loop`ed GPU telemetry dashboard (utilization, temp, power draw, VRAM),
+first telemetry-style helper in the repo (everything else in `Common.ps1` is static config).
 
-Process each independently; produce one findings section per repo. Fetch source via
-`WebFetch`/`gh` (or the `github-smart` skill for whole-repo markdown). Do **not** run
-any downloaded code.
+**Design:**
+- New function `Watch-GpuMetrics` in `Common.ps1`, placed near the other Nvidia helpers
+  (`Get-NvidiaGpuSetting` region, ~line 316).
+- Primary data source: `nvidia-smi --query-gpu=... --format=csv,noheader,nounits`, invoked via
+  `Invoke-Operation -Command 'nvidia-smi' -ArgumentList ... -CaptureOutput` — do **not** call
+  `& nvidia-smi` directly; route through the existing operation wrapper so DryRun/logging stay
+  consistent with the rest of the repo.
+- If `nvidia-smi` is not on PATH (AMD/Intel GPU, or missing driver), fall back to a WMI probe
+  (`Get-CimInstance Win32_VideoController` — utilization won't be available there, so state that
+  limitation in a warning rather than silently returning zeros).
+- Parameters: `-IntervalSeconds` (default 2), `-Loop` (switch; without it, single pass and return),
+  `-Count` (max iterations when looping; 0/unset = infinite until Ctrl+C).
+- Output: one `[pscustomobject]` per GPU per sample (`Timestamp, GpuName, UtilizationPercent,
+  TemperatureC, PowerDrawW, MemoryUsedMB, MemoryTotalMB`) — matches the "one object type per
+  function" rule in `.claude/rules/powershell.md`. Let the caller pipe to `Format-Table`/
+  `Export-Csv`; don't build a custom renderer.
+- `[CmdletBinding()]`, comment-based help, `#Requires -Version 5.1` guard not needed (it's a
+  function inside `Common.ps1`, which is dot-sourced — follow the file's existing convention of no
+  per-function `#Requires`).
 
-### 1. chawyehsu/dotfiles — https://github.com/chawyehsu/dotfiles
-Compare four surfaces against our baseline:
-- `install.ps1` → vs `Scripts/Setup-Dotfiles.ps1` (bootstrap idempotency, package install flow).
-- `.config/powershell/profile.ps1` → vs `user/.dotfiles/config/powershell/` (aliases, prompt,
-  module loading, lazy-init patterns worth borrowing).
-- `.config/wsl` → vs `user/.dotfiles/config/wsl/` (wsl.conf / distro setup).
-- `.config/scoop/config.json` → vs `user/.dotfiles/config/scoop/` (buckets, aria2, cache settings).
-Structural note: also assess whether their file/folder layout suggests any worthwhile
-reorg, but bias toward keeping our current layout (churn cost is high).
+**Skipped (MVP boundary):** historical logging/export to file, a TUI/curses-style dashboard,
+alerting/thresholds. Add when a caller actually needs trend data, not speculatively.
 
-### 2. pratyakshm/WinRice — https://github.com/pratyakshm/WinRice
-Debloat/tweak toolkit. Extract candidate tweaks NOT already in `debloat-windows.ps1` /
-`system-settings-manager.ps1` / `.reg` files under `Scripts/reg/`. For each candidate,
-record the exact registry path/value or command so adoption is mechanical.
+**Files touched:** `Scripts/Common.ps1` only.
 
-### 3. caglaryalcin/after-format — https://github.com/caglaryalcin/after-format
-Post-format automation. Same treatment as WinRice — diff its tweaks against our debloat +
-settings coverage; flag only the net-new, reversible ones.
+**Verification:** `Invoke-ScriptAnalyzer -Path Scripts/Common.ps1 -Settings PSScriptAnalyzerSettings.psd1`
+clean; manual run on a machine with an Nvidia GPU (`Watch-GpuMetrics`, `Watch-GpuMetrics -Loop -Count 3`);
+confirm the WMI fallback path doesn't throw when `nvidia-smi` is renamed/absent (test via
+`$env:PATH` manipulation or a non-Nvidia box if available). Add one `Describe` block to
+`tests/Common.Tests.ps1` (or create it if it doesn't exist) that mocks `Invoke-Operation` and
+asserts the returned object shape — do not require real GPU hardware in CI.
 
-### 4. Mohabdo21/Windows-Repair-Tool — https://github.com/Mohabdo21/Windows-Repair-Tool
-**Integration target: `Scripts/fix-system.ps1`.** Identify repair routines it has that our
-`-Action System|WindowsUpdate|All` lacks (e.g. component-store repair variants, network
-stack reset, WMI repository rebuild, specific DISM/SFC sequencing). Map each to an existing
-or new `-Action` value rather than a new script.
+## Feature 2 — `Start-OptimizedGame.ps1` (generalize `game-boost.ps1`)
 
-### 5. nohuto/win-config — https://github.com/nohuto/win-config
-General sweep for tweaks/settings/optimizations not covered elsewhere. Lowest priority;
-same diff-against-baseline discipline.
+**Goal:** the kill/power-plan/mem-trim/priority/monitor engine in `game-boost.ps1`, usable for any
+game via a per-game manifest, not just Arc Raiders.
 
-## Approach
+**Prerequisite (do this first, blocks the extraction below):**
+`ArcRaidersCommon.ps1::Optimize-FixedVolume` (line ~251) and the equivalent inline block in
+`cleanup-arc-raiders.ps1` (line ~162) both nest the `try { if {} else {} } catch {}` and the
+following `if/else` one indent level too deep inside the `ForEach-Object { }` scriptblock. Braces
+are net-balanced (script runs), but the misindentation trips `PSUseConsistentIndentation` and makes
+the block hard to safely refactor. Fix the indentation in both files before touching them further —
+a bad diff here would be easy to miss once mixed with the extraction changes below.
 
-Per repo, in this order:
+**Extraction plan:**
+1. Promote `Remove-Glob`, `Set-ContentNoNewline`, and the memory-trim `Add-Type` block (currently
+   duplicated three times: `ArcRaidersCommon.ps1::Invoke-MemoryTrim`, inline in
+   `start-arc-raiders.ps1`, inline in `game-boost.ps1::Import-MemApi`) into `Common.ps1` as a single
+   shared helper. Keep the `TypeName` parameter pattern from `Invoke-MemoryTrim` so re-invocation
+   within one process doesn't collide on the `Add-Type` class name.
+2. Do **not** move `Set-GameProcessPriority`, `Set-VdfValue`, or `Find-ArcRaidersInstallPath` —
+   those stay Arc-Raiders-specific or become manifest-driven (priority) per below.
+3. New `Scripts/start-optimized-game.ps1` (top-level, not under `arc-raiders/`, since it's
+   general-purpose now). Copy `game-boost.ps1`'s structure (self-elevation, state-file crash
+   recovery, kill-list, power-plan swap/restore, monitor loop) and parameterize the
+   Arc-Raiders-specific constants via a `-GameManifest <path-to-psd1>` parameter:
+   ```powershell
+   # Scripts/games/arc-raiders.psd1 (example manifest, migrate the existing constants here)
+   @{
+     ProcessNames = @('ARC', 'pioneergame', 'ARC-Win64-Shipping')
+     SteamAppId   = '1808500'
+     Priority     = 'High'
+     LaunchType   = 'Steam'   # or 'Direct' with an ExePath key
+   }
+   ```
+   Keep the existing `$KILL_LIST`/`$PROTECTED` tables as script-level defaults (shared across all
+   games) rather than per-manifest — they're OS/app hygiene, not game-specific.
+4. Leave `Scripts/arc-raiders/game-boost.ps1` in place as a thin wrapper that calls
+   `start-optimized-game.ps1 -GameManifest Scripts/games/arc-raiders.psd1` (or delete it and update
+   its Pester test + any docs/shortcuts that reference it directly — check `tests/game-boost.Tests.ps1`
+   and grep the repo for `game-boost.ps1` callers before deleting).
 
-1. **Fetch & skim** the relevant files only (not the whole tree unless small).
-2. **Diff against baseline** — for every pattern, decide: already covered / adopt / adapt / skip.
-   Cite our existing file where "already covered."
-3. **Record findings** in a table: `Pattern | Reference location | Our coverage | Verdict | Target file`.
-4. **Gate**: present consolidated findings to the user via `AskUserQuestion`; implement ONLY
-   approved items. Do not batch-implement.
-5. **Implement approved items** following repo conventions (below), one cochange group at a time.
+**Skipped (MVP boundary):** `LaunchArgs[preset]` multi-preset support, `SavedPaths` backup/restore —
+these were in the original deferred scoping note but add real complexity (config diffing, backup
+rotation) for no concrete game that needs them yet. Add when a second game manifest actually
+requires it.
 
-## Conventions Every Adopted Change Must Follow
+**Files touched:** `Scripts/Common.ps1` (new shared helper), new `Scripts/start-optimized-game.ps1`,
+new `Scripts/games/arc-raiders.psd1`, `Scripts/arc-raiders/game-boost.ps1` (thin wrapper or removed),
+`Scripts/arc-raiders/ArcRaidersCommon.ps1` (indentation fix + drop the promoted functions, keep
+callers working via `Common.ps1` dot-source), `Scripts/arc-raiders/cleanup-arc-raiders.ps1`
+(indentation fix only — not otherwise in scope), `tests/game-boost.Tests.ps1` (update or replace).
 
-- **PowerShell** (`.claude/rules/powershell.md`): `#Requires -Version 5.1`, `[CmdletBinding()]`
-  (+ `SupportsShouldProcess` for any state change), OTBS braces, 2-space indent, 115-char
-  lines, full cmdlet/param names, splatting over backticks, PS 5.1 + 7 compatibility.
-- **Registry** (`.claude/rules/registry-security.md`): `New-RestorePoint` before HKLM changes;
-  use `Set-RegistryValue`/`Remove-RegistryValue` from `Common.ps1`, never raw `Set-ItemProperty`;
-  never hardcode GPU PCI IDs (`Get-NvidiaGpuRegistryPath`); never touch `HKLM\SECURITY|SAM|Lsa`;
-  provide a `-Restore`/`-Undo` path for reversibility.
-- **Reuse `Common.ps1`** — read it before adding any helper; extend, don't duplicate.
-- **Tracked config** goes under `user/.dotfiles/config/`; preserve native file formats (no
-  cosmetic re-serialization); wire new config areas through `install.conf.yaml` +
-  `Scripts/Setup-Dotfiles.ps1` (+ `README.md`) as a cochange group.
-- **New script names** lowercase-with-dashes; prefer folding into existing hubs over new scripts.
-- **Commits**: `<type>: <subject>` (`feat`/`fix`/`chore`/`refactor`/`docs`). Never commit
-  hardcoded `C:\Users\...` paths, secrets, or exported hive `.reg` files.
+**Verification:** `PSScriptAnalyzer` clean on every touched file. `Invoke-Pester -Path tests/` for
+the arc-raiders and new game-boost tests. Manual dry-run: `start-optimized-game.ps1 -GameManifest
+Scripts\games\arc-raiders.psd1 -DryRun` should print the same candidate kill list and power-plan
+target as the old `game-boost.ps1 -DryRun` did before the change (diff the two outputs).
 
-## Critical Files
+## Feature 3 — `Test-SystemHealth` (new `-Action Health` on `fix-system.ps1`)
 
-- Read-only comparison targets: `Scripts/Setup-Dotfiles.ps1`, `bootstrap.ps1`,
-  `Scripts/debloat-windows.ps1`, `Scripts/system-settings-manager.ps1`,
-  `user/.dotfiles/config/powershell/*`, `user/.dotfiles/config/scoop/*`,
-  `user/.dotfiles/config/wsl/*`, `Scripts/reg/*.reg`.
-- Likely edit targets (only for approved items): `Scripts/fix-system.ps1` (Windows-Repair-Tool),
-  `Scripts/debloat-windows.ps1` / `Scripts/system-settings-manager.ps1` (WinRice/after-format/
-  win-config tweaks), `Scripts/Common.ps1` (any new shared helper),
-  `user/.dotfiles/config/*` + `install.conf.yaml` + `Scripts/Setup-Dotfiles.ps1` (chawyehsu
-  config/profile adoptions).
+**Goal:** proactive health checks — disk/volume health, pending updates, service anomalies, large
+temp dirs, startup items — composed from existing helpers, not a new script.
 
-## Verification
+**Design:**
+- Add `'Health'` to the `[ValidateSet('System', 'WindowsUpdate', 'All')]` on line 39 of
+  `fix-system.ps1` → `[ValidateSet('System', 'WindowsUpdate', 'Health', 'All')]`. Decide whether
+  `'All'` should include `Health` — recommend **not** including it by default (health checks are
+  read-only diagnostics, not repairs; bundling changes what `-Action All` means for existing callers/
+  scheduled tasks). Add a separate `-IncludeHealth` switch on the `All` path instead if the user
+  wants it bundled.
+- New `Start-SystemHealthCheck` function (mirrors `Start-SystemFix`/`Start-WindowsUpdateFix`
+  structure at line 60/547), driven through `Invoke-Operation`/`Show-Summary` like the rest of the
+  file so the `HEALTHY` status-regex in `Show-Summary` (already present, `Common.ps1:1634`) lights up
+  correctly with no changes needed there.
+- Checks, each one `Invoke-Operation` entry:
+  - **Disk/volume health**: `Get-PhysicalDisk | Get-StorageReliabilityCounter` (SMART-ish data
+    where supported) + `Get-Volume` free-space threshold (flag any fixed volume under ~10% free —
+    no such free-space probe exists in `Common.ps1` today; write it as a small local function in
+    `fix-system.ps1`, don't over-generalize into `Common.ps1` until something else needs it).
+  - **Pending updates**: reuse the existing WU session-COM-object pattern already present in
+    `Start-WindowsUpdateFix` (grep for how it enumerates pending updates there) rather than adding
+    the `PSWindowsUpdate` module as a new dependency.
+  - **Service anomalies**: `Get-Service` filtered to `StartType -eq 'Automatic' -and Status -ne
+    'Running'` — flag, don't auto-restart (this is a diagnostic action, not a repair one).
+  - **Large temp dirs**: `Get-FolderSize` (`Common.ps1:1292`, already exists) against `$env:TEMP`,
+    `$env:windir\Temp`, and `SoftwareDistribution\Download`; flag over a threshold (start at 5 GB).
+  - **Startup items**: enumerate `HKCU:\...\Run`, `HKLM:\...\Run`, and the Startup folder shortcuts;
+    report count + names only — this is informational, no action taken.
+- Support `-DryRun` consistently (all checks are read-only anyway, so `-DryRun` mostly just skips
+  the summary side-effects) and respect existing `-NoReport` switch.
 
-- **Per-changed `.ps1`**: `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1`
-  (clean, minus the known false positives in memory `project-pssa-false-positives.md`).
-- **Pester** where the changed area has coverage: `Invoke-Pester -Path tests/ -Output Minimal`.
-- **`install.conf.yaml`**: validate path resolution + hash logic; confirm `README.md` stays consistent.
-- **`.reg` additions**: pass `reg-validate.yml` expectations (valid header, no hive exports).
-- **Registry tweaks**: dry-run with `-WhatIf`; confirm `-Restore`/`-Undo` reverses the change.
-- **Final gate**: no new secrets (Gitleaks), no hardcoded user paths; each adopted tweak is
-  reversible and documented.
+**Skipped (MVP boundary):** historical trend tracking across runs, auto-remediation of flagged items
+(that's what `-Action System`/`WindowsUpdate` are for — Health only diagnoses), a dedicated report
+file format beyond what `-NoReport`/console output already gives.
 
-## Deferred (out of scope for this handoff — captured for a later session)
+**Files touched:** `Scripts/fix-system.ps1` only.
 
-Three features from `TODO.md`. Decisions already made: target **MVP-first** depth,
-**fold into existing** placement.
+**Verification:** `PSScriptAnalyzer` clean. Manual run: `fix-system.ps1 -Action Health -DryRun` and
+`fix-system.ps1 -Action Health` on a real machine; confirm `Show-Summary` renders each check with a
+sensible status color (HEALTHY/PARTIAL/FAIL as appropriate — do not invent new status keywords
+outside the set `Show-Summary` already regex-matches). Add/extend a Pester test under `tests/` if
+`fix-system.ps1` already has one; if not, skip — don't add a full test harness for a single new
+`-Action` value (YAGNI, matches this repo's existing test coverage pattern of testing what's risky,
+not everything).
 
-- **`Watch-GpuMetrics`** (MVP): single-pass/looped GPU telemetry. Note — `Common.ps1` has
-  NO `nvidia-smi` or live-metrics helper today (only static registry/WMI config via
-  `Get-NvidiaGpuSetting`); this would be the first telemetry integration. Route the external
-  call through `Invoke-CommandChecked`/`Invoke-Operation -CaptureOutput`, not raw `& nvidia-smi`.
-- **`Start-OptimizedGame`** (MVP, fold near arc-raiders): generalize `game-boost.ps1`'s
-  generic kill/power/mem/priority/monitor engine via a per-game PSD1 manifest
-  (`ProcessNames`, `SteamAppId`, `SavedPaths`, `LaunchArgs[preset]`, `Priority`, `LaunchType`).
-  Prereq cleanup: promote `Remove-Glob`/`Set-ContentNoNewline`/mem-trim out of
-  `ArcRaidersCommon.ps1`, and fix the known brace bugs in `ArcRaidersCommon.ps1::Optimize-FixedVolume`
-  and `cleanup-arc-raiders.ps1`. Respect the Arc-Raiders 6-file cochange rule.
-- **`Test-SystemHealth`** (MVP, fold as a new `-Action` on `fix-system.ps1` or
-  `system-maintenance.ps1`): compose from existing `Invoke-Operation` + `Show-Summary`
-  (its status regex already matches `HEALTHY`), `Get-Service`, `Get-FolderSize`, plus a new
-  free-disk/volume probe (none exists yet). Checks: disk/volume health, pending updates,
-  service anomalies, large temp dirs, startup items.
+## Conventions (apply to all three features)
+
+- PowerShell style: `.claude/rules/powershell.md` — `[CmdletBinding()]`, OTBS braces, 2-space indent,
+  115-char lines, full cmdlet/param names, splatting over backticks, PS 5.1 + 7 compatible.
+- Registry/state changes: `.claude/rules/registry-security.md` — N/A for Features 1 and 3 (read-only).
+  Feature 2 doesn't touch the registry either (power plan via `powercfg`, not registry).
+- Reuse `Common.ps1` — read the relevant function before adding a new one; none of these three
+  features should duplicate an existing helper.
+- Commits: `<type>: <subject>` (`feat`/`fix`/`chore`/`refactor`). One commit per feature section
+  above is a reasonable granularity; keep the ArcRaidersCommon.ps1/cleanup-arc-raiders.ps1
+  indentation fix as its own preceding commit since it's a prerequisite, not part of the feature.
+
+## Suggested Session Order
+
+1. Feature 1 (`Watch-GpuMetrics`) — fully independent, smallest, good warm-up.
+2. Feature 3 (`Test-SystemHealth`) — independent of the other two, contained to one file.
+3. Feature 2 (`Start-OptimizedGame`) — largest, has the prerequisite indentation fix and touches the
+   most files; do last so any context-window pressure hits the best-scoped work first.
+
+If picked up across multiple sessions, each numbered feature section above is a complete,
+self-contained handoff on its own — a new session can start at any one of them without reading the
+others, as long as it reads this file's Baseline section first.
 
 ## Post-Completion
 
-Update `TODO.md` to reflect what was evaluated, adopted, and skipped (with the "already
-covered" rationale), leaving the three deferred features as the remaining open items.
+Update `TODO.md`: remove completed items from "Feature Ideas"; if any feature's scope changed during
+implementation (e.g. the `-IncludeHealth` switch was rejected, or `game-boost.ps1` was deleted rather
+than kept as a wrapper), note the actual outcome the way the previous reference-repo-evaluation entry
+did, then delete that summary once it's no longer useful (don't let TODO.md accumulate stale history
+indefinitely — this repo's convention favors trimming completed context, not archiving it).
 
 ## Validation Checklist
 
-- [ ] chawyehsu patterns evaluated (bootstrap, PS profile, WSL, scoop)
-- [ ] WinRice tweaks evaluated
-- [ ] after-format tweaks evaluated
-- [ ] Windows-Repair-Tool routines mapped onto `fix-system.ps1`
-- [ ] win-config tweaks evaluated
-- [ ] Findings presented to user for approval before any implementation
-- [ ] Approved items implemented and validated per Verification section
-- [ ] `TODO.md` updated to reflect outcome
+- [ ] `ArcRaidersCommon.ps1` / `cleanup-arc-raiders.ps1` indentation fixed (prerequisite for Feature 2)
+- [ ] `Watch-GpuMetrics` implemented in `Common.ps1`, PSScriptAnalyzer clean, manual GPU test run
+- [ ] `Test-SystemHealth` implemented as `fix-system.ps1 -Action Health`, PSScriptAnalyzer clean,
+      manual run confirms sensible `Show-Summary` output
+- [ ] `Start-OptimizedGame.ps1` implemented, `game-boost.ps1` behavior preserved via manifest,
+      Pester tests updated, dry-run output diffed against pre-change `game-boost.ps1 -DryRun`
+- [ ] `TODO.md` updated to remove completed items

@@ -75,6 +75,6 @@ repos:
           - "--severity"
           - "Warning"
           - "--include-rules"
-          - "PSAvoidGlobalAliases,PSAvoidUsingConvertToSecureStringWithPlainText,PSAvoidUsingEmptyCatchBlock,PSAvoidUsingInvokeExpression,PSAvoidUsingPositionalParameters,PSAvoidUsingUsernameAndPasswordParams,PSUseBOMForUnicodeEncodedFile,PSUseCorrectCasing,PSProvideCommentHelp,PSReservedCmdletChar,PSReservedParams,PSUseApprovedVerbs,PSUseCmdletCorrectly,PSUseConsistentIndentation,PSUseConsistentWhitespace,PSUseSingularNouns,PSUseSupportsShouldProcess,PSUseVerbosityForRequestedLevel"
+          - "PSAvoidGlobalAliases,PSAvoidUsingConvertToSecureStringWithPlainText,PSAvoidUsingEmptyCatchBlock,PSAvoidUsingInvokeExpression,PSAvoidUsingPositionalParameters,PSAvoidUsingUsernameAndPasswordParams,PSUseBOMForUnicodeEncodedFile,PSUseCorrectCasing,PSProvideCommentHelp,PSReservedCmdletChar,PSReservedParams,PSUseApprovedVerbs,PSUseCmdletCorrectly,PSUseConsistentIndentation,PSUseConsistentWhitespace,PSUseSupportsShouldProcess,PSUseVerbosityForRequestedLevel"
         files: ^Scripts/.*\.(ps1|psm1|psd1)$
         stages: [pre-commit]

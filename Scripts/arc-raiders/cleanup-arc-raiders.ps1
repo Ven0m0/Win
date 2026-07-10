@@ -164,25 +164,25 @@ Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | For
     $med = try {
         $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
                 Get-Disk -ErrorAction SilentlyContinue).UniqueId
-            if ($diskId) {
-                ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
-            }
-            else {
-                'Unspecified'
-            }
-        }
-        catch { 'Unspecified' }
-
-        Write-Host "  ${dl}: ($($_.FileSystem), $med)"
-        if ($med -ne 'HDD') {
-            Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
-            Write-Host "    ReTrim issued."
+        if ($diskId) {
+            ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
         }
         else {
-            Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
-            Write-Host "    Defrag issued."
+            'Unspecified'
         }
     }
+    catch { 'Unspecified' }
+
+    Write-Host "  ${dl}: ($($_.FileSystem), $med)"
+    if ($med -ne 'HDD') {
+        Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
+        Write-Host "    ReTrim issued."
+    }
+    else {
+        Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
+        Write-Host "    Defrag issued."
+    }
+}
 
     # ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
     Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."

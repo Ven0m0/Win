@@ -5,9 +5,11 @@
 .SYNOPSIS
     Unified Windows repair: system integrity (DISM/SFC/CHKDSK/network/WMI) and Windows Update component reset.
 .DESCRIPTION
-    Consolidates two repair tools behind a single -Action switch:
+    Consolidates repair and diagnostic tools behind a single -Action switch:
       System         - DISM, SFC (x2), CHKDSK, network, WMI, WU service reset, component cleanup (default)
       WindowsUpdate  - reset WU services/caches/catroot2, re-register DLLs
+      Health         - read-only diagnostics: disk health, pending updates, service anomalies,
+                       large temp dirs, startup items (no repairs; not included in All)
       All            - run System, then WindowsUpdate
 .PARAMETER Action
     Which repair to run. Defaults to System.
@@ -36,7 +38,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('System', 'WindowsUpdate', 'All')]
+  [ValidateSet('System', 'WindowsUpdate', 'Health', 'All')]
   [string]$Action = 'System',
   [switch]$QuickScan,
   [switch]$SkipDiskCheck,
@@ -599,6 +601,210 @@ function Start-WindowsUpdateFix {
 
 
 # ===========================================================================
+# Health diagnostics: disk, updates, services, temp dirs, startup items
+# ===========================================================================
+
+# Local to fix-system.ps1 - flags fixed volumes under a free-space threshold.
+# Not promoted to Common.ps1 until another caller needs it (YAGNI).
+function Test-VolumeFreeSpace {
+  [CmdletBinding()]
+  param(
+    [double]$MinFreePercent = 10
+  )
+
+  $flagged = [System.Collections.Generic.List[string]]::new()
+  foreach ($volume in Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter -and $_.Size -gt 0 }) {
+    $freePercent = ($volume.SizeRemaining / $volume.Size) * 100
+    if ($freePercent -lt $MinFreePercent) {
+      $flagged.Add("$($volume.DriveLetter): $([math]::Round($freePercent, 1))% free")
+    }
+  }
+  return $flagged
+}
+
+function Start-SystemHealthCheck {
+  [CmdletBinding()]
+  param(
+    [switch]$DryRun,
+    [switch]$NoReport
+  )
+
+  Clear-Log
+  $results = @{
+    DiskHealth     = 'SKIPPED'
+    DiskFreeSpace  = 'SKIPPED'
+    PendingUpdates = 'SKIPPED'
+    Services       = 'SKIPPED'
+    TempDirs       = 'SKIPPED'
+    StartupItems   = 'SKIPPED'
+  }
+
+  $startTime = Get-Date
+
+  Write-Header "Windows System Health Check"
+  Write-Info "Start Time: $($startTime.ToString('yyyy-MM-dd HH:mm:ss'))"
+  Write-Info "This is a read-only diagnostic pass - no repairs are made."
+  Add-Log "Health check started"
+
+  if ($DryRun) {
+    Write-Warn "[DRY RUN] Would run all health checks"
+    foreach ($key in @($results.Keys)) { $results[$key] = 'DRY RUN' }
+    Show-Summary -Results $results -StartTime $startTime
+    return
+  }
+
+  # Check 1: Disk/Volume Health
+  Write-Info "=== Check 1: Disk/Volume Health ==="
+  try {
+    $unhealthy = @(Get-PhysicalDisk -ErrorAction Stop | Where-Object { $_.HealthStatus -ne 'Healthy' })
+    if ($unhealthy.Count -eq 0) {
+      Write-Success "All physical disks report Healthy"
+      $results.DiskHealth = 'HEALTHY'
+    }
+    else {
+      foreach ($disk in $unhealthy) {
+        Write-Warn "Disk '$($disk.FriendlyName)' reports $($disk.HealthStatus)"
+      }
+      $results.DiskHealth = "PARTIAL ($($unhealthy.Count) disk(s) flagged)"
+    }
+  }
+  catch {
+    Write-Warn "Could not query physical disk health: $_"
+    $results.DiskHealth = "ERROR: $_"
+  }
+
+  $lowSpace = Test-VolumeFreeSpace
+  if ($lowSpace.Count -eq 0) {
+    Write-Success "All fixed volumes have sufficient free space"
+    $results.DiskFreeSpace = 'HEALTHY'
+  }
+  else {
+    foreach ($line in $lowSpace) {
+      Write-Warn "Low free space: $line"
+    }
+    $results.DiskFreeSpace = "PARTIAL ($($lowSpace.Count) volume(s) flagged)"
+  }
+
+  # Check 2: Pending Windows Updates
+  Write-Info "=== Check 2: Pending Windows Updates ==="
+  try {
+    $session = New-Object -ComObject Microsoft.Update.Session
+    $searcher = $session.CreateUpdateSearcher()
+    $searchResult = $searcher.Search("IsInstalled=0 and IsHidden=0")
+    $pendingCount = $searchResult.Updates.Count
+    if ($pendingCount -eq 0) {
+      Write-Success "No pending Windows updates"
+      $results.PendingUpdates = 'HEALTHY'
+    }
+    else {
+      Write-Warn "$pendingCount Windows update(s) pending"
+      $results.PendingUpdates = "PARTIAL ($pendingCount pending)"
+    }
+  }
+  catch {
+    Write-Warn "Could not query Windows Update: $_"
+    $results.PendingUpdates = "ERROR: $_"
+  }
+
+  # Check 3: Service Anomalies (Automatic services that aren't running)
+  Write-Info "=== Check 3: Service Anomalies ==="
+  $stopped = @(Get-Service | Where-Object { $_.StartType -eq 'Automatic' -and $_.Status -ne 'Running' })
+  if ($stopped.Count -eq 0) {
+    Write-Success "All automatic services are running"
+    $results.Services = 'HEALTHY'
+  }
+  else {
+    foreach ($svc in $stopped) {
+      Write-Warn "Service '$($svc.Name)' ($($svc.DisplayName)) is $($svc.Status) but StartType is Automatic"
+    }
+    $results.Services = "PARTIAL ($($stopped.Count) service(s) flagged)"
+  }
+
+  # Check 4: Large Temp Directories
+  Write-Info "=== Check 4: Large Temp Directories ==="
+  $tempThresholdGb = 5
+  $tempPaths = @(
+    $env:TEMP
+    "$env:windir\Temp"
+    "$env:windir\SoftwareDistribution\Download"
+  )
+  $largeTempDirs = [System.Collections.Generic.List[string]]::new()
+  foreach ($path in $tempPaths) {
+    if (Test-Path $path) {
+      $sizeGb = Get-FolderSize -Path $path -Unit GB
+      if ($sizeGb -gt $tempThresholdGb) {
+        $largeTempDirs.Add("$path : $([math]::Round($sizeGb, 2)) GB")
+      }
+    }
+  }
+  if ($largeTempDirs.Count -eq 0) {
+    Write-Success "No temp directories over $tempThresholdGb GB"
+    $results.TempDirs = 'HEALTHY'
+  }
+  else {
+    foreach ($line in $largeTempDirs) {
+      Write-Warn "Large temp directory: $line"
+    }
+    $results.TempDirs = "PARTIAL ($($largeTempDirs.Count) dir(s) flagged)"
+  }
+
+  # Check 5: Startup Items (informational only)
+  Write-Info "=== Check 5: Startup Items ==="
+  $startupNames = [System.Collections.Generic.List[string]]::new()
+  foreach ($runKey in @(
+      'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
+      'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'
+    )) {
+    if (Test-Path $runKey) {
+      $props = Get-ItemProperty -Path $runKey -ErrorAction SilentlyContinue
+      if ($props) {
+        $props.PSObject.Properties |
+          Where-Object { $_.Name -notmatch '^PS(Path|ParentPath|ChildName|Provider)$' } |
+          ForEach-Object { $startupNames.Add($_.Name) }
+      }
+    }
+  }
+  $startupFolder = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Startup'
+  if (Test-Path $startupFolder) {
+    Get-ChildItem -Path $startupFolder -File -ErrorAction SilentlyContinue |
+      ForEach-Object { $startupNames.Add($_.Name) }
+  }
+  Write-Info "$($startupNames.Count) startup item(s): $($startupNames -join ', ')"
+  $results.StartupItems = "COMPLETE ($($startupNames.Count) item(s))"
+
+  # Display summary
+  Show-Summary -Results $results -StartTime $startTime
+
+  # Write report file
+  if (-not $NoReport) {
+    $reportFile = Join-Path -Path $PSScriptRoot -ChildPath "fix-system-health-report-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $durationInfo = Measure-Execution -StartTime $startTime
+    $resultLines = $results.GetEnumerator() | Sort-Object -Property Name | ForEach-Object { "$($_.Key) = $($_.Value)" }
+
+    $report = @"
+Windows System Health Report
+=====================
+Start Time: $($startTime.ToString('yyyy-MM-dd HH:mm:ss'))
+End Time: $($durationInfo.EndTime.ToString('yyyy-MM-dd HH:mm:ss'))
+Duration: $($durationInfo.Duration)
+
+RESULTS SUMMARY
+==========
+$($resultLines -join "`n")
+
+LOG OUTPUT
+========
+$((Get-Log) -join "`n")
+"@
+
+    Set-Content -Path $reportFile -Value $report -Encoding UTF8
+    Write-Info "Report written to: $reportFile"
+  }
+
+  Write-Success "Done!"
+}
+
+# ===========================================================================
 # Dispatcher
 # ===========================================================================
 if ($MyInvocation.InvocationName -ne '.') {
@@ -609,6 +815,9 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
     'WindowsUpdate' {
       Start-WindowsUpdateFix
+    }
+    'Health' {
+      Start-SystemHealthCheck -DryRun:$DryRun -NoReport:$NoReport
     }
     'All' {
       Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
