@@ -72,7 +72,7 @@ function Invoke-DefragCommand {
     return
   }
   Write-Verbose "Run: defrag $Arguments"
-  Invoke-CommandChecked -FilePath 'defrag.exe' -ArgumentList $Arguments
+  $null = Invoke-CommandChecked -FilePath 'defrag.exe' -ArgumentList $Arguments
 }
 
 function Invoke-Defrag {
