@@ -202,7 +202,8 @@
     "model": "mistralai/mistral-embed-2312",
     "enabled": true
   },
-  "terminal_command_display": "collapsed"
+  "terminal_command_display": "collapsed",
+  "auto_collapse_reasoning": true,
   "compaction": { "auto": true, "prune": true },
   "experimental": {
     "continue_loop_on_deny": false,
