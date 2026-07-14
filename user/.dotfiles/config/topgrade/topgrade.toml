@@ -5,7 +5,7 @@
 no_retry = true
 cleanup = true
 disable = ["gem", "ruby_gems", "containers", "system"]
-ignore_failures = ["system", "uv", "pipx", "shell", "bun", "mise", "yadm", "node", "containers"]
+ignore_failures = ["system", "uv", "pipx", "shell", "bun", "mise", "yadm", "node", "containers", "claude_code"]
 assume_yes = true
 skip_notify = true
 no_self_update = true
