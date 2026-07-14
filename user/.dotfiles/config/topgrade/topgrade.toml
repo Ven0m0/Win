@@ -1,16 +1,41 @@
 # Topgrade config for Windows.
 # Deployed to %APPDATA%\topgrade.toml (see Scripts/Setup-Dotfiles.ps1).
-# Matches how system-update.ps1 invokes topgrade: `topgrade --yes --no-retry`.
 
 [misc]
 no_retry = true
 cleanup = true
-disable = ["gem", "ruby_gems", "containers"]
+disable = ["gem", "ruby_gems", "containers", "system"]
+ignore_failures = ["system", "uv", "pipx", "shell", "bun", "mise", "yadm", "node", "containers"]
+assume_yes = true
+skip_notify = true
+no_self_update = true
 
 [windows]
-# Let scoop/cargo upgrade the topgrade binary mid-run (only relevant if topgrade
-# was installed via a package manager rather than a standalone binary).
-self_rename = true
+self_rename = false
+accept_all_updates = true
+winget_silent_install = true
+winget_use_sudo = true
 
 [git]
 max_concurrency = 8
+pull_predefined = false
+
+[mise]
+bump = false
+jobs = 12
+interactive = false
+quiet = true
+
+[npm]
+use_sudo = true
+
+[firmware]
+upgrade = true
+
+[python]
+# enable_pip_review = true 
+enable_pipupgrade = true
+
+[cargo]
+git = true
+quiet = true
