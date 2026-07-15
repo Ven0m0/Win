@@ -33,7 +33,7 @@ use_sudo = true
 upgrade = true
 
 [python]
-# enable_pip_review = true 
+# enable_pip_review = true
 enable_pipupgrade = true
 
 [cargo]

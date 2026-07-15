@@ -7,7 +7,13 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**/*.json", "**/*.jsonc", "!user/.dotfiles", "!.claude"]
+    "includes": [
+      "**/*.json",
+      "**/*.jsonc",
+      "!user/.dotfiles",
+      "!.claude",
+      "!.vscode"
+    ]
   },
   "formatter": {
     "enabled": true,

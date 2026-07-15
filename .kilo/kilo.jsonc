@@ -82,15 +82,11 @@
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
-      "headers": { "Authorization": "Bearer {env:CONTEXT7_API_KEY}" },
       "enabled": false
     },
     "github": {
       "type": "remote",
       "url": "https://api.githubcopilot.com/mcp/",
-      "headers": {
-        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-      },
       "enabled": true
     },
     "exa": {
