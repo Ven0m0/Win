@@ -419,77 +419,6 @@ function Show-NvidiaGpuSetting {
     }
 }
 
-function Watch-GpuMetrics {
-    [CmdletBinding()]
-    <#
-    .SYNOPSIS
-        Samples live GPU telemetry (utilization, temperature, power draw, VRAM)
-    .DESCRIPTION
-        Uses nvidia-smi when available for full telemetry. Falls back to WMI
-        (Win32_VideoController) when nvidia-smi is missing, though utilization,
-        temperature, and power draw are not exposed via WMI and report as $null.
-    .PARAMETER IntervalSeconds
-        Seconds to wait between samples when -Loop is set
-    .PARAMETER Loop
-        Keep sampling until -Count is reached or Ctrl+C is pressed
-    .PARAMETER Count
-        Maximum number of samples when looping (0 = infinite)
-    .EXAMPLE
-        Watch-GpuMetrics
-    .EXAMPLE
-        Watch-GpuMetrics -Loop -Count 3 -IntervalSeconds 1
-    #>
-    param(
-        [int]$IntervalSeconds = 2,
-        [switch]$Loop,
-        [int]$Count = 0
-    )
-
-    $nvidiaSmi = Get-Command -Name 'nvidia-smi' -ErrorAction SilentlyContinue
-    $iteration = 0
-
-    do {
-        $iteration++
-
-        if ($nvidiaSmi) {
-            $fields = 'name,utilization.gpu,temperature.gpu,power.draw,memory.used,memory.total'
-            $csv = & $nvidiaSmi.Source --query-gpu=$fields --format=csv,noheader,nounits 2>$null
-
-            foreach ($line in $csv) {
-                $parts = $line -split ',\s*'
-                [pscustomobject]@{
-                    Timestamp           = Get-Date
-                    GpuName             = $parts[0]
-                    UtilizationPercent  = [int]$parts[1]
-                    TemperatureC        = [int]$parts[2]
-                    PowerDrawW          = [double]$parts[3]
-                    MemoryUsedMB        = [int]$parts[4]
-                    MemoryTotalMB       = [int]$parts[5]
-                }
-            }
-        }
-        else {
-            Write-Warning 'nvidia-smi not found on PATH; falling back to WMI. Utilization, temperature, and power draw are unavailable via WMI.'
-
-            foreach ($gpu in Get-CimInstance -ClassName Win32_VideoController) {
-                [pscustomobject]@{
-                    Timestamp           = Get-Date
-                    GpuName             = $gpu.Name
-                    UtilizationPercent  = $null
-                    TemperatureC        = $null
-                    PowerDrawW          = $null
-                    MemoryUsedMB        = $null
-                    MemoryTotalMB       = if ($gpu.AdapterRAM) { [int]($gpu.AdapterRAM / 1MB) } else { $null }
-                }
-            }
-        }
-
-        if ($Loop -and ($Count -le 0 -or $iteration -lt $Count)) {
-            Start-Sleep -Seconds $IntervalSeconds
-        }
-    } while ($Loop -and ($Count -le 0 -or $iteration -lt $Count))
-}
-
 function Get-RegistryValueSafe {
     [CmdletBinding()]
     <#
@@ -1163,53 +1092,6 @@ function New-RestorePoint {
 #endregion
 
 #region App Management
-function Remove-AppxPackageSafe {
-    [CmdletBinding(SupportsShouldProcess)]
-    <#
-    .SYNOPSIS
-        Safely removes an Appx package for all users and its provisioned counterpart
-    .PARAMETER AppName
-        Name or wildcard for the Appx package
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$AppName
-    )
-
-    $packages = $null
-    try { $packages = Get-AppxPackage -Name $AppName -AllUsers -ErrorAction SilentlyContinue } catch { Write-Verbose "Get-AppxPackage failed for '$AppName': $_" }
-    if ($packages) {
-        foreach ($package in $packages) {
-            Write-ColorOutput "  Removing: $($package.Name)" -ForegroundColor Yellow
-            try {
-                Remove-AppxPackage -Package $package.PackageFullName -AllUsers 2>$null
-            }
-            catch {
-                try {
-                    Remove-AppxPackage -Package $package.PackageFullName 2>$null
-                }
-                catch {
-                    Write-ColorOutput "    Failed to remove $($package.Name)" -ForegroundColor Red
-                }
-            }
-        }
-    }
-
-    $provisioned = $null
-    try { $provisioned = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue 2>$null | Where-Object { $_.PackageName -like "*$AppName*" } } catch { Write-Verbose "Get-AppxProvisionedPackage failed for '$AppName': $_" }
-    if ($provisioned) {
-        foreach ($package in $provisioned) {
-            Write-ColorOutput "  Removing provisioned: $($package.DisplayName)" -ForegroundColor Yellow
-            try {
-                Remove-AppxProvisionedPackage -Online -PackageName $package.PackageName -ErrorAction Stop
-            }
-            catch {
-                $msg = "    Failed to remove provisioned package $($package.DisplayName): $($_.Exception.Message)"
-                Write-ColorOutput $msg -ForegroundColor Red
-            }
-        }
-    }
-}
 #endregion
 
 #region EDID Override Management

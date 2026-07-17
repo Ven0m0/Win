@@ -32,4 +32,4 @@ pwsh -File Scripts/debloat-windows.ps1 -Undo
 2. Requires an elevated PowerShell session (the script self-elevates if not already admin)
 3. Run `-WhatIf` first on an unfamiliar machine to preview changes
 
-If the user wants to modify what gets removed, explain the structure of `debloat-windows.ps1` and how to add/remove apps from the target lists. Reference `Scripts/Common.ps1` for `Remove-AppxPackageSafe` and `Invoke-ServiceOperation` helpers.
+If the user wants to modify what gets removed, explain the structure of `debloat-windows.ps1` and how to add/remove apps from the target lists (`Remove-BloatwareApp` in `debloat-windows.ps1`, plus `Invoke-ServiceOperation` in `Scripts/Common.ps1`).

@@ -85,10 +85,6 @@ run = "py-psscriptanalyzer --format {{arg(name='file')}}"
 description = "Run PSScriptAnalyzer lint and Pester tests"
 run = ["pwsh -NoProfile -Command Invoke-ScriptAnalyzer -Path Scripts -Recurse -Severity Error", "pwsh -NoProfile -Command Invoke-Pester tests/*.Tests.ps1 -Output Detailed"]
 
-[tasks.reg-validate]
-description = "Validate registry (.reg) files for correct headers and safety"
-run = "pwsh -NoProfile -Command Write-Host 'No reg validation script found; skipping.'"
-
 [tasks.ci]
-description = "Run full CI pipeline (equivalent to GitHub Actions workflows)"
-run = ["mise run validate", "mise run reg-validate"]
+description = "Run full CI pipeline (equivalent to GitHub Actions workflows). Registry file validation runs in CI only (.github/workflows/reg-validate.yml)."
+run = ["mise run validate"]

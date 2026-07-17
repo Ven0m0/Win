@@ -55,8 +55,6 @@ Describe "Phase Functions Execution" {
         function Show-RestartRequired {}
         Mock Get-AppxPackage { return @() }
         Mock Remove-AppxPackage {}
-        function Remove-AppxPackageSafe {}
-        Mock Remove-AppxPackageSafe {}
         function Get-AppxProvisionedPackage {}
         Mock Get-AppxProvisionedPackage {}
         function Remove-AppxProvisionedPackage {}

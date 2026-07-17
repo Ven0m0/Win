@@ -50,7 +50,7 @@ Cross-reference against Common.ps1's public API (from AGENTS.md):
 | Registry     | `Set-RegistryValue`, `Remove-RegistryValue`, `Get-RegistryValueSafe`                                                                                                                      |
 | Downloads    | `Get-FileFromWeb` — handles `$ProgressPreference` internally                                                                                                                              |
 | Files / dirs | `Clear-DirectorySafe`, `Clear-PathSafe`, `Ensure-Directory`                                                                                                                               |
-| System       | `New-RestorePoint`, `Remove-AppxPackageSafe`, `Invoke-ServiceOperation`, `Invoke-CommandChecked`, `Invoke-RegImport`, `Invoke-Winget`, `Wait-ForWinget`                                   |
+| System       | `New-RestorePoint`, `Invoke-ServiceOperation`, `Invoke-CommandChecked`, `Invoke-RegImport`, `Invoke-Winget`, `Wait-ForWinget`                                   |
 | Logging      | `Add-Log`, `Get-Log`, `Clear-Log`                                                                                                                                                         |
 | Utilities    | `ConvertFrom-VDF`, `ConvertTo-VDF`, `Get-FolderSize`, `Format-Size`, `Measure-Execution`, `Show-Summary`                                                                                  |
 | NVIDIA       | `Get-NvidiaGpuRegistryPath`, `Get-NvidiaGpuPath`, `Set-NvidiaGpuRegistryValue`, `Set-NvidiaSignatureOverride`, `Get-NvidiaSignatureStatus`, `Set-FullscreenMode`, `Set-MultiPlaneOverlay` |

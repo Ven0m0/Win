@@ -531,7 +531,6 @@ Set-FullscreenMode / Set-MultiPlaneOverlay      # display tweaks
 
 # System
 New-RestorePoint                                # before any HKLM changes
-Remove-AppxPackageSafe                          # safe appx removal
 Invoke-ServiceOperation                         # start/stop/query services
 Invoke-CommandChecked                           # run external command, throw on failure
 Invoke-RegImport                                # import .reg files safely

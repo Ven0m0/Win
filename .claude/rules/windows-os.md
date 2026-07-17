@@ -47,7 +47,7 @@ if ($isWin11) {
 
 ## Before Removing a Built-In App
 
-Use `Remove-AppxPackageSafe` from `Common.ps1` — it handles presence checks and `-AllUsers` automatically.
+Use `Remove-BloatwareApp` in `debloat-windows.ps1` — it handles presence checks and `-AllUsers` automatically via a bulk `Get-AppxPackage`/`Get-AppxProvisionedPackage` query.
 
 ## Breaking Changes to Watch
 
