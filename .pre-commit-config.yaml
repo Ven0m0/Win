@@ -28,6 +28,7 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
       - id: check-yaml
         args: [--allow-multiple-documents]
@@ -42,9 +43,11 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-shebang-scripts-are-executable
       - id: forbid-submodules
+      - id: check-illegal-windows-names
+      - id: check-symlinks
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.269.1
+    rev: 43.269.2
     hooks:
       - id: renovate-config-validator
 
