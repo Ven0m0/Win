@@ -1,4 +1,4 @@
-GstRender.EnableDx12 0
+GstRender.EnableDx12 1
 GstRender.FullscreenEnabled 1
 GstRender.FullscreenRefreshRate
 GstRender.FullscreenScreen 0

@@ -1,5 +1,5 @@
 # WSL2 Advanced Configuration
-# Applied to %USERPROFILE%\.wslconfig on Windows host
+# Applied to $env:USERPROFILE\.wslconfig on Windows host
 
 [wsl2]
 memory=4GB

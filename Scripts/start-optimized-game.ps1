@@ -6,7 +6,7 @@
     power plan, monitors the game, and restores everything on exit.
 
 .DESCRIPTION
-    Generalizes the Arc Raiders game-boost engine (see Scripts/arc-raiders/game-boost.ps1)
+    Generalizes the Arc Raiders game-boost engine (see Scripts/arc-raiders/start-arc-raiders.ps1)
     for any game via a per-game manifest (see Scripts/games/*.psd1):
       1. Self-elevates to Administrator if needed
       2. Captures current power plan GUID
@@ -18,7 +18,7 @@
       8. Restores power plan and restarts killed processes
 
 .PARAMETER GameManifest
-    Path to a game manifest .psd1 (see Scripts/games/arc-raiders.psd1 for the schema).
+    Path to a game manifest .psd1 (see Scripts/arc-raiders/arc-raiders.psd1 for the schema).
 
 .PARAMETER NoLaunch
     Apply boost only — do not launch the game (use if game is already running).
@@ -30,9 +30,9 @@
     Show what would be killed/changed without actually doing it.
 
 .EXAMPLE
-    .\start-optimized-game.ps1 -GameManifest Scripts\games\arc-raiders.psd1
+    .\start-optimized-game.ps1 -GameManifest Scripts\arc-raiders\arc-raiders.psd1
 .EXAMPLE
-    .\start-optimized-game.ps1 -GameManifest Scripts\games\arc-raiders.psd1 -DryRun
+    .\start-optimized-game.ps1 -GameManifest Scripts\arc-raiders\arc-raiders.psd1 -DryRun
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(

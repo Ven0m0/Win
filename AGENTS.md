@@ -99,7 +99,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`
 
 ## Gotchas
 
@@ -109,7 +109,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 ## Cochange Rules
 
 **Arc Raiders** — all six scripts and config change together:
-`arc-raiders/ARCRaidersUtility.ps1`, `ArcRaidersCommon.ps1`, `game-boost.ps1`, `start-arc-raiders.ps1`, `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `user/.dotfiles/config/games/arc-raiders/`
+`arc-raiders/ARCRaidersUtility.ps1`, `ArcRaidersCommon.ps1`, `start-arc-raiders.ps1` (also runs the boost engine), `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `arc-raiders.psd1`, `user/.dotfiles/config/games/arc-raiders/`
 
 **Bootstrap** — always change together: `bootstrap.ps1`, `Scripts/Setup-Win11.ps1`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections). `bootstrap.ps1` and `Setup-Win11.ps1` share a parameter surface (`-Unattended -Force -SkipWingetTools -SkipWSL -SkipPackages -SkipDebloat`) that must stay in sync since one forwards to the other.
 

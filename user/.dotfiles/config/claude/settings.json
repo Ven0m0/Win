@@ -1,0 +1,153 @@
+{
+  "env": {
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "ENABLE_TOOL_SEARCH": "true",
+    "ENABLE_LSP_TOOL": "1",
+    "USE_BUILTIN_RIPGREP": "1",
+    "PYTHONOPTIMIZE": "1",
+    "BUN_OPTIONS": "--bun --prefer-offline --prefer-latest --parallel --silent",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CONTEXT_MODE_NO_BUN": "1"
+  },
+  "permissions": {
+    "allow": [
+      "mcp__codegraph__codegraph_explore",
+      "mcp__codegraph__codegraph_search",
+      "mcp__codegraph__codegraph_node",
+      "mcp__codegraph__codegraph_callers",
+      "mcp__codegraph__codegraph_callees",
+      "mcp__codegraph__codegraph_impact",
+      "mcp__codegraph__codegraph_files",
+      "mcp__codegraph__codegraph_status",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "Bash(gh *)",
+      "PowerShell($PROFILE)",
+      "PowerShell",
+      "PowerShell (*)",
+      "WebSearch",
+      "Bash(ssh *)",
+      "Bash(ssh-keygen -F *)",
+      "Bash(ssh-add -l)",
+      "Bash(rtk *)"
+    ]
+  },
+  "model": "opusplan",
+  "enableAllProjectMcpServers": true,
+  "skillOverrides": {
+    "merge-to-main": "user-invocable-only",
+    "repo-janitor": "user-invocable-only",
+    "dead-code-cleanup": "user-invocable-only",
+    "todo-scan": "user-invocable-only"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "rtk hook claude"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:/Program Files/nodejs/node.exe\" \"C:/Users/Ven0m0/.claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$vault='C:\\Users\\Ven0m0\\Documents\\Obsidian Vault';$cwd=if($env:CLAUDE_PROJECT_DIR){$env:CLAUDE_PROJECT_DIR}else{(Get-Location).Path};if($cwd.TrimEnd('\\') -ne $vault.TrimEnd('\\')){$m=\"Second brain: Obsidian Vault at $vault. Check Index.md there if vault context could help; persist durable learnings (preferences, decisions, worked-out topics) there per that vault's CLAUDE.md protocol -- not only in project-scoped memory.\";$j=@{hookSpecificOutput=@{hookEventName='SessionStart';additionalContext=$m}}|ConvertTo-Json -Compress;Write-Output $j}",
+            "shell": "powershell",
+            "timeout": 10,
+            "statusMessage": "Checking second-brain vault"
+          }
+        ]
+      }
+    ]
+  },
+  "enableWorkflows": true,
+  "statusLine": {
+    "type": "command",
+    "command": "\"C:\\Program Files\\nodejs\\node.exe\" \"C:/Users/Ven0m0/.claude/hud/omc-hud.mjs\""
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "basedpyright@claude-code-lsps": true,
+    "powershell-editor-services@claude-code-lsps": true,
+    "vscode-langservers@claude-code-lsps": true,
+    "vtsls@claude-code-lsps": true,
+    "ponytail@ponytail": true,
+    "mdbase-lsp@claude-code-lsps": true,
+    "serena@claude-plugins-official": true,
+    "context-mode@context-mode": true,
+    "oh-my-claudecode@omc": true,
+    "ty@claude-code-lsps": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    },
+    "oh-my-claudecode": {
+      "source": {
+        "source": "github",
+        "repo": "Yeachan-Heo/oh-my-claudecode"
+      }
+    },
+    "claude-code-lsps": {
+      "source": {
+        "source": "github",
+        "repo": "Piebald-AI/claude-code-lsps"
+      }
+    },
+    "everything-claude-code": {
+      "source": {
+        "source": "github",
+        "repo": "affaan-m/everything-claude-code"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "medium",
+  "tui": "fullscreen",
+  "voice": { "enabled": true, "mode": "hold" },
+  "prefersReducedMotion": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "dark",
+  "teammateMode": "auto",
+  "voiceEnabled": true
+}

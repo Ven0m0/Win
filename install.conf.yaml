@@ -37,6 +37,8 @@
 #   opencode\lsp.json                              → ~/.config/opencode/lsp.json
 #   games\minecraft\                               → manual — open .mrpack files with Prism Launcher or MultiMC
 #   wsl\                                           → %USERPROFILE%\.wslconfig (host) + staged ~/.config/wsl.conf for manual /etc/wsl.conf copy
+#   vscode\User\settings.json                      → %APPDATA%\Code\User\settings.json or %APPDATA%\VSCodium\User\settings.json
+#   vscode\extensions.txt                          → installed via code/codium --install-extension (not a file deploy)
 - defaults:
     shell:
       stdin: false

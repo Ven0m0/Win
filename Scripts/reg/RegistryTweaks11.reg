@@ -30,32 +30,36 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\StorageSense]
 "AllowStorageSenseGlobal"=dword:00000000
 
-; Leftmost taskbar
+; Explorer: leftmost taskbar, disable snap layout/bar, start menu tips, Copilot button
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
 "TaskbarAl"=dword:00000000
+"EnableSnapBar"=dword:00000000
+"EnableSnapAssistFlyout"=dword:00000000
+"Start_IrisRecommendations"=dword:00000000
+"Start_Layout"=dword:00000001
+"ShowCopilotButton"=dword:00000000
 
 ; Disable OneDrive noti
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.SkyDrive.Desktop]
 "Enabled"=dword:00000000
 
-; Disable show whats new after update
+; Content delivery: disable whats-new, suggested content, pre-installed apps
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
 "SubscribedContent-310093Enabled"=dword:00000000
+"SubscribedContent-338393Enabled"=dword:00000000
+"SubscribedContent-353694Enabled"=dword:00000000
+"SubscribedContent-353696Enabled"=dword:00000000
+"OemPreInstalledAppsEnabled"=dword:00000000
+"PreInstalledAppsEnabled"=dword:00000000
+"SilentInstalledAppsEnabled"=dword:00000000
+"SoftLandingEnabled"=dword:00000000
+"ContentDeliveryAllowed"=dword:00000000
+"PreInstalledAppsEverEnabled"=dword:00000000
+"SubscribedContentEnabled"=dword:00000000
 
 ; Enable action center
 [HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer]
 "DisableNotificationCenter"=-
-
-; Disable snap layout
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"EnableSnapBar"=dword:00000000
-"EnableSnapAssistFlyout"=dword:00000000
-
-; Disable suggested content in settings
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
-"SubscribedContent-338393Enabled"=dword:00000000
-"SubscribedContent-353694Enabled"=dword:00000000
-"SubscribedContent-353696Enabled"=dword:00000000
 
 ; Disable account noti
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\SystemSettings\AccountNotifications]
@@ -75,27 +79,10 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup]
 "AllowUpgradesWithUnsupportedTPMOrCPU"=dword:00000001
 
-; Disable pre installed apps
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
-"OemPreInstalledAppsEnabled"=dword:00000000
-"PreInstalledAppsEnabled"=dword:00000000
-"SilentInstalledAppsEnabled"=dword:00000000
-"SoftLandingEnabled"=dword:00000000
-"ContentDeliveryAllowed"=dword:00000000
-"PreInstalledAppsEverEnabled"=dword:00000000
-"SubscribedContentEnabled"=dword:00000000
-
-; Disable start menu tips and recommendations
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"Start_IrisRecommendations"=dword:00000000
-
-; Show more pins
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"Start_Layout"=dword:00000001
-
 ; Disable show recently added apps and recommendations
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start]
 "ShowRecentList"=dword:00000000
+"RightCompanionToggledOpen"=dword:00000000
 
 ; Disable ai insights
 [HKEY_CURRENT_USER\Software\Microsoft\input\Settings]
@@ -110,9 +97,6 @@ Windows Registry Editor Version 5.00
 "Microsoft.QuickAction.ProjectL2"=hex(0):
 
 ; Disable Windows AI
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
-"ShowCopilotButton"=dword:00000000
-
 [HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsCopilot]
 "TurnOffWindowsCopilot"=dword:00000001
 
@@ -156,7 +140,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Microsoft.ScreenSketch_8wekyb3d8bbwe!App]
 "Enabled"=dword:00000000
 
-; Disable Share App Experinces
+; Disable Share App Experiences
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CDP]
 "RomeSdkChannelUserAuthzPolicy"=dword:00000000
 "NearShareChannelUserAuthzPolicy"=dword:00000000
@@ -170,14 +154,11 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location]
 "ShowGlobalPrompts"=dword:00000000
 
-;Disable User Choice Driver
+; Disable User Choice Driver
 [HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\UCPD]
 "Start"=dword:00000004
 
-; Disable Phone Companion In StartMenu
-[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start]
-"RightCompanionToggledOpen"=dword:00000000
-
+; Disable Phone Companion in Start Menu
 [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Start\Companions\Microsoft.YourPhone_8wekyb3d8bbwe]
 "IsEnabled"=dword:00000000
 "IsAvailable"=dword:00000000
@@ -191,3 +172,122 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Microsoft\Lighting]
 "AmbientLightingEnabled"=dword:00000000
 "ControlledByForegroundApp"=dword:00000000
+
+; 100% DPI & disable per-process DPI scaling for apps
+[HKEY_CURRENT_USER\Control Panel\Desktop]
+"LogPixels"="00000096"
+"Win8DpiScaling"="00000000"
+"EnablePerProcessSystemDPI"="00000000"
+"MenuShowDelay"="0"
+
+[HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics]
+"AppliedDPI"="00000096"
+
+; Mouse: turn off enhance pointer precision
+[HKEY_CURRENT_USER\Control Panel\Mouse]
+"MouseSensitivity"="10"
+"SmoothMouseXCurve"=hex:\
+	00,00,00,00,00,00,00,00,\
+	C0,CC,0C,00,00,00,00,00,\
+	80,99,19,00,00,00,00,00,\
+	40,66,26,00,00,00,00,00,\
+	00,33,33,00,00,00,00,00
+"SmoothMouseYCurve"=hex:\
+	00,00,00,00,00,00,00,00,\
+	00,00,38,00,00,00,00,00,\
+	00,00,70,00,00,00,00,00,\
+	00,00,A8,00,00,00,00,00,\
+	00,00,E0,00,00,00,00,00
+
+[HKEY_USERS\.DEFAULT\Control Panel\Mouse]
+"MouseSpeed"="0"
+"MouseThreshold1"="0"
+"MouseThreshold2"="0"
+
+; Filterkeys setter
+[HKEY_CURRENT_USER\Control Panel\Accessibility\Keyboard Response]
+"DelayBeforeAcceptance"="0"
+"BounceTime"="0"
+
+; Disable nvidia tray icon
+[HKEY_CURRENT_USER\Software\NVIDIA Corporation\NvTray]
+"StartOnLogin"=dword:00000000
+
+; Nvidia enable old sharpening
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableGR535"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\VideoSettings]
+"VideoQualityOnBattery"=dword:00000001
+
+; Turn off notifications network usage
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications]
+"NoCloudApplicationNotification"=dword:00000001
+
+; Always unload dlls
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer]
+"AlwaysUnloadDLL"=dword:00000001
+
+; Disable "- shortcut" text for shortcuts
+[HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer]
+"link"=hex:00,00,00,00
+
+; Use the latest .NET Framework version
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\.NETFramework]
+"OnlyUseLatestCLR"=dword:00000001
+[HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\.NETFramework]
+"OnlyUseLatestCLR"=dword:00000001
+
+; Resolves a memory leak in Windows 10 (Ndu service)
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\Ndu]
+"Start"=dword:00000004
+
+; Disable mitigations
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management]
+"FeatureSettings"=dword:00000001
+"FeatureSettingsOverrideMask"=dword:00000003
+"FeatureSettingsOverride"=dword:00000003
+
+; Turn on Game Mode registry
+[HKEY_CURRENT_USER\Software\Microsoft\GameBar]
+"AllowAutoGameMode"=dword:00000001
+"AutoGameModeEnabled"=dword:00000001
+
+; HW scheduling on
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+"HwSchMode"=dword:00000002
+
+; Prefer IPv4 over IPv6
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters]
+"DisabledComponents"=dword:00000020
+
+; Enable network card onboard processor
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters]
+"DisableTaskOffload"=dword:00000000
+
+; SSD tweaks
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NvCache]
+"OptimizeBootAndResume"=dword:00000001
+"EnablePowerModeState"=dword:00000000
+"EnableNvCache"=dword:00000001
+"EnableSolidStateMode"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Policies]
+"NtfsDisableCompression"=dword:00000001
+"NtfsDisableEncryption"=dword:00000001
+"NtfsEncryptPagingFile"=dword:00000000
+"NtfsDefaultTier"=dword:00000002
+"NtfsForceNonPagedPoolAllocation"=dword:00000001
+"NtfsParallelFlushWorkers"=dword:00000000
+"NtfsDisable8dot3NameCreation"=dword:00000001
+"NtfsEnableTxfDeprecatedFunctionality"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Psched]
+"NonBestEffortLimit"=dword:00000000
+"TimerResolution"=dword:00000001
+
+; Prefetch and logging
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters]
+"EnablePrefetcher"=dword:00000000
+"EnableBoottrace"=dword:00000000
+"SfTracingState"=dword:00000000

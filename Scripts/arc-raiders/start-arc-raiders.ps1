@@ -1,11 +1,23 @@
 ﻿#Requires -Version 5.1
 #Requires -RunAsAdministrator
-. "$PSScriptRoot\..\Common.ps1"
-. "$PSScriptRoot\ArcRaidersCommon.ps1"
 <#
 .SYNOPSIS
-    Arc Raiders pre-launch: clear logs/crashes/temp, trim memory, optimize SSD, restart Steam minimal.
+    Arc Raiders launcher: clear logs/crashes/temp, trim memory, optimize SSD, restart Steam
+    minimal, then hand off to the generic boost engine (kill background apps, power plan,
+    monitor, restore on exit).
+.PARAMETER NoRestore
+    Do not restore killed background processes / power plan when the game exits.
+.PARAMETER DryRun
+    Preview the boost engine's actions without applying them.
 #>
+[CmdletBinding(SupportsShouldProcess)]
+param(
+    [switch]$NoRestore,
+    [switch]$DryRun
+)
+
+. "$PSScriptRoot\..\Common.ps1"
+. "$PSScriptRoot\ArcRaidersCommon.ps1"
 $ProgressPreference = 'SilentlyContinue'
 
 # ── Options ───────────────────────────────────────────────────────────────────
@@ -15,16 +27,6 @@ $ShowGameIcons = 0
 $NoJoystick    = 1
 $NoShaders     = 1
 $NoGPU         = 1
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-$totalSize  = 0
-$totalCount = 0
-
-function Invoke-GlobClean([string]$Pattern) {
-    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
-}
-
-
 
 # ── Arc Raiders: logs + crashes ───────────────────────────────────────────────
 Write-Host "`n[Arc Raiders]"
@@ -57,11 +59,7 @@ foreach ($item in Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.D
     }
 }
 
-# ── Summary ───────────────────────────────────────────────────────────────────
-$mb = [math]::Round($totalSize / 1MB, 2)
-Write-Host "`n══════════════════════════════════════"
-Write-Host " Cleaned: $totalCount item(s), ${mb} MB freed."
-Write-Host "══════════════════════════════════════"
+Write-ArcSummary
 
 # ── Steam: locate ─────────────────────────────────────────────────────────────
 Write-Host "`n[Steam] Restarting in minimal mode..."
@@ -160,3 +158,8 @@ if (Test-Path $trExe) {
 } else {
     Write-Host "  SetTimerResolution.exe not found at $trExe — skipped." -ForegroundColor Yellow
 }
+
+# ── Boost: kill background apps, set power plan, monitor, restore on exit ────
+# Steam is already launched above in minimal mode, so skip the engine's own launch.
+& "$PSScriptRoot\..\start-optimized-game.ps1" -GameManifest "$PSScriptRoot\arc-raiders.psd1" `
+    -NoLaunch -NoRestore:$NoRestore -DryRun:$DryRun -WhatIf:$WhatIfPreference

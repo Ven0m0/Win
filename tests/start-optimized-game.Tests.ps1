@@ -2,7 +2,7 @@
 
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
-    $script:Manifest = "$PSScriptRoot/../Scripts/games/arc-raiders.psd1"
+    $script:Manifest = "$PSScriptRoot/../Scripts/arc-raiders/arc-raiders.psd1"
     . "$PSScriptRoot/../Scripts/start-optimized-game.ps1" -GameManifest $script:Manifest
 }
 
@@ -32,7 +32,7 @@ Describe "start-optimized-game.ps1 Initialization" {
     }
 
     It "Should load the Arc Raiders manifest into the expected shape" {
-        $GAME_NAMES | Should -Contain 'ARC'
+        $GAME_NAMES | Should -Contain 'PioneerGame'
         $DISPLAY_NAME | Should -Be 'ARC RAIDERS'
         $STEAM_GAME_ID | Should -Be '1808500'
     }

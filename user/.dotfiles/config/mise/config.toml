@@ -2,3 +2,4 @@
 "ubi:spddl/GoInterruptPolicy" = "latest"
 #"npm:@kilocode/cli" = "latest"
 "github:Kilo-Org/kilocode" = "latest"
+"java" = "oracle-graalvm"

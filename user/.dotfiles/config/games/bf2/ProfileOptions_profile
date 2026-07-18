@@ -15,7 +15,7 @@ GstRender.Brightness_Stored 0.500000
 GstRender.DebrisQuality 0
 GstRender.DisplayMappingHdr10PeakLuma 0.500000
 GstRender.EffectsQuality 0
-GstRender.EnableDx12 0
+GstRender.EnableDx12 1
 GstRender.EnableDynamicResolution 0
 GstRender.EnableHDR 0
 GstRender.FieldOfView 2.000000

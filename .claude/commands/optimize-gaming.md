@@ -41,4 +41,4 @@ pwsh -File Scripts/DLSS-force-latest.ps1
 
 A restore point is created automatically before changes. To undo, use the restore point created by the script or pass `-Restore` to individual tweak scripts.
 
-If the user wants to add a new game-specific optimization, read `Scripts/arc-raiders/game-boost.ps1` as a reference for the pattern.
+If the user wants to add a new game-specific optimization, read `Scripts/start-optimized-game.ps1` and `Scripts/arc-raiders/arc-raiders.psd1` as a reference for the pattern.

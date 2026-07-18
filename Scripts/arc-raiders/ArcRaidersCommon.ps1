@@ -66,7 +66,7 @@ function Set-GameProcessPriority {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
-        [string[]]$GameNames = @('ARC', 'pioneergame', 'ARC-Win64-Shipping'),
+        [string[]]$GameNames = @('PioneerGame'),
         [System.Diagnostics.ProcessPriorityClass]$Priority = 'High'
     )
 
@@ -93,7 +93,7 @@ function Get-ArcRaidersGameProcess {
     #>
     [CmdletBinding()]
     param()
-    foreach ($name in @('ARC', 'pioneergame', 'ARC-Win64-Shipping')) {
+    foreach ($name in @('PioneerGame')) {
         $p = Get-Process -Name $name -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($p) { return $p }
     }
@@ -162,6 +162,16 @@ function Optimize-FixedVolume {
 
 $script:ARC_TOTAL_SIZE = 0
 $script:ARC_TOTAL_COUNT = 0
+
+function Invoke-GlobClean {
+    <#
+    .SYNOPSIS
+        Remove files matching a glob pattern, tallying size/count into the shared Arc Raiders totals.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param([string]$Pattern)
+    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:ARC_TOTAL_SIZE) -TotalCount ([ref]$script:ARC_TOTAL_COUNT)
+}
 
 function Write-ArcSummary {
     [CmdletBinding()]

@@ -40,6 +40,12 @@ Describe "Start-ArcRaiders Script Initialization" {
         $func | Should -Not -BeNullOrEmpty
         $func.CommandType | Should -Be "Function"
     }
+
+    It "Should delegate to start-optimized-game.ps1 with the Arc Raiders manifest" {
+        $content = Get-Content -Raw "$PSScriptRoot/../Scripts/arc-raiders/start-arc-raiders.ps1"
+        $content | Should -Match 'start-optimized-game\.ps1'
+        $content | Should -Match 'arc-raiders\.psd1'
+    }
 }
 
 Describe "Start-ArcRaiders Functions" {

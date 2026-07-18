@@ -6,15 +6,8 @@
   Log out / back in (or reboot) after running for it to take effect.
 #>
 
-# --- self-elevate ---
-$principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    $psExe = (Get-Process -Id $PID).Path
-    Start-Process -FilePath $psExe -Verb RunAs -ArgumentList @(
-        '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`""
-    )
-    exit
-}
+. "$PSScriptRoot\Common.ps1"
+Request-AdminElevation
 
 $ErrorActionPreference = 'Stop'
 $priv = 'SeLockMemoryPrivilege'

@@ -10,13 +10,6 @@ $ProgressPreference = 'SilentlyContinue'
 
 . "$PSScriptRoot\ArcRaidersCommon.ps1"
 
-$script:totalSize = 0
-$script:totalCount = 0
-
-function Invoke-GlobClean([string]$Pattern) {
-    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:totalSize) -TotalCount ([ref]$script:totalCount)
-}
-
 # Skip main when dot-sourced (e.g. by Pester tests) — the cleanup below deletes
 # caches, runs DISM, and mutates registry/privileges on the live system.
 if ($MyInvocation.InvocationName -eq '.') { return }
@@ -249,7 +242,4 @@ public class LsaUtil {
     Write-Host "  UseLargePages=1"
 
     # ── Summary ───────────────────────────────────────────────────────────────────
-    $mb = [math]::Round($totalSize / 1MB, 2)
-    Write-Host "`n══════════════════════════════════════"
-    Write-Host " Done. $totalCount item(s) deleted, ${mb} MB freed."
-    Write-Host "══════════════════════════════════════"
+    Write-ArcSummary

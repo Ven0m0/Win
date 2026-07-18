@@ -20,6 +20,8 @@
     Skip Notepad Replacer setup.
 .PARAMETER SkipPeripherals
     Skip peripheral driver/tool installs (GMK Driver, DS4Windows, Endgame Gear OP1 8k tools).
+.PARAMETER SkipManualInstalls
+    Skip manual (no winget package) app installs (DLSSync, GraalVM).
 .PARAMETER ApplyPostInstall
     Apply post-install Windows configuration (from autounattend.xml).
 .PARAMETER PostInstallTimeZone
@@ -44,6 +46,7 @@ param(
     [switch]$SkipPowerShellModules,
     [switch]$SkipNotepadReplacer,
     [switch]$SkipPeripherals,
+    [switch]$SkipManualInstalls,
     [switch]$ApplyPostInstall,
     [string]$PostInstallTimeZone = 'W. Europe Standard Time',
     [string]$PostInstallInputLocale = 'en-US',
@@ -66,6 +69,7 @@ function Start-InstallPackage {
         [switch]$SkipPowerShellModules,
         [switch]$SkipNotepadReplacer,
         [switch]$SkipPeripherals,
+        [switch]$SkipManualInstalls,
         [switch]$ApplyPostInstall,
         [string]$PostInstallTimeZone = 'W. Europe Standard Time',
         [string]$PostInstallInputLocale = 'en-US',
@@ -98,11 +102,9 @@ function Start-InstallPackage {
             $winget = Wait-ForWinget
             Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
             try {
-                # Try without --scope first so packages with only user-scope installers
-                # (eza, fd, bat, ripgrep, starship, mise, etc.) are not rejected.
-                # --scope machine caused exit -1978335230 for those packages.
-                & $winget install --id $Id --silent --disable-interactivity `
-                    --accept-source-agreements --accept-package-agreements *>$null
+                & $winget install --id $Id --accept-package-agreements --accept-source-agreements `
+                    --disable-interactivity --nowarn --no-proxy --ignore-local-archive-malware-scan `
+                    -h --force *>$null
                 $ec = $LASTEXITCODE
                 # 0 = success; -1978335189 = already installed; -1978335230 = no applicable installer for scope
                 if ($ec -eq 0 -or $ec -eq -1978335189 -or $ec -eq -1978335230) {
@@ -145,7 +147,7 @@ function Start-InstallPackage {
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
-          'SkipPowerShellModules', 'SkipNotepadReplacer', 'SkipPeripherals', 'ApplyPostInstall') {
+          'SkipPowerShellModules', 'SkipNotepadReplacer', 'SkipPeripherals', 'SkipManualInstalls', 'ApplyPostInstall') {
             if ((Get-Variable -Name $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -239,8 +241,9 @@ function Start-InstallPackage {
         # Name-based installs (no stable ID)
         if ($PSCmdlet.ShouldProcess('FFmpeg (Shared Build)', 'Install via winget')) {
             $winget = Wait-ForWinget
-            & $winget install 'FFmpeg (Shared Build)' --silent --accept-source-agreements `
-                --accept-package-agreements *>$null
+            & $winget install 'FFmpeg (Shared Build)' --accept-package-agreements --accept-source-agreements `
+                --disable-interactivity --nowarn --no-proxy --ignore-local-archive-malware-scan `
+                -h --force *>$null
         }
     }
 
@@ -258,8 +261,17 @@ function Start-InstallPackage {
                 -ErrorAction SilentlyContinue
         ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -like 'Notepad++*' }
 
+        $notepadReplacer = @(
+            Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+                -ErrorAction SilentlyContinue
+            Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
+                -ErrorAction SilentlyContinue
+        ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -like 'Notepad Replacer*' }
+
         if (-not $notepadPlusPlus) {
             Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'
+        } elseif ($notepadReplacer) {
+            Write-Status 'Notepad Replacer already installed' -Status 'OK'
         } else {
             try {
                 $url = 'https://www.binaryfortress.com/Data/Download/?Package=notepadreplacer&Log=100'
@@ -285,9 +297,9 @@ function Start-InstallPackage {
         Write-Host '[7.6/11] Installing peripheral drivers...' -ForegroundColor Cyan
 
         foreach ($peripheral in @(
-                @{ Name = 'GMK Driver'; Script = 'gmk\install-gmk-driver.ps1' }
-                @{ Name = 'DS4Windows'; Script = 'ds4windows\install-ds4windows.ps1' }
-                @{ Name = 'Endgame Gear OP1 8k Tools'; Script = 'endgame-gear\install-op1-tools.ps1' }
+                @{ Name = 'GMK Driver'; Script = 'third-party\gmk\install-gmk-driver.ps1' }
+                @{ Name = 'DS4Windows'; Script = 'third-party\ds4windows\install-ds4windows.ps1' }
+                @{ Name = 'Endgame Gear OP1 8k Tools'; Script = 'third-party\endgame-gear\install-op1-tools.ps1' }
             )) {
             $scriptPath = Join-Path $PSScriptRoot $peripheral.Script
             if (-not (Test-Path -LiteralPath $scriptPath)) {
@@ -301,6 +313,30 @@ function Start-InstallPackage {
                 }
             } catch {
                 Write-Status "$($peripheral.Name) - $($_.Exception.Message)" -Status 'FAIL'
+            }
+        }
+    }
+
+    # ============================================================================
+    # Phase 7.7: Manual installs (apps with no winget package)
+    # ============================================================================
+    if (-not $SkipManualInstalls) {
+        Write-Host ''
+        Write-Host '[7.7/11] Installing manual (no winget package) apps...' -ForegroundColor Cyan
+
+        foreach ($manualApp in $catalog.ManualInstalls) {
+            $scriptPath = Join-Path $PSScriptRoot $manualApp.Script
+            if (-not (Test-Path -LiteralPath $scriptPath)) {
+                Write-Status "$($manualApp.Name) - script not found, skipping" -Status 'SKIP'
+                continue
+            }
+            try {
+                if ($PSCmdlet.ShouldProcess($manualApp.Name, 'Install')) {
+                    & $scriptPath
+                    Write-Status "$($manualApp.Name) installed" -Status 'OK'
+                }
+            } catch {
+                Write-Status "$($manualApp.Name) - $($_.Exception.Message)" -Status 'FAIL'
             }
         }
     }

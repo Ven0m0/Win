@@ -612,6 +612,18 @@ function Invoke-ShaderCacheCleanup {
   Write-Verbose 'Clearing Steam dumps...'
   Clear-DirectorySafe -Path "$STEAM\dumps"
 
+  Write-Verbose 'Clearing Steam web/http cache...'
+  Clear-DirectorySafe -Path "$STEAM\appcache\httpcache"
+  Clear-DirectorySafe -Path "$STEAM\config\htmlcache"
+  Clear-DirectorySafe -Path "$env:LOCALAPPDATA\Steam\htmlcache"
+  Get-ChildItem -Path "$STEAM\steamapps\downloading\*" -Force -ErrorAction SilentlyContinue |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+  Write-Verbose 'Clearing Epic Games Launcher cache...'
+  foreach ($webCacheDir in @('webcache', 'webcache_4147', 'webcache_4430')) {
+    Clear-DirectorySafe -Path "$env:LOCALAPPDATA\EpicGamesLauncher\Saved\$webCacheDir"
+  }
+
   Write-Verbose 'Clearing app crash dumps...'
   foreach ($app in $apps) {
     if ($app.exe) {

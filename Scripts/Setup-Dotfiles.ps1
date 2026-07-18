@@ -270,6 +270,65 @@ function Set-CmdAliasAutoRun {
     }
 }
 
+function Resolve-VSCodeUserDir {
+    <#
+  .SYNOPSIS
+      Locates the User config directory for VS Code or VSCodium, whichever is installed.
+  #>
+    [CmdletBinding()]
+    param()
+
+    foreach ($dirName in 'Code', 'VSCodium') {
+        $candidate = Join-Path $env:APPDATA "$dirName\User"
+        if (Test-Path $candidate) { return $candidate }
+    }
+    return $null
+}
+
+function Install-VSCodeExtensions {
+    <#
+  .SYNOPSIS
+      Installs extensions listed in extensions.txt via the code/codium CLI, skipping ones already installed.
+  .PARAMETER SourceDir
+      Directory containing extensions.txt.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [string]$SourceDir,
+        [string]$Label
+    )
+
+    $listFile = Join-Path $SourceDir 'extensions.txt'
+    if (-not (Test-Path $listFile)) {
+        Write-Warning "  [SKIP] $Label - extensions.txt not found: $listFile"
+        return
+    }
+
+    $cli = Get-Command code, code-insiders, codium -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $cli) {
+        Write-Warning "  [SKIP] $Label - no code/codium CLI found on PATH"
+        return
+    }
+
+    $wanted = Get-Content $listFile | Where-Object { $_ -and -not $_.StartsWith('#') }
+    $installed = & $cli.Source --list-extensions
+    $missing = $wanted | Where-Object { $installed -notcontains $_ }
+
+    if (-not $missing) {
+        Write-Host "  [UP-TO-DATE] $Label" -ForegroundColor Gray
+        return
+    }
+
+    foreach ($ext in $missing) {
+        if ($PSCmdlet.ShouldProcess($ext, "Install extension via $($cli.Name)")) {
+            & $cli.Source --install-extension $ext --force | Out-Null
+        }
+    }
+    Write-Host "  [OK] $Label - installed $($missing.Count) extension(s)" -ForegroundColor Green
+}
+
 function Deploy-StarWarsBattlefrontIIConfig {
     <#
   .SYNOPSIS
@@ -710,6 +769,25 @@ function Start-Bootstrap {
             Mode               = 'file'
             Label              = 'OpenCode LSP config'
             ResolveDestination = { Join-Path $HOME '.config\opencode\lsp.json' }
+        },
+        @{
+            Path               = 'vscode\User\settings.json'
+            Mode               = 'file'
+            Label              = 'VS Code / VSCodium settings'
+            ResolveDestination = {
+                $userDir = Resolve-VSCodeUserDir
+                if ($userDir) { Join-Path $userDir 'settings.json' }
+            }
+            GetSkipReason      = { 'VS Code / VSCodium User directory not found' }
+        },
+        @{
+            Path   = 'vscode'
+            Mode   = 'script'
+            Label  = 'VS Code / VSCodium extensions'
+            Invoke = {
+                param($sourceDir, $label)
+                Install-VSCodeExtensions -SourceDir $sourceDir -Label $label
+            }
         },
         @{
             Path  = 'games\minecraft'

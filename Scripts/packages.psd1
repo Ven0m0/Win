@@ -170,6 +170,15 @@
     )
 
     # ---------------------------------------------------------------------------
+    # Manual installs — no winget package; installed via dedicated script
+    # GraalVM is installed via mise instead (see user/.dotfiles/config/mise/config.toml,
+    # "java" = "oracle-graalvm" — always tracks the latest release, no script needed).
+    # ---------------------------------------------------------------------------
+    ManualInstalls     = @(
+        @{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
+    )
+
+    # ---------------------------------------------------------------------------
     # Scoop
     # ---------------------------------------------------------------------------
     ScoopBuckets       = @(

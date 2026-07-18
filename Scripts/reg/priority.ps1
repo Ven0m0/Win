@@ -2,7 +2,7 @@
 #Requires -RunAsAdministrator
 
 $ErrorActionPreference = 'Stop'
-
+$ProgressPreference = 'SilentlyContinue'
 . "$PSScriptRoot\..\Common.ps1"
 
 # === QoS Registry Implementation (Home/Pro compatible) ===
@@ -15,6 +15,7 @@ $qosGames = @{
   'ArcRaiders' = 'PioneerGame.exe'
   'BlackOps6'  = 'cod24-cod.exe'
   'Fortnite'   = 'FortniteClient-Win64-Shipping.exe'
+  'Java'       = 'javaw.exe'
 }
 
 foreach ($game in $qosGames.GetEnumerator()) {
@@ -45,5 +46,5 @@ foreach ($game in $qosGames.GetEnumerator()) {
 & gpupdate /force
 
 # === Windows Defender Exclusions ===
-Add-MpPreference -ExclusionProcess 'node.exe', 'clang.exe', 'rustc.exe', 'cargo.exe', 'bun.exe', 'bunx.exe', 'sccache.exe'
-Add-MpPreference -ExclusionProcess 'PioneerGame.exe', 'cod24-cod.exe', 'FortniteClient-Win64-Shipping.exe'
+Add-MpPreference -ExclusionProcess 'node.exe', 'clang.exe', 'rustc.exe', 'cargo.exe', 'bun.exe', 'bunx.exe', 'sccache.exe', 'link.exe'
+Add-MpPreference -ExclusionProcess 'PioneerGame.exe', 'cod24-cod.exe', 'FortniteClient-Win64-Shipping.exe', 'javaw.exe'
