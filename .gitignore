@@ -144,3 +144,13 @@ Scripts/reg/DeviceCleanup.ini
 
 undefined/
 .opencode/memory/
+
+MEMORY.md
+USER.md
+SCRATCHPAD*.md
+WORKING*.md
+TASK-QUEUE.md
+memory/
+knowledge/
+plans/
+tenants/
