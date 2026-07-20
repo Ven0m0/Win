@@ -60,10 +60,12 @@ if ((Test-Path $scriptsPath) -and ($env:Path -notlike "*$scriptsPath*")) {
     $env:Path = "$env:Path;$scriptsPath"
 }
 
-# Add local bin to PATH
+# Prepend local bin to PATH so user-installed tools shadow WinGet Links shims
 $localBin = Join-Path $HOME ".local\bin"
-if ((Test-Path $localBin) -and ($env:Path -notlike "*$localBin*")) {
-    $env:Path = "$env:Path;$localBin"
+if (Test-Path $localBin) {
+    $env:Path = $env:Path -replace [regex]::Escape(";$localBin"), ''
+    $env:Path = $env:Path -replace [regex]::Escape("$localBin;"), ''
+    $env:Path = "$localBin;$env:Path"
 }
 if (-not $EDITOR) {
     $EDITOR = if (Get-Command code -ErrorAction SilentlyContinue) { 'code' }

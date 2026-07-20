@@ -11,6 +11,8 @@
       Health         - read-only diagnostics: disk health, pending updates, service anomalies,
                        large temp dirs, startup items (no repairs; not included in All)
       All            - run System, then WindowsUpdate
+      Restart        - restart the system now
+      RestartToBios  - restart the system directly into firmware/BIOS setup
 .PARAMETER Action
     Which repair to run. Defaults to System.
 .PARAMETER QuickScan
@@ -38,7 +40,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('System', 'WindowsUpdate', 'Health', 'All')]
+  [ValidateSet('System', 'WindowsUpdate', 'Health', 'All', 'Restart', 'RestartToBios')]
   [string]$Action = 'System',
   [switch]$QuickScan,
   [switch]$SkipDiskCheck,
@@ -823,6 +825,16 @@ if ($MyInvocation.InvocationName -ne '.') {
       Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
         -SkipWUReset:$SkipWUReset -ScheduleChkdsk:$ScheduleChkdsk -DryRun:$DryRun -NoReboot:$NoReboot -NoReport:$NoReport
       Start-WindowsUpdateFix
+    }
+    'Restart' {
+      if ($PSCmdlet.ShouldProcess('System', 'Restart')) {
+        Restart-Computer -Force
+      }
+    }
+    'RestartToBios' {
+      if ($PSCmdlet.ShouldProcess('System', 'Restart to firmware/BIOS')) {
+        shutdown.exe /r /fw /t 0
+      }
     }
   }
 }

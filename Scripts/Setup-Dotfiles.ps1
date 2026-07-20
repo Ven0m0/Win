@@ -477,6 +477,64 @@ function Install-WingetTool {
     }
 }
 
+function Install-GithubReleaseTool {
+    <#
+  .SYNOPSIS
+      Installs a tool from its latest GitHub release asset (for tools not on winget).
+  .DESCRIPTION
+      Downloads the named asset from the repo's latest release and runs it silently.
+      Silent switches are auto-detected from the installer via Get-SilentInstallSwitches
+      (Common.ps1); pass -Switches to override when detection picks the wrong ones.
+      Best-effort - warns rather than throws on failure.
+  .PARAMETER Repo
+      GitHub repo in 'owner/name' form.
+  .PARAMETER AssetName
+      Exact release asset file name to download (the installer exe).
+  .PARAMETER Name
+      Human-readable tool name for output messages.
+  .PARAMETER Switches
+      Silent-install switches to use instead of auto-detection.
+  #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [string]$Repo,
+        [string]$AssetName,
+        [string]$Name,
+        [string[]]$Switches
+    )
+
+    if ($PSCmdlet.ShouldProcess($Name, 'Install from GitHub release')) {
+        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        try {
+            $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest"
+            $asset = $release.assets | Where-Object { $_.name -eq $AssetName }
+            if (-not $asset) {
+                Write-Host ""
+                Write-Warning "  [WARN] $Name - asset '$AssetName' not found in latest release"
+                return
+            }
+            $installerPath = Join-Path -Path $env:TEMP -ChildPath $AssetName
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $installerPath
+
+            $installSwitches = if ($Switches) { $Switches } else { Get-SilentInstallSwitches -Path $installerPath }
+            if (-not $installSwitches) {
+                Write-Host ""
+                Write-Warning "  [WARN] $Name - could not detect silent-install switches; pass -Switches explicitly"
+                Remove-Item -Path $installerPath -Force -ErrorAction SilentlyContinue
+                return
+            }
+
+            Start-Process -FilePath $installerPath -ArgumentList $installSwitches -Wait
+            Remove-Item -Path $installerPath -Force -ErrorAction SilentlyContinue
+            Write-Host " [OK]" -ForegroundColor Green
+        }
+        catch {
+            Write-Host ""
+            Write-Warning "  [WARN] $Name - $_"
+        }
+    }
+}
+
 function Start-Bootstrap {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -557,6 +615,9 @@ function Start-Bootstrap {
             foreach ($tool in $tools) {
                 Install-WingetTool -Id $tool.id -Name $tool.name
             }
+
+            # Not on winget - installed from its latest GitHub release instead.
+            Install-GithubReleaseTool -Repo 'LiteLDev/LeviLauncher' -AssetName 'LeviLauncher-amd64-installer.exe' -Name 'LeviLauncher'
         }
     }
 
@@ -863,6 +924,35 @@ function Start-Bootstrap {
     }
     else {
         Write-Host '  [UP-TO-DATE] Scripts already in PATH' -ForegroundColor Gray
+    }
+
+    # Ensure .local\bin outranks WinGet Links in the Machine PATH - Machine PATH is
+    # prepended ahead of User PATH at logon, so User-scope ordering alone can't win here.
+    $localBinPath = "$HOME\.local\bin"
+    $wingetLinksPath = 'C:\Program Files\WinGet\Links'
+    if ($isAdmin) {
+        $machinePath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
+        $machineEntries = @($machinePath -split ';' | Where-Object { $_ -and $_ -ne $localBinPath })
+        $wingetIndex = $machineEntries.IndexOf($wingetLinksPath)
+        $needsFix = ($machinePath -notlike "*$localBinPath*") -or ($wingetIndex -ge 0 -and (@($machinePath -split ';').IndexOf($localBinPath)) -gt $wingetIndex)
+        if ($needsFix) {
+            if ($PSCmdlet.ShouldProcess('Machine PATH', "Insert $localBinPath ahead of $wingetLinksPath")) {
+                if ($wingetIndex -ge 0) {
+                    $machineEntries = @($machineEntries[0..($wingetIndex - 1)]) + $localBinPath + @($machineEntries[$wingetIndex..($machineEntries.Count - 1)])
+                }
+                else {
+                    $machineEntries = @($localBinPath) + $machineEntries
+                }
+                [Environment]::SetEnvironmentVariable('Path', ($machineEntries -join ';'), 'Machine')
+                Write-Host "  [OK] $localBinPath now precedes $wingetLinksPath in Machine PATH" -ForegroundColor Green
+            }
+        }
+        else {
+            Write-Host '  [UP-TO-DATE] .local\bin already precedes WinGet Links in Machine PATH' -ForegroundColor Gray
+        }
+    }
+    else {
+        Write-Warning '  [SKIP] Machine PATH ordering - requires administrator'
     }
 
     $commonDirs = @(

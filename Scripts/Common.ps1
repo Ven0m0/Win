@@ -528,28 +528,18 @@ function Get-NvidiaSignatureStatus {
         ServiceOverride = $false
     }
 
-    $globalVal = `
-        Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global" `
+    # @(...)[0] normalizes both scalar (DWORD) and array (REG_BINARY) registry
+    # values to their first element without a type-branch for each.
+    $globalVal = Get-RegistryValueSafe -Path "HKLM:\SOFTWARE\NVIDIA Corporation\Global" `
         -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
     if ($null -ne $globalVal) {
-        if ($globalVal -is [array]) {
-            $status.GlobalOverride = $globalVal[0] -eq 1
-        }
-        else {
-            $status.GlobalOverride = $globalVal -eq 1
-        }
+        $status.GlobalOverride = (@($globalVal)[0] -eq 1)
     }
 
-    $serviceVal = `
-        Get-RegistryValueSafe -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm" `
+    $serviceVal = Get-RegistryValueSafe -Path "HKLM:\SYSTEM\CurrentControlSet\Services\nvlddmkm" `
         -Name "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"
     if ($null -ne $serviceVal) {
-        if ($serviceVal -is [array]) {
-            $status.ServiceOverride = $serviceVal[0] -eq 1
-        }
-        else {
-            $status.ServiceOverride = $serviceVal -eq 1
-        }
+        $status.ServiceOverride = (@($serviceVal)[0] -eq 1)
     }
 
     return [pscustomobject]$status
@@ -640,8 +630,47 @@ function Get-FileFromWeb {
         if ($writer) { $writer.Close() }
     }
 }
-#endregion
 
+function Get-SilentInstallSwitches {
+    <#
+    .SYNOPSIS
+        Detects an installer's packaging framework and returns its silent-install switches.
+    .DESCRIPTION
+        Scans the installer exe for known framework signature strings (Inno Setup, NSIS,
+        InstallShield, Wise) and returns the matching silent switch set. Returns $null when
+        no known framework is detected - caller should fall back to a manual/known switch set.
+    .PARAMETER Path
+        Full path to the installer exe.
+    .EXAMPLE
+        Get-SilentInstallSwitches -Path 'C:\Temp\setup.exe'
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path
+    )
+
+    # Byte-preserving read (Latin1 maps each byte to one char 1:1) so ASCII signature
+    # strings embedded in the binary still match regardless of surrounding binary noise.
+    $content = Get-Content -Path $Path -Raw -Encoding Latin1
+
+    $signatures = [ordered]@{
+        'Inno Setup'    = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-')
+        'Nullsoft'      = @('/S')
+        'InstallShield' = @('/s', '/v/qn')
+        'Wise Installation Wizard' = @('/s')
+    }
+
+    foreach ($signature in $signatures.Keys) {
+        if ($content -match [regex]::Escape($signature)) {
+            Write-Verbose "Detected installer framework: $signature"
+            return $signatures[$signature]
+        }
+    }
+
+    Write-Verbose "Could not detect installer framework for '$Path'"
+    return $null
+}
 #endregion
 
 
@@ -1089,9 +1118,6 @@ function New-RestorePoint {
         Write-ColorOutput "  Continuing anyway..." -ForegroundColor Yellow
     }
 }
-#endregion
-
-#region App Management
 #endregion
 
 #region EDID Override Management
@@ -2090,14 +2116,23 @@ function ConvertTo-SafeFileName {
     }
 }
 
-function vdf_mkdir {
+function New-VdfPath {
+    <#
+    .SYNOPSIS
+        Ensures a nested key path exists within a VDF-style ordered dictionary, creating
+        intermediate ordered dictionaries as needed (like mkdir -p for VDF structures).
+    .PARAMETER Vdf
+        The ordered dictionary (or VDF node) to create the path within.
+    .PARAMETER Path
+        Backslash-separated key path, e.g. 'Software\Valve\Steam'.
+    #>
     [CmdletBinding()]
-    param($vdf, [string]$path = '')
-    $s = $path -split '\\', 2
+    param($Vdf, [string]$Path = '')
+    $s = $Path -split '\\', 2
     $key = $s[0]
     $recurse = if ($s.Count -gt 1) { $s[1] } else { $null }
-    if ($key -and $vdf.Keys -notcontains $key) { $vdf[$key] = [ordered]@{} }
-    if ($recurse) { vdf_mkdir $vdf[$key] $recurse }
+    if ($key -and $Vdf.Keys -notcontains $key) { $Vdf[$key] = [ordered]@{} }
+    if ($recurse) { New-VdfPath -Vdf $Vdf[$key] -Path $recurse }
 }
 
 # Export functions

@@ -99,7 +99,7 @@ foreach ($item in Get-ChildItem "$STEAM\userdata\*\7\remote\sharedconfig.vdf" -R
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserRoamingConfigStore"', '{', '}') }
-    vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam\FriendsUI'
+    New-VdfPath -Vdf $vdf.Item(0) -Path 'Software\Valve\Steam\FriendsUI'
     $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
     if ($key["SteamDefaultDialog"] -ne '"#app_games"') { $key["SteamDefaultDialog"] = '"#app_games"'; $write = $true }
     $ui = $key["FriendsUI"]["FriendsUIJSON"]; if (-not ($ui -like '*{*')) { $ui = '' }
@@ -123,7 +123,7 @@ foreach ($item in Get-ChildItem "$STEAM\userdata\*\config\localconfig.vdf" -Recu
     $write = $false
     $vdf   = ConvertFrom-VDF -Content (Get-Content $file -Force)
     if ($vdf.Count -eq 0) { $vdf = ConvertFrom-VDF -Content @('"UserLocalConfigStore"', '{', '}') }
-    vdf_mkdir $vdf.Item(0) 'Software\Valve\Steam'; vdf_mkdir $vdf.Item(0) 'friends'
+    New-VdfPath -Vdf $vdf.Item(0) -Path 'Software\Valve\Steam'; New-VdfPath -Vdf $vdf.Item(0) -Path 'friends'
     $key = $vdf.Item(0)["Software"]["Valve"]["Steam"]
     if ($key["SmallMode"] -ne '"1"') { $key["SmallMode"] = '"1"'; $write = $true }
     foreach ($o in $opt.Keys) {
