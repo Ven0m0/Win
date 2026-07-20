@@ -63,7 +63,6 @@
       "Bash(ast-grep:*)",
       "Bash(fd:*)",
       "Bash(find:*)",
-      "mcp__cachebro__read_file",
       "mcp__plugin_context-mode_context-mode__ctx_execute",
       "mcp__plugin_oh-my-claudecode_t__state_list_active",
       "mcp__plugin_oh-my-claudecode_t__state_clear",
@@ -74,8 +73,6 @@
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)",
-      "Edit(.ssh/*)",
-      "Write(.ssh/*)",
       "NotebookEdit",
       "mcp__plugin_playwright_playwright__browser_install",
       "mcp__plugin_playwright_playwright__browser_navigate"
@@ -137,5 +134,9 @@
     ]
   },
   "theme": "dark",
-  "effortLevel": "medium"
+  "effortLevel": "medium",
+  "model": "opusplan",
+  "prefersReducedMotion": true,
+  "skipDangerousModePermissionPrompt": true,
+  "teammateMode": "auto"
 }
