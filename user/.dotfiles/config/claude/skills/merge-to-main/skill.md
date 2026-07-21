@@ -78,7 +78,7 @@ rtk git fetch upstream
 rtk git pull --autostash upstream main
 ```
 
-`--autostash` saves local uncommitted changes, applies the upstream merge, re-applies them. If re-apply fails: `git stash pop` and resolve manually.
+`--autostash` saves local uncommitted changes, applies the upstream merge, then re-applies them. If re-apply fails: `git stash pop` and resolve manually.
 
 Conflict rule of thumb: upstream owns auto-generated files; keep local changes for code and config.
 

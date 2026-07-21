@@ -7,7 +7,7 @@ description: Use whenever the user wants Claude to connect to, inspect, run comm
 
 Claude Code runs on Windows (Git Bash) with OpenSSH client tools already available:
 `ssh`, `scp`, `ssh-keygen`, `ssh-keyscan`, `ssh-copy-id`. No `rsync`, no `nmap` - don't
-suggest installing them, the tools below cover the same ground for LAN-scale work.
+suggest installing them; the tools below cover the same ground for LAN-scale work.
 
 ## 1. Resolve what host to talk to
 
@@ -38,7 +38,7 @@ for i in $(seq 1 254); do
 done
 ```
 
-This is slow (~254 pings) - only do it when the user actually wants a sweep, not as a
+This is slow (~254 pings) - only run it when the user actually wants a sweep, not as a
 default first step.
 
 ## 3. Run remote commands

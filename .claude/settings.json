@@ -133,6 +133,16 @@
       }
     ]
   },
+  "mcpServers": {
+    "codemogger": {
+      "command": "bunx",
+      "args": ["--bun", "codemogger", "mcp"]
+    },
+    "cachebro": {
+      "command": "bunx",
+      "args": ["--bun", "cachebro", "serve"]
+    }
+  },
   "theme": "dark",
   "effortLevel": "medium",
   "model": "opusplan",

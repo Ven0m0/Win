@@ -1,15 +1,48 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
     "CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "ENABLE_TOOL_SEARCH": "true",
     "ENABLE_LSP_TOOL": "1",
-    "USE_BUILTIN_RIPGREP": "1",
+    "USE_BUILTIN_RIPGREP": "0",
     "PYTHONOPTIMIZE": "1",
     "BUN_OPTIONS": "--bun --prefer-offline --prefer-latest --parallel --silent",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CONTEXT_MODE_NO_BUN": "1"
+    "CONTEXT_MODE_NO_BUN": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "ENABLE_PROMPT_CACHING_1H": "1",
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "MAX_THINKING_TOKENS": "16000",
+    "DISABLE_INSTALLATION_CHECKS": "true",
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
+    "FORCE_AUTOUPDATE_PLUGINS": "true",
+    "DISABLE_COST_WARNINGS": "1",
+    "CLAUDE_CODE_SKIP_BEDROCK_AUTH": "1",
+    "CLAUDE_CODE_SKIP_FOUNDRY_AUTH": "1",
+    "CLAUDE_CODE_SKIP_VERTEX_AUTH": "1",
+    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+    "CLAUDE_CODE_SHELL": "bash",
+    "ANTHROPIC_MODEL": "opusplan",
+    "NO_COLOR": "1",
+    "LC_ALL": "C",
+    "BASH_DEFAULT_TIMEOUT_MS": "120000",
+    "BASH_MAX_TIMEOUT_MS": "600000",
+    "BASH_MAX_OUTPUT_LENGTH": "65536",
+    "MCP_TIMEOUT": "30000",
+    "MCP_TOOL_TIMEOUT": "120000",
+    "MAX_MCP_OUTPUT_TOKENS": "25000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "63999",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
   },
   "permissions": {
     "allow": [
@@ -27,10 +60,63 @@
       "PowerShell",
       "PowerShell (*)",
       "WebSearch",
+      "WebFetch(domain:*)",
       "Bash(ssh *)",
       "Bash(ssh-keygen -F *)",
       "Bash(ssh-add -l)",
-      "Bash(rtk *)"
+      "Bash(rtk *)",
+      "Grep",
+      "Glob",
+      "Bash",
+      "Edit",
+      "Write",
+      "LSP",
+      "WebFetch",
+      "Task",
+      "TaskList",
+      "TaskUpdate",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(pwsh:*)",
+      "Bash(pwsh.exe:*)",
+      "Bash(powershell:*)",
+      "Bash(powershell.exe:*)",
+      "Skill",
+      "Skill(update-config)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(uv:*)",
+      "Bash(npm:*)",
+      "Bash(rg:*)",
+      "Bash(ast-grep:*)",
+      "Bash(fd:*)",
+      "Bash(find:*)",
+      "mcp__plugin_context-mode_context-mode__ctx_execute",
+      "mcp__plugin_oh-my-claudecode_t__state_list_active",
+      "mcp__plugin_oh-my-claudecode_t__state_clear",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": [
+      "Read(**/*secret*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*credential*)",
+      "NotebookEdit",
+      "mcp__plugin_playwright_playwright__browser_install",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ],
+    "ask": [
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(npm publish:*)"
     ]
   },
   "model": "opusplan",
@@ -39,7 +125,10 @@
     "merge-to-main": "user-invocable-only",
     "repo-janitor": "user-invocable-only",
     "dead-code-cleanup": "user-invocable-only",
-    "todo-scan": "user-invocable-only"
+    "todo-scan": "user-invocable-only",
+    "find-skills": "user-invocable-only",
+    "strategic-planning": "user-invocable-only",
+    "ssh-lan": "user-invocable-only"
   },
   "hooks": {
     "PreToolUse": [
@@ -61,6 +150,19 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -match '[.]reg$') { Write-Host 'WARNING: Editing a registry file. Verify a restore point exists before applying.' }",
+            "if": "Edit(**/*.reg)",
+            "shell": "powershell",
+            "statusMessage": "Registry file - verify restore point exists",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -76,10 +178,148 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$vault='C:\\Users\\Ven0m0\\Documents\\Obsidian Vault';$cwd=if($env:CLAUDE_PROJECT_DIR){$env:CLAUDE_PROJECT_DIR}else{(Get-Location).Path};if($cwd.TrimEnd('\\') -ne $vault.TrimEnd('\\')){$m=\"Second brain: Obsidian Vault at $vault. Check Index.md there if vault context could help; persist durable learnings (preferences, decisions, worked-out topics) there per that vault's CLAUDE.md protocol -- not only in project-scoped memory.\";$j=@{hookSpecificOutput=@{hookEventName='SessionStart';additionalContext=$m}}|ConvertTo-Json -Compress;Write-Output $j}",
+            "command": "$vault='C:\\Users\\Ven0m0\\Nextcloud2\\obsidian-vault';$cwd=if($env:CLAUDE_PROJECT_DIR){$env:CLAUDE_PROJECT_DIR}else{(Get-Location).Path};if($cwd.TrimEnd('\\') -ne $vault.TrimEnd('\\')){$m=\"Second brain: Obsidian Vault at $vault. Check Index.md there if vault context could help; persist durable learnings (preferences, decisions, worked-out topics) there per that vault's CLAUDE.md protocol -- not only in project-scoped memory.\";$j=@{hookSpecificOutput=@{hookEventName='SessionStart';additionalContext=$m}}|ConvertTo-Json -Compress;Write-Output $j}",
             "shell": "powershell",
             "timeout": 10,
             "statusMessage": "Checking second-brain vault"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$json = $input | ConvertFrom-Json; $fp = $json.tool_input.file_path; if ($fp -notmatch '[.](ps1|psm1|psd1)$') { exit 0 }; $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'; try { $issues = Invoke-ScriptAnalyzer -Path $fp -Settings $settings -ErrorAction Stop; if ($issues) { Write-Host 'PSScriptAnalyzer issues found:'; $issues | ForEach-Object { Write-Host \"  - ($($_.Message)) at line $($_.Line)\" }; exit 1 } else { Write-Host 'PSScriptAnalyzer: OK' } } catch { Write-Error \"Linting failed: $_\"; exit 1 }",
+            "shell": "powershell",
+            "statusMessage": "Running PSScriptAnalyzer...",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notlike '*autounattend.xml') { exit 0 }; try { $xml = [xml]::new(); $xml.Load($fp); Write-Host 'XML valid: autounattend.xml' } catch { Write-Error 'XML validation failed'; exit 1 }",
+            "shell": "powershell",
+            "timeout": 15,
+            "statusMessage": "Validating autounattend.xml..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notlike '*.ps1') { exit 0 }; $name = [IO.Path]::GetFileNameWithoutExtension($fp); $t = Join-Path 'tests' \"$name.Tests.ps1\"; if (-not (Test-Path $t)) { exit 0 }; Invoke-Pester -Path $t -Output Minimal",
+            "shell": "powershell",
+            "statusMessage": "Running matching Pester test...",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
@@ -105,8 +345,9 @@
     "mdbase-lsp@claude-code-lsps": true,
     "serena@claude-plugins-official": true,
     "context-mode@context-mode": true,
+    "ty@claude-code-lsps": true,
     "oh-my-claudecode@omc": true,
-    "ty@claude-code-lsps": true
+    "hipocampus@hipocampus": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {
@@ -138,16 +379,44 @@
         "source": "github",
         "repo": "DietrichGebert/ponytail"
       }
+    },
+    "hipocampus": {
+      "source": {
+        "source": "github",
+        "repo": "kevin-hs-sohn/hipocampus"
+      }
     }
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "medium",
   "tui": "fullscreen",
-  "voice": { "enabled": true, "mode": "hold" },
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
   "prefersReducedMotion": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
+  "autoUpdatesChannel": "latest",
   "theme": "dark",
   "teammateMode": "auto",
-  "voiceEnabled": true
+  "voiceEnabled": false,
+  "mcpServers": {
+    "codemogger": {
+      "command": "bunx",
+      "args": [
+        "--bun",
+        "codemogger",
+        "mcp"
+      ]
+    },
+    "cachebro": {
+      "command": "bunx",
+      "args": [
+        "--bun",
+        "cachebro",
+        "serve"
+      ]
+    }
+  }
 }

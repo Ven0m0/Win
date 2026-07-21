@@ -8,7 +8,7 @@ compatibility: opencode
 
 # Code Cleanup
 
-Load this skill for any of: removing commented-out code or unused variables, merging two scripts with >80% overlap, or a full repository cleanup pass.
+Load for: removing commented-out code/unused variables, merging scripts with >80% overlap, or a full repository cleanup pass.
 
 ## When to Load
 
@@ -162,7 +162,7 @@ rg "arc-raiders.*steam|steam.*arc-raiders" --type ps1   # verify no orphaned imp
 - Commented-out blocks older than two releases
 - Dead branches: `if ($false) { ... }`
 
-Safety rule: if no tests and no clear caller, add a deprecation comment first; delete only after confirming no external dependencies.
+Safety rule: if no tests and no clear caller, add a deprecation comment first, then delete only after confirming no external dependencies.
 
 ### Prune documentation sprawl
 

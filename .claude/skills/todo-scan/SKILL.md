@@ -5,7 +5,7 @@ description: Use when user wants to Scan the repo for TODO code comments, TODO-t
 
 # TODO Scan + Next-Step Predictor
 
-You are performing a structured triage of outstanding work for the current repository. Execute all three phases, then synthesize a recommendation.
+Perform a structured triage of outstanding work for this repository: execute all three phases, then synthesize a recommendation.
 
 ## Phase 1 - Code TODOs
 
@@ -78,7 +78,7 @@ gh run list --limit 5 --json conclusion,name,headBranch \
 
 ### Synthesis
 
-After collecting all three phases of data, reason through the following and produce a structured report:
+After collecting all three phases, reason through the following and produce a structured report:
 
 #### 1. TODO Inventory
 

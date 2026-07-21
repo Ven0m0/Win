@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "memelord": {
+      "command": "memelord",
+      "args": ["serve"],
+      "env": {
+        "MEMELORD_DIR": "C:\\Users\\Ven0m0\\project\\Win\\.memelord"
+      }
+    }
+  }
+}

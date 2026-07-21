@@ -29,7 +29,6 @@ nohup.out
 *.lock
 *.lck
 .cache
-npm-debug.log*
 pids
 *.pid
 *.seed
@@ -124,9 +123,6 @@ $RECYCLE.BIN/
 .cachebro/
 .opencode
 .serena/
-.serena/.gitignore
-.serena/project.local.yml
-.serena/cache
 !.serena/project.yml
 .codegraph/
 .claudelint-cache
@@ -135,7 +131,6 @@ $RECYCLE.BIN/
 psscriptanalyzer_report.json
 *.sarif
 results.sarif
-*.psscriptanalyzer.log
 
 ## Tool UI state (machine-specific)
 Scripts/reg/DeviceCleanup.ini
@@ -155,3 +150,4 @@ knowledge/
 plans/
 tenants/
 hipocampus.config.json
+.memelord/
