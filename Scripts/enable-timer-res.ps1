@@ -265,8 +265,7 @@ function Get-TimerResolutionStatus {
 # registry, register a scheduled task, and 'exit 1' would kill the host process.
 if ($MyInvocation.InvocationName -eq '.') { return }
 
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-    [Security.Principal.WindowsBuiltInRole]::Administrator)
+$isAdmin = Test-IsAdmin
 if (-not $isAdmin) {
     Write-StatusMessage "This script requires Administrator privileges. Please run as administrator." "Error"
     exit 1

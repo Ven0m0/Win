@@ -517,7 +517,7 @@ function Select-BackupFile {
 # ─────────────────────────────────────────────────────────────────────────────
 #  Main UI loop
 # ─────────────────────────────────────────────────────────────────────────────
-Write-Log "=== APPLICATION STARTED ==="
+Write-UtilityLog -Message "=== APPLICATION STARTED ==="
 
 # State
 $iniPath = if ($ConfigPath -and (Test-Path $ConfigPath)) { $ConfigPath } else { '' }
@@ -591,11 +591,11 @@ while ($true) {
     switch -Regex ($key) {
         '^C$' {
             $picked = Select-IniFile "Select GameUserSettings.ini" "INI files (*.ini)|*.ini" $DEFAULT_INI
-            if ($picked) { $iniPath = $picked; Write-Log "Config selected: $iniPath" }
+            if ($picked) { $iniPath = $picked; Write-UtilityLog -Message "Config selected: $iniPath" }
         }
         '^B$' {
             $picked = Select-IniFile "Select Backup INI" "INI files (*.ini)|*.ini"
-            if ($picked) { $backupPath = $picked; Write-Log "Backup selected: $backupPath" }
+            if ($picked) { $backupPath = $picked; Write-UtilityLog -Message "Backup selected: $backupPath" }
         }
         '^R$' { $chkRTX = -not $chkRTX }
         '^N$' { $chkNetFix = -not $chkNetFix }
@@ -613,7 +613,7 @@ while ($true) {
         '^$' {
             # ▶ Run Selected
             Write-H "RUNNING"
-            Write-Log "=== RUN STARTED ==="
+            Write-UtilityLog -Message "=== RUN STARTED ==="
             $status = "Status: running..."
             Write-Info $status
 
@@ -655,7 +655,7 @@ while ($true) {
 
             Write-Host ""
             Write-Ok "=== RUN COMPLETED ==="
-            Write-Log "=== RUN COMPLETED ==="
+            Write-UtilityLog -Message "=== RUN COMPLETED ==="
             Invoke-PauseBack
         }
         '^K$' {
@@ -680,7 +680,7 @@ while ($true) {
             $backupPath = ''  # reset after use
             Invoke-PauseBack
         }
-        '^Q$' { Write-Log "=== EXIT ==="; exit 0 }
+        '^Q$' { Write-UtilityLog -Message "=== EXIT ==="; exit 0 }
         default { Write-Warn "Unknown command. Use letters/numbers shown above." ; Start-Sleep -Milliseconds 600 }
     }
 }

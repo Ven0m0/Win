@@ -363,19 +363,15 @@ function Invoke-CleanRedist {
         if (Test-Path $path) {
             $files = @(Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue)
             $filesRemoved = 0
-            if ($files.Count -gt 0) {
-                $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum
-                foreach ($file in $files) {
-                    if ($PSCmdlet.ShouldProcess($file.FullName, 'Remove installer file')) {
-                        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
-                        $filesRemoved++
-                    }
+            $freed = 0
+            foreach ($file in $files) {
+                if ($PSCmdlet.ShouldProcess($file.FullName, 'Remove installer file')) {
+                    Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
+                    $filesRemoved++
+                    $freed += $file.Length
                 }
-                $afterSize = (Get-ChildItem -Path $path -Recurse -File -ErrorAction SilentlyContinue |
-                    Measure-Object -Property Length -Sum).Sum
-                $freed = $beforeSize - ($afterSize -or 0)
-                $totalFreed += $freed
             }
+            $totalFreed += $freed
             if ($filesRemoved -gt 0) {
                 Write-ColorOutput "  Removed $filesRemoved file(s) from $($path.Split('\')[-2,-1] -join '\')" `
                     -ForegroundColor Green

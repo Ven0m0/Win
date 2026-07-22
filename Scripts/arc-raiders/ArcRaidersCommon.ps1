@@ -5,7 +5,7 @@
 .DESCRIPTION
     Centralizes duplicated process-control, Steam-discovery, and VDF/disk-optimization
     patterns used across all Arc Raiders scripts. File-glob-removal and memory-trim
-    helpers live in Common.ps1 (Remove-Glob, Set-ContentNoNewline, Invoke-MemoryTrim).
+    helpers live in Common.ps1 (Remove-Glob, Invoke-MemoryTrim).
 #>
 
 . "$PSScriptRoot\..\Common.ps1"

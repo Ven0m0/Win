@@ -997,27 +997,6 @@ function Remove-Glob {
     }
 }
 
-function Set-ContentNoNewline {
-    <#
-    .SYNOPSIS
-        Write content to a file without a trailing newline.
-    #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path,
-        [string[]]$Content
-    )
-    if ($PSCmdlet.ShouldProcess($Path, 'Write content')) {
-        if ((Get-Command Set-Content).Parameters['NoNewline']) {
-            Set-Content -LiteralPath $Path -Value $Content -NoNewline -Force
-        }
-        else {
-            [System.IO.File]::WriteAllText($Path, ($Content -join [char]10))
-        }
-    }
-}
-
 function Invoke-MemoryTrim {
     <#
     .SYNOPSIS

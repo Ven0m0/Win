@@ -176,7 +176,6 @@ Arc Raiders scripts and configs **always change together** — update all when a
 ```
 Scripts/arc-raiders/ARCRaidersUtility.ps1
 Scripts/arc-raiders/cleanup-arc-raiders.ps1
-Scripts/arc-raiders/start-arc-raiders.ps1
 Scripts/arc-raiders/arc-raiders.psd1
 Scripts/arc-raiders/SkipVideosMod.ps1
 user/.dotfiles/config/games/arc-raiders/Engine.ini

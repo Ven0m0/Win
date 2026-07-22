@@ -6,8 +6,8 @@
     power plan, monitors the game, and restores everything on exit.
 
 .DESCRIPTION
-    Generalizes the Arc Raiders game-boost engine (see Scripts/arc-raiders/start-arc-raiders.ps1)
-    for any game via a per-game manifest (see Scripts/games/*.psd1):
+    Generalizes the Arc Raiders game-boost engine for any game via a per-game
+    manifest (see Scripts/games/*.psd1):
       1. Self-elevates to Administrator if needed
       2. Captures current power plan GUID
       3. Switches to Ultimate/High Performance power plan

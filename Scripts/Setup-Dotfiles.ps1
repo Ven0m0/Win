@@ -554,9 +554,7 @@ function Start-Bootstrap {
     # ---------------------------------------------------------------------------
     $isAdmin = $false
     try {
-        $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-            [Security.Principal.WindowsBuiltInRole]::Administrator
-        )
+        $isAdmin = Test-IsAdmin
     }
     catch {
         Write-Verbose "Could not determine admin status: $($_.Exception.Message)"

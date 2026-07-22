@@ -83,10 +83,6 @@ function Start-SetupWin11 {
     }
 
     # Elevation
-    function Test-IsAdmin {
-        if ($IsLinux -or $IsMacOS) { return $true }
-        return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    }
     $isAdmin = Test-IsAdmin
     if (-not $isAdmin) {
         Write-Host '  [REQUIRED] Administrator privileges required. Relaunching as admin...' -ForegroundColor Yellow

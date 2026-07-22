@@ -131,10 +131,7 @@ function Start-InstallPackage {
     if ($null -eq $adminOverride -or $null -eq $adminOverride.Value) {
         $isAdmin = $false
         try {
-            $isAdmin = ([Security.Principal.WindowsPrincipal]`
-                [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-                [Security.Principal.WindowsBuiltInRole]::Administrator
-            )
+            $isAdmin = Test-IsAdmin
         } catch { Write-Verbose "Admin role check failed: $_" }
     } else {
         $isAdmin = $adminOverride.Value
