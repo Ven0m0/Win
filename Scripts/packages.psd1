@@ -93,6 +93,9 @@
         'DEVCOM.JetBrainsMonoNerdFont'
         'marlocarlo.psmux'
         'bootandy.dust'
+        'gerardog.gsudo'
+        'activescott.lessmsi'
+        'yt-dlp.yt-dlp'
     )
 
     # ---------------------------------------------------------------------------
@@ -109,6 +112,7 @@
         'HandBrake.HandBrake'
         'Gyan.FFmpeg.Shared'
         'CodeF0x.ffzap'
+        'ch.LosslessCut'
         # Image / graphics
         'GIMP.GIMP'
         'KDE.Krita'
@@ -143,6 +147,8 @@
         'memstechtips.Winhance'
         'Nextcloud.NextcloudDesktop'
         'Microsoft.WSL'
+        'Bitwarden.Bitwarden'
+        'Bitwarden.CLI'
         # Package managers / install helpers
         'Devolutions.UniGetUI'
         # System / drivers / hardware
@@ -153,6 +159,7 @@
         'TechPowerUp.NVCleanstall'
         'GlennDelahoy.SnappyDriverInstallerOrigin'
         'xHybred.NVPIRevamped'
+        'Wagnardsoft.DisplayDriverUninstaller'
         #'Nvidia.PhysX'
         'REALiX.HWiNFO'
         # 'Intel.IntelExtremeTuningUtility'
@@ -164,6 +171,7 @@
         # Disk / storage / cleanup
         'BleachBit.BleachBit'
         'maharmstone.btrfs'
+        'JAMSoftware.TreeSize.Free'
         # Uninstallers / maintenance
         'RevoUninstaller.RevoUninstaller'
     )
@@ -251,6 +259,10 @@
         'VirtualMachinePlatform'
         'LegacyComponents'
         'DirectPlay'
+		'MediaPlayback'
+		'Microsoft-Hyper-V-All'
+		'NetFx3'
+		'NetFx4-AdvSrvs'
     )
 
     # ---------------------------------------------------------------------------

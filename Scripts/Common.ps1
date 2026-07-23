@@ -67,8 +67,11 @@ function Request-AdminElevation {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]$identity
     if (!($principal.IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator'))) {
-        Start-Process PowerShell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `
-            `"{0}`"" -f $PSCommandPath) -Verb RunAs
+        # $PSCommandPath here would resolve to Common.ps1 (the file this function is defined in),
+        # not the calling script - $MyInvocation.PSCommandPath gives the actual caller.
+        $callerPath = $MyInvocation.PSCommandPath
+        $hostExe = (Get-Process -Id $PID).Path
+        Start-Process -FilePath $hostExe -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$callerPath`"") -Verb RunAs
         exit
     }
 }
@@ -1471,7 +1474,8 @@ function Invoke-Operation {
         [switch]$DryRun,
         [switch]$CaptureOutput,
         [string]$Command,
-        [string]$ArgumentList
+        [string]$ArgumentList,
+        [int]$TimeoutSeconds = 120
     )
 
     if ($DryRun) {
@@ -1511,10 +1515,19 @@ function Invoke-Operation {
                 if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
             }
             else {
-                $process = Start-Process -FilePath $Command -ArgumentList $ArgumentList -NoNewWindow -Wait -PassThru
-                $exitCode = $process.ExitCode
-                Write-Info "Exit code: $exitCode"
-                if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+                $process = Start-Process -FilePath $Command -ArgumentList $ArgumentList -NoNewWindow -PassThru
+                # ponytail: fixed timeout rather than a per-command tuned value; raise via -TimeoutSeconds if a slower command needs it.
+                if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+                    Write-Fail "$Name timed out after ${TimeoutSeconds}s - killing process"
+                    Add-Log "TIMEOUT: $Name after ${TimeoutSeconds}s"
+                    try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { Write-Verbose "Could not kill timed-out process: $_" }
+                    if ($Results) { $Results[$Name] = "TIMEOUT (${TimeoutSeconds}s)" }
+                }
+                else {
+                    $exitCode = $process.ExitCode
+                    Write-Info "Exit code: $exitCode"
+                    if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+                }
             }
         }
         catch {

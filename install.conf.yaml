@@ -19,7 +19,7 @@
 #   cmd\alias.cmd                                  → %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
 #   games\bf2\                                     → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
 #   games\bo6\                                      → ~/Documents/Call of Duty/players/
-#   games\arc-raiders\                             → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
+#   games\arc-raiders\                             → %LOCALAPPDATA%\PioneerGame\Saved\Config\WindowsClient\
 #   games\fortnite\*.ini                           → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
 #   mise\config.toml                               → ~/.config/mise/config.toml
 #   scoop\config.json                              → ~/.config/scoop/config.json

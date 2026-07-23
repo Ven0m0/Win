@@ -24,6 +24,7 @@ package_manager = "bun"
 cli_telemetry_optout = true
 
 [tools]
+python = "latest"
 "pipx:py-psscriptanalyzer" = "0.3.1"
 "pipx:dotbot" = "latest"
 #"pipx:dotbot-firefox" = "latest"

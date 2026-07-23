@@ -1,0 +1,10 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable NVIDIA Image Scaling (NIS) - New Version
+; ============================================================
+; Disables NIS for driver version 535+
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
+"EnableGR535"=dword:00000000

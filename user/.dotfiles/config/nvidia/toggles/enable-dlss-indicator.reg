@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable DLSS Indicator Overlay
+; ============================================================
+; Shows DLSS indicator in top-left of games (for debugging/testing)
+; Value 0x0400 = 1024 decimal (indicator enabled)
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\NGXCore]
+"ShowDlssIndicator"=dword:00000400

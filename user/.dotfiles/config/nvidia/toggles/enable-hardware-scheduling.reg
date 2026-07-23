@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable Hardware-Accelerated GPU Scheduling
+; ============================================================
+; Offloads GPU scheduling from CPU to GPU hardware
+; Requires Windows 10 2004+ and compatible GPU
+; Pros: Can reduce latency and improve performance
+; Cons: May cause issues with some games/applications
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+"HwSchMode"=dword:00000002
