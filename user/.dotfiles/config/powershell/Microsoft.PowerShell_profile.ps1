@@ -169,21 +169,6 @@ if (Get-Module -ListAvailable -Name PSColor) {
     }
 }
 
-# VCS aliases (git)
-$vcsTools = @('git')
-foreach ($cmd in $vcsTools) {
-    if (Get-Command $cmd -ErrorAction SilentlyContinue) {
-        $prefix = $cmd.Substring(0, 1)
-        Set-Item -Path "Function:${prefix}s" -Value ([scriptblock]::Create("$cmd status `$args"))
-        Set-Item -Path "Function:${prefix}a" -Value ([scriptblock]::Create("$cmd add `$args"))
-        Set-Item -Path "Function:${prefix}c" -Value ([scriptblock]::Create("$cmd commit `$args"))
-        Set-Item -Path "Function:${prefix}p" -Value ([scriptblock]::Create("$cmd push `$args"))
-        Set-Item -Path "Function:${prefix}l" -Value ([scriptblock]::Create(`
-            "$cmd log --oneline --graph --decorate `$args"))
-        Set-Item -Path "Function:${prefix}d" -Value ([scriptblock]::Create("$cmd diff `$args"))
-    }
-}
-
 # Docker aliases (if docker is installed)
 if (Get-Command docker -ErrorAction SilentlyContinue) {
     function d { docker $args }
@@ -378,13 +363,15 @@ function mkcd {
 }
 
 # Open WinUtil full-release
-function winutil {
+function Invoke-WinUtil {
+  param([string]$Uri = 'https://christitus.com/win')
+
   $temporaryFile = New-TemporaryFile
   $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
   Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
 
   try {
-    Invoke-RestMethod -Uri 'https://christitus.com/win' -OutFile $winutilInstaller
+    Invoke-RestMethod -Uri $Uri -OutFile $winutilInstaller
     & $winutilInstaller
   } finally {
     if (Test-Path -LiteralPath $winutilInstaller) {
@@ -392,22 +379,9 @@ function winutil {
     }
   }
 }
-
+function winutil { Invoke-WinUtil }
 # Dev-channel companion to winutil
-function winutildev {
-  $temporaryFile = New-TemporaryFile
-  $winutilInstaller = [System.IO.Path]::ChangeExtension($temporaryFile.FullName, '.ps1')
-  Move-Item -LiteralPath $temporaryFile.FullName -Destination $winutilInstaller -Force
-
-  try {
-    Invoke-RestMethod -Uri 'https://christitus.com/windev' -OutFile $winutilInstaller
-    & $winutilInstaller
-  } finally {
-    if (Test-Path -LiteralPath $winutilInstaller) {
-      Remove-Item -LiteralPath $winutilInstaller -Force
-    }
-  }
-}
+function winutildev { Invoke-WinUtil -Uri 'https://christitus.com/windev' }
 
 # System Utilities
 function admin {
@@ -508,10 +482,15 @@ if (Get-Command eza -ErrorAction SilentlyContinue) {
 # Git Shortcuts
 function gs { git status }
 function ga { git add -A }
+# gc is a built-in alias for Get-Content; remove it so the function below takes over.
+Remove-Item -Path Alias:gc -Force -ErrorAction SilentlyContinue
 function gc { param($m) git commit -m "$m" }
 function gpush { git push }
-
 function gpull { git pull }
+function gd { git diff @args }
+# gl is a built-in alias for Get-Location; remove it so the function below takes over.
+Remove-Item -Path Alias:gl -Force -ErrorAction SilentlyContinue
+function gl { git log --oneline --graph --decorate @args }
 function gcl { git clone "$args" }
 function gcom {
     git add -A
@@ -643,14 +622,7 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 if (Get-Command zoxide -ErrorAction SilentlyContinue) {
     $__initQueue.Enqueue({ . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String))) })
 } else {
-    Write-Host "zoxide command not found. Attempting to install via winget..."
-    try {
-        winget install -e --id ajeetdsouza.zoxide
-        Write-Host "zoxide installed successfully. Initializing..."
-        $__initQueue.Enqueue({ . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String))) })
-    } catch {
-        Write-Error "Failed to install zoxide. Error: $_"
-    }
+    Write-Warning "zoxide not found. Install with: winget install -e --id ajeetdsouza.zoxide"
 }
 if ($__initQueue.Count -gt 0) {
     Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -SupportEvent -Action {
@@ -662,16 +634,6 @@ if ($__initQueue.Count -gt 0) {
             Remove-Variable -Name '__initQueue' -Scope Global -Force
         }
     } | Out-Null
-}
-
-function Get-CommandPath {
-    <#
-    .SYNOPSIS
-        Get full path of a command (like Unix 'which')
-    #>
-    param([Parameter(Mandatory)][string]$Command)
-
-    (Get-Command $Command -ErrorAction SilentlyContinue).Source
 }
 
 function Clear-TempFile {
