@@ -81,6 +81,27 @@ git clone --depth 1 https://github.com/Ven0m0/Win.git
 mise run deploy
 ```
 
+### Order of Execution
+
+The full chain, in the order each layer actually runs:
+
+1. **`bootstrap.ps1`** (internet entry point) — self-elevates, installs winget/Git/Python/mise/uv if missing, shallow-clones the repo, then invokes `Setup-Win11.ps1`.
+2. **`Scripts/Setup-Win11.ps1`** (`#Requires -RunAsAdministrator`) — orchestrates the local machine setup in 6 phases:
+   1. **Prerequisites** — verifies winget, Git, PowerShell 7+, and mise are available (falls back to `shell-setup.ps1` for winget, installs Git/pwsh via winget if missing, fails if mise is absent)
+   2. **Debloat** — runs `Scripts/debloat-windows.ps1 -NoRestorePoint -Unattended` (skip with `-SkipDebloat`)
+   3. **Install software catalog** — runs `Scripts/Install-Packages.ps1`, which reads `Scripts/packages.psd1` (skip with `-SkipPackages`)
+   4. **Deploy configs** — `mise install` then `mise run bootstrap`, which invokes `Scripts/Setup-Dotfiles.ps1`
+   5. **Optional WSL2** — `wsl.exe --install --no-distribution` if not already installed (skip with `-SkipWSL`)
+   6. **Summary** — prints a color-coded OK/FAIL/SKIP table and total duration
+3. **`Scripts/Setup-Dotfiles.ps1`** (invoked by `mise run bootstrap` / dotbot, or standalone) — deploys tracked configs in 5 phases:
+   1. Set `CurrentUser` execution policy to `RemoteSigned`
+   2. Install core tools via winget (Git, PowerShell 7+, Windows Terminal, VS Code) — skip with `-SkipWingetTools`
+   3. Deploy every entry in the config manifest (PowerShell profile, Windows Terminal settings, Firefox `user.js`, game configs, editor settings, etc.) with SHA256 hash-based change detection
+   4. Configure `PATH` (add `~/Scripts`, ensure `~/.local/bin` precedes WinGet Links) and create common directories
+   5. Print a verification summary and list any failed deployments
+
+Standalone package installs (no debloat, no config deploy) — see [Package Installation](#package-installation) below.
+
 ## Quick Start
 
 ### Option 1: One-Command Setup (Fresh Windows 11)
@@ -163,6 +184,35 @@ If automatic bootstrap fails, configure manually:
    notepad $HOME\.gitconfig
    ```
 
+## Package Installation
+
+`Scripts/Install-Packages.ps1` installs the full software catalog defined in `Scripts/packages.psd1` (winget, Scoop, Chocolatey, Bun/npm globals, Cargo, PowerShell modules, Windows optional features) and can run standalone, without debloat or config deployment:
+
+```pwsh
+# Install everything in the catalog
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\Install-Packages.ps1"
+
+# Skip specific package sources
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\Install-Packages.ps1" -SkipScoop -SkipChoco
+
+# Also apply post-install Windows configuration (timezone, input locale, geo ID)
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\Install-Packages.ps1" -ApplyPostInstall
+```
+
+| Flag | Effect |
+|---|---|
+| `-SkipWinget` | Skip winget package installations |
+| `-SkipScoop` | Skip Scoop package installations |
+| `-SkipChoco` | Skip Chocolatey package installations |
+| `-SkipSystemFeatures` | Skip Windows optional features (DISM) |
+| `-SkipPowerShellModules` | Skip PowerShell module installations |
+| `-SkipNotepadReplacer` | Skip Notepad Replacer setup |
+| `-SkipPeripherals` | Skip peripheral driver/tool installs |
+| `-SkipManualInstalls` | Skip manual (no winget package) app installs |
+| `-ApplyPostInstall` | Apply post-install Windows configuration from `autounattend.xml` |
+
+`packages.psd1` is the single source of truth for every package list — edit it directly to add or remove software; no script changes needed.
+
 ## Power Setup Workflow
 
 Apply the gaming-oriented power/performance profile after the base setup is deployed:
@@ -209,9 +259,9 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 │   ├── Optimize-Steam.ps1        # Steam optimization
 │   ├── DLSS-force-latest.ps1     # DLSS configuration
 │   ├── arc-raiders/              # Arc Raiders utilities
-│   ├── Hostbuilder/
-│   │   └── BuildHosts.ps1        # Hosts file builder
-│   └── Common.Tests.ps1          # Pester tests
+│   └── Hostbuilder/
+│       └── BuildHosts.ps1        # Hosts file builder
+├── tests/                        # Pester tests (one *.Tests.ps1 per Scripts/*.ps1)
 ├── user/.dotfiles/config/
 │   ├── powershell/Microsoft.PowerShell_profile.ps1    # PowerShell profile
 │   ├── windows-terminal/settings.json
@@ -342,6 +392,21 @@ dotbot -c install.conf.yaml
 Dotbot configuration supports templates in [`install.conf.yaml`](install.conf.yaml). Configuration files can specify conditions and variable substitution.
 
 Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
+
+### Validating Scripts
+
+Before committing changes to any `Scripts/*.ps1` file:
+
+```pwsh
+# Lint + Pester tests (mirrors CI)
+mise run validate
+
+# Or individually:
+Invoke-ScriptAnalyzer -Path Scripts -Recurse -Severity Error -Settings PSScriptAnalyzerSettings.psd1
+Invoke-Pester tests/*.Tests.ps1 -Output Detailed
+```
+
+`mise run ci` runs the same checks as the GitHub Actions workflows.
 
 ## PowerShell Profile Features
 
