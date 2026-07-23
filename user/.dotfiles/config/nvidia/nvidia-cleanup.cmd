@@ -195,7 +195,7 @@ if exist "%ProgramFiles%\NVIDIA Corporation\Installer2\InstallerCore\NVI2.DLL" (
 )
 echo.
 
-echo [4/6] Removing NVIDIA telemetry files...
+echo [4/5] Removing NVIDIA telemetry files...
 
 PowerShell -ExecutionPolicy RemoteSigned -NoProfile -Command ^
 "$paths = @('%PROGRAMFILES(X86)%\NVIDIA Corporation\NvTelemetry\*', '%PROGRAMFILES%\NVIDIA Corporation\NvTelemetry\*', '%SYSTEMROOT%\System32\DriverStore\FileRepository\NvTelemetry*.dll'); " ^
@@ -211,45 +211,13 @@ PowerShell -ExecutionPolicy RemoteSigned -NoProfile -Command ^
 echo    - Telemetry files disabled
 echo.
 
-echo [5/6] Removing NVIDIA bloatware components...
-
-:: Note: Only run this on extracted driver folders
-:: This is meant to be used BEFORE installing a driver
-set "DRIVER_PATH=%~dp0"
-
-if exist "%DRIVER_PATH%Display.Driver" (
-    echo    - Removing bloat from driver folder: %DRIVER_PATH%
-
-    rmdir /s /q "%DRIVER_PATH%Display.Nview" 2>nul
-    rmdir /s /q "%DRIVER_PATH%FrameViewSDK" 2>nul
-    rmdir /s /q "%DRIVER_PATH%HDAudio" 2>nul
-    rmdir /s /q "%DRIVER_PATH%MSVCRT" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvApp" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvApp.MessageBus" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvBackend" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvContainer" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvDLISR" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NVPCF" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvTelemetry" 2>nul
-    rmdir /s /q "%DRIVER_PATH%NvVAD" 2>nul
-    rmdir /s /q "%DRIVER_PATH%PPC" 2>nul
-    rmdir /s /q "%DRIVER_PATH%ShadowPlay" 2>nul
-
-    echo    - Bloat removed from driver folder
-) else (
-    echo    - Not in driver folder, skipping driver debloat
-    echo    - To debloat a driver: Extract the driver, run this script from that folder
-)
-echo.
-
-echo [6/6] Cleanup complete!
+echo [5/5] Cleanup complete!
 echo.
 echo Summary:
 echo - Telemetry registry keys set
 echo - Telemetry scheduled tasks disabled
 echo - Telemetry packages uninstalled
 echo - Telemetry files renamed to .OLD
-echo - Driver bloat removed (if in driver folder)
 echo.
 echo NOTE: Some changes may require a system reboot to take effect
 echo.

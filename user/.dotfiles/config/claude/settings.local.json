@@ -1,9 +1,0 @@
-{
-  "skillOverrides": {
-    "setup-win11": "user-invocable-only",
-    "website-crawler-summarizer": "user-invocable-only",
-    "audit-security": "user-invocable-only",
-    "debloat-windows": "user-invocable-only",
-    "optimize-repository": "user-invocable-only"
-  }
-}
