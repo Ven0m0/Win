@@ -1,0 +1,29 @@
+name: Setup PowerShell
+description: Setup PowerShell environment for CI/CD
+author: Ven0m0
+
+inputs:
+  version:
+    description: PowerShell version to install (e.g., "latest", "7.4", "5.1")
+    required: false
+    default: "latest"
+  modules:
+    description: PowerShell modules to cache (space-separated)
+    required: false
+    default: "PSScriptAnalyzer"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up PowerShell via mise
+      shell: bash
+      run: |
+        pwsh_version="${{ inputs.version }}"
+        mise use powershell@$pwsh_version
+        mise exec -- pwsh --version
+
+    - name: Cache PowerShell modules
+      uses: potatoqualitee/psmodulecache@v6.3
+      with:
+        modules-to-cache: ${{ inputs.modules }}
+        updatable: true

@@ -1,0 +1,117 @@
+# PSScriptAnalyzer linting workflow
+# Analyzes PowerShell scripts for script quality, best practices, and potential issues.
+#
+# Rules configured in PSScriptAnalyzerSettings.psd1:
+# - AvoidGlobalAliases: Discourages use of global aliases
+# - AvoidUsingConvertToSecureStringWithPlainText: Warns against insecure practices
+# - AvoidUsingEmptyCatchBlock: Ensures catch blocks handle errors
+# - AvoidUsingInvokeExpression: Warns against Invoke-Expression usage
+# - UseApprovedVerbs: Ensures cmdlets use approved verbs
+# - UseConsistentIndentation: Enforces consistent indentation
+# - UseConsistentWhitespace: Enforces consistent whitespace
+# - And more...
+#
+# See: https://github.com/PowerShell/PSScriptAnalyzer
+
+name: PSScriptAnalyzer Lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/powershell.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "**.ps1"
+      - "**.psm1"
+      - "**.psd1"
+      - "PSScriptAnalyzerSettings.psd1"
+      - ".github/workflows/powershell.yml"
+  schedule:
+    - cron: "27 2 * * 1"
+
+# Cancel in-progress runs for the same workflow + ref to avoid
+# duplicate SARIF uploads and wasted runner minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  analyze:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # required for github/codeql-action/upload-sarif to get the Action run status
+    name: PSScriptAnalyzer
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+        with:
+          cache: true
+          install: true
+
+      - name: Cache PowerShell modules
+        uses: potatoqualitee/psmodulecache@v6.3
+        continue-on-error: true
+        with:
+          modules-to-cache: PSScriptAnalyzer
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Import-Module PSScriptAnalyzer
+          Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
+
+      - name: Validate autounattend XML
+        shell: pwsh
+        run: |
+          $xml = [xml]::new()
+          if (Test-Path "$PWD/Scripts/auto/autounattend.xml") {
+            $xml.Load("$PWD/Scripts/auto/autounattend.xml")
+          } else {
+            Write-Host "Scripts/auto/autounattend.xml not present, skipping"
+          }
+          $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Continue'
+
+          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git' }
+
+          $results = Invoke-ScriptAnalyzer -Path $psFiles.FullName -Settings .\PSScriptAnalyzerSettings.psd1 -OutputPath "$PWD/results.sarif" -Format sarif
+
+          $errors = $results | Where-Object { $_.Severity -eq 'Error' }
+
+          if ($null -ne $errors) {
+            Write-Host "## PSScriptAnalyzer found $($errors.Count) error(s):" -ForegroundColor Red
+            foreach ($error in $errors) {
+              Write-Host "[$($error.ScriptName):$($error.Line)] $($error.RuleName): $($error.Message)" -ForegroundColor Yellow
+            }
+            exit 1
+          } else {
+            Write-Host "## No PSScriptAnalyzer errors found" -ForegroundColor Green
+            exit 0
+          }

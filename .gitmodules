@@ -1,0 +1,10 @@
+[submodule "dotbot"]
+	path = meta/dotbot
+	url = https://github.com/anishathalye/dotbot
+	ignore = dirty
+[submodule "dotbot-plugins/firefox"]
+	path = dotbot-plugins/firefox
+	url = https://github.com/kurtmckee/dotbot-firefox.git
+[submodule "dotbot-plugins/windows"]
+	path = dotbot-plugins/windows
+	url = https://github.com/kurtmckee/dotbot-windows.git

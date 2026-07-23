@@ -1,0 +1,41 @@
+# Topgrade config for Windows.
+# Deployed to %APPDATA%\topgrade.toml (see Scripts/Setup-Dotfiles.ps1).
+
+[misc]
+no_retry = true
+cleanup = true
+disable = ["gem", "ruby_gems", "containers", "system"]
+ignore_failures = ["system", "uv", "pipx", "shell", "bun", "mise", "yadm", "node", "containers", "claude_code"]
+assume_yes = true
+skip_notify = true
+no_self_update = true
+
+[windows]
+self_rename = false
+accept_all_updates = true
+winget_silent_install = true
+winget_use_sudo = true
+
+[git]
+max_concurrency = 8
+pull_predefined = false
+
+[mise]
+bump = false
+jobs = 12
+interactive = false
+quiet = true
+
+[npm]
+use_sudo = true
+
+[firmware]
+upgrade = true
+
+[python]
+# enable_pip_review = true
+enable_pipupgrade = true
+
+[cargo]
+git = true
+quiet = true

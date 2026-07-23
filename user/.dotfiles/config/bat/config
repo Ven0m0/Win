@@ -1,0 +1,21 @@
+# This is `bat`s configuration file. Each line either contains a comment or
+# a command-line option that you want to pass to `bat` by default. You can
+# run `bat --help` to get a list of all possible configuration options.
+--squeeze-blank
+--squeeze-limit 1
+--paging auto
+--strip-ansi auto
+--style="changes,grid,snip"
+--wrap auto
+--decorations auto
+--color auto
+--tabs 2
+--map-syntax ".ignore:Git Ignore"
+--map-syntax='*.conf:INI'
+--map-syntax='.sh:Bash'
+--map-syntax='.bash:Bash'
+--map-syntax "zsh*:Bash"
+--map-syntax "*.cheat:Bash"
+--map-syntax='.fish:Fish'
+--map-syntax "log*:log"
+--map-syntax "requirements*:Requirements.txt"

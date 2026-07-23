@@ -1,0 +1,51 @@
+---
+# Dotbot configuration for Ven0m0/Win
+# Deployment uses hash-based file copying (no symlinks — works without admin).
+# Run:  dotbot -c install.conf.yaml   (or: mise run deploy)
+#
+# All config groups are deployed by a single call into Scripts/Setup-Dotfiles.ps1,
+# which walks its own manifest and never aborts on a single failing entry — any
+# step that fails is collected and printed under "STEPS THAT FAILED" at the end
+# of the run, alongside a per-entry OK/SKIP/UP-TO-DATE line as it happens.
+# For a single config group only, run the script directly with -Target:
+#   pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'
+#
+# Source → Target map (see Scripts/Setup-Dotfiles.ps1 $configManifest for the
+# authoritative, executable version of this list):
+#   powershell\Microsoft.PowerShell_profile.ps1  → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+#   windows-terminal\settings.json                → %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
+#   bleachbit\cleaners\*.xml                       → %APPDATA%\BleachBit\cleaners\
+#   browser\firefox\user.js                        → %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
+#   cmd\alias.cmd                                  → %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
+#   games\bf2\                                     → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
+#   games\bo6\                                      → ~/Documents/Call of Duty/players/
+#   games\arc-raiders\                             → %LOCALAPPDATA%\ArcRaiders\Saved\Config\WindowsNoEditor\
+#   games\fortnite\*.ini                           → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
+#   mise\config.toml                               → ~/.config/mise/config.toml
+#   scoop\config.json                              → ~/.config/scoop/config.json
+#   psmux\.psmux.conf                              → ~/.psmux.conf
+#   topgrade\topgrade.toml                         → %APPDATA%\topgrade.toml
+#   ohmyposh\zen.toml                              → ~/.config/ohmyposh/zen.toml (unused, kept as alternate)
+#   ohmyposh\cobalt2.omp.json                      → ~/.config/ohmyposh/cobalt2.omp.json (active theme, from ChrisTitusTech's profile)
+#   winget-configs\settings.json                   → %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
+#   chocolatey\packages.config                     → manual — `choco install packages.config` to restore, `choco export --output-file-path=... --include-version-numbers` to refresh
+#   DDU\Settings\Settings.xml                      → %PROGRAMDATA%\DDU\Settings.xml
+#   obs\                                           → %APPDATA%\obs-studio\ (basic profiles/scenes + plugin_config)
+#   nvidia\                                        → manual — mixed scripts/.reg/.nip files for selective use
+#   nvidia\nvidia-settings.ps1                     → applies Base.nip via NvidiaProfileInspector + legacy sharpen registry key (admin only)
+#   nvidia\msi-afterburner\                        → manual — copy skin files to MSI Afterburner Skins directory
+#   cursors\                                       → manual — run setup-cursors.cmd as admin
+#   kilo\lsp.json                                  → ~/.kilo/lsp.json
+#   opencode\lsp.json                              → ~/.config/opencode/lsp.json
+#   games\minecraft\                               → manual — open .mrpack files with Prism Launcher or MultiMC
+#   wsl\                                           → %USERPROFILE%\.wslconfig (host) + staged ~/.config/wsl.conf for manual /etc/wsl.conf copy
+#   vscode\User\settings.json                      → %APPDATA%\Code\User\settings.json or %APPDATA%\VSCodium\User\settings.json
+#   vscode\extensions.txt                          → installed via code/codium --install-extension (not a file deploy)
+- defaults:
+    shell:
+      stdin: false
+      stdout: true
+      stderr: true
+- shell:
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -SkipWingetTools
+      description: "Deploy all tracked dotfiles configs (see source->target map above)"

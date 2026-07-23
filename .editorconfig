@@ -1,0 +1,134 @@
+# EditorConfig - Ven0m0/Win
+# Optimized for Windows 10/11 PowerShell development
+# https://editorconfig.org
+
+root = true
+
+# =============================================================================
+# Default Settings
+# =============================================================================
+[*]
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+tab_width = 2
+max_line_length = 120
+
+# =============================================================================
+# PowerShell (Windows)
+# =============================================================================
+[**.{ps1,psm1,psd1}]
+end_of_line = crlf
+charset = utf-8-bom
+max_line_length = 115
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# =============================================================================
+# Windows Shell Scripts
+# =============================================================================
+[**.{bat,cmd}]
+end_of_line = crlf
+charset = utf-8-bom
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+[**.{reg}]
+end_of_line = crlf
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# =============================================================================
+# Unix Shell Scripts (WSL/Linux)
+# =============================================================================
+[**.{sh,bash}]
+end_of_line = lf
+charset = utf-8
+shell_variant = bash
+
+[bashrc]
+end_of_line = lf
+shell_variant = bash
+
+[.profile]
+end_of_line = lf
+shell_variant = posix
+
+# =============================================================================
+# Windows Terminal/VS Code Settings
+# =============================================================================
+[{*.json,*.jsonc}]
+indent_size = 2
+tab_width = 2
+indent_style = space
+
+[{.kilo/kilo.json,.kilo/kilo.jsonc}]
+indent_size = 2
+tab_width = 2
+indent_style = space
+
+[*.yaml,*.yml]
+indent_size = 2
+tab_width = 2
+indent_style = space
+
+# =============================================================================
+# Markup/Documentation
+# =============================================================================
+[**.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = unset
+
+[**.{patch,diff}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+# =============================================================================
+# Web Assets
+# =============================================================================
+[**.{css,scss,sass,less}]
+indent_size = 2
+
+[**.{js,jsx,mjs,cjs}]
+indent_size = 2
+quote_type = single
+
+[**.{ts,tsx,mts,cts}]
+indent_size = 2
+quote_type = single
+
+# =============================================================================
+# Config Files
+# =============================================================================
+[*.xml]
+indent_size = 4
+
+[*.ini,*.cfg,*.conf]
+indent_size = 2
+
+# =============================================================================
+# Development Files
+# =============================================================================
+[*.{py,pyw,pyi}]
+indent_size = 4
+quote_type = double
+
+[*.nix]
+indent_size = 2
+
+# =============================================================================
+# Special Cases
+# =============================================================================
+[**.min.{js,css}]
+insert_final_newline = false
+
+[**.svg]
+insert_final_newline = false
+
+[{poetry.lock,pyproject.toml,setup.py,setup.cfg}]
+indent_size = 4

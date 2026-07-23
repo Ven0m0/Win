@@ -1,0 +1,83 @@
+ci:
+  skip: [renovate-config-validator]
+
+repos:
+  # Ruff - Python linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.22
+    hooks:
+      # Run linter and auto-fix issues
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+        stages: [pre-commit]
+      - id: ruff-format
+        types_or: [python, pyi]
+        stages: [pre-commit]
+  - repo: https://github.com/DetachHead/basedpyright-prek-mirror
+    rev: 1.39.9
+    hooks:
+      - id: basedpyright
+        args: [-p, Scripts/snapmem]
+        additional_dependencies: ["exif>=1.6.0"]
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: fix-byte-order-marker
+        exclude: \.(ps1|psm1|psd1)$
+      - id: mixed-line-ending
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-illegal-windows-names
+      - id: check-symlinks
+
+  - repo: https://github.com/renovatebot/pre-commit-hooks
+    rev: 43.278.5
+    hooks:
+      - id: renovate-config-validator
+
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.5.5
+    hooks:
+      - id: biome-ci
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.37.4
+    hooks:
+      - id: check-dependabot
+      - id: check-github-actions
+      - id: check-github-workflows
+  - repo: https://github.com/mangiucugna/gha-updater-pre-commit
+    rev: v0.1
+    hooks:
+      - id: gha-update
+        stages: [manual]
+
+  # =============================================================================
+  # PowerShell hooks
+  # =============================================================================
+  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
+    rev: v0.3.1
+    hooks:
+      - id: py-psscriptanalyzer
+        args:
+          - "--severity"
+          - "Warning"
+          - "--include-rules"
+          - "PSAvoidGlobalAliases,PSAvoidUsingConvertToSecureStringWithPlainText,PSAvoidUsingEmptyCatchBlock,PSAvoidUsingInvokeExpression,PSAvoidUsingPositionalParameters,PSAvoidUsingUsernameAndPasswordParams,PSUseBOMForUnicodeEncodedFile,PSUseCorrectCasing,PSProvideCommentHelp,PSReservedCmdletChar,PSReservedParams,PSUseApprovedVerbs,PSUseCmdletCorrectly,PSUseConsistentIndentation,PSUseConsistentWhitespace,PSUseSupportsShouldProcess,PSUseVerbosityForRequestedLevel"
+        files: ^Scripts/.*\.(ps1|psm1|psd1)$
+        stages: [pre-commit]

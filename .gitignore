@@ -1,0 +1,153 @@
+## ------------------------
+## Git & dotbot
+## ------------------------
+.git/
+.git
+.github-personal-access-token
+.gitconfig.local
+.gitconfig
+
+## Local dotfile customizations (not tracked)
+.config/powershell/local.ps1
+.claude/settings.local.json
+
+## Logs, temp, locks
+*.bak
+*.log
+*.log.*
+log/
+logs/
+*.old
+*.tmp
+tmp/
+*.part
+*.kate-swp
+*swp.*
+token
+nohup.out
+.~lock.*
+*.lock
+*.lck
+.cache
+pids
+*.pid
+*.seed
+*.pid.lock
+
+## Linux/macOS system/editor
+.directory
+.Trash-*
+.Trashes
+.fuse_hidden*
+*~
+.nfs*
+
+## Downloaded binaries (not tracked)
+*.exe
+*.dll
+*.o
+*.so
+
+## Python (Scripts/snapmem)
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+$py.class
+pip-log.txt
+pip-delete-this-directory.txt
+.ruff_cache/
+
+## Node/TypeScript (.kilo/plugins, .kilo/tools)
+node_modules/
+.npm
+npm-debug.log*
+*.tgz
+.eslintcache
+/package-lock.json
+
+## Databases & env
+*.db
+*.env
+.idea
+
+## User/Editor/Session files
+*.rsuser
+*.suo
+*.user
+.thumbnails/
+.DS_Store
+.history/
+
+## XDG User Directories
+Desktop/
+Documents/
+Downloads/
+Music/
+Pictures/
+Public/
+Templates/
+Videos/
+
+## Security
+.gnupg/
+.ssh/
+!.ssh/config
+.android/
+.config/gh/hosts.yml
+
+## Backups/Misc
+*.gho
+*.ori
+*.orig
+*.rej
+*.TAG
+
+## VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+## Misc / System
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## Local machine indexes (not tracked)
+.omc/
+.omg/
+.cachebro/
+.opencode
+.serena/
+!.serena/project.yml
+.codegraph/
+.claudelint-cache
+
+## Build artifacts
+psscriptanalyzer_report.json
+*.sarif
+results.sarif
+
+## Tool UI state (machine-specific)
+Scripts/reg/DeviceCleanup.ini
+
+!.claude/plans/
+
+undefined/
+.opencode/memory/
+
+MEMORY.md
+USER.md
+SCRATCHPAD*.md
+WORKING*.md
+TASK-QUEUE.md
+memory/
+knowledge/
+plans/
+tenants/
+hipocampus.config.json
+.memelord/

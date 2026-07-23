@@ -1,0 +1,87 @@
+# https://mise.jdx.dev/configuration.html
+[settings]
+experimental = true
+color = true
+yes = true
+auto_install = true
+lockfile = true
+#activate_aggressive = true
+#jobs = 8
+#go_skip_checksum = true
+
+[settings.python]
+uv_venv_auto = "create|source"
+uv_venv_create_args = ["--seed", "--system-site-packages"]
+github_attestations = false
+
+[settings.pipx]
+uvx = true
+
+[settings.npm]
+package_manager = "bun"
+
+[settings.dotnet]
+cli_telemetry_optout = true
+
+[tools]
+"pipx:py-psscriptanalyzer" = "0.3.1"
+"pipx:dotbot" = "latest"
+#"pipx:dotbot-firefox" = "latest"
+#"pipx:dotbot-windows" = "latest"
+
+[env]
+PROJECT_ROOT = "{{config_root}}"
+# Ensure uv uses the exact Python interpreter installed by `mise install`.
+# `tools = true` makes `tools.python.path` available when mise resolves tool-aware env vars at runime.
+UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
+UV_LINK_MODE = "symlink"
+_.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
+DO_NOT_TRACK = "1"
+NODE_NO_WARNINGS = "1"
+PYTHONOPTIMIZE = "1"
+CARGO_NET_GIT_FETCH_WITH_CLI = "false"
+CARGO_HTTP_MULTIPLEXING = "true"
+BINSTALL_DISABLE_TELEMETRY = "true"
+
+[hooks]
+enter = "mise i -yq"
+
+[tasks.bootstrap]
+description = "deploy dotfiles"
+run = ["dotbot -c install.conf.yaml"]
+
+[tasks.deploy]
+description = "Deploy dotfiles (dotbot must be installed)"
+run = "dotbot -c install.conf.yaml"
+
+[tasks.dev]
+description = "Install powershell lint+format utils"
+run = ["curl -sSfL https://webi.sh/pwsh-essentials | bash && source ~/.config/envman/PATH.env"]
+
+[tasks.pwsh-install]
+description = "Install pwsh lint"
+run = '''
+pwsh -NoLogo -NoProfile -Command '
+Set-PSRepository PSGallery -InstallationPolicy Trusted
+Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -AllowClobber -SkipPublisherCheck
+Import-Module PowerShellGet
+Register-PSRepository -Name "ottomatt" -SourceLocation "https://www.myget.org/F/ottomatt/api/v2"
+Install-Module -Name "OptimizationRules" -RequiredVersion "0.4.0" -Repository "ottomatt"
+'
+'''
+
+[tasks.lint]
+description = "Lint PowerShell files with py-psscriptanalyzer"
+run = "py-psscriptanalyzer --recursive --severity Warning"
+
+[tasks.format]
+description = "Format a PowerShell file with py-psscriptanalyzer"
+run = "py-psscriptanalyzer --format {{arg(name='file')}}"
+
+[tasks.validate]
+description = "Run PSScriptAnalyzer lint and Pester tests"
+run = ["pwsh -NoProfile -Command Invoke-ScriptAnalyzer -Path Scripts -Recurse -Severity Error", "pwsh -NoProfile -Command Invoke-Pester tests/*.Tests.ps1 -Output Detailed"]
+
+[tasks.ci]
+description = "Run full CI pipeline (equivalent to GitHub Actions workflows). Registry file validation runs in CI only (.github/workflows/reg-validate.yml)."
+run = ["mise run validate"]

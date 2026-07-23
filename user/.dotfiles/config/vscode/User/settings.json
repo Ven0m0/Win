@@ -1,0 +1,110 @@
+{
+  "terminal.integrated.commandsToSkipShell": [
+    "kilo-code.new.agentManagerOpen",
+    "kilo-code.new.agentManager.showTerminal"
+  ],
+  "kilo-code.new.agentWorkStyle": "autonomous",
+  "kilo-code.new.claudeCodeCompat": true,
+  "explorer.confirmDelete": false,
+  "kilo-code.new.browserAutomation.headless": true,
+  "kilo-code.new.showTaskTimeline": false,
+  "claudeCode.preferredLocation": "panel",
+  "claudeCode.allowDangerouslySkipPermissions": true,
+  "claudeCode.disableLoginPrompt": true,
+  "claudeCode.hideOnboarding": true,
+  "claudeCode.initialPermissionMode": "acceptEdits",
+  "claudeCode.environmentVariables": [
+    {
+      "name": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+      "value": "1"
+    },
+    {
+      "name": "ENABLE_LSP_TOOL",
+      "value": "1"
+    },
+    {
+      "name": "ENABLE_TOOL_SEARCH",
+      "value": "true"
+    },
+    {
+      "name": "DISABLE_NON_ESSENTIAL_MODEL_CALLS",
+      "value": "1"
+    },
+    {
+      "name": "CLAUDE_CODE_USE_POWERSHELL_TOOL",
+      "value": "1"
+    }
+],
+"python.defaultInterpreterPath": "",
+"json.schemaDownload.trustedDomains": {
+    "https://schemastore.azurewebsites.net/": true,
+    "https://raw.githubusercontent.com/microsoft/vscode/": true,
+    "https://raw.githubusercontent.com/devcontainers/spec/": true,
+    "https://www.schemastore.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://json-schema.org/": true,
+    "https://developer.microsoft.com/json-schemas/": true,
+    "https://biomejs.dev": true
+},
+"evenBetterToml.formatter.allowedBlankLines": 1,
+"evenBetterToml.formatter.arrayAutoCollapse": true,
+"evenBetterToml.formatter.arrayAutoExpand": false,
+"evenBetterToml.formatter.arrayTrailingComma": false,
+"evenBetterToml.formatter.compactArrays": true,
+"evenBetterToml.formatter.compactEntries": true,
+"evenBetterToml.formatter.compactInlineTables": true,
+"evenBetterToml.formatter.crlf": true,
+"evenBetterToml.formatter.trailingNewline": true,
+"git.allowNoVerifyCommit": true,
+"git.autofetch": true,
+"git.autoStash": true,
+"git.blame.ignoreWhitespace": true,
+"git.enableSmartCommit": true,
+"git.fetchOnPull": true,
+"kilo-code.new.autoApprove.enabled": true,
+"kilo-code.new.autocomplete.enableChatAutocomplete": true,
+"kilo-code.new.browserAutomation.enabled": true,
+"kilo-code.new.language": "en",
+"merge-conflict.autoNavigateNextConflict.enabled": true,
+"mise.configureExtensionsAutomatically": true,
+"mise.updateOpenTerminalsEnvAutomatically": true,
+"npm.packageManager": "bun",
+"npm.runSilent": true,
+"powershell.suppressAdditionalExeNotFoundWarning": true,
+"powershell.codeFormatting.autoCorrectAliases": true,
+"powershell.codeFormatting.avoidSemicolonsAsLineTerminators": true,
+"powershell.codeFormatting.trimWhitespaceAroundPipe": true,
+"powershell.codeFormatting.useConstantStrings": true,
+"powershell.codeFormatting.useCorrectCasing": true,
+"powershell.integratedConsole.suppressStartupBanner": true,
+"python.globalModuleInstallation": true,
+"python.languageServer": "Default",
+"python.terminal.activateEnvInCurrentTerminal": true,
+"python.testing.pytestEnabled": true,
+"python.useEnvironmentsExtension": true,
+"security.workspace.trust.untrustedFiles": "open",
+"kilo-code.new.diff.renderMarkdown": true,
+"redhat.telemetry.enabled": false,
+"terminal.integrated.profiles.windows": {
+  "PowerShell": {
+    "path": "${env:LOCALAPPDATA}\\Microsoft\\WindowsApps\\Microsoft.PowerShell_8wekyb3d8bbwe\\pwsh.exe"
+  },
+  "Command Prompt": {
+    "path": [
+      "${env:windir}\\Sysnative\\cmd.exe",
+      "${env:windir}\\System32\\cmd.exe"
+    ],
+    "args": [],
+    "icon": "terminal-cmd"
+  },
+  "Git Bash": {
+    "source": "Git Bash",
+    "icon": "terminal-git-bash"
+  },
+  "Windows PowerShell": {
+    "path": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+  }
+},
+"terminal.integrated.defaultProfile.windows": "PowerShell",
+"terminal.integrated.enableImages": true
+}
