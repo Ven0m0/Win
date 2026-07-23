@@ -1,0 +1,2 @@
+- [ ] remove "Keyboard Shortcuts" from "Scripts\system-settings-manager.ps1" and clean the script up.
+- [ ] Fix "Scripts\system-update.ps1" and "Scripts\system-maintenance.ps1"
