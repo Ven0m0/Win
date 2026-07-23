@@ -1,0 +1,26 @@
+Windows Registry Editor Version 5.00
+
+; Fixes "Run with PowerShell 7" / "Run with PowerShell 7 as administrator" under
+; the .ps1 "Edit or Run with" context menu. The stock entries hardcode
+; "C:\Program Files\PowerShell\7\pwsh.exe", which does not exist when PowerShell 7
+; is installed via winget/Microsoft Store (MSIX, under WindowsApps). This override
+; uses the bare "pwsh.exe" name, which Explorer resolves via the per-user
+; App Paths registration that the MSIX package creates automatically.
+; Written under HKCU\Software\Classes so no admin rights are required and it
+; only affects the current user.
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\Edit-Run-with\shell\003flyout]
+"MUIVerb"="Run with PowerShell 7"
+"Icon"="pwsh.exe"
+"CommandFlags"=dword:00000020
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\Edit-Run-with\shell\003flyout\Command]
+@="\"pwsh.exe\" \"-Command\" \"if((Get-ExecutionPolicy ) -ne 'AllSigned') { Set-ExecutionPolicy -Scope Process Bypass }; & '%1'\""
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\Edit-Run-with\shell\004flyout]
+"MUIVerb"="Run with PowerShell 7 as administrator"
+"HasLUAShield"=""
+"Icon"="pwsh.exe"
+
+[HKEY_CURRENT_USER\SOFTWARE\Classes\SystemFileAssociations\.ps1\shell\Edit-Run-with\shell\004flyout\Command]
+@="\"pwsh.exe\" \"-Command\" \"\"& {Start-Process pwsh.exe -ArgumentList '-ExecutionPolicy RemoteSigned -File \\\"%1\\\"' -Verb RunAs}\""

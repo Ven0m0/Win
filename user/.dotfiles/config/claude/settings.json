@@ -402,21 +402,30 @@
   "teammateMode": "auto",
   "voiceEnabled": false,
   "mcpServers": {
-    "codemogger": {
-      "command": "bunx",
-      "args": [
-        "--bun",
-        "codemogger",
-        "mcp"
-      ]
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
     },
-    "cachebro": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "claude-code"],
+      "env": {}
+    },
+    "octocode": {
+      "type": "stdio",
       "command": "bunx",
-      "args": [
-        "--bun",
-        "cachebro",
-        "serve"
-      ]
+      "args": ["--bun", "octocode-mcp@latest"],
+      "env": {
+        "ENABLE_LOCAL": "true",
+        "LOG": "false"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["--bun", "@playwright/mcp@latest", "--headless"]
     }
   }
 }
