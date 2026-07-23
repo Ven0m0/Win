@@ -83,8 +83,58 @@ function Set-LocationHome { Set-Location $HOME }
 
 function pwdd { $("$PWD".replace($HOME, '~')) }
 
-function New-Symlink ($target, $link) {
-    New-Item -Path $link -ItemType SymbolicLink -Value $target
+function Resolve-TildePath {
+    param([Parameter(Mandatory)][string]$Path)
+    if ($Path -eq '~') { return $HOME }
+    if ($Path.StartsWith('~/') -or $Path.StartsWith('~\')) { return Join-Path $HOME $Path.Substring(2) }
+    return $Path
+}
+
+function ln {
+    # ln [-s] [-f] [-n] TARGET LINK_NAME (Linux argument order: target first, link name second)
+    $symbolic = $false; $force = $false
+    $paths = @(foreach ($a in $args) {
+        if ($a -match '^-[a-zA-Z]+$') {
+            if ($a -match 's') { $symbolic = $true }
+            if ($a -match 'f') { $force = $true }
+        } else { $a }
+    })
+
+    if ($paths.Count -ne 2) {
+        Write-Error 'Usage: ln [-sfn] TARGET LINK_NAME'
+        return
+    }
+
+    # New-Item's -Target does not go through PowerShell's path provider, so ~ never
+    # expands there; leaving it literal made Windows unable to see the target was a
+    # directory and it silently created a file symlink instead.
+    $target = Resolve-TildePath $paths[0]
+    $linkName = Resolve-TildePath $paths[1]
+
+    if (-not $symbolic -and (Test-Path -LiteralPath $target -PathType Container)) {
+        Write-Error 'ln: hard links to directories are not supported on Windows; use -s'
+        return
+    }
+
+    # Get-Item -Force sees the link itself even when its target is missing/moved;
+    # Test-Path dereferences first and under-reports broken links, so -f would
+    # silently no-op instead of replacing them.
+    $existing = Get-Item -LiteralPath $linkName -Force -ErrorAction SilentlyContinue
+    if ($existing) {
+        if (-not $force) {
+            Write-Error "ln: '$linkName' already exists (use -f to overwrite)"
+            return
+        }
+        if ($existing.LinkType) {
+            # It's a link/reparse point itself -- remove just the link, never -Recurse
+            # into it, or a real directory it points at could get wiped instead.
+            Remove-Item -LiteralPath $linkName -Force
+        } else {
+            Remove-Item -LiteralPath $linkName -Force -Recurse
+        }
+    }
+
+    New-Item -ItemType $(if ($symbolic) { 'SymbolicLink' } else { 'HardLink' }) -Path $linkName -Target $target | Out-Null
 }
 # ls coloring
 if (Get-Module -ListAvailable -Name PSColor) {

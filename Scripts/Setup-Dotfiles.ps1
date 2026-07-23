@@ -742,6 +742,13 @@ function Start-Bootstrap {
             GetSkipReason      = { 'Scoop not installed or .config directory missing' }
         },
         @{
+            Path               = 'psmux\.psmux.conf'
+            Mode               = 'file'
+            Label              = 'psmux config'
+            ResolveDestination = { Join-Path $HOME '.psmux.conf' }
+            GetSkipReason      = { 'psmux not installed' }
+        },
+        @{
             Path               = 'topgrade\topgrade.toml'
             Mode               = 'file'
             Label              = 'Topgrade config'

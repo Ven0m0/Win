@@ -23,10 +23,12 @@
 #   games\fortnite\*.ini                           → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
 #   mise\config.toml                               → ~/.config/mise/config.toml
 #   scoop\config.json                              → ~/.config/scoop/config.json
+#   psmux\.psmux.conf                              → ~/.psmux.conf
 #   topgrade\topgrade.toml                         → %APPDATA%\topgrade.toml
 #   ohmyposh\zen.toml                              → ~/.config/ohmyposh/zen.toml (unused, kept as alternate)
 #   ohmyposh\cobalt2.omp.json                      → ~/.config/ohmyposh/cobalt2.omp.json (active theme, from ChrisTitusTech's profile)
 #   winget-configs\settings.json                   → %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
+#   chocolatey\packages.config                     → manual — `choco install packages.config` to restore, `choco export --output-file-path=... --include-version-numbers` to refresh
 #   DDU\Settings\Settings.xml                      → %PROGRAMDATA%\DDU\Settings.xml
 #   obs\                                           → %APPDATA%\obs-studio\ (basic profiles/scenes + plugin_config)
 #   nvidia\                                        → manual — mixed scripts/.reg/.nip files for selective use
