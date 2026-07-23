@@ -1,0 +1,10 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable DLSS Indicator Overlay
+; ============================================================
+; Removes the DLSS indicator that shows in top-left of games
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\NGXCore]
+"ShowDlssIndicator"=dword:00000000

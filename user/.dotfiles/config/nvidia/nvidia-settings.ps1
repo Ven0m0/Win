@@ -8,6 +8,9 @@
 .PARAMETER Mode
     Apply (default): imports every .nip profile and enables legacy sharpen.
     Restore: resets Base Profile to Inspector defaults and disables legacy sharpen.
+.PARAMETER Unattended
+    Skip the .nip profile import (it opens an Inspector GUI window that blocks until
+    closed by hand); still applies the registry-only legacy sharpen toggle.
 .EXAMPLE
     .\nvidia-settings.ps1
 .EXAMPLE
@@ -16,7 +19,8 @@
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param(
   [ValidateSet('Apply', 'Restore')]
-  [string]$Mode = 'Apply'
+  [string]$Mode = 'Apply',
+  [switch]$Unattended
 )
 
 $ErrorActionPreference = 'Stop'
@@ -26,6 +30,7 @@ $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 )
 if (-not $isAdmin) {
   $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Mode $Mode"
+  if ($Unattended) { $argList += ' -Unattended' }
   Start-Process -FilePath 'pwsh.exe' -ArgumentList $argList -Verb RunAs -Wait
   return
 }
@@ -33,8 +38,8 @@ if (-not $isAdmin) {
 function Resolve-NvidiaProfileInspector {
   <#
   .SYNOPSIS
-      Resolves the nvpi.exe path for the NVIDIA Profile Inspector winget package
-      (Orbmu2k.nvidiaProfileInspector, installed by Scripts/packages.psd1).
+      Resolves the nvpi-r.exe path for the NVPI Revamped winget package
+      (xHybred.NVPIRevamped, installed by Scripts/packages.psd1).
   #>
   [CmdletBinding()]
   [OutputType([string])]
@@ -44,10 +49,14 @@ function Resolve-NvidiaProfileInspector {
   if ((Test-Path $wingetLinks) -and ($env:PATH -notlike "*$wingetLinks*")) {
     $env:PATH = "$wingetLinks;$env:PATH"
   }
+  $wingetLinksMachine = Join-Path $env:ProgramFiles 'WinGet\Links'
+  if ((Test-Path $wingetLinksMachine) -and ($env:PATH -notlike "*$wingetLinksMachine*")) {
+    $env:PATH = "$wingetLinksMachine;$env:PATH"
+  }
 
-  $nvpiCmd = Get-Command -Name 'nvpi', 'nvpi-r' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  $nvpiCmd = Get-Command -Name 'nvpi-r' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if (-not $nvpiCmd) {
-    throw 'nvpi.exe / nvpi-r.exe not found on PATH. Install NVIDIA Profile Inspector first (winget install Orbmu2k.nvidiaProfileInspector, or run the package install step).'
+    throw 'nvpi-r.exe not found on PATH. Install NVPI Revamped first (winget install xHybred.NVPIRevamped, or run the package install step).'
   }
   return $nvpiCmd.Source
 }
@@ -67,10 +76,14 @@ switch ($Mode) {
       Write-Warning "  [SKIP] NVIDIA Inspector settings - no .nip files found in: $profilesDir"
       return
     }
-    foreach ($nipFile in $nipFiles) {
-      if ($PSCmdlet.ShouldProcess($nipFile.Name, 'Import NVIDIA Inspector profile')) {
-        Start-Process -FilePath $inspectorExe -ArgumentList "`"$($nipFile.FullName)`"" -Wait
-        Write-Host "  [OK] Imported $($nipFile.Name)" -ForegroundColor Green
+    if ($Unattended) {
+      Write-Warning "  [SKIP] NVIDIA Inspector profile import - opens a GUI window that blocks unattended runs; re-run '.\nvidia-settings.ps1' manually to import $($nipFiles.Count) profile(s)."
+    } else {
+      foreach ($nipFile in $nipFiles) {
+        if ($PSCmdlet.ShouldProcess($nipFile.Name, 'Import NVIDIA Inspector profile')) {
+          Start-Process -FilePath $inspectorExe -ArgumentList "`"$($nipFile.FullName)`"" -Wait
+          Write-Host "  [OK] Imported $($nipFile.Name)" -ForegroundColor Green
+        }
       }
     }
     if ($PSCmdlet.ShouldProcess('Legacy sharpen registry key', 'Enable')) {

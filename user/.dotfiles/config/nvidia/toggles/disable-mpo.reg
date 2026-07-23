@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable Multiplane Overlay (MPO)
+; ============================================================
+; Disables MPO to fix flickering and tearing in some games
+; Common fix for Black Ops 6, Warzone, and other titles
+; May increase CPU usage slightly
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Dwm]
+"OverlayTestMode"=dword:00000000

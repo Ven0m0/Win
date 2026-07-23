@@ -1,0 +1,54 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; NVIDIA Shader Cache Optimizations
+; ============================================================
+; Shader caching improvements for better performance
+; Sources: Community testing, NVIDIA forums
+; ============================================================
+
+; Set shader cache location to faster drive (optional - requires manual path update)
+; Uncomment and modify path to point to SSD
+; [HKEY_CURRENT_USER\Software\NVIDIA Corporation\Global\FTS]
+; "NvShaderCachePath"="D:\\ShaderCache"
+
+; Enable shader cache (should already be enabled)
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableShaderCache"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters]
+"EnableShaderCache"=dword:00000001
+
+; Unlimited shader cache size (already in main tweaks, included for completeness)
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\FTS]
+"EnableGR535"=dword:00000001
+
+; ============================================================
+; DX12 Optimizations
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+; Enable DX12 on Optimus/Hybrid systems
+"EnableDx12OnOptimus"=dword:00000001
+"EnableDx12OnMsHybrid"=dword:00000001
+
+; ============================================================
+; Memory Optimizations
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+; Set TDR (Timeout Detection and Recovery) delay to 8 seconds
+; Helps prevent "driver stopped responding" errors
+; Default is 2 seconds - 8 gives more time for heavy loads
+"TdrDelay"=dword:00000008
+
+; Set TDR limit (number of resets before giving up)
+"TdrLimitCount"=dword:00000010
+
+; ============================================================
+; WDDM (Windows Display Driver Model) Optimizations
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+; Set WDDM mode to 2.x for better performance (Windows 10+)
+"WddmVersion"=dword:00000002

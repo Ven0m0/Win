@@ -321,12 +321,20 @@ function Install-VSCodeExtensions {
         return
     }
 
+    $failed = @()
     foreach ($ext in $missing) {
         if ($PSCmdlet.ShouldProcess($ext, "Install extension via $($cli.Name)")) {
-            & $cli.Source --install-extension $ext --force | Out-Null
+            try {
+                & $cli.Source --install-extension $ext --force 2>&1 | Out-Null
+                if ($LASTEXITCODE -ne 0) { throw "exit code $LASTEXITCODE" }
+            } catch {
+                $failed += $ext
+                Write-Warning "  [SKIP] $Label - extension '$ext' failed to install: $($_.Exception.Message)"
+            }
         }
     }
-    Write-Host "  [OK] $Label - installed $($missing.Count) extension(s)" -ForegroundColor Green
+    $installedCount = @($missing).Count - @($failed).Count
+    Write-Host "  [OK] $Label - installed $installedCount extension(s)" -ForegroundColor Green
 }
 
 function Deploy-StarWarsBattlefrontIIConfig {
@@ -701,9 +709,7 @@ function Start-Bootstrap {
             Label              = 'Arc Raiders configs'
             Filter             = '*'
             ResolveDestination = {
-                $arcPath = Join-Path -Path ([Environment]::GetFolderPath('LocalApplicationData')) -ChildPath 'ArcRaiders\Saved\Config\WindowsNoEditor'
-                if (Test-Path $arcPath) { return $arcPath }
-                $arcPath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'ArcRaiders\Saved\Config\WindowsNoEditor'
+                $arcPath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'PioneerGame\Saved\Config\WindowsClient'
                 if (Test-Path $arcPath) { return $arcPath }
                 return $null
             }
@@ -811,7 +817,7 @@ function Start-Bootstrap {
                 }
                 $script = Join-Path $sourceDir 'nvidia-settings.ps1'
                 if (Test-Path $script) {
-                    & $script -Mode Apply
+                    & $script -Mode Apply -Unattended:$Unattended
                 }
                 else {
                     Write-Warning "  [SKIP] $label - nvidia-settings.ps1 not found in $sourceDir"

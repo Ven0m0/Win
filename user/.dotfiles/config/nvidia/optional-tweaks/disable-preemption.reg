@@ -1,0 +1,19 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable GPU Preemption (Lower Latency, Risky)
+; ============================================================
+; WARNING: May cause instability and TDR errors!
+; Preemption allows the GPU to switch between tasks
+; Disabling it reduces latency but may cause:
+; - Black screens during multitasking
+; - "Display driver stopped responding" errors
+; - System freezes if GPU gets stuck
+; Only use for competitive gaming on dedicated gaming PC
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
+"DisablePreemption"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler]
+"EnablePreemption"=dword:00000000

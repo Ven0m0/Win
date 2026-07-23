@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Force DirectFlip (Lower Latency Presentation)
+; ============================================================
+; Forces DirectFlip presentation mode for lower latency
+; May cause issues with some applications/overlays
+; Test before keeping this enabled
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+"ForceDirectFlip"=dword:00000001

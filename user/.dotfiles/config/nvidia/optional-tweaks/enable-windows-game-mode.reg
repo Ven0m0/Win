@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Enable Windows Game Mode (Auto Mode)
+; ============================================================
+; Allows Windows to automatically enable Game Mode for detected games
+; Game Mode prioritizes CPU/GPU resources for games
+; Generally recommended for most users
+; ============================================================
+
+[HKEY_CURRENT_USER\Software\Microsoft\GameBar]
+"AllowAutoGameMode"=dword:00000001
+"AutoGameModeEnabled"=dword:00000001

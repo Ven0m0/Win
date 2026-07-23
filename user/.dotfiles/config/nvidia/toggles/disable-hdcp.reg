@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Disable HDCP (High-bandwidth Digital Content Protection)
+; ============================================================
+; Disables HDCP for lower input latency
+; WARNING: Breaks DRM content (Netflix, Prime Video, Disney+)
+; Use this for competitive gaming only
+; Note: Change 0000 to your GPU index if needed
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+"RMHdcpKeyglobZero"=dword:00000001
