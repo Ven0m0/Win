@@ -86,7 +86,7 @@
     WingetCliTools     = @(
         'eza-community.eza'
         'BurntSushi.ripgrep.MSVC'
-        'sharkdp.fd'
+        # 'sharkdp.fd'
         'sharkdp.bat'
         'JanDeDobbeleer.OhMyPosh'
         'ajeetdsouza.zoxide'
@@ -125,7 +125,7 @@
         'LIGHTNINGUK.ImgBurn'
         'qarmin.czkawka.cli'
         # Browsers / launchers
-        'Ablaze.Floorp'
+        # 'Ablaze.Floorp'
         'ImputNet.Helium'
         # Gaming
         'Valve.Steam'
@@ -134,7 +134,7 @@
         'smartfrigde.Legcord'
         # Productivity / utilities
         #'Microsoft.PowerToys'
-        'voidtools.Everything'
+        # 'voidtools.Everything'
         'AutoHotkey.AutoHotkey'
         'ONLYOFFICE.DesktopEditors'
         'Microsoft.Sysinternals.Autoruns'
@@ -152,16 +152,15 @@
         'Nefarius.HidHide'
         'TechPowerUp.NVCleanstall'
         'GlennDelahoy.SnappyDriverInstallerOrigin'
-        'Orbmu2k.nvidiaProfileInspector'
         'xHybred.NVPIRevamped'
         #'Nvidia.PhysX'
         'REALiX.HWiNFO'
-        'Intel.IntelExtremeTuningUtility'
+        # 'Intel.IntelExtremeTuningUtility'
         'Ventoy.Ventoy'
-        'Rufus.Rufus'
-        'WinFsp.WinFsp'
-        'ClockworkMod.UniversalADBDriver'
-        'Google.PlatformTools'
+        # 'Rufus.Rufus'
+        # 'WinFsp.WinFsp'
+        # 'ClockworkMod.UniversalADBDriver'
+        # 'Google.PlatformTools'
         # Disk / storage / cleanup
         'BleachBit.BleachBit'
         'maharmstone.btrfs'
@@ -183,13 +182,11 @@
     # ---------------------------------------------------------------------------
     ScoopBuckets       = @(
         'extras'
-        'yaw'
     )
 
     ScoopPackages      = @(
         'jq'
         'scoop-search'
-        'yaw'
         'yq'
     )
 
