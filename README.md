@@ -106,19 +106,10 @@ Standalone package installs (no debloat, no config deploy) — see [Package Inst
 
 ### Option 1: One-Command Setup (Fresh Windows 11)
 
-The fastest way to set up on a fresh Windows 11 install:
-
-```pwsh
-iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
-```
-This single command will automatically:
-- Install [winget](https://winstall.app) (Windows Package Manager) if missing
-- Install Git, Python, [mise](https://mise.jdx.dev), and [uv](https://docs.astral.sh/uv)
-- Shallow-clone this repository into `$env:USERPROFILE\project\Win`
-- Chain into `Scripts/Setup-Win11.ps1` for the full setup (debloat, software catalog, mise-managed dotbot config deploy)
-- Optionally set up WSL2
+See [Fresh Windows 11 Install (One-Command)](#fresh-windows-11-install-one-command) above — same `bootstrap.ps1` command, which self-elevates, installs prerequisites, clones the repo, and chains into the full setup.
 
 ### Option 2: Manual Setup
+
 If you prefer explicit control or the one-command script fails, install prerequisites manually:
 
 1. **Install mise** (manages dotbot, Python, and other tools declared in `mise.toml`):
@@ -139,50 +130,28 @@ If you prefer explicit control or the one-command script fails, install prerequi
    winget install -h Git.Git Microsoft.PowerShell Microsoft.WindowsTerminal astral-sh.uv
    ```
 
-The bootstrap script will:
-
-- Set up PowerShell profile
-- Configure Windows Terminal
-- Check for required tools
-- Create common directories
-- Optionally add Scripts to PATH
-
-### Manual Setup (if bootstrap doesn't run)
-
-1. **PowerShell Profile**:
-   ```pwsh
-   Copy-Item "$HOME\user\.dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1" $PROFILE -Force
-   ```
-
-2. **Windows Terminal Settings**:
-   ```pwsh
-   Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
-   ```
-
-Bootstrap also attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
-
-If automatic bootstrap fails, configure manually:
-
-1. **Enable script execution**:
+3. **Enable script execution** (if bootstrap doesn't run automatically):
    ```pwsh
    pwsh -nop -nol "$HOME\Scripts\allow-scripts.ps1"
    ```
 
-2. **PowerShell Profile**:
+4. **PowerShell Profile**:
    ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1" $PROFILE -Force
    ```
 
-3. **Windows Terminal Settings**:
+5. **Windows Terminal Settings**:
    ```pwsh
    Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
    ```
 
-4. **Git Config**:
+6. **Git Config**:
    ```pwsh
    Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
    notepad $HOME\.gitconfig
    ```
+
+The bootstrap script also sets up the PowerShell profile, configures Windows Terminal, checks for required tools, creates common directories, and optionally adds Scripts to PATH — and attempts to apply Firefox `user.js`, Brave policy registry settings, CMD aliases, and tracked game configs when their destination folders already exist.
 
 ## Package Installation
 
@@ -306,7 +275,6 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### System Optimization
 
-- **`debloat-windows.ps1`** — System debloater (Apps, Services, Tasks, Features)
 - **`system-settings-manager.ps1`** — Apply system performance optimizations
 - **`system-update.ps1`** — Windows Update handler
 - **`system-maintenance.ps1`** — Maintenance hub: `-Action Defrag|Disk|Shader|Extra|All` (defrag/MSI, disk cleanup GUI, shader cache, DISM/cache rebuilds)
@@ -492,11 +460,7 @@ dotbot -c install.conf.yaml
 
 ### Windows Terminal Settings Not Applied
 
-Manually copy:
-
-```pwsh
-Copy-Item "$HOME\user\.dotfiles\config\windows-terminal\settings.json" "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Force
-```
+Manually copy the settings file — see step 5 under [Option 2: Manual Setup](#option-2-manual-setup).
 
 ### Automated Windows 11 Installation (autounattend.xml)
 
