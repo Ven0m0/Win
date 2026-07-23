@@ -9,33 +9,9 @@ nvidia/
 ├── README.md                          # This file
 ├── XTREMEG.md                         # XtremeG custom drivers guide
 ├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
-├── nvidia-performance-tweaks.reg      # Main performance optimizations (consolidated)
+├── nvidia-performance-tweaks.reg      # All performance tweaks, fully consolidated (see below)
 ├── nvidia-cleanup.cmd                 # Unified shader-cache + telemetry/bloat cleanup
 ├── xtremeg-installer.ps1              # XtremeG custom driver installer
-├── toggles/                           # Quick enable/disable settings
-│   ├── disable-dlss-indicator.reg
-│   ├── enable-dlss-indicator.reg
-│   ├── enable-nis-new.reg
-│   ├── disable-nis-new.reg
-│   ├── enable-mpo.reg
-│   ├── disable-mpo.reg
-│   ├── enable-hardware-scheduling.reg
-│   ├── disable-hardware-scheduling.reg
-│   ├── enable-p-state-0-lock.reg
-│   ├── disable-p-state-0-lock.reg
-│   ├── enable-hdcp.reg
-│   └── disable-hdcp.reg
-├── optional-tweaks/                   # Advanced tweaks (use with caution)
-│   ├── disable-ecc.reg
-│   ├── disable-preemption.reg
-│   ├── enable-preemption.reg
-│   ├── enable-signature-override.reg
-│   ├── enable-windows-game-mode.reg
-│   ├── force-directflip.reg
-│   ├── advanced-shader-memory-tweaks.reg
-│   ├── cuda-optimizations.reg
-│   ├── display-scaling-vrr.reg
-│   └── opengl-vulkan-optimizations.reg
 ├── profiles/                          # NVIDIA Profile Inspector profiles
 │   ├── Base.nip                       # Base profile (general settings)
 │   ├── BlackOps6.nip                  # Black Ops 6 optimized
@@ -151,127 +127,25 @@ For clean driver installs:
 |---------|-------|
 | Dynamic range | Full |
 
-## Optional Tweaks
+## Optional Tweaks & Quick Toggles
 
-Advanced tweaks. Only apply if you know what you're doing.
+Formerly split across `optional-tweaks/` and `toggles/`, everything is now folded directly into
+`nvidia-performance-tweaks.reg` — shader cache, CUDA, OpenGL/Vulkan, VRR/display scaling, DirectFlip,
+Windows Game Mode, DLSS indicator, MPO, and hardware GPU scheduling all apply with the single
+`regedit /s nvidia-performance-tweaks.reg` command above.
 
-### Disable Preemption (Lower Latency, Risky)
-```cmd
-regedit /s optional-tweaks/disable-preemption.reg
-```
-- Lower input latency
-- May cause black screens/TDR errors
-- GPU tasks can't be interrupted
-- Only for dedicated gaming PCs
+For enable/disable pairs (HDCP, MPO, NIS, HW scheduling, P-State lock, DLSS indicator, preemption),
+the file keeps the performance-oriented side active. To flip one back to its default/off state, edit
+the corresponding value directly in `nvidia-performance-tweaks.reg` (each section is labeled with a
+comment noting its origin).
 
-### Enable Preemption (Restore Default)
-```cmd
-regedit /s optional-tweaks/enable-preemption.reg
-```
+Two risky, non-performance tweaks are present but **commented out** near the end of the file so a
+bulk import never applies them:
+- **Disable ECC** — only relevant for workstation GPUs (Quadro/Tesla); may cause instability.
+- **Enable Signature Override** — enables Windows test-signing and disables driver integrity checks.
+  Do not use unless modding drivers. Use `Scripts/gpu-display-manager.ps1` to toggle this safely instead.
 
-### Disable ECC (Workstation GPUs Only)
-```cmd
-regedit /s optional-tweaks/disable-ecc.reg
-```
-- Only relevant for Quadro/Tesla GPUs
-- GeForce GPUs don't have ECC
-
-### Force DirectFlip
-```cmd
-regedit /s optional-tweaks/force-directflip.reg
-```
-- Forces DirectFlip presentation mode
-- May cause issues with overlays (Discord, MSI Afterburner, etc.)
-
-### Enable Signature Override (VERY RISKY)
-```cmd
-:: Do not use this unless you're modding drivers.
-:: This disables driver signature verification.
-:: May prevent Windows updates.
-:: May cause system instability.
-
-:: Use Scripts/gpu-display-manager.ps1 to toggle this safely.
-regedit /s optional-tweaks/enable-signature-override.reg
-bcdedit /set nointegritychecks on
-bcdedit /set testsigning on
-```
-
-### Advanced Community Tweaks
-
-#### Shader Cache & Memory Optimizations
-
-What it does:
-- Enables unlimited shader cache size
-- Optimizes shader cache location (manual SSD path option)
-- Increases TDR delays to prevent false positives
-- Sets WDDM mode to 2.x for Windows 10+
-- DX12 on hybrid/Optimus systems
-
-```cmd
-regedit /s optional-tweaks/advanced-shader-memory-tweaks.reg
-```
-
-Notes:
-- Shader cache will grow over time (monitor disk space)
-- Optionally edit the file to set custom cache path to SSD
-
-#### CUDA Optimizations
-
-What it does:
-- Disables CUDA Force P2 State (prevents memory downclocking during compute)
-- Sets CUDA sysmem fallback policy to prefer local memory
-- Disables compute preemption for lower latency
-
-```cmd
-regedit /s optional-tweaks/cuda-optimizations.reg
-```
-
-Notes:
-- Most beneficial for workloads mixing gaming and compute
-- Compute preemption disabled may reduce stability in heavy compute tasks
-- Also configurable via NVIDIA Profile Inspector (CUDA - Force P2 State)
-
-**WARNING:** Disabling compute preemption reduces multitasking capability. Only use on dedicated gaming systems.
-
-#### Display Scaling & VRR (Variable Refresh Rate)
-
-What it does:
-- Forces GPU scaling instead of display scaling
-- Sets maximum color depth (10-bit if supported)
-- Sets RGB color format
-- Enables Variable Refresh Rate (G-SYNC/FreeSync)
-- Disables refresh rate switching (keeps at max)
-- Enables Ultra Low Latency Mode
-
-```cmd
-regedit /s optional-tweaks/display-scaling-vrr.reg
-```
-
-Notes:
-- Verify your monitor supports 10-bit color before expecting benefits
-- G-SYNC Compatible requires compatible FreeSync monitor
-- Some of these settings can also be set via NVIDIA Control Panel
-- Commented MPO setting (use toggles instead)
-
-#### OpenGL & Vulkan Optimizations
-
-What it does:
-- Disables OpenGL triple buffering (reduces input lag)
-- Enables Vulkan heap budget optimization
-- Enables Vulkan timeline semaphores
-- Disables OpenGL overlay
-- Forces maximum OpenGL performance
-- Enables threaded optimization for D3D9/D3D11
-
-```cmd
-regedit /s optional-tweaks/opengl-vulkan-optimizations.reg
-```
-
-Notes:
-- OpenGL is used by older games (pre-2010s) and some emulators
-- Vulkan is used by modern titles (DOOM Eternal, Cyberpunk 2077, etc.)
-- Threaded optimization should be tested per-game per NVIDIA guidance
-- Some settings are better controlled via NVIDIA Control Panel
+Uncomment the relevant block manually and re-import if you need either of these.
 
 ## NVIDIA Profile Inspector
 
@@ -297,76 +171,6 @@ Notes:
 - Disable Ansel — Prevents unwanted injection
 - CUDA - Force P2 State → Disable — Prevents memory downclocking
 - Test Resizable BAR settings (rBAR Feature/Options/Size) if your game supports it
-
-## Quick Toggles
-
-### DLSS Indicator
-
-```cmd
-:: Hide DLSS indicator
-regedit /s toggles/disable-dlss-indicator.reg
-
-:: Show DLSS indicator (for testing)
-regedit /s toggles/enable-dlss-indicator.reg
-```
-
-### NVIDIA Image Scaling (NIS)
-
-```cmd
-:: Enable NIS (for driver 535+)
-regedit /s toggles/enable-nis-new.reg
-
-:: Disable NIS
-regedit /s toggles/disable-nis-new.reg
-```
-
-### Multiplane Overlay (MPO)
-
-Fix flickering/tearing in games:
-
-```cmd
-:: Disable MPO (fixes flickering in some games)
-regedit /s toggles/disable-mpo.reg
-
-:: Enable MPO (Windows default)
-regedit /s toggles/enable-mpo.reg
-```
-
-Reboot required after MPO changes.
-
-### Hardware-Accelerated GPU Scheduling
-
-Windows 10 2004+ feature (requires compatible GPU):
-
-```cmd
-:: Enable (for RTX 20/30/40 series)
-regedit /s toggles/enable-hardware-scheduling.reg
-
-:: Disable
-regedit /s toggles/disable-hardware-scheduling.reg
-```
-
-Reboot required. Verify in Windows Settings → Display → Graphics.
-
-### P-State 0 Lock
-
-```cmd
-:: Force max clocks
-regedit /s toggles/enable-p-state-0-lock.reg
-
-:: Restore dynamic clocking
-regedit /s toggles/disable-p-state-0-lock.reg
-```
-
-### HDCP
-
-```cmd
-:: Disable HDCP (lower latency, breaks Netflix/DRM)
-regedit /s toggles/disable-hdcp.reg
-
-:: Enable HDCP (restore DRM support)
-regedit /s toggles/enable-hdcp.reg
-```
 
 ## Cleanup & Maintenance
 
@@ -486,7 +290,9 @@ The `nvidia-performance-tweaks.reg` file consolidates these previously separate 
 - ~~Experimental Tweaks.reg~~ Merged
 - ~~HDCP.reg~~ Merged
 - ~~New NIS [Default].reg~~ Merged
-- Preemption disabled by default (can be toggled in `optional-tweaks/`)
+- ~~toggles/ (12 files)~~ Merged — performance side kept active per pair
+- ~~optional-tweaks/ (10 files)~~ Merged — risky ECC/signature-override entries kept but commented out
+- Preemption disabled by default (edit the file directly to restore it)
 
 ### What's Included in Telemetry Cleanup
 

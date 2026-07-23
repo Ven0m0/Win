@@ -102,6 +102,18 @@ Windows Registry Editor Version 5.00
 "UsePageAttributeTable"=dword:00000001
 "InitializeSystemMemoryAllocations"=dword:00000000
 
+; === Display Scaling & Color (from optional-tweaks/display-scaling-vrr.reg) ===
+"NV_Scaling"=dword:00000003
+"ImageSharpening"=dword:00000000
+"ColorDepth"=dword:0000000a
+"ColorFormat"=dword:00000000
+"MaxRefreshRate"=dword:000000f0
+"DisableRefreshRateSwitching"=dword:00000001
+
+; === Variable Refresh Rate (G-SYNC/FreeSync) ===
+"EnableVRR"=dword:00000001
+"GSyncCompatible"=dword:00000001
+
 ; ============================================================
 ; NVLDDMKM Service Settings
 ; ============================================================
@@ -177,6 +189,22 @@ Windows Registry Editor Version 5.00
 "EnableGpuFirmware"=dword:00000001
 "UsePageAttributeTable"=dword:00000001
 "RMIntrLockingMode"=dword:00000001
+
+; === CUDA Optimizations (from optional-tweaks/cuda-optimizations.reg) ===
+"CUDASysmemFallbackPolicy"=dword:00000001
+"EnableCudaOptimizations"=dword:00000001
+"DisableComputePreemption"=dword:00000000
+
+; === OpenGL/Vulkan Optimizations (from optional-tweaks/opengl-vulkan-optimizations.reg) ===
+"OpenGLTripleBuffering"=dword:00000000
+"VulkanHeapBudgetOptimization"=dword:00000001
+"EnableVulkanTimelineSemaphores"=dword:00000001
+"EnableThreadedOptimization"=dword:00000001
+"D3D9ThreadedOptimization"=dword:00000001
+"D3D11ThreadedOptimization"=dword:00000001
+
+; === Latency Mode (from optional-tweaks/display-scaling-vrr.reg) ===
+"PreferredLatencyMode"=dword:00000002
 
 ; ============================================================
 ; NVLDDMKM Parameters
@@ -263,6 +291,19 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
 "RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
 
+; === Hardware-Accelerated GPU Scheduling (from toggles/enable-hardware-scheduling.reg) ===
+"HwSchMode"=dword:00000002
+
+; === Force DirectFlip (from optional-tweaks/force-directflip.reg) ===
+"ForceDirectFlip"=dword:00000001
+
+; === TDR Timeout Tuning (from optional-tweaks/advanced-shader-memory-tweaks.reg) ===
+"TdrDelay"=dword:00000008
+"TdrLimitCount"=dword:00000010
+
+; === WDDM Version (from optional-tweaks/advanced-shader-memory-tweaks.reg) ===
+"WddmVersion"=dword:00000002
+
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Power]
 "RmGpsPsEnablePerCpuCoreDpc"=dword:00000001
 
@@ -284,6 +325,78 @@ Windows Registry Editor Version 5.00
 ; ============================================================
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
 "EnableGR535"=dword:00000001
+
+; === Shader Cache (from optional-tweaks/advanced-shader-memory-tweaks.reg) ===
+"EnableShaderCache"=dword:00000001
+
+; ============================================================
+; NVLDDMKM FTS Settings (Shader Cache, CUDA Force P2 State)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+"EnableShaderCache"=dword:00000001
+"EnableRID66983"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\FTS]
+"EnableGR535"=dword:00000001
+"EnableRID66983"=dword:00000000
+
+; ============================================================
+; DLSS Indicator (from toggles/disable-dlss-indicator.reg)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\NGXCore]
+"ShowDlssIndicator"=dword:00000000
+
+; ============================================================
+; OpenGL/Vulkan Global Settings (from optional-tweaks/opengl-vulkan-optimizations.reg)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\OpenGL]
+"EnableOverlay"=dword:00000000
+"ForceMaxPerformance"=dword:00000001
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\Vulkan]
+"EnableOptimizations"=dword:00000001
+"EnableOverlay"=dword:00000000
+
+; ============================================================
+; Multiplane Overlay (MPO) Disable (from toggles/disable-mpo.reg)
+; ============================================================
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\Dwm]
+"OverlayTestMode"=dword:00000000
+
+; ============================================================
+; Windows Game Mode (from optional-tweaks/enable-windows-game-mode.reg)
+; ============================================================
+[HKEY_CURRENT_USER\Software\Microsoft\GameBar]
+"AllowAutoGameMode"=dword:00000001
+"AutoGameModeEnabled"=dword:00000001
+
+; ============================================================
+; DISABLED BY DEFAULT - Advanced/Risky Tweaks (commented out)
+; Uncomment only if you understand the risks.
+; ============================================================
+
+; --- Disable ECC (from optional-tweaks/disable-ecc.reg) ---
+; WARNING: Only use this if you know what you're doing!
+; ECC helps prevent memory errors. Disabling may cause instability.
+; Primarily useful for workstation/datacenter GPUs (Quadro/Tesla)
+; [HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000]
+; "RMAERRForceDisable"=dword:00000001
+; "RMNoECCFuseCheck"=dword:00000001
+; "RMDisableRCOnDBE"=dword:00000001
+; "RM1441072"=dword:00000001
+; "RMAERRHandling"=dword:00000000
+
+; --- Enable Driver Signature Override (from optional-tweaks/enable-signature-override.reg) ---
+; WARNING: VERY risky and not recommended!
+; Enables test signing mode in Windows, disables integrity checks.
+; Also requires running as administrator:
+;   bcdedit /set nointegritychecks on
+;   bcdedit /set testsigning on
+; Use Scripts/gpu-display-manager.ps1 to toggle this safely instead.
+; [HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global]
+; "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"=hex:01
+; [HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Services\nvlddmkm]
+; "{41FCC608-8496-4DEF-B43E-7D9BD675A6FF}"=hex:01
 
 ; ============================================================
 ; END OF FILE

@@ -34,12 +34,12 @@ Unified GPU and Display Settings Manager — interactive PowerShell script with 
 
 | Script Function | Registry File |
 |----------------|---------------|
-| P-State 0 ON | `toggles/enable-p-state-0-lock.reg` |
-| P-State 0 OFF | `toggles/disable-p-state-0-lock.reg` |
-| HDCP OFF | `toggles/disable-hdcp.reg` |
-| HDCP ON | `toggles/enable-hdcp.reg` |
-| MPO Enable | `toggles/enable-mpo.reg` |
-| MPO Disable | `toggles/disable-mpo.reg` |
+| P-State 0 ON | `nvidia-performance-tweaks.reg` (active by default) |
+| P-State 0 OFF | edit `DisableDynamicPstate` to `0` in `nvidia-performance-tweaks.reg` |
+| HDCP OFF | `nvidia-performance-tweaks.reg` (active by default) |
+| HDCP ON | edit `RMHdcpKeyglobZero` to `0` in `nvidia-performance-tweaks.reg` |
+| MPO Disable | `nvidia-performance-tweaks.reg` (active by default) |
+| MPO Enable | edit `OverlayTestMode` to `5` in `nvidia-performance-tweaks.reg` |
 | MSI Mode | *(Not available as reg file - use script)* |
 | EDID Override | *(Not available as reg file - use script)* |
 
@@ -78,10 +78,10 @@ DLSS Force Latest Configuration — forces games to use the latest DLSS DLL.
 
 | Script Function | Registry File |
 |----------------|---------------|
-| DLSS Overlay ON | `toggles/enable-dlss-indicator.reg` |
-| DLSS Overlay OFF | `toggles/disable-dlss-indicator.reg` |
+| DLSS Overlay OFF | `nvidia-performance-tweaks.reg` (active by default) |
+| DLSS Overlay ON | edit `ShowDlssIndicator` to `0x400` in `nvidia-performance-tweaks.reg` |
 | DLSS Force Latest | *(Use script - requires Profile Inspector)* |
-| Legacy NIS Sharpen | `toggles/enable-nis-new.reg` / `disable-nis-new.reg` |
+| Legacy NIS Sharpen | `nvidia-performance-tweaks.reg` (`EnableGR535`, active by default) |
 
 **Usage:**
 ```powershell
@@ -191,10 +191,10 @@ The `nvidia-performance-tweaks.reg` file consolidates settings from the PowerShe
 
 | Task | Best Method | Command/File |
 |------|-------------|--------------|
-| Toggle DLSS indicator | Registry | `toggles/enable-dlss-indicator.reg` |
-| Toggle MPO | Registry | `toggles/disable-mpo.reg` |
-| Toggle P-State 0 | Registry | `toggles/enable-p-state-0-lock.reg` |
-| Toggle HDCP | Registry | `toggles/disable-hdcp.reg` |
+| Toggle DLSS indicator | Registry | `nvidia-performance-tweaks.reg` (`ShowDlssIndicator`) |
+| Toggle MPO | Registry | `nvidia-performance-tweaks.reg` (`OverlayTestMode`) |
+| Toggle P-State 0 | Registry | `nvidia-performance-tweaks.reg` (`DisableDynamicPstate`) |
+| Toggle HDCP | Registry | `nvidia-performance-tweaks.reg` (`RMHdcpKeyglobZero`) |
 | Enable MSI Mode | PowerShell | `gpu-display-manager.ps1` |
 | Override EDID | PowerShell | `gpu-display-manager.ps1` |
 | Force DLSS latest | PowerShell | `DLSS-force-latest.ps1` |
@@ -210,14 +210,8 @@ The `nvidia-performance-tweaks.reg` file consolidates settings from the PowerShe
 @echo off
 :: Apply all NVIDIA optimizations
 
-:: Performance tweaks
+:: Performance tweaks (includes MPO disable, HW scheduling enable, and all other toggles)
 regedit /s nvidia-performance-tweaks.reg
-
-:: Disable MPO (fixes flickering in some games)
-regedit /s toggles/disable-mpo.reg
-
-:: Enable hardware scheduling
-regedit /s toggles/enable-hardware-scheduling.reg
 
 :: Clean shader cache
 call nvidia-cleanup.cmd shader
