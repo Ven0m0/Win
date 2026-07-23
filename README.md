@@ -163,6 +163,33 @@ If automatic bootstrap fails, configure manually:
    notepad $HOME\.gitconfig
    ```
 
+## Power Setup Workflow
+
+Apply the gaming-oriented power/performance profile after the base setup is deployed:
+
+```pwsh
+# Launch the settings manager (self-elevates)
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\system-settings-manager.ps1"
+```
+
+Select **Performance Optimizations** from the main menu, then **Apply**. This:
+
+- Disables hibernate, fast boot, and the sleep/lock Start-menu options
+- Disables power throttling (`PowerThrottlingOff`)
+- Enables USB overclock compatibility (`WHQLSettings`)
+- Disables raw mouse input throttling
+- Unbinds the `ms_server` component from network adapters
+
+Run **Restore Defaults** from the same menu to revert every value the apply step touched.
+
+To also stop USB peripherals from suspending mid-session:
+
+```pwsh
+pwsh -File "$env:USERPROFILE\project\Win\Scripts\DisableUSBPowerManagement.ps1"
+```
+
+Both scripts require administrator elevation and only touch `HKLM` power-related keys — see [`.claude/rules/registry-security.md`](.claude/rules/registry-security.md) for the restore-point and rollback conventions they follow.
+
 ## Repository Structure
 
 ```text
@@ -240,6 +267,11 @@ All scripts are located in `~/Scripts/` and can be run directly:
 - **`Optimize-Steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
 - **`system-maintenance.ps1 -Action Shader`** — Clear Steam/game/GPU shader caches
 - **`DLSS-force-latest.ps1`** — Force latest DLSS version
+
+### Power & Performance
+
+- **`system-settings-manager.ps1`** → *Performance Optimizations* menu — applies the gaming power/performance profile (disables hibernate, fast boot, power throttling, sleep/lock options; enables USB overclock compatibility and raw mouse input); same menu offers a *Restore Defaults* option that reverts every value it touched
+- **`DisableUSBPowerManagement.ps1`** — Disables USB selective suspend across all USB hubs/controllers/HID devices so peripherals don't power down mid-session
 
 ### Maintenance & Cleanup
 
