@@ -1,0 +1,71 @@
+{
+  "timeStamp": 1784831008591,
+  "version": "1.72.2",
+  "userSettings": {
+    "advancedUserEnabled": true,
+    "externalLists": "https://filters.adtidy.org/android/filters/122_optimized.txt\nhttps://filters.adtidy.org/android/filters/17_optimized.txt\nhttps://filters.adtidy.org/android/filters/18_optimized.txt\nhttps://filters.adtidy.org/android/filters/239_optimized.txt\nhttps://filters.adtidy.org/android/filters/6_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/101_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/118_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/14_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/201_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/207_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/251_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/2_optimized.txt\nhttps://filters.adtidy.org/extension/ublock/filters/3_optimized.txt\nhttps://gitflic.ru/project/magnolia1234/bypass-paywalls-clean-filters/blob/raw?file=bpc-paywall-filter.txt\nhttps://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/refs/heads/master/platforms/android/filters/257_optimized.txt\nhttps://raw.githubusercontent.com/DandelionSprout/adfilt/master/BrowseWebsitesWithoutLoggingIn.txt\nhttps://raw.githubusercontent.com/DandelionSprout/adfilt/master/ClearURLs for uBo/clear_urls_uboified.txt\nhttps://raw.githubusercontent.com/Ven0m0/Ven0m0-Adblock/refs/heads/main/lists/adblock/Combination-mobile.txt\nhttps://raw.githubusercontent.com/yokoffing/filterlists/main/block_third_party_fonts.txt",
+    "importedLists": [
+      "https://filters.adtidy.org/android/filters/122_optimized.txt",
+      "https://filters.adtidy.org/android/filters/17_optimized.txt",
+      "https://filters.adtidy.org/android/filters/18_optimized.txt",
+      "https://filters.adtidy.org/android/filters/239_optimized.txt",
+      "https://filters.adtidy.org/android/filters/6_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/101_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/118_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/14_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/201_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/207_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/251_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/2_optimized.txt",
+      "https://filters.adtidy.org/extension/ublock/filters/3_optimized.txt",
+      "https://gitflic.ru/project/magnolia1234/bypass-paywalls-clean-filters/blob/raw?file=bpc-paywall-filter.txt",
+      "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/refs/heads/master/platforms/android/filters/257_optimized.txt",
+      "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/BrowseWebsitesWithoutLoggingIn.txt",
+      "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/ClearURLs for uBo/clear_urls_uboified.txt",
+      "https://raw.githubusercontent.com/Ven0m0/Ven0m0-Adblock/refs/heads/main/lists/adblock/Combination-mobile.txt",
+      "https://raw.githubusercontent.com/yokoffing/filterlists/main/block_third_party_fonts.txt"
+    ],
+    "popupPanelSections": 31,
+    "prefetchingDisabled": false,
+    "suspendUntilListsAreLoaded": true,
+    "tooltipsDisabled": true,
+    "userFiltersTrusted": true
+  },
+  "selectedFilterLists": [
+    "user-filters",
+    "helium-annoyances",
+    "helium-unbreak",
+    "ublock-filters",
+    "ublock-privacy",
+    "ublock-quick-fixes",
+    "ublock-unbreak",
+    "ublock-annoyances",
+    "https://raw.githubusercontent.com/yokoffing/filterlists/main/block_third_party_fonts.txt",
+    "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/BrowseWebsitesWithoutLoggingIn.txt",
+    "https://filters.adtidy.org/extension/ublock/filters/207_optimized.txt",
+    "https://filters.adtidy.org/extension/ublock/filters/2_optimized.txt",
+    "https://filters.adtidy.org/android/filters/17_optimized.txt",
+    "https://gitflic.ru/project/magnolia1234/bypass-paywalls-clean-filters/blob/raw?file=bpc-paywall-filter.txt",
+    "https://raw.githubusercontent.com/DandelionSprout/adfilt/master/ClearURLs for uBo/clear_urls_uboified.txt",
+    "https://filters.adtidy.org/extension/ublock/filters/118_optimized.txt",
+    "https://filters.adtidy.org/android/filters/122_optimized.txt",
+    "https://filters.adtidy.org/android/filters/239_optimized.txt",
+    "https://filters.adtidy.org/extension/ublock/filters/251_optimized.txt",
+    "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/refs/heads/master/platforms/android/filters/257_optimized.txt",
+    "https://raw.githubusercontent.com/Ven0m0/Ven0m0-Adblock/refs/heads/main/lists/adblock/Combination-mobile.txt",
+    "https://filters.adtidy.org/extension/ublock/filters/201_optimized.txt"
+  ],
+  "hiddenSettings": {
+    "allowGenericProceduralFilters": true,
+    "filterAuthorMode": true,
+    "updateAssetBypassBrowserCache": true
+  },
+  "whitelist": [
+    "chrome-extension-scheme",
+    "moz-extension-scheme"
+  ],
+  "dynamicFilteringString": "behind-the-scene * * noop\nbehind-the-scene * inline-script noop\nbehind-the-scene * 1p-script noop\nbehind-the-scene * 3p-script noop\nbehind-the-scene * 3p-frame noop\nbehind-the-scene * image noop\nbehind-the-scene * 3p noop",
+  "urlFilteringString": "",
+  "hostnameSwitchesString": "no-large-media: behind-the-scene false\nno-csp-reports: * true",
+  "userFilters": ""
+}
