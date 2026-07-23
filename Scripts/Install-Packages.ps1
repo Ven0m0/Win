@@ -22,6 +22,8 @@
     Skip peripheral driver/tool installs (GMK Driver, DS4Windows, Endgame Gear OP1 8k tools).
 .PARAMETER SkipManualInstalls
     Skip manual (no winget package) app installs (DLSSync, GraalVM).
+.PARAMETER SkipLanguagePackages
+    Skip bun/npm/cargo global package installs.
 .PARAMETER ApplyPostInstall
     Apply post-install Windows configuration (from autounattend.xml).
 .PARAMETER PostInstallTimeZone
@@ -47,6 +49,7 @@ param(
     [switch]$SkipNotepadReplacer,
     [switch]$SkipPeripherals,
     [switch]$SkipManualInstalls,
+    [switch]$SkipLanguagePackages,
     [switch]$ApplyPostInstall,
     [string]$PostInstallTimeZone = 'W. Europe Standard Time',
     [string]$PostInstallInputLocale = 'en-US',
@@ -70,6 +73,7 @@ function Start-InstallPackage {
         [switch]$SkipNotepadReplacer,
         [switch]$SkipPeripherals,
         [switch]$SkipManualInstalls,
+        [switch]$SkipLanguagePackages,
         [switch]$ApplyPostInstall,
         [string]$PostInstallTimeZone = 'W. Europe Standard Time',
         [string]$PostInstallInputLocale = 'en-US',
@@ -144,7 +148,8 @@ function Start-InstallPackage {
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
         foreach ($p in 'SkipWinget', 'SkipScoop', 'SkipChoco', 'SkipSystemFeatures', `
-          'SkipPowerShellModules', 'SkipNotepadReplacer', 'SkipPeripherals', 'SkipManualInstalls', 'ApplyPostInstall') {
+          'SkipPowerShellModules', 'SkipNotepadReplacer', 'SkipPeripherals', 'SkipManualInstalls', `
+          'SkipLanguagePackages', 'ApplyPostInstall') {
             if ((Get-Variable -Name $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
         }
         if ($WhatIfPreference) { $argList += ' -WhatIf' }
@@ -335,6 +340,77 @@ function Start-InstallPackage {
             } catch {
                 Write-Status "$($manualApp.Name) - $($_.Exception.Message)" -Status 'FAIL'
             }
+        }
+    }
+
+    # ============================================================================
+    # Phase 7.8: bun / npm / cargo global packages
+    # ============================================================================
+    if (-not $SkipLanguagePackages) {
+        Write-Host ''
+        Write-Host '[7.8/11] Installing bun/npm/cargo global packages...' -ForegroundColor Cyan
+
+        # Winget installs earlier in this run (bun, node, rustup) may not be on PATH yet.
+        $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
+            [System.Environment]::GetEnvironmentVariable('Path', 'User')
+
+        if (Get-Command bun -ErrorAction SilentlyContinue) {
+            foreach ($pkg in $catalog.BunPackages) {
+                try {
+                    if ($PSCmdlet.ShouldProcess($pkg, 'bun add -g')) {
+                        bun add -g $pkg *>$null
+                        Write-Status "Bun package '$pkg' installed" -Status 'OK'
+                    }
+                } catch {
+                    Write-Status "Bun package '$pkg' - $($_.Exception.Message)" -Status 'FAIL'
+                }
+            }
+        } else {
+            Write-Status 'bun not on PATH - restart shell and re-run' -Status 'SKIP'
+        }
+
+        if (Get-Command npm -ErrorAction SilentlyContinue) {
+            foreach ($pkg in $catalog.NpmPackages) {
+                try {
+                    if ($PSCmdlet.ShouldProcess($pkg, 'npm install -g')) {
+                        npm install -g $pkg *>$null
+                        Write-Status "npm package '$pkg' installed" -Status 'OK'
+                    }
+                } catch {
+                    Write-Status "npm package '$pkg' - $($_.Exception.Message)" -Status 'FAIL'
+                }
+            }
+        } else {
+            Write-Status 'npm not on PATH - restart shell and re-run' -Status 'SKIP'
+        }
+
+        if (Get-Command cargo -ErrorAction SilentlyContinue) {
+            if (-not (Get-Command cargo-binstall -ErrorAction SilentlyContinue)) {
+                try {
+                    if ($PSCmdlet.ShouldProcess('cargo-binstall', 'cargo install')) {
+                        cargo install cargo-binstall *>$null
+                    }
+                } catch {
+                    Write-Verbose "cargo-binstall bootstrap failed: $_"
+                }
+            }
+            foreach ($pkg in $catalog.CargoPackages) {
+                $pkgName = if ($pkg -is [hashtable]) { $pkg.Name } else { $pkg }
+                try {
+                    if ($PSCmdlet.ShouldProcess($pkgName, 'cargo install')) {
+                        if ($pkg -is [hashtable]) {
+                            cargo install --git $pkg.Git *>$null
+                        } else {
+                            cargo binstall -y $pkg *>$null
+                        }
+                        Write-Status "Cargo package '$pkgName' installed" -Status 'OK'
+                    }
+                } catch {
+                    Write-Status "Cargo package '$pkgName' - $($_.Exception.Message)" -Status 'FAIL'
+                }
+            }
+        } else {
+            Write-Status 'cargo not on PATH - run "rustup default stable" and re-run' -Status 'SKIP'
         }
     }
 
