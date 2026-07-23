@@ -15,7 +15,7 @@ Describe "Backup-GameConfig.ps1" -Skip:(-not $scriptExists) {
         . "$PSScriptRoot/../Scripts/Backup-GameConfigs.ps1"
         $script:testDir = New-TemporaryFile | Select-Object -ExpandProperty DirectoryName
         $script:dotfilesPath = Join-Path $testDir "dotfiles\config\games"
-        $script:bo6Source = Join-Path $testDir "Documents\Call of Duty\players"
+        $script:bo6Source = Join-Path $testDir "Documents\Call of Duty BO6\players"
         $script:arcRaidersSource = Join-Path $env:LOCALAPPDATA "PioneerGame\Saved\SaveGames"
     }
 
