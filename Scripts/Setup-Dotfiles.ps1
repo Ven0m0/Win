@@ -185,7 +185,7 @@ function Get-FirefoxDefaultProfilePath {
 }
 
 function Get-CallOfDutyPlayersPath {
-    $playersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty\players'
+    $playersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty BO6\players'
     if (Test-Path $playersPath) {
         return $playersPath
     }

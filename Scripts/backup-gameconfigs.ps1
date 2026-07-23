@@ -35,7 +35,7 @@ function Backup-GameConfig {
     [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
   )
 
-  $bo6Source = "$env:USERPROFILE\Documents\Call of Duty\players"
+  $bo6Source = "$env:USERPROFILE\Documents\Call of Duty BO6\players"
   $bo6Dest   = "$DotfilesPath\bo6"
 
   $arcRaidersSource = "$env:LOCALAPPDATA\PioneerGame\Saved\SaveGames"
