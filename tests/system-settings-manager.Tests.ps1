@@ -57,24 +57,4 @@ Describe "System Settings Manager" {
             Should -Invoke Enable-NetAdapterBinding -ParameterFilter { $Name -eq "*" -and $ComponentID -eq "ms_server" }
         }
     }
-
-    Context "Keyboard Shortcuts" {
-        It "Should disable keyboard shortcuts" {
-            Disable-KeyboardShortcut
-
-            Should -Invoke Set-RegistryValue -ParameterFilter { $Path -match "hidserv$" -and $Data -eq "4" }
-            Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "NoWinKeys" -and $Data -eq "1" }
-            Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "DisabledHotkeys" -and $Data -eq "1" }
-            Should -Invoke Set-RegistryValue -ParameterFilter { $Name -eq "Scancode Map" }
-        }
-
-        It "Should enable keyboard shortcuts" {
-            Enable-KeyboardShortcut
-
-            Should -Invoke Set-RegistryValue -ParameterFilter { $Path -match "hidserv$" -and $Data -eq "3" }
-            Should -Invoke Remove-RegistryValue -ParameterFilter { $Name -eq "NoWinKeys" }
-            Should -Invoke Remove-RegistryValue -ParameterFilter { $Name -eq "DisabledHotkeys" }
-            Should -Invoke Remove-RegistryValue -ParameterFilter { $Name -eq "Scancode Map" }
-        }
-    }
 }

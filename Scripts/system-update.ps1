@@ -777,8 +777,8 @@ $managers = @(
                 $upgradeScan = Invoke-WingetWithTimeout -TimeoutSec $script:Config.WingetTimeoutSec -Arguments @('upgrade', '--include-unknown', '--source', 'winget', '--accept-source-agreements', '--disable-interactivity') -EnvironmentOverrides $wingetEnvironment
                 if ($upgradeScan.Output) { Write-FilteredOutput -Text $upgradeScan.Output -Color ([ConsoleColor]::Gray) }
                 $upgradeList = $upgradeScan.Output
-                $upgradeEntries = @(Get-WingetUpgradeEntries -WingetOutput $upgradeList)
-                $existingPinnedIds = @(Get-WingetPinnedPackageIds)
+                $upgradeEntries = @(Get-WingetUpgradeEntry -WingetOutput $upgradeList)
+                $existingPinnedIds = @(Get-WingetPinnedPackageId)
                 $unknownEntries = @(
                     $upgradeEntries |
                         Where-Object { $_.Version -eq 'Unknown' -and $_.Id -notin $existingPinnedIds }
@@ -1545,7 +1545,7 @@ if (-not $script:IsSimulation -and $WhatChanged) {
             @{ Name = 'Scoop'; Prev = $previousState.Scoop; Curr = $script:State.Scoop },
             @{ Name = 'Chocolatey'; Prev = $previousState.Chocolatey; Curr = $script:State.Chocolatey }
         )) {
-        $changes = @(Compare-PackageMaps $entry.Prev $entry.Curr)
+        $changes = @(Compare-PackageMap $entry.Prev $entry.Curr)
         if ($changes.Count -gt 0) {
             Write-Host "  $($entry.Name) changes:" -ForegroundColor Cyan
             $changes | ForEach-Object { Write-Host "    $_" -ForegroundColor Gray }
