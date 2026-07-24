@@ -1,2 +1,3 @@
+- [ ] vscodium gives me the errors: "command 'kilo-code.new.openInTab' not found", "command 'kilo-code.new.sidebarTitle.profileButtonClicked' not found", "command 'claude-vscode.editor.openLast' not found" when trying to open the claude code or kilo extension. Find out why and fix it.
 - [ ] remove "Keyboard Shortcuts" from "Scripts\system-settings-manager.ps1" and clean the script up.
 - [ ] Fix "Scripts\system-update.ps1" and "Scripts\system-maintenance.ps1"

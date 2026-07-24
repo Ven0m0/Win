@@ -2,9 +2,9 @@
 #Requires -RunAsAdministrator
 
 # system-settings-manager.ps1 - Unified System Settings Manager
-# Combines performance settings, keyboard shortcuts, NVIDIA GPU settings,
+# Combines performance settings, NVIDIA GPU settings,
 # MSI mode, EDID overrides, and gaming display optimizations
-# Replaces: settings.ps1, keyboard-shortcuts.ps1, nvidia-settings.ps1,
+# Replaces: settings.ps1, nvidia-settings.ps1,
 #           edid-manager.ps1, gaming-display.ps1, msi-mode.ps1, gpu-display-manager.ps1
 
 $ErrorActionPreference = 'Stop'
@@ -184,63 +184,6 @@ function Restore-DefaultExplorerSetting {
 
     Write-Host ""
     Write-Host "Default Explorer settings restored." -ForegroundColor Green
-}
-#endregion
-
-
-#region Keyboard Shortcuts
-function Disable-KeyboardShortcut {
-    <#
-  .SYNOPSIS
-      Disables all keyboard shortcuts for gaming
-  #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param()
-
-    Clear-Host
-    Write-Host "Keyboard Shortcuts: Off" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "  - Disables all keyboard shortcuts" -ForegroundColor Red
-    Write-Host "  - Prevents tabbing out of games" -ForegroundColor Red
-    Write-Host "  - Cut/copy/paste will still function" -ForegroundColor Red
-    Write-Host "  - ESC key rebound to =" -ForegroundColor Red
-    Write-Host ""
-    Wait-ForKeyPress
-    Clear-Host
-
-    if (-not $PSCmdlet.ShouldProcess('keyboard shortcuts and scancode map', 'Disable')) { return }
-
-    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\hidserv" -Name "Start" -Type REG_DWORD -Data "4"
-    Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" `
-        -Name "NoWinKeys" -Type REG_DWORD -Data "1"
-    Set-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
-        -Name "DisabledHotkeys" -Type REG_DWORD -Data "1"
-    Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" `
-        -Type REG_BINARY -Data "00000000000000000700000000005be000005ce000003800000038e00000010001000d0000000000"
-
-    Clear-Host
-    Write-Host "Keyboard shortcuts disabled." -ForegroundColor Green
-}
-
-function Enable-KeyboardShortcut {
-    <#
-  .SYNOPSIS
-      Restores default keyboard shortcuts
-  #>
-    [CmdletBinding(SupportsShouldProcess)]
-    param()
-
-    Clear-Host
-
-    if (-not $PSCmdlet.ShouldProcess('keyboard shortcuts and scancode map', 'Enable')) { return }
-
-    Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Services\hidserv" -Name "Start" -Type REG_DWORD -Data "3"
-    Remove-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoWinKeys"
-    Remove-RegistryValue -Path "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisabledHotkeys"
-    Remove-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map"
-
-    Clear-Host
-    Write-Host "Keyboard shortcuts restored to default." -ForegroundColor Green
 }
 #endregion
 
@@ -482,32 +425,6 @@ function Show-PerformanceMenu {
     }
 }
 
-function Show-KeyboardMenu {
-    [CmdletBinding()]
-    param()
-    Show-Menu -Title "Keyboard Shortcuts" -Options @(
-        "Keyboard Shortcuts: Off"
-        "Keyboard Shortcuts: Default"
-        "Back to Main Menu"
-    )
-
-    $choice = Get-MenuChoice -Min 1 -Max 3
-
-    switch ($choice) {
-        1 {
-            Disable-KeyboardShortcut
-            Write-Host ""
-            Show-RestartRequired
-        }
-        2 {
-            Enable-KeyboardShortcut
-            Write-Host ""
-            Show-RestartRequired
-        }
-        3 { return }
-    }
-}
-
 function Show-NvidiaMenu {
     [CmdletBinding()]
     param()
@@ -712,7 +629,6 @@ function Show-MainMenu {
     param()
     Show-Menu -Title "System Settings Manager - Select Category" -Options @(
         "Performance Optimizations"
-        "Keyboard Shortcuts"
         "NVIDIA GPU Settings"
         "MSI Mode Configuration"
         "EDID Override Manager"
@@ -735,19 +651,18 @@ function Start-SystemSettingsManager {
 
     while ($true) {
         Show-MainMenu
-        $choice = Get-MenuChoice -Min 1 -Max 10
+        $choice = Get-MenuChoice -Min 1 -Max 9
 
         switch ($choice) {
             1 { Show-PerformanceMenu }
-            2 { Show-KeyboardMenu }
-            3 { Show-NvidiaMenu }
-            4 { Show-MSIMenu }
-            5 { Show-EDIDMenu }
-            6 { Show-GamingDisplayMenu }
-            7 { Show-SecurityMenu }
-            8 { Show-SystemTweaksMenu }
-            9 { Show-ExplorerMenu }
-            10 { exit }
+            2 { Show-NvidiaMenu }
+            3 { Show-MSIMenu }
+            4 { Show-EDIDMenu }
+            5 { Show-GamingDisplayMenu }
+            6 { Show-SecurityMenu }
+            7 { Show-SystemTweaksMenu }
+            8 { Show-ExplorerMenu }
+            9 { exit }
         }
     }
 }
