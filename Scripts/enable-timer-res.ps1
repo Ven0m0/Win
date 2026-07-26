@@ -287,9 +287,10 @@ Write-StatusMessage "" "Info"
 # Step 2: Enable registry key for global timer resolution
 Write-StatusMessage "Step 2: Configuring registry for global timer resolution..." "Info"
 try {
-    Set-ItemProperty `
-        -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" `
-        -Name "GlobalTimerResolutionRequests" -Value 1 -Type DWord -Force -ErrorAction Stop
+    New-RestorePoint -Description 'Before global timer resolution registry change'
+    Set-RegistryValue `
+        -Path 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel' `
+        -Name 'GlobalTimerResolutionRequests' -Type REG_DWORD -Data '1'
     Write-StatusMessage "Registry configured (GlobalTimerResolutionRequests = 1)" "Success"
 }
 catch {

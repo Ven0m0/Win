@@ -92,8 +92,8 @@ DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase 2>&1 |
 # ── DirectX / Adapter cache rebuild ───────────────────────────────────────────
 Write-Host "`n[DirectX] Rebuilding caches..."
 foreach ($exe in @(
-        'C:\Windows\System32\directxdatabaseupdater.exe',
-        'C:\Windows\System32\dxgiadaptercache.exe'
+        (Join-Path $env:SystemRoot 'System32\directxdatabaseupdater.exe'),
+        (Join-Path $env:SystemRoot 'System32\dxgiadaptercache.exe')
     )) {
     if (Test-Path $exe) {
         Start-Process $exe -WindowStyle Hidden
@@ -237,8 +237,9 @@ public class LsaUtil {
     $ifeo = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe'
     $perf = "$ifeo\PerfOptions"
 
+    New-RestorePoint -Description 'Before PioneerGame IFEO registry changes'
     New-Item -Path $perf -Force | Out-Null
-    Set-ItemProperty -Path $ifeo -Name 'UseLargePages'    -Value 1   -Type DWord
+    Set-RegistryValue -Path ($ifeo -replace '^HKLM:\\', 'HKLM\') -Name 'UseLargePages' -Type REG_DWORD -Data '1'
     Write-Host "  UseLargePages=1"
 
     # ── Summary ───────────────────────────────────────────────────────────────────

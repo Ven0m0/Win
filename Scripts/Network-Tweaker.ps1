@@ -10,6 +10,17 @@ $ProgressPreference = 'SilentlyContinue'
 # Import shared helpers
 . "$PSScriptRoot\Common.ps1"
 
+# Create exactly one System Restore point per session, just before the first
+# registry write. The guard flag stops the many independent apply handlers from
+# each creating one. Only fires from a write handler, never at load/dot-source.
+$Script:RestorePointCreated = $false
+function Invoke-NetworkTweakRestorePoint {
+    if (-not $Script:RestorePointCreated) {
+        $Script:RestorePointCreated = $true
+        New-RestorePoint -Description "Network-Tweaker - $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+    }
+}
+
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
@@ -2346,6 +2357,9 @@ $cb_ospcf.text = "$($osOffload.PacketCoalescingFilter)"
 # RSS Global
 $Script:TCPIP_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
 $Script:NDIS_RegPath = "HKLM:\SYSTEM\CurrentControlSet\Services\NDIS\Parameters"
+# reg.exe form (no drive colon) for Set-RegistryValue, which shells out to reg add
+$Script:TCPIP_RegPathReg = $TCPIP_RegPath.Replace(':\', '\')
+$Script:NDIS_RegPathReg = $NDIS_RegPath.Replace(':\', '\')
 
 $TCPIP_RssBaseCpu = Get-RegistryValueSafe -Path $TCPIP_RegPath -Name 'RssBaseCpu' -DefaultValue '0'
 $cb_tcpiprssbasecpu.text = $TCPIP_RssBaseCpu
@@ -2354,10 +2368,12 @@ $cb_ndisrssbasecpu.text = $NDIS_RssBaseCpu
 
 $cb_tcpiprssbasecpu.add_TextChanged({
         Write-Host "TCP/IP - RSSBaseCpu = "$cb_tcpiprssbasecpu.text
-        Set-ItemProperty -Path "$TCPIP_RegPath" -Name "RssBaseCpu" -Value $cb_tcpiprssbasecpu.text -Type DWord -Force })
+        Invoke-NetworkTweakRestorePoint
+        Set-RegistryValue -Path $TCPIP_RegPathReg -Name "RssBaseCpu" -Type "REG_DWORD" -Data $cb_tcpiprssbasecpu.text })
 $cb_ndisrssbasecpu.add_TextChanged({
         Write-Host "NDIS - RSSBaseCpu = "$cb_ndisrssbasecpu.text
-        Set-ItemProperty -Path "$NDIS_RegPath" -Name "RssBaseCpu" -Value $cb_ndisrssbasecpu.text -Type DWord -Force })
+        Invoke-NetworkTweakRestorePoint
+        Set-RegistryValue -Path $NDIS_RegPathReg -Name "RssBaseCpu" -Type "REG_DWORD" -Data $cb_ndisrssbasecpu.text })
 
 #$cb_tcpiprssbasecpu.TextChanged = (Set-ItemProperty -Path "$TCPIP_RegPath" -Name "RssBaseCpu" -Value $TCPIPRssBaseCpuValue -Type DWord -Force)
 #$cb_ndisrssbasecpu.TextChanged = (Set-ItemProperty -Path "$NDIS_RegPath" -Name "RssBaseCpu" -Value $NDISRssBaseCpuValue -Type DWord -Force)
@@ -2462,6 +2478,8 @@ function Initialize-AdapterUI {
         (Get-ItemProperty -Path $_.PSPath -ErrorAction SilentlyContinue).NetCfgInstanceId -eq $Adapter.InterfaceGuid
     } | Select-Object -First 1
     $Script:KeyPath = if ($driverKey) { "$classRoot\$($driverKey.PSChildName)" } else { $null }
+    # reg.exe form (no drive colon) for Set-RegistryValue calls below
+    $Script:KeyPathReg = if ($KeyPath) { $KeyPath.Replace(':\', '\') } else { $null }
     if ($KeyPath -and (Test-Path -LiteralPath $KeyPath)) {
         Write-Host "Path found at ($KeyPath)."
         $lbl_Path.Text = $KeyPath
@@ -3005,6 +3023,7 @@ function RSSEnable {
 
 
 function applyadvsettings {
+    Invoke-NetworkTweakRestorePoint
     #cls
     #FlowControl
     if ($cb_flowcontrol.SelectedIndex -eq (Get-ItemProperty -Path "$KeyPath" -ErrorAction SilentlyContinue).'*FlowControl') {
@@ -3013,22 +3032,22 @@ function applyadvsettings {
 
     elseif ($cb_flowcontrol.SelectedIndex -eq '0') {
         Write-Host "Disabling FlowControl"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*FlowControl" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*FlowControl" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_flowcontrol.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for FlowControl" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*FlowControl" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*FlowControl" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_flowcontrol.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for FlowControl" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*FlowControl" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*FlowControl" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_flowcontrol.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for FlowControl" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*FlowControl" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*FlowControl" -Type "REG_SZ" -Data "3"
     }
 
     #IPChecksumOffloadIPv4
@@ -3038,22 +3057,22 @@ function applyadvsettings {
 
     elseif ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq '0') {
         Write-Host "Disabling IPChecksumOffloadIPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*IPChecksumOffloadIPv4" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for IPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*IPChecksumOffloadIPv4" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for IPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*IPChecksumOffloadIPv4" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_IPChecksumOffloadIPv4.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for IPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*IPChecksumOffloadIPv4" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*IPChecksumOffloadIPv4" -Type "REG_SZ" -Data "3"
     }
 
     #TCPChecksumOffloadIPv4
@@ -3063,22 +3082,22 @@ function applyadvsettings {
 
     elseif ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq '0') {
         Write-Host "Disabling TCPChecksumOffloadIPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv4" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for TCPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv4" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for TCPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv4" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv4.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for TCPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv4" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv4" -Type "REG_SZ" -Data "3"
     }
 
     #TCPChecksumOffloadIPv6
@@ -3088,22 +3107,22 @@ function applyadvsettings {
 
     elseif ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq '0') {
         Write-Host "Disabling TCPChecksumOffloadIPv6"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv6" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for TCPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv6" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for TCPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv6" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_TCPChecksumOffloadIPv6.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for TCPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TCPChecksumOffloadIPv6" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TCPChecksumOffloadIPv6" -Type "REG_SZ" -Data "3"
     }
 
     #UDPChecksumOffloadIPv4
@@ -3113,22 +3132,22 @@ function applyadvsettings {
 
     elseif ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq '0') {
         Write-Host "Disabling UDPChecksumOffloadIPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv4" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for UDPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv4" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for UDPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv4" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv4.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for UDPChecksumOffloadIPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv4" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv4" -Type "REG_SZ" -Data "3"
     }
 
     #UDPChecksumOffloadIPv6
@@ -3138,22 +3157,22 @@ function applyadvsettings {
 
     elseif ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq '0') {
         Write-Host "Disabling UDPChecksumOffloadIPv6"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv6" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq '1') {
         Write-Host "Enabling Tx for UDPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv6" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq '2') {
         Write-Host "Enabling Rx for UDPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv6" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_UDPChecksumOffloadIPv6.SelectedIndex -eq '3') {
         Write-Host "Enabling Tx & Rx for UDPChecksumOffloadIPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*UDPChecksumOffloadIPv6" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*UDPChecksumOffloadIPv6" -Type "REG_SZ" -Data "3"
     }
 
     #Large-Send-Offload V2 (IPv4)
@@ -3163,12 +3182,12 @@ function applyadvsettings {
 
     elseif ($cb_LsoV2IPv4.SelectedIndex -eq '0') {
         Write-Host "Disabling LsoV2IPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv4" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV2IPv4" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_LsoV2IPv4.SelectedIndex -eq '1') {
         Write-Host "Enabling LsoV2IPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv4" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV2IPv4" -Type "REG_SZ" -Data "1"
     }
 
     #Large-Send-Offload V2 (IPv6)
@@ -3178,12 +3197,12 @@ function applyadvsettings {
 
     elseif ($cb_LsoV2IPv6.SelectedIndex -eq '0') {
         Write-Host "Disabling LsoV2IPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv6" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV2IPv6" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_LsoV2IPv6.SelectedIndex -eq '1') {
         Write-Host "Enabling LsoV2IPv6" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV2IPv6" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV2IPv6" -Type "REG_SZ" -Data "1"
     }
 
     #Large-Send-Offload V1 (IPv4)
@@ -3193,12 +3212,12 @@ function applyadvsettings {
 
     elseif ($cb_LsoV1IPv4.SelectedIndex -eq '0') {
         Write-Host "Disabling LsoV1IPv4"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV1IPv4" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV1IPv4" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_LsoV1IPv4.SelectedIndex -eq '1') {
         Write-Host "Enabling LsoV1IPv4" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*LsoV1IPv4" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*LsoV1IPv4" -Type "REG_SZ" -Data "1"
     }
 
     #PMARPOffload
@@ -3208,12 +3227,12 @@ function applyadvsettings {
 
     elseif ($cb_PMARPOffload.SelectedIndex -eq '0') {
         Write-Host "Disabling PMARPOffload"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PMARPOffload" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PMARPOffload" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_PMARPOffload.SelectedIndex -eq '1') {
         Write-Host "Enabling PMARPOffload" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PMARPOffload" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PMARPOffload" -Type "REG_SZ" -Data "1"
     }
 
     #PMNSOffload
@@ -3223,12 +3242,12 @@ function applyadvsettings {
 
     elseif ($cb_PMNSOffload.SelectedIndex -eq '0') {
         Write-Host "Disabling PMNSOffload"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PMNSOffload" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PMNSOffload" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_PMNSOffload.SelectedIndex -eq '1') {
         Write-Host "Enabling PMNSOffload" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PMNSOffload" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PMNSOffload" -Type "REG_SZ" -Data "1"
     }
 
     #PriorityVLANTag
@@ -3238,22 +3257,22 @@ function applyadvsettings {
 
     elseif ($cb_PriorityVLANTag.SelectedIndex -eq '0') {
         Write-Host "Disabling PriorityVLANTag"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PriorityVLANTag" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PriorityVLANTag" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_PriorityVLANTag.SelectedIndex -eq '1') {
         Write-Host "Enabling Paketpriorität" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PriorityVLANTag" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PriorityVLANTag" -Type "REG_SZ" -Data "1"
     }
 
     elseif ($cb_PriorityVLANTag.SelectedIndex -eq '2') {
         Write-Host "Enabling VLAN" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PriorityVLANTag" -Value "2" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PriorityVLANTag" -Type "REG_SZ" -Data "2"
     }
 
     elseif ($cb_PriorityVLANTag.SelectedIndex -eq '3') {
         Write-Host "Enabling Paketpriorität and VLAN" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*PriorityVLANTag" -Value "3" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*PriorityVLANTag" -Type "REG_SZ" -Data "3"
     }
 
     #ReceiveBuffers
@@ -3262,7 +3281,7 @@ function applyadvsettings {
     }
     else {
         Write-Host "Set ReceiveBuffers to $($cb_ReceiveBuffers.Text)"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*ReceiveBuffers" -Value "$($cb_ReceiveBuffers.Text)" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*ReceiveBuffers" -Type "REG_SZ" -Data "$($cb_ReceiveBuffers.Text)"
     }
 
     #TransmitBuffers
@@ -3271,7 +3290,7 @@ function applyadvsettings {
     }
     else {
         Write-Host "Set TransmitBuffers to $($cb_TransmitBuffers.Text)"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*TransmitBuffers" -Value "$($cb_TransmitBuffers.Text)" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*TransmitBuffers" -Type "REG_SZ" -Data "$($cb_TransmitBuffers.Text)"
     }
 
     #InterruptModeration
@@ -3281,35 +3300,35 @@ function applyadvsettings {
 
     elseif ($cb_InterruptModeration.SelectedIndex -eq '0') {
         Write-Host "Disabling InterruptModeration"  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*InterruptModeration" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*InterruptModeration" -Type "REG_SZ" -Data "0"
     }
 
     elseif ($cb_InterruptModeration.SelectedIndex -eq '1') {
         Write-Host "Enabling InterruptModeration" -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "*InterruptModeration" -Value "1" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "*InterruptModeration" -Type "REG_SZ" -Data "1"
     }
 
     #InterruptModerationRate
     if ($cb_InterruptModerationRate.Text -match 'Disabled') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "0" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "0"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'Minimal') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "200" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "200"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'Low') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "400" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "400"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'Medium') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "950" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "950"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'High') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "2000" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "2000"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'Extreme') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "3600" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "3600"
     }
     elseif ($cb_InterruptModerationRate.Text -match 'Adaptive') {
-        Set-ItemProperty -Path "$KeyPath" -Name "ITR" -Value "65535" -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "ITR" -Type "REG_SZ" -Data "65535"
     }
     #For applications where low latency is critical, this setting should be approximately 8000 interrupts per second.
 
@@ -3323,7 +3342,7 @@ function applyadvsettings {
     }
     else {
         Write-Host "Set TxIntDelay to"$tb_TxIntDelay.Text  -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "TxIntDelay" -Value $tb_TxIntDelay.Text -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "TxIntDelay" -Type "REG_SZ" -Data $tb_TxIntDelay.Text
     }
     #PacketDirect
     if ($cb_PacketDirect.Text -match 'Undefined') {
@@ -3363,7 +3382,7 @@ function applyadvsettings {
     }
     else {
         Write-Host "Set CoalesceBufferSize to"$cb_CoalesceBufferSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "$KeyPath" -Name "CoalesceBufferSize" -Value $cb_CoalesceBufferSize.Text -Force
+        Set-RegistryValue -Path $KeyPathReg -Name "CoalesceBufferSize" -Type "REG_SZ" -Data $cb_CoalesceBufferSize.Text
     }
 
     #EnableUdpTxScaling
@@ -3565,6 +3584,7 @@ function Interrupt {
 }
 
 function bypassrssqueues {
+    Invoke-NetworkTweakRestorePoint
     $error.clear()
     try {
         Set-NetAdapterRss -InterfaceDescription $($Script:NIC_Desc) -BaseProcessorNumber $($cb_rssbaseproc.Text) -MaxProcessorNumber $($cb_rssmaxproc.Text)
@@ -3573,7 +3593,7 @@ function bypassrssqueues {
     if (!$error) {
         Write-Host 'No Error Occured, while Setting Set-NetAdapterRss without NumberOfReceiveQueues. Continued.'
         Write-Host "Using Registry now, to set RSS Queues to $($cb_rssqueues.Text)"
-        Set-ItemProperty -Path "$KeyPath\Ndi\Params\*NumRssQueues" -Name "default" -Value $cb_rssqueues.Text -Force -ErrorAction "Stop"
+        Set-RegistryValue -Path "$KeyPathReg\Ndi\Params\*NumRssQueues" -Name "default" -Type "REG_SZ" -Data $cb_rssqueues.Text
         Write-Host "Done."
     }
 }
@@ -3982,6 +4002,7 @@ function applyall {
 }
 
 function RegistryTweaks {
+    Invoke-NetworkTweakRestorePoint
     #$ErrorActionPreference = 'Continue'
     #DefaultReceiveWindow
     $A = ((Get-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters").PSObject.Properties.Name) -contains 'DefaultReceiveWindow'
@@ -3995,7 +4016,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDefaultReceiveWindow to"$cb_Afd_defaultrecWin.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_Afd_defaultrecWin.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Type "REG_SZ" -Data $cb_Afd_defaultrecWin.Text
     }
 
     #DefaultSendWindow
@@ -4010,7 +4031,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDefaultSendWindow to"$cb_Afd_defaultSendWin.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_Afd_defaultSendWin.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Type "REG_SZ" -Data $cb_Afd_defaultSendWin.Text
     }
 
     #DisableAddressSharing
@@ -4025,7 +4046,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDisableAddressSharing to"$cb_DisableAddressSharing.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing" -Value $cb_DisableAddressSharing.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing" -Type "REG_SZ" -Data $cb_DisableAddressSharing.Text
     }
 
     #BufferMultiplier
@@ -4040,7 +4061,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDBufferMultiplier to"$cb_BufferMultiplier.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier" -Value $cb_BufferMultiplier.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier" -Type "REG_SZ" -Data $cb_BufferMultiplier.Text
     }
 
     #BufferAlignment
@@ -4055,7 +4076,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDBufferAlignment to"$cb_BufferAlignment.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment" -Value $cb_BufferAlignment.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment" -Type "REG_SZ" -Data $cb_BufferAlignment.Text
     }
 
     #DoNotHoldNICBuffers
@@ -4070,7 +4091,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDoNotHoldNICBuffers to"$cb_DoNotHoldNICBuffers.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers" -Value $cb_DoNotHoldNICBuffers.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers" -Type "REG_SZ" -Data $cb_DoNotHoldNICBuffers.Text
     }
 
     #SmallBufferSize
@@ -4085,7 +4106,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDSmallBufferSize to"$cb_SmallBufferSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize" -Value $cb_SmallBufferSize.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize" -Type "REG_SZ" -Data $cb_SmallBufferSize.Text
     }
 
     #MediumBufferSize
@@ -4100,7 +4121,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDMediumBufferSize to"$cb_MediumBufferSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize" -Value $cb_MediumBufferSize.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize" -Type "REG_SZ" -Data $cb_MediumBufferSize.Text
     }
 
     #LargeBufferSize
@@ -4115,7 +4136,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDLargeBufferSize to"$cb_LargeBufferSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize" -Value $cb_LargeBufferSize.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize" -Type "REG_SZ" -Data $cb_LargeBufferSize.Text
     }
 
     #HugeBufferSize
@@ -4130,7 +4151,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDHugeBufferSize to"$cb_HugeBufferSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize" -Value $cb_HugeBufferSize.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize" -Type "REG_SZ" -Data $cb_HugeBufferSize.Text
     }
 
     #SmallBufferListDepth
@@ -4145,7 +4166,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDSmallBufferListDepth to"$cb_SmallBufferListDepth.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth" -Value $cb_SmallBufferListDepth.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth" -Type "REG_SZ" -Data $cb_SmallBufferListDepth.Text
     }
 
     #MediumBufferListDepth
@@ -4160,7 +4181,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDMediumBufferListDepth to"$cb_MediumBufferListDepth.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth" -Value $cb_MediumBufferListDepth.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth" -Type "REG_SZ" -Data $cb_MediumBufferListDepth.Text
     }
 
     #LargBufferListDepth
@@ -4175,7 +4196,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDLargBufferListDepth to"$cb_LargBufferListDepth.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth" -Value $cb_LargBufferListDepth.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth" -Type "REG_SZ" -Data $cb_LargBufferListDepth.Text
     }
 
     #DisableDirectAcceptEx
@@ -4190,7 +4211,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDisableDirectAcceptEx to"$cb_DisableDirectAcceptEx.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx" -Value $cb_DisableDirectAcceptEx.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx" -Type "REG_SZ" -Data $cb_DisableDirectAcceptEx.Text
     }
 
     #DisableChainedReceive
@@ -4205,7 +4226,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDisableChainedReceive to"$cb_DisableChainedReceive.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive" -Value $cb_DisableChainedReceive.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive" -Type "REG_SZ" -Data $cb_DisableChainedReceive.Text
     }
 
     #DisableRawSecurity
@@ -4220,7 +4241,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDisableRawSecurity to"$cb_DisableRawSecurity.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity" -Value $cb_DisableRawSecurity.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity" -Type "REG_SZ" -Data $cb_DisableRawSecurity.Text
     }
 
     #DynamicSendBufferDisable
@@ -4235,7 +4256,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDDynamicSendBufferDisable to"$cb_DynamicSendBufferDisable.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable" -Value $cb_DynamicSendBufferDisable.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable" -Type "REG_SZ" -Data $cb_DynamicSendBufferDisable.Text
     }
 
     #FastSendDatagramThreshold
@@ -4250,7 +4271,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDFastSendDatagramThreshold to"$cb_FastSendDatagramThreshold.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -Value $cb_FastSendDatagramThreshold.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -Type "REG_SZ" -Data $cb_FastSendDatagramThreshold.Text
     }
 
     #FastCopyReceiveThreshold
@@ -4265,7 +4286,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDFastCopyReceiveThreshold to"$cb_FastCopyReceiveThreshold.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -Value $cb_FastCopyReceiveThreshold.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -Type "REG_SZ" -Data $cb_FastCopyReceiveThreshold.Text
     }
 
     #IgnorePushBitOnReceives
@@ -4280,7 +4301,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDIgnorePushBitOnReceives to"$cb_IgnorePushBitOnReceives.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives" -Value $cb_IgnorePushBitOnReceives.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives" -Type "REG_SZ" -Data $cb_IgnorePushBitOnReceives.Text
     }
 
     #IgnoreOrderlyRelease
@@ -4295,7 +4316,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDIgnoreOrderlyRelease to"$cb_IgnoreOrderlyRelease.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease" -Value $cb_IgnoreOrderlyRelease.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease" -Type "REG_SZ" -Data $cb_IgnoreOrderlyRelease.Text
     }
 
     #TransmitWorker
@@ -4310,7 +4331,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDTransmitWorker to"$cb_TransmitWorker.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker" -Value $cb_TransmitWorker.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker" -Type "REG_SZ" -Data $cb_TransmitWorker.Text
     }
 
     #PriorityBoost
@@ -4325,7 +4346,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDPriorityBoost to"$cb_PriorityBoost.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost" -Value $cb_PriorityBoost.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost" -Type "REG_SZ" -Data $cb_PriorityBoost.Text
     }
 
     #IrpStackSize
@@ -4340,7 +4361,7 @@ function RegistryTweaks {
     }
     else {
         Write-Host "Set AFDIrpStackSize to"$cb_IrpStackSize.Text -ForegroundColor Green
-        Set-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize" -Value $cb_IrpStackSize.Text -Force
+        Set-RegistryValue -Path "HKLM\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize" -Type "REG_SZ" -Data $cb_IrpStackSize.Text
     }
 
 }

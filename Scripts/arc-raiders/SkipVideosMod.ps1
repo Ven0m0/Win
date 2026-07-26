@@ -20,6 +20,7 @@ param(
 )
 $ProgressPreference = 'SilentlyContinue'
 . "$PSScriptRoot\..\Common.ps1"
+$ErrorActionPreference = 'Stop'
 $script:Warn = '[!]'
 $script:Esc  = [char]27
 

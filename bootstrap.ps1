@@ -12,6 +12,11 @@
     ```powershell
     iwr https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1 -UseBasicParsing | iex
     ```
+
+    SECURITY NOTE: the `iwr | iex` one-liner above executes remote content with no
+    checksum or signature verification. For a safer install, download a tagged release
+    and verify its published SHA256 first, or clone the repo (`git clone`) and run
+    this script locally after reviewing it.
 .PARAMETER Unattended
     Skip all prompts and use defaults (no user interaction).
 .PARAMETER Force
