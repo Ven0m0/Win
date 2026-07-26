@@ -5,6 +5,8 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 . "$PSScriptRoot\..\Common.ps1"
 
+New-RestorePoint -Description 'Before QoS priority registry changes'
+
 # === QoS Registry Implementation (Home/Pro compatible) ===
 $qosPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\QoS'
 if (-not (Test-Path -Path $qosPath)) {
@@ -38,8 +40,9 @@ foreach ($game in $qosGames.GetEnumerator()) {
     'Throttle Rate'           = '-1'
   }
 
+  $regPath = $gamePath -replace '^HKLM:\\', 'HKLM\'
   foreach ($prop in $props.GetEnumerator()) {
-    Set-ItemProperty -Path $gamePath -Name $prop.Name -Value $prop.Value -Type String
+    Set-RegistryValue -Path $regPath -Name $prop.Name -Type REG_SZ -Data $prop.Value
   }
 }
 

@@ -996,7 +996,7 @@ function Remove-Glob {
         if ($PSCmdlet.ShouldProcess($item.FullName, 'Remove')) {
             Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
         }
-        Write-Host "  DEL  $($item.FullName)"
+        Write-Verbose "  DEL  $($item.FullName)"
     }
 }
 
@@ -1047,7 +1047,7 @@ public class $TypeName {
         try {
             $method = [type]$TypeName
             $method::TrimAll()
-            Write-Host "  Working sets trimmed."
+            Write-Verbose "  Working sets trimmed."
         }
         catch {
             Write-Verbose "Working set trim skipped: $_"
@@ -1058,7 +1058,7 @@ public class $TypeName {
         try {
             $method = [type]$TypeName
             $method::PurgeStandby()
-            Write-Host "  Standby list purged."
+            Write-Verbose "  Standby list purged."
         }
         catch {
             Write-Verbose "Standby purge skipped: $_"

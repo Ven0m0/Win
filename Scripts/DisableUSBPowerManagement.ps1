@@ -1,4 +1,6 @@
-﻿# Title
+﻿#Requires -Version 5.1
+
+# Title
 Clear-Host
 Write-Host ""
 Write-Host "-----------------------------------------------------------------"
@@ -12,7 +14,7 @@ Write-Host ""
 Write-Host "Disabling USB's Power Management..."
 
 # Config.
-$ErrorActionPreference = 'Continue'
+$ErrorActionPreference = 'Stop'
 $VerbosePreference     = 'Continue'
 
 # Counters.
@@ -28,7 +30,7 @@ Write-Host "Querying WMI — this may take a moment...`n"
 # Win32_USBHub would.
 try {
     $devices = Get-CimInstance -ClassName Win32_PnPEntity |
-      Where-Object { $_.PNPDeviceID -ne $null }
+      Where-Object { $null -ne $_.PNPDeviceID }
 } catch {
     Write-Error "Failed to query Win32_PnPEntity: $_"
     exit 1
@@ -89,9 +91,9 @@ Write-Host ""
 
 if ($failed -gt 0) {
     Write-Warning "Some devices could not be updated. Check the warnings above."
-    exit 1
 } else {
     Write-Host "Done. All applicable devices have USB power management disabled." -ForegroundColor Green
+}
 
 # End of Script
 Write-Host ""
@@ -99,4 +101,7 @@ Write-Host "-----------------------------------------------------------------"
 Write-Host "----------------------- Script completed! -----------------------"
 Write-Host "-----------------------------------------------------------------"
 Read-Host "Press 'Enter' to exit"
+
+if ($failed -gt 0) {
+    exit 1
 }

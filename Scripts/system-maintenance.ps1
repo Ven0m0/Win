@@ -513,8 +513,10 @@ function Start-UltimateDiskCleanup {
     # WaasMedic log requires ownership change before removal
     $waasPath = "$env:SystemRoot\Logs\waasmedic"
     if (Test-Path -Path $waasPath) {
-      $null = & takeown.exe /f $waasPath /r /d y 2>&1
-      $null = & icacls.exe $waasPath /grant 'administrators:F' /t 2>&1
+      if ($PSCmdlet.ShouldProcess($waasPath, 'Grant administrators full control')) {
+        $null = & takeown.exe /f $waasPath /r /d y 2>&1
+        $null = & icacls.exe $waasPath /grant 'administrators:F' /t 2>&1
+      }
       Clear-DirectorySafe -Path $waasPath
     }
   }
