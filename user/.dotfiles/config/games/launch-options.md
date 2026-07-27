@@ -10,7 +10,7 @@ Steam games:
 
 Arc-Raiders:
 ```text
-"C:\Program Files (x86)\Steam\steamapps\common\Arc Raiders\PioneerGame\Binaries\Win64\PioneerGame-d.exe" %command% -dx12 -nojoy -high
+"C:\Program Files (x86)\Steam\steamapps\common\Arc Raiders\PioneerGame\Binaries\Win64\PioneerGame.exe" %command% -dx12
 ```
 
 Epicgames:
