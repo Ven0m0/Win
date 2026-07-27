@@ -178,8 +178,6 @@
 
     # ---------------------------------------------------------------------------
     # Manual installs — no winget package; installed via dedicated script
-    # GraalVM is installed via mise instead (see user/.dotfiles/config/mise/config.toml,
-    # "java" = "oracle-graalvm" — always tracks the latest release, no script needed).
     # ---------------------------------------------------------------------------
     ManualInstalls     = @(
         @{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
@@ -190,9 +188,15 @@
     # ---------------------------------------------------------------------------
     ScoopBuckets       = @(
         'extras'
+        'java'
     )
 
+    # graalvm-oracle-jdk is Oracle GraalVM (GraalVM Free Terms and Conditions license,
+    # includes native-image and the enterprise Truffle/SVM modules) - NOT graalvm-jdk,
+    # graalvm25-jdk, or graalvm-jdk-dev, which are all GraalVM Community Edition (GPL-2.0)
+    # despite similar names. Sets JAVA_HOME/GRAALVM_HOME itself via the manifest's env_set.
     ScoopPackages      = @(
+        'graalvm-oracle-jdk'
         'jq'
         'scoop-search'
         'yq'

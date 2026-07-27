@@ -13,6 +13,10 @@
 # Source → Target map (see Scripts/Setup-Dotfiles.ps1 $configManifest for the
 # authoritative, executable version of this list):
 #   powershell\Microsoft.PowerShell_profile.ps1  → ~/Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+#   .editorconfig                                  → ~/.editorconfig
+#   git\.gitconfig                                 → ~/.gitconfig
+#   git\.gitignore                                 → ~/.gitignore
+#   ssh\config                                     → ~/.ssh/config
 #   windows-terminal\settings.json                → %LOCALAPPDATA%\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json
 #   bleachbit\cleaners\*.xml                       → %APPDATA%\BleachBit\cleaners\
 #   browser\firefox\user.js                        → %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
