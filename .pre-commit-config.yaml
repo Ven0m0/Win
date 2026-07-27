@@ -4,7 +4,7 @@ ci:
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.22
+    rev: v0.16.0
     hooks:
       # Run linter and auto-fix issues
       - id: ruff
@@ -47,7 +47,7 @@ repos:
       - id: check-symlinks
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.278.5
+    rev: 43.285.0
     hooks:
       - id: renovate-config-validator
 
