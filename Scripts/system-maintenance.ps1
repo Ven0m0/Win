@@ -698,7 +698,11 @@ function Start-DriverCleanup {
 # ---------------------------------------------------------------------------
 if ($MyInvocation.InvocationName -ne '.') {
   try {
-    Request-AdminElevation
+    if ($DryRun) {
+      Write-Verbose "Skipping admin elevation: -DryRun is a preview and makes no changes."
+    } else {
+      Request-AdminElevation
+    }
 
     switch ($Action) {
       'Defrag' {
