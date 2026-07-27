@@ -71,12 +71,20 @@ Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig]
 "BypassCPUCheck"=dword:00000001
-"BypassRAMCheck"=dword:00000001
-"BypassSecureBootCheck"=dword:00000001
 "BypassStorageCheck"=dword:00000001
+"BypassRAMCheck"=dword:00000001
 "BypassTPMCheck"=dword:00000001
+"BypassSecureBootCheck"=dword:00000001
+"BypassNRO"=dword:00000001
+"OOBEBypassNRO"=dword:00000001
+"BypassMSARequirement"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SYSTEM\Setup\MoSetup]
+"BypassCPUCheck"=dword:00000001
+"BypassStorageCheck"=dword:00000001
+"BypassRAMCheck"=dword:00000001
+"BypassTPMCheck"=dword:00000001
+"BypassSecureBootCheck"=dword:00000001
 "AllowUpgradesWithUnsupportedTPMOrCPU"=dword:00000001
 
 ; Disable show recently added apps and recommendations
@@ -283,6 +291,13 @@ Windows Registry Editor Version 5.00
 "NtfsDisable8dot3NameCreation"=dword:00000001
 "NtfsEnableTxfDeprecatedFunctionality"=dword:00000000
 
+[HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\FileSystem]
+"NtfsDisable8dot3NameCreation"=dword:00000001
+"NtfsDisableCompression"=dword:00000001
+"NtfsDisableEncryption"=dword:00000001
+"LongPathsEnabled"=dword:00000001
+"DisableDeleteNotification"=dword:00000001
+
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Psched]
 "NonBestEffortLimit"=dword:00000000
 "TimerResolution"=dword:00000001
@@ -292,3 +307,7 @@ Windows Registry Editor Version 5.00
 "EnablePrefetcher"=dword:00000000
 "EnableBoottrace"=dword:00000000
 "SfTracingState"=dword:00000000
+
+; Fix ctfmon
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Input]
+"InputServiceEnabledForCCI"=dword:00000000

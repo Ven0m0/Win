@@ -21,8 +21,6 @@ As seen on: https://www.tiktok.com/@giraintech/video/7583879890265558280
 uv run snap-mem.py --json memories_history.json --out ./memories
 ```
 
-> **Tip for macOS users:** If you want to save directly to an external drive, use the path format `/Volumes/Name_of_Drive`.
-
 ## Requirements
 - [uv](https://docs.astral.sh/uv/) — the script declares its own dependencies (`windows-curses` on Windows, `exif`) via inline PEP 723 metadata, so `uv run` resolves them automatically, no separate install step
 - Python 3.13+
