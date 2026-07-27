@@ -1,0 +1,1 @@
+- [ ] analyze if https://github.com/arsenzaaa/DEVICE-TWEAKER would actually be beneficial for my system. Use octocode, github mcp server, exa and websearch/webfetch to search through the repo

@@ -6,6 +6,7 @@
 .github-personal-access-token
 .gitconfig.local
 .gitconfig
+!user/.dotfiles/config/git/.gitconfig
 
 ## Local dotfile customizations (not tracked)
 .config/powershell/local.ps1

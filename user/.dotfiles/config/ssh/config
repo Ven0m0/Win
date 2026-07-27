@@ -1,0 +1,17 @@
+Host *
+  Protocol 2
+  Compression no
+  TCPKeepAlive yes
+  IgnoreUnknown UseKeychain
+  SetEnv TERM="xterm-256color"
+  UseKeyChain yes
+  IPQoS ef af11
+  LogLevel Error
+
+Host pi4
+  HostName 192.168.178.81
+  User dietpi
+  IdentityFile ~/.ssh/pi4
+  ControlPersist yes
+  Compression no
+  IPQoS ef af11

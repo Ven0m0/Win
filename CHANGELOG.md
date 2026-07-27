@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - RegistryTweaks10.reg: UAC-disabling keys (EnableLUA=0) commented out; must be explicitly uncommented to apply
 - Global `$ErrorActionPreference` changed from `'Continue'` to `'Stop'` in 3 scripts (ARCRaidersUtility, Network-Tweaker, UltimateDiskCleanup)
 - Deploy-Config.ps1: removed duplicate header; added relationship note to canonical Setup-Dotfiles.ps1
+- GraalVM now installed via scoop `java/graalvm-oracle-jdk` (Oracle GraalVM, GFTC license) instead of mise; priority.reg javaw.exe GPU-preference paths corrected to match
 
 ### Fixed
 - CI summary job now includes `deploy-dry-run` result

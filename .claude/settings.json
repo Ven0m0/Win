@@ -130,6 +130,30 @@
             "timeout": 60
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notmatch '[.]py$') { exit 0 }; if (-not (Get-Command ruff -ErrorAction SilentlyContinue)) { exit 0 }; & ruff check -- $fp; if ($LASTEXITCODE -ne 0) { exit 1 }",
+            "shell": "powershell",
+            "statusMessage": "Running ruff check...",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notmatch '[.]jsonc?$') { exit 0 }; if (-not (Get-Command biome -ErrorAction SilentlyContinue)) { exit 0 }; & biome check -- $fp; if ($LASTEXITCODE -ne 0) { exit 1 }",
+            "shell": "powershell",
+            "statusMessage": "Running biome check...",
+            "timeout": 30
+          }
+        ]
       }
     ]
   },

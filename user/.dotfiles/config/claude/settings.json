@@ -26,14 +26,13 @@
     "CLAUDE_CODE_SKIP_VERTEX_AUTH": "1",
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "CLAUDE_CODE_SHELL": "bash",
     "ANTHROPIC_MODEL": "opusplan",
     "NO_COLOR": "1",
     "LC_ALL": "C",
     "BASH_DEFAULT_TIMEOUT_MS": "120000",
     "BASH_MAX_TIMEOUT_MS": "600000",
     "BASH_MAX_OUTPUT_LENGTH": "65536",
-    "MCP_TIMEOUT": "30000",
+    "MCP_TIMEOUT": "60000",
     "MCP_TOOL_TIMEOUT": "120000",
     "MAX_MCP_OUTPUT_TOKENS": "25000",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "63999",
@@ -142,16 +141,6 @@
         ]
       },
       {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      },
-      {
         "matcher": "Edit",
         "hooks": [
           {
@@ -186,83 +175,7 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "TeammateIdle": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "matcher": "Edit",
         "hooks": [
@@ -296,30 +209,6 @@
             "shell": "powershell",
             "statusMessage": "Running matching Pester test...",
             "timeout": 60
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [ -f 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd' ]; then 'C:/Users/Ven0m0/.orca/agent-hooks/claude-hook.cmd'; else cat >/dev/null 2>&1 || :; fi",
-            "timeout": 10
           }
         ]
       }
@@ -426,6 +315,18 @@
       "type": "stdio",
       "command": "bunx",
       "args": ["--bun", "@playwright/mcp@latest", "--headless"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["--bun", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {}
+    },
+    "fast-filesystem-mcp": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["--bun", "fast-filesystem-mcp@latest"],
+      "env": {}
     }
   }
 }

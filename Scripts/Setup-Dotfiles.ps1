@@ -645,6 +645,30 @@ function Start-Bootstrap {
             ResolveDestination = { $PROFILE }
         },
         @{
+            Path               = '.editorconfig'
+            Mode               = 'file'
+            Label              = 'Global EditorConfig'
+            ResolveDestination = { Join-Path $HOME '.editorconfig' }
+        },
+        @{
+            Path               = 'git\.gitconfig'
+            Mode               = 'file'
+            Label              = 'Git global config'
+            ResolveDestination = { Join-Path $HOME '.gitconfig' }
+        },
+        @{
+            Path               = 'git\.gitignore'
+            Mode               = 'file'
+            Label              = 'Git global gitignore'
+            ResolveDestination = { Join-Path $HOME '.gitignore' }
+        },
+        @{
+            Path               = 'ssh\config'
+            Mode               = 'file'
+            Label              = 'SSH client config'
+            ResolveDestination = { Join-Path $HOME '.ssh\config' }
+        },
+        @{
             Path               = 'windows-terminal\settings.json'
             Mode               = 'file'
             Label              = 'Windows Terminal settings'
