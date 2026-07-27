@@ -211,28 +211,16 @@ function Start-AdditionalMaintenance {
       }
   }
 
-  # 2. DISM Component Store Analysis
-  Write-Info "=== DISM Component Store Analysis ==="
-  Invoke-Operation -Name 'DISM_ComponentAnalysis' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-    -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /AnalyzeComponentStore'
+  # 2. System file check + component store repair (sfc + DISM in one pass)
+  # WARNING: DISM /RestoreHealth can take 30+ minutes and may require a reboot.
+  Write-Info "=== System File Check (sfc /scannow) ==="
+  Invoke-Operation -Name 'SFC_ScanNow' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+    -Action {} -Command 'sfc.exe' -ArgumentList '/scannow'
 
-  # 2a. DISM Component Cleanup
-  Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-    -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
-
-  # 2b. DISM RestoreHealth (aggressive - use when system corruption or update issues occur)
-  # WARNING: This operation can take 30+ minutes and requires a reboot
-  # Only run this if you are experiencing system issues, not for regular maintenance
-  Write-Info "=== DISM RestoreHealth ==="
+  Write-Info "=== DISM RestoreHealth + Component Cleanup ==="
   Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
-  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-    -Action {} -Command 'DISM' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
-
-  # 2c. DISM Wim/Mountpoint cleanup (stale offline-image mounts and superseded WIM resources)
-  Invoke-Operation -Name 'DISM_WimCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-    -Action {} -Command 'DISM' -ArgumentList '/Cleanup-Wim'
-  Invoke-Operation -Name 'DISM_MountpointCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' `
-    -Action {} -Command 'DISM' -ArgumentList '/Cleanup-Mountpoints'
+  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth /StartComponentCleanup'
 
   # 2d. Windows Update download cache
   Invoke-Operation -Name 'WindowsUpdateCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
