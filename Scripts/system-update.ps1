@@ -947,8 +947,7 @@ function Invoke-WingetUpgradeHook {
 # --- Execute managers -----------------------------------------------------------
 if ($script:UseTopgrade) {
     Invoke-Update -Name 'Topgrade' -Title 'Topgrade (all-in-one updater)' -Action {
-        $topgradeRun = Invoke-StreamingCapture -ScriptBlock { topgrade --yes --no-retry }
-        $out = Read-CapturedOutput $topgradeRun.OutputPath
+        Invoke-StreamingCapture -ScriptBlock { topgrade --yes --no-retry } | Out-Null
         $script:stepChanged = $true
         $script:stepMessage = 'topgrade run completed (package managers + dev tools)'
     }
