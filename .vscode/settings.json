@@ -1,4 +1,7 @@
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv",
-    "python.languageServer": "None"
+    "python.languageServer": "None",
+    "basedpyright.analysis.extraPaths": [
+        "meta/dotbot"
+    ],
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv"
 }
