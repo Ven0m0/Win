@@ -42,7 +42,7 @@
     "context7": {
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
-      "enabled": false
+      "enabled": true
     },
     "filesystem": {
       "type": "local",
@@ -51,10 +51,9 @@
       ]
     },
     "exa": {
-      "type": "local",
-      "command": [
-        "npx", "-y", "mcp-remote", "https://mcp.exa.ai/mcp"
-      ]
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp",
+      "enabled": true
     }
   },
   "auto_collapse_reasoning": true,

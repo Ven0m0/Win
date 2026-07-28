@@ -35,7 +35,7 @@
       "value": "1"
     }
 ],
-"python.defaultInterpreterPath": "",
+"workbench.startupEditor": "none",
 "json.schemaDownload.trustedDomains": {
     "https://schemastore.azurewebsites.net/": true,
     "https://raw.githubusercontent.com/microsoft/vscode/": true,
@@ -106,5 +106,14 @@
   }
 },
 "terminal.integrated.defaultProfile.windows": "PowerShell",
-"terminal.integrated.enableImages": true
+"terminal.integrated.enableImages": true,
+"terminal.integrated.allowInUntrustedWorkspace": true,
+"yaml.disableSchemaDetection": [
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+]
 }

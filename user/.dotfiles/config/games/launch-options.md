@@ -1,6 +1,6 @@
 Steam:
 ```text
-"C:\Program Files (x86)\Steam\Steam.exe" -nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser +open steam://open/minigameslist
+"C:\Program Files (x86)\Steam\Steam.exe" -nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser -silent -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite -skipstreamingdrivers -oldtraymenu
 ```
 
 Steam games:
@@ -13,10 +13,13 @@ Arc-Raiders:
 "C:\Program Files (x86)\Steam\steamapps\common\Arc Raiders\PioneerGame\Binaries\Win64\PioneerGame.exe" %command% -dx12
 ```
 
-Epicgames:
+Fortnite:
 ```text
--limitclientticks -lanplay -NOSPLASH -NOFORCEFEEDBACK -NOTEXTURESTREAMING -USEALLAVAILABLECORES -FrameQueueLimit 1 -NoVSync -nomoviestartup
+-limitclientticks -lanplay -NOSPLASH -NOFORCEFEEDBACK -NOTEXTURESTREAMING -USEALLAVAILABLECORES -FrameQueueLimit 1 -NoVSync -nomoviestartup -d3d12 -FeatureLevelEs31
 ```
+
+- Fortnite perf mode: `-d3d12 -FeatureLevelEs31`
+- Fortnite Dx12 normal `-d3d12 -sm6`
 
 Minecraft [graalvm](https://www.graalvm.org/downloads/):
 ```text

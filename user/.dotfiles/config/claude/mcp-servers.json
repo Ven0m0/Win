@@ -1,0 +1,34 @@
+{
+  "codegraph": {
+    "type": "stdio",
+    "command": "codegraph",
+    "args": ["serve", "--mcp"]
+  },
+  "serena": {
+    "type": "stdio",
+    "command": "uvx",
+    "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "claude-code"],
+    "env": {}
+  },
+  "octocode": {
+    "type": "stdio",
+    "command": "bunx",
+    "args": ["--bun", "octocode-mcp@latest"],
+    "env": {
+      "ENABLE_LOCAL": "true",
+      "LOG": "false"
+    }
+  },
+  "sequential-thinking": {
+    "type": "stdio",
+    "command": "bunx",
+    "args": ["--bun", "@modelcontextprotocol/server-sequential-thinking"],
+    "env": {}
+  },
+  "fast-filesystem-mcp": {
+    "type": "stdio",
+    "command": "bunx",
+    "args": ["--bun", "fast-filesystem-mcp@latest"],
+    "env": {}
+  }
+}
