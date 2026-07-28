@@ -27,7 +27,8 @@
 .PARAMETER NoRestorePoint
   For the Extra action, skip creating a system restore point.
 .PARAMETER DryRun
-  Show what would run without executing (Defrag and Extra actions).
+  Show what would run without executing (Defrag and Extra actions). Suppresses the maintenance
+  log file write for Extra, since no maintenance actually ran.
 .EXAMPLE
   .\system-maintenance.ps1 -Action Defrag -AllVolumes
 .EXAMPLE
@@ -89,16 +90,12 @@ function Invoke-Defrag {
     Write-Verbose "Defrag: all volumes retrim (/C /L)"
     Invoke-DefragCommand -Arguments '/C /L'
   } else {
+    # /O picks the proper optimization for the volume's media type (SSD retrim vs HDD defrag),
+    # so per-media-type flags (/X, /G tiered-only, /B) are redundant or unsupported and were dropped.
     Write-Verbose "Defrag: optimize $TargetVolume (/O)"
     Invoke-DefragCommand -Arguments "$TargetVolume /O"
     Write-Verbose "Defrag: retrim $TargetVolume (/L)"
     Invoke-DefragCommand -Arguments "$TargetVolume /L"
-    Write-Verbose "Defrag: free-space consolidate $TargetVolume (/X)"
-    Invoke-DefragCommand -Arguments "$TargetVolume /X"
-    Write-Verbose "Defrag: storage tier optimize $TargetVolume (/G)"
-    Invoke-DefragCommand -Arguments "$TargetVolume /G"
-    Write-Verbose "Defrag: boot optimization $TargetVolume (/B)"
-    Invoke-DefragCommand -Arguments "$TargetVolume /B"
   }
 }
 
@@ -219,8 +216,12 @@ function Start-AdditionalMaintenance {
 
   Write-Info "=== DISM RestoreHealth + Component Cleanup ==="
   Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
+  # /Cleanup-Image accepts one operation per invocation, so RestoreHealth and
+  # StartComponentCleanup must run as separate DISM calls.
   Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
-    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth /StartComponentCleanup'
+    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
+  Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
 
   # 2d. Windows Update download cache
   Invoke-Operation -Name 'WindowsUpdateCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
@@ -236,7 +237,7 @@ function Start-AdditionalMaintenance {
   # 4. Clear BITS Queue
   Invoke-Operation -Name 'BITSClear' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
     Import-Module -Name BitsTransfer -ErrorAction SilentlyContinue
-    Get-BitsTransfer -AllUsers | Remove-BitsTransfer -ErrorAction SilentlyContinue
+    Get-BitsTransfer -AllUsers -ErrorAction SilentlyContinue | Remove-BitsTransfer -ErrorAction SilentlyContinue
   }
 
   # 5. Rebuild Font Cache
@@ -308,11 +309,13 @@ function Start-AdditionalMaintenance {
   # Display summary
   Show-Summary -Results $Results -StartTime $StartTime
 
-  # Write log file
-  $logFileName = "maintenance-log-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
-  $logFile = Join-Path -Path $PSScriptRoot -ChildPath $logFileName
-  Get-Log | Out-File -FilePath $logFile
-  Write-Info "Log written to: $logFile"
+  # Write log file (skipped under -DryRun since no maintenance actually ran)
+  if (-not $DryRun) {
+    $logFileName = "maintenance-log-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $logFile = Join-Path -Path $env:TEMP -ChildPath $logFileName
+    Get-Log | Out-File -FilePath $logFile
+    Write-Info "Log written to: $logFile"
+  }
 
   Write-Warn "NOTE: Some changes may require a restart to take full effect."
 }
@@ -700,7 +703,11 @@ if ($MyInvocation.InvocationName -ne '.') {
           Write-Verbose "Skip defrag (-NoDefrag)."
         }
         if (-not $NoMsi) {
-          Invoke-MsiCleanup -Root $MsiDir
+          if (Test-Path -LiteralPath $MsiDir -PathType Container) {
+            Invoke-MsiCleanup -Root $MsiDir
+          } else {
+            Write-Verbose "Skip MSI cleanup: not found at $MsiDir."
+          }
         } else {
           Write-Verbose "Skip MSI cleanup (-NoMsi)."
         }
@@ -721,7 +728,7 @@ if ($MyInvocation.InvocationName -ne '.') {
         if (-not $NoDefrag) {
           Invoke-Defrag -TargetVolume $Volume -All:$AllVolumes
         }
-        if (-not $NoMsi) {
+        if (-not $NoMsi -and (Test-Path -LiteralPath $MsiDir -PathType Container)) {
           Invoke-MsiCleanup -Root $MsiDir
         }
         Invoke-ShaderCacheCleanup

@@ -14,12 +14,9 @@ Describe "Invoke-Defrag" {
 
         Invoke-Defrag -TargetVolume "D:"
 
-        Should -Invoke Invoke-CommandChecked -Times 5
+        Should -Invoke Invoke-CommandChecked -Times 2
         Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /O" } -Times 1
         Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /L" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /X" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /G" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /B" } -Times 1
     }
 
     It "Should run correct defrag commands for all volumes" {
@@ -83,7 +80,9 @@ Describe "Start-AdditionalMaintenance" {
             Start-AdditionalMaintenance -DryRun
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' -and $DryRun } `
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' -and $DryRun } `
+                -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_RestoreHealth' -and $DryRun } `
                 -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } `
                 -Times 1
@@ -117,7 +116,7 @@ Describe "Start-AdditionalMaintenance" {
             Start-AdditionalMaintenance -NoRestorePoint
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' } -Times 0
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentAnalysis' } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' } -Times 1
         }
     }
 }
@@ -186,7 +185,7 @@ Describe "Invoke-ShaderCacheCleanup" {
             Invoke-ShaderCacheCleanup
 
             Assert-MockCalled Stop-SteamGracefully -Times 1
-            Assert-MockCalled Clear-DirectorySafe -Exactly 25
+            Assert-MockCalled Clear-DirectorySafe -Exactly 31
             Assert-MockCalled Remove-Item -Times 1 -ParameterFilter { $Path -eq "C:\Steam\.crash" }
         }
     }
