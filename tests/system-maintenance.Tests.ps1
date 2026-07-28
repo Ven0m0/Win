@@ -9,26 +9,33 @@ BeforeAll {
 
 Describe "Invoke-Defrag" {
     It "Should run correct defrag commands for a target volume" {
-        Mock Invoke-CommandChecked {}
-        Mock Write-Verbose {}
+        Mock defrag.exe { $global:LASTEXITCODE = 0 }
+        Mock Write-Info {}
 
         Invoke-Defrag -TargetVolume "D:"
 
-        Should -Invoke Invoke-CommandChecked -Times 2
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /O" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "D: /L" } -Times 1
+        Should -Invoke defrag.exe -Times 2
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "D: /O" } -Times 1
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "D: /L" } -Times 1
     }
 
     It "Should run correct defrag commands for all volumes" {
-        Mock Invoke-CommandChecked {}
-        Mock Write-Verbose {}
+        Mock defrag.exe { $global:LASTEXITCODE = 0 }
+        Mock Write-Info {}
 
         Invoke-Defrag -All
 
-        Should -Invoke Invoke-CommandChecked -Times 3
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "/C" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "/C /O" } -Times 1
-        Should -Invoke Invoke-CommandChecked -ParameterFilter { $ArgumentList -eq "/C /L" } -Times 1
+        Should -Invoke defrag.exe -Times 3
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C" } -Times 1
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C /O" } -Times 1
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C /L" } -Times 1
+    }
+
+    It "Should throw when defrag.exe exits non-zero" {
+        Mock defrag.exe { $global:LASTEXITCODE = 1 }
+        Mock Write-Info {}
+
+        { Invoke-Defrag -TargetVolume "D:" } | Should -Throw "*defrag failed*"
     }
 }
 
@@ -46,7 +53,7 @@ Describe "Invoke-MsiCleanup" {
         Mock Remove-Item {}
         Mock New-Item {}
         Mock Move-Item {}
-        Mock Write-Verbose {}
+        Mock Write-Success {}
 
         Invoke-MsiCleanup -Root "C:\MSI"
 

@@ -72,8 +72,11 @@ function Invoke-DefragCommand {
     Write-Information "DRY: defrag $Arguments" -InformationAction Continue
     return
   }
-  Write-Verbose "Run: defrag $Arguments"
-  $null = Invoke-CommandChecked -FilePath 'defrag.exe' -ArgumentList $Arguments
+  Write-Info "defrag $Arguments"
+  & defrag.exe $Arguments.Split(' ')
+  if ($LASTEXITCODE -ne 0) {
+    throw "defrag failed (exit $LASTEXITCODE): defrag $Arguments"
+  }
 }
 
 function Invoke-Defrag {
@@ -83,20 +86,21 @@ function Invoke-Defrag {
     [switch]$All
   )
   if ($All) {
-    Write-Verbose "Defrag: all volumes full pass (/C)"
+    Write-Info "Defrag: all volumes full pass (/C)"
     Invoke-DefragCommand -Arguments '/C'
-    Write-Verbose "Defrag: all volumes optimize (/C /O)"
+    Write-Info "Defrag: all volumes optimize (/C /O)"
     Invoke-DefragCommand -Arguments '/C /O'
-    Write-Verbose "Defrag: all volumes retrim (/C /L)"
+    Write-Info "Defrag: all volumes retrim (/C /L)"
     Invoke-DefragCommand -Arguments '/C /L'
   } else {
     # /O picks the proper optimization for the volume's media type (SSD retrim vs HDD defrag),
     # so per-media-type flags (/X, /G tiered-only, /B) are redundant or unsupported and were dropped.
-    Write-Verbose "Defrag: optimize $TargetVolume (/O)"
+    Write-Info "Defrag: optimize $TargetVolume (/O)"
     Invoke-DefragCommand -Arguments "$TargetVolume /O"
-    Write-Verbose "Defrag: retrim $TargetVolume (/L)"
+    Write-Info "Defrag: retrim $TargetVolume (/L)"
     Invoke-DefragCommand -Arguments "$TargetVolume /L"
   }
+  Write-Success "Defrag complete."
 }
 
 function Invoke-MsiCleanup {
@@ -176,7 +180,7 @@ function Invoke-MsiCleanup {
     }
   }
 
-  Write-Verbose "MSI cleanup done."
+  Write-Success "MSI cleanup done."
 }
 
 
@@ -599,25 +603,25 @@ function Invoke-ShaderCacheCleanup {
   }
   Remove-Item -Path "$STEAM\.crash" -Force -ErrorAction SilentlyContinue
 
-  Write-Verbose 'Clearing Steam logs...'
+  Write-Info 'Clearing Steam logs...'
   Clear-DirectorySafe -Path "$STEAM\logs"
 
-  Write-Verbose 'Clearing Steam dumps...'
+  Write-Info 'Clearing Steam dumps...'
   Clear-DirectorySafe -Path "$STEAM\dumps"
 
-  Write-Verbose 'Clearing Steam web/http cache...'
+  Write-Info 'Clearing Steam web/http cache...'
   Clear-DirectorySafe -Path "$STEAM\appcache\httpcache"
   Clear-DirectorySafe -Path "$STEAM\config\htmlcache"
   Clear-DirectorySafe -Path "$env:LOCALAPPDATA\Steam\htmlcache"
   Get-ChildItem -Path "$STEAM\steamapps\downloading\*" -Force -ErrorAction SilentlyContinue |
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 
-  Write-Verbose 'Clearing Epic Games Launcher cache...'
+  Write-Info 'Clearing Epic Games Launcher cache...'
   foreach ($webCacheDir in @('webcache', 'webcache_4147', 'webcache_4430')) {
     Clear-DirectorySafe -Path "$env:LOCALAPPDATA\EpicGamesLauncher\Saved\$webCacheDir"
   }
 
-  Write-Verbose 'Clearing app crash dumps...'
+  Write-Info 'Clearing app crash dumps...'
   foreach ($app in $apps) {
     if ($app.exe) {
       $dir = Split-Path -Path $app.exe
@@ -626,7 +630,7 @@ function Invoke-ShaderCacheCleanup {
     }
   }
 
-  Write-Verbose 'Clearing app shader cache...'
+  Write-Info 'Clearing app shader cache...'
   $allTargets = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
   foreach ($app in $apps) {
     if ($app.game)      { $null = $allTargets.Add("$($app.game)\shadercache") }
@@ -637,13 +641,13 @@ function Invoke-ShaderCacheCleanup {
   }
   foreach ($t in $allTargets) { Clear-DirectorySafe -Path $t }
 
-  Write-Verbose 'Clearing NVIDIA Compute cache...'
+  Write-Info 'Clearing NVIDIA Compute cache...'
   Clear-DirectorySafe -Path "$env:APPDATA\NVIDIA\ComputeCache"
 
-  Write-Verbose 'Clearing NV_Cache...'
+  Write-Info 'Clearing NV_Cache...'
   Clear-DirectorySafe -Path "$env:ProgramData\NVIDIA Corporation\NV_Cache"
 
-  Write-Verbose 'Clearing local shader caches...'
+  Write-Info 'Clearing local shader caches...'
   foreach ($entry in @(
     'D3DSCache', 'NVIDIA\GLCache', 'NVIDIA\DXCache', 'NVIDIA\OptixCache',
     'NVIDIA Corporation\NV_Cache', 'AMD\DX9Cache', 'AMD\DxCache', 'AMD\DxcCache',
@@ -652,7 +656,7 @@ function Invoke-ShaderCacheCleanup {
     Clear-DirectorySafe -Path "$env:LOCALAPPDATA\$entry"
   }
 
-  Write-Verbose 'Clearing LocalLow shader caches...'
+  Write-Info 'Clearing LocalLow shader caches...'
   $localLow = Join-Path -Path $env:LOCALAPPDATA -ChildPath '..\LocalLow'
   foreach ($entry in @(
     'NVIDIA\PerDriverVersion\DXCache', 'NVIDIA\PerDriverVersion\GLCache', 'Intel\ShaderCache'
@@ -660,12 +664,12 @@ function Invoke-ShaderCacheCleanup {
     Clear-DirectorySafe -Path "$localLow\$entry"
   }
 
-  Write-Verbose 'Clearing driver temp dirs...'
+  Write-Info 'Clearing driver temp dirs...'
   foreach ($entry in @("$env:SystemDrive\AMD", "$env:SystemDrive\NVIDIA", "$env:SystemDrive\Intel")) {
     Clear-DirectorySafe -Path $entry
   }
 
-  Write-Verbose 'All relevant shader/log/crash caches cleaned.'
+  Write-Success 'All relevant shader/log/crash caches cleaned.'
 }
 
 
@@ -692,7 +696,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     if ($DryRun) {
       Write-Verbose "Skipping admin elevation: -DryRun is a preview and makes no changes."
     } else {
-      Request-AdminElevation
+      Request-AdminElevation -BoundParameters $PSBoundParameters
     }
 
     switch ($Action) {
@@ -700,16 +704,16 @@ if ($MyInvocation.InvocationName -ne '.') {
         if (-not $NoDefrag) {
           Invoke-Defrag -TargetVolume $Volume -All:$AllVolumes
         } else {
-          Write-Verbose "Skip defrag (-NoDefrag)."
+          Write-Info "Skip defrag (-NoDefrag)."
         }
         if (-not $NoMsi) {
           if (Test-Path -LiteralPath $MsiDir -PathType Container) {
             Invoke-MsiCleanup -Root $MsiDir
           } else {
-            Write-Verbose "Skip MSI cleanup: not found at $MsiDir."
+            Write-Info "Skip MSI cleanup: not found at $MsiDir."
           }
         } else {
-          Write-Verbose "Skip MSI cleanup (-NoMsi)."
+          Write-Info "Skip MSI cleanup (-NoMsi)."
         }
       }
       'Disk' {
@@ -736,7 +740,7 @@ if ($MyInvocation.InvocationName -ne '.') {
       }
     }
 
-    Write-Verbose "Complete."
+    Write-Success "Complete."
   } catch {
     Write-Error $_.Exception.Message
     exit 1

@@ -62,8 +62,11 @@ function Request-AdminElevation {
         Ensures the script is running with administrator privileges
     .DESCRIPTION
         Checks if the current session has admin rights. If not, relaunches the script with elevation
+    .PARAMETER BoundParameters
+        Optional $PSBoundParameters from the calling script, forwarded to the elevated relaunch so its
+        arguments (e.g. -Action Extra) aren't silently dropped in favor of script defaults.
     #>
-    param()
+    param([hashtable]$BoundParameters)
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = [Security.Principal.WindowsPrincipal]$identity
     if (!($principal.IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator'))) {
@@ -71,7 +74,12 @@ function Request-AdminElevation {
         # not the calling script - $MyInvocation.PSCommandPath gives the actual caller.
         $callerPath = $MyInvocation.PSCommandPath
         $hostExe = (Get-Process -Id $PID).Path
-        Start-Process -FilePath $hostExe -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$callerPath`"") -Verb RunAs
+        $argv = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$callerPath`"")
+        foreach ($kv in $BoundParameters.GetEnumerator()) {
+            $argv += "-$($kv.Key)"
+            if ($kv.Value -isnot [switch]) { $argv += "`"$($kv.Value)`"" }
+        }
+        Start-Process -FilePath $hostExe -ArgumentList $argv -Verb RunAs
         exit
     }
 }
