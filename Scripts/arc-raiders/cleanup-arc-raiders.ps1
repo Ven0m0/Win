@@ -79,6 +79,16 @@ Invoke-GlobClean "$nvidiaLocalLow\PerDriverVersion\DXCache\*"
 Invoke-GlobClean "$nvidiaLocalLow\PerDriverVersion\VkCache\*"
 Invoke-GlobClean "$nvidiaLocalLow\*"
 
+# ── AMD / Intel Shader Caches ─────────────────────────────────────────────────
+Write-Host "`n[AMD/Intel caches]"
+foreach ($entry in @(
+        'AMD\DX9Cache', 'AMD\DxCache', 'AMD\DxcCache', 'AMD\GLCache', 'AMD\OglCache', 'AMD\VkCache',
+        'Intel\ShaderCache'
+    )) {
+    Invoke-GlobClean "$env:LOCALAPPDATA\$entry\*"
+}
+Invoke-GlobClean "$([System.IO.Path]::Combine([Environment]::GetFolderPath('UserProfile'), 'AppData', 'LocalLow', 'Intel', 'ShaderCache'))\*"
+
 # ── DNS ───────────────────────────────────────────────────────────────────────
 Write-Host "`n[DNS] Flushing..."
 ipconfig /flushdns | Out-Null
@@ -176,71 +186,6 @@ Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | For
         Write-Host "    Defrag issued."
     }
 }
-
-    # ── Large Page Support (SeLockMemoryPrivilege) ───────────────────────────────
-    Write-Host "`n[LargePages] Granting SeLockMemoryPrivilege to current user..."
-
-    Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
-public class LsaUtil {
-    [StructLayout(LayoutKind.Sequential)] struct LSA_UNICODE_STRING {
-        public ushort Length, MaximumLength;
-        public IntPtr Buffer;
-    }
-    [StructLayout(LayoutKind.Sequential)] struct LSA_OBJECT_ATTRIBUTES {
-        public int Length, pad1; public IntPtr pad2, pad3, pad4, pad5;
-    }
-    [DllImport("advapi32.dll")] static extern uint LsaOpenPolicy(IntPtr sys, ref LSA_OBJECT_ATTRIBUTES attr, uint access, out IntPtr handle);
-    [DllImport("advapi32.dll")] static extern uint LsaAddAccountRights(IntPtr pol, IntPtr sid, LSA_UNICODE_STRING[] rights, int count);
-    [DllImport("advapi32.dll")] static extern uint LsaClose(IntPtr h);
-    [DllImport("advapi32.dll")] static extern bool LookupAccountName(string sys, string name, IntPtr sid, ref int sidLen, StringBuilder dom, ref int domLen, out int use);
-    [DllImport("kernel32.dll")] static extern IntPtr LocalAlloc(uint flags, int size);
-
-    public static string Grant(string account) {
-        int sidLen=0, domLen=256, use=0;
-        LookupAccountName(null, account, IntPtr.Zero, ref sidLen, null, ref domLen, out use);
-        IntPtr sid = LocalAlloc(0x40, sidLen);
-        var dom = new StringBuilder(domLen);
-        if (!LookupAccountName(null, account, sid, ref sidLen, dom, ref domLen, out use))
-            return "LookupAccountName failed: " + Marshal.GetLastWin32Error();
-
-        var attr = new LSA_OBJECT_ATTRIBUTES { Length = Marshal.SizeOf(typeof(LSA_OBJECT_ATTRIBUTES)) };
-        IntPtr pol;
-        uint r = LsaOpenPolicy(IntPtr.Zero, ref attr, 0x00000801, out pol);
-        if (r != 0) return "LsaOpenPolicy failed: " + r;
-
-        var priv = new LSA_UNICODE_STRING[1];
-        var s = "SeLockMemoryPrivilege";
-        priv[0].Buffer = Marshal.StringToHGlobalUni(s);
-        priv[0].Length = (ushort)(s.Length * 2);
-        priv[0].MaximumLength = (ushort)(priv[0].Length + 2);
-
-        r = LsaAddAccountRights(pol, sid, priv, 1);
-        LsaClose(pol);
-        Marshal.FreeHGlobal(priv[0].Buffer);
-        return r == 0 ? "OK" : "LsaAddAccountRights failed: " + r;
-    }
-}
-"@ -ErrorAction SilentlyContinue
-
-    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    $result = [LsaUtil]::Grant($currentUser)
-    Write-Host "  $currentUser -> SeLockMemoryPrivilege: $result"
-    if ($result -eq 'OK') {
-        Write-Host "  NOTE: Log off and back on (or reboot) for the privilege to take effect."
-    }
-
-    # ── PioneerGame IFEO / Priority Registry ─────────────────────────────────────
-    Write-Host "`n[Registry] Applying PioneerGame IFEO settings..."
-    $ifeo = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\PioneerGame.exe'
-    $perf = "$ifeo\PerfOptions"
-
-    New-RestorePoint -Description 'Before PioneerGame IFEO registry changes'
-    New-Item -Path $perf -Force | Out-Null
-    Set-RegistryValue -Path ($ifeo -replace '^HKLM:\\', 'HKLM\') -Name 'UseLargePages' -Type REG_DWORD -Data '1'
-    Write-Host "  UseLargePages=1"
 
     # ── Summary ───────────────────────────────────────────────────────────────────
     Write-ArcSummary
