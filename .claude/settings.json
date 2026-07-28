@@ -73,6 +73,12 @@
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./secrets/**)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(./secrets/**)",
       "NotebookEdit",
       "mcp__plugin_playwright_playwright__browser_install",
       "mcp__plugin_playwright_playwright__browser_navigate"
@@ -128,6 +134,18 @@
             "shell": "powershell",
             "statusMessage": "Running matching Pester test...",
             "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$fp = ($input | ConvertFrom-Json).tool_input.file_path; if ($fp -notlike '*install.conf.yaml') { exit 0 }; if (-not (Get-Command yq -ErrorAction SilentlyContinue)) { exit 0 }; & yq eval '.' -- $fp | Out-Null; if ($LASTEXITCODE -ne 0) { Write-Error 'install.conf.yaml failed YAML validation'; exit 1 }; Write-Host 'install.conf.yaml: valid YAML'",
+            "shell": "powershell",
+            "timeout": 15,
+            "statusMessage": "Validating install.conf.yaml..."
           }
         ]
       },

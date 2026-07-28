@@ -9,6 +9,7 @@
 | Fresh Windows 11 install | `Scripts/Setup-Win11.ps1` or `iwr ...bootstrap.ps1 \| iex`                   |
 | Deploy dotfiles          | `mise run deploy` or `dotbot -c install.conf.yaml`                           |
 | Deploy single config     | `pwsh -File Scripts/Setup-Dotfiles.ps1 -Target 'PowerShell profile'`         |
+| Install Claude Code setup | `pwsh -File Scripts/Setup-ClaudeCode.ps1` (marketplaces/plugins/MCP servers from `user/.dotfiles/config/claude/`) |
 | Debloat Windows          | `Scripts/debloat-windows.ps1`                                                |
 | Validate PS file         | `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` |
 | Run tests                | `Invoke-Pester -Path tests/ -Output Minimal`                                 |

@@ -633,7 +633,11 @@ function Start-Bootstrap {
     Write-Host ''
     Write-Host '[3/5] Deploying configs...' -ForegroundColor Cyan
 
-    $configRoot = Join-Path $PSScriptRoot '..\user\.dotfiles\config'
+    # Resolved, not just joined: Deploy-ConfigDirectory's -Recurse branch computes relative
+    # paths via Substring against this root, and .NET normalizes '..' out of FullName - an
+    # unresolved root (with a literal '..\' segment) is longer than the paths it's compared
+    # against and throws "startIndex cannot be larger than length of string".
+    $configRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\user\.dotfiles\config')).Path
     $appData = if ($env:APPDATA) { $env:APPDATA } else { '/tmp/AppData' }
     $firefoxProfilesRoot = Join-Path $appData 'Mozilla\Firefox'
 
@@ -649,6 +653,14 @@ function Start-Bootstrap {
             Mode               = 'file'
             Label              = 'Global EditorConfig'
             ResolveDestination = { Join-Path $HOME '.editorconfig' }
+        },
+        @{
+            Path               = 'claude'
+            Mode               = 'directory'
+            Label              = 'Claude Code config'
+            Filter             = '*'
+            Recurse            = $true
+            ResolveDestination = { Join-Path $HOME '.claude' }
         },
         @{
             Path               = 'git\.gitconfig'
@@ -743,13 +755,24 @@ function Start-Bootstrap {
             Path               = 'games\fortnite'
             Mode               = 'directory'
             Label              = 'Fortnite configs'
-            Filter             = '*.ini'
+            Filter             = 'GameUserSettings.ini'
             ResolveDestination = {
                 $fortnitePath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'FortniteGame\Saved\Config\WindowsClient'
                 if (Test-Path $fortnitePath) { return $fortnitePath }
                 return $null
             }
             GetSkipReason      = { 'Fortnite config directory not found' }
+        },
+        @{
+            Path               = 'games\fortnite\Engine.ini'
+            Mode               = 'file'
+            Label              = 'Epic Games Launcher Engine.ini'
+            ResolveDestination = {
+                $epicPath = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'EpicGamesLauncher\Saved\Config\WindowsEditor'
+                if (Test-Path $epicPath) { return (Join-Path -Path $epicPath -ChildPath 'Engine.ini') }
+                return $null
+            }
+            GetSkipReason      = { 'Epic Games Launcher config directory not found' }
         },
         @{
             Path  = 'cursors'
