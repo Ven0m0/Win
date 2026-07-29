@@ -162,6 +162,7 @@ function Optimize-FixedVolume {
 
 $script:ARC_TOTAL_SIZE = 0
 $script:ARC_TOTAL_COUNT = 0
+$script:ARC_SKIPPED_COUNT = 0
 
 function Invoke-GlobClean {
     <#
@@ -170,7 +171,8 @@ function Invoke-GlobClean {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param([string]$Pattern)
-    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:ARC_TOTAL_SIZE) -TotalCount ([ref]$script:ARC_TOTAL_COUNT)
+    Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:ARC_TOTAL_SIZE) -TotalCount ([ref]$script:ARC_TOTAL_COUNT) `
+        -FailedCount ([ref]$script:ARC_SKIPPED_COUNT)
 }
 
 function Write-ArcSummary {
@@ -181,5 +183,8 @@ function Write-ArcSummary {
     Write-Host ""
     Write-Host "══════════════════════════════════════"
     Write-Host " Cleaned: $($script:ARC_TOTAL_COUNT) item(s), ${mb} MB freed."
+    if ($script:ARC_SKIPPED_COUNT -gt 0) {
+        Write-Host " Skipped: $($script:ARC_SKIPPED_COUNT) item(s) still in use — close GPU apps and re-run."
+    }
     Write-Host "══════════════════════════════════════"
 }

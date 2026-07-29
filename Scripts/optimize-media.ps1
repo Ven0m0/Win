@@ -21,6 +21,8 @@
     the same relative subpath), so neither in-place compression nor
     re-encoding ever risks the only copy.
     Progress for both passes is shown via Write-Progress.
+    Missing tools (oxipng, jpegoptim, cwebp, ffmpeg, ffzap) are installed
+    automatically via winget on first use.
 .PARAMETER Path
     Folder to scan recursively. If omitted, a folder picker dialog opens.
 .PARAMETER Help
@@ -106,19 +108,19 @@ function Resolve-VideoTool {
     [OutputType([string])]
     <#
     .SYNOPSIS
-        Picks ffzap or ffmpeg based on preference and availability.
+        Picks ffzap or ffmpeg based on preference and availability, installing via
+        winget if the required tool is missing.
     #>
     param([string]$Preference = 'Auto')
     process {
-        if ($Preference -eq 'FFzap' -or ($Preference -eq 'Auto' -and (Get-Command ffzap -ErrorAction SilentlyContinue))) {
-            if (-not (Get-Command ffzap -ErrorAction SilentlyContinue)) {
-                throw 'ffzap not found in PATH. Install it or use -VideoTool FFmpeg.'
-            }
+        if ($Preference -eq 'FFzap') {
+            Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap' | Out-Null
             return 'ffzap'
         }
-        if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
-            throw 'ffmpeg not found in PATH. Install via: winget install Gyan.FFmpeg.Shared'
+        if ($Preference -eq 'Auto' -and (Get-Command ffzap -ErrorAction SilentlyContinue)) {
+            return 'ffzap'
         }
+        Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared' | Out-Null
         return 'ffmpeg'
     }
 }
@@ -147,9 +149,9 @@ function Invoke-ImagePass {
         [bool]$Force
     )
     process {
-        $oxipng = Resolve-Tool -Name 'oxipng' -Optional
-        $jpegoptim = Resolve-Tool -Name 'jpegoptim' -Optional
-        $cwebp = Resolve-Tool -Name 'cwebp' -Optional
+        $oxipng = Resolve-OrInstallTool -Name 'oxipng' -WingetId 'Shssoichiro.Oxipng' -Optional
+        $jpegoptim = Resolve-OrInstallTool -Name 'jpegoptim' -WingetId 'TimoKokkonen.Jpegoptim' -Optional
+        $cwebp = Resolve-OrInstallTool -Name 'cwebp' -WingetId 'Google.Libwebp' -Optional
 
         if (-not ($oxipng -or $jpegoptim -or $cwebp)) {
             Write-Warning 'No image optimizer found on PATH (oxipng/jpegoptim/cwebp); skipping image pass.'

@@ -23,6 +23,8 @@
     (czkawka delete method AEN).
     fclones, czkawka, and any ffmpeg process czkawka spawns for the video
     pass all run at Above Normal CPU priority.
+    fclones is installed automatically via scoop, czkawka via winget, if
+    either is missing.
 .PARAMETER Path
     Folder to scan recursively. If omitted, a folder picker dialog opens.
 .PARAMETER Help
@@ -341,8 +343,8 @@ if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
     throw "Path is not a folder: $resolvedPath"
 }
 
-$fclones = Resolve-Tool -Name 'fclones'
-$czkawka = Resolve-Tool -Name 'czkawka_cli', 'windows_czkawka_cli'
+$fclones = Resolve-OrInstallTool -Name 'fclones' -ScoopPackage 'fclones'
+$czkawka = Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
 
 $dryRun = -not $Apply
 if ($WhatIfPreference) {

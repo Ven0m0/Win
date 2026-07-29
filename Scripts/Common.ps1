@@ -970,41 +970,73 @@ function Remove-Glob {
     <#
     .SYNOPSIS
         Remove files matching a glob pattern and track total size/count.
+    .DESCRIPTION
+        Tallies size/count only for what was actually deleted — a locked file (open
+        handle from a running process) is left in place and reported via -FailedCount
+        instead of being counted as freed.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [string]$Pattern,
         [ref]$TotalSize,
-        [ref]$TotalCount
+        [ref]$TotalCount,
+        # Incremented once per item that could not be fully removed (still in use).
+        [ref]$FailedCount
     )
 
+    function Get-DirectorySize ([string]$Path) {
+        $total = 0
+        try {
+            $dirInfo = [System.IO.DirectoryInfo]::new($Path)
+            foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
+                $total += $f.Length
+            }
+        }
+        catch {
+            foreach ($f in Get-ChildItem -LiteralPath $Path -Recurse -File -Force -ErrorAction SilentlyContinue) {
+                $total += $f.Length
+            }
+        }
+        $total
+    }
+
     $items = Get-Item -Path $Pattern -Force -ErrorAction SilentlyContinue
+    $failed = 0
     foreach ($item in $items) {
-        $sz = 0
-        if ($item.PSIsContainer) {
-            try {
-                $dirInfo = [System.IO.DirectoryInfo]::new($item.FullName)
-                foreach ($f in $dirInfo.EnumerateFiles('*', [System.IO.SearchOption]::AllDirectories)) {
-                    $sz += $f.Length
-                }
-            }
-            catch {
-                $sz = 0
-                foreach ($f in Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force -ErrorAction SilentlyContinue) {
-                    $sz += $f.Length
-                }
-            }
-        }
-        else {
-            $sz = $item.Length
-        }
-        if ($TotalSize) { $TotalSize.Value += [long]$sz }
-        if ($TotalCount) { $TotalCount.Value++ }
+        $isContainer = $item.PSIsContainer
+        $sz = if ($isContainer) { Get-DirectorySize $item.FullName } else { $item.Length }
+
         if ($PSCmdlet.ShouldProcess($item.FullName, 'Remove')) {
             Remove-Item $item.FullName -Recurse -Force -ErrorAction SilentlyContinue
         }
-        Write-Verbose "  DEL  $($item.FullName)"
+
+        $stillThere = Test-Path -LiteralPath $item.FullName
+        if (-not $stillThere) {
+            if ($TotalSize) { $TotalSize.Value += [long]$sz }
+            if ($TotalCount) { $TotalCount.Value++ }
+            Write-Verbose "  DEL  $($item.FullName)"
+        }
+        elseif ($isContainer) {
+            # Partially cleared: some children were locked. Tally only what left.
+            $remaining = Get-DirectorySize $item.FullName
+            $freed = $sz - $remaining
+            if ($freed -gt 0) {
+                if ($TotalSize) { $TotalSize.Value += [long]$freed }
+                if ($TotalCount) { $TotalCount.Value++ }
+            }
+            $failed++
+            Write-Verbose "  SKIP (in use) $($item.FullName)"
+        }
+        else {
+            $failed++
+            Write-Verbose "  SKIP (in use) $($item.FullName)"
+        }
+    }
+
+    if ($FailedCount) { $FailedCount.Value += $failed }
+    if ($failed -gt 0) {
+        Write-Warning "${Pattern}: $failed item(s) could not be removed (in use)"
     }
 }
 
@@ -2040,6 +2072,76 @@ function Resolve-Tool {
             return $null
         }
         throw "Required tool not found on PATH (looked for: $($Name -join ', ')). Install it with winget."
+    }
+}
+
+function Update-EnvironmentPath {
+    <#
+    .SYNOPSIS
+        Refreshes $env:Path from the machine and user registry values.
+    .DESCRIPTION
+        A package installed in this session (via scoop or winget) does not update the
+        running process's PATH; call this after an install before re-checking Get-Command.
+    #>
+    [CmdletBinding()]
+    param()
+    $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
+        [System.Environment]::GetEnvironmentVariable('Path', 'User')
+}
+
+function Resolve-OrInstallTool {
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+    [OutputType([string])]
+    <#
+    .SYNOPSIS
+        Resolves an executable's path, installing it via scoop then winget if missing.
+    .PARAMETER Name
+        Candidate executable names, tried in order (see Resolve-Tool).
+    .PARAMETER ScoopPackage
+        Scoop package name to try first when no candidate is found on PATH.
+    .PARAMETER WingetId
+        Winget package ID to try if scoop is unavailable, has no ScoopPackage, or still
+        didn't produce the tool.
+    .PARAMETER Optional
+        Return $null instead of throwing when the tool cannot be found or installed.
+    .EXAMPLE
+        Resolve-OrInstallTool -Name 'fclones' -ScoopPackage 'fclones'
+    .EXAMPLE
+        Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Name,
+
+        [string]$ScoopPackage,
+        [string]$WingetId,
+        [switch]$Optional
+    )
+    process {
+        $found = Resolve-Tool -Name $Name -Optional
+        if ($found) { return $found }
+
+        if ($ScoopPackage -and (Get-Command scoop -ErrorAction SilentlyContinue)) {
+            if ($PSCmdlet.ShouldProcess($ScoopPackage, 'Install via scoop')) {
+                Write-Info "Installing $ScoopPackage via scoop..."
+                scoop install $ScoopPackage 2>&1 | ForEach-Object { Write-Verbose $_ }
+                Update-EnvironmentPath
+                $found = Resolve-Tool -Name $Name -Optional
+                if ($found) { return $found }
+            }
+        }
+
+        if ($WingetId) {
+            Invoke-Winget -Id $WingetId -Name $Name[0]
+            Update-EnvironmentPath
+            $found = Resolve-Tool -Name $Name -Optional
+            if ($found) { return $found }
+        }
+
+        if ($Optional) {
+            return $null
+        }
+        throw "Required tool not found and could not be installed (looked for: $($Name -join ', '))."
     }
 }
 
