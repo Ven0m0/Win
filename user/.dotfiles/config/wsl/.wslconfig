@@ -15,3 +15,7 @@ experimental.sparseVhd=true
 
 # Cap virtual disk growth
 defaultVhdSize=256GB
+
+[experimental]
+bestEffortDnsParsing=true
+sparseVhd=true

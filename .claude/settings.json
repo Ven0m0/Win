@@ -76,9 +76,6 @@
       "Edit(./.env)",
       "Edit(./.env.*)",
       "Edit(./secrets/**)",
-      "Write(./.env)",
-      "Write(./.env.*)",
-      "Write(./secrets/**)",
       "NotebookEdit",
       "mcp__plugin_playwright_playwright__browser_install",
       "mcp__plugin_playwright_playwright__browser_navigate"

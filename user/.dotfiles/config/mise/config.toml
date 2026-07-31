@@ -1,4 +1,4 @@
 [tools]
 "ubi:spddl/GoInterruptPolicy" = "latest"
 #"npm:@kilocode/cli" = "latest"
-"github:Kilo-Org/kilocode" = "latest"
+"github:Kilo-Org/kilocode" = "7.4.16"
