@@ -43,7 +43,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import OpenerDirector, Request, build_opener
 
 DATE_FMT: str = "%Y-%m-%d %H:%M:%S UTC"
-JSON_NAME_RE: re.Pattern[str] = re.compile(r"memories_history\.json$", re.I)
+JSON_NAME_RE: re.Pattern[str] = re.compile(r"memories_history\.json$", re.IGNORECASE)
 CHUNK_SIZE: int = 1048576
 MACOS_JUNK_RE: re.Pattern[str] = re.compile(r"^\._")
 LOCATION_RE: re.Pattern[str] = re.compile(
