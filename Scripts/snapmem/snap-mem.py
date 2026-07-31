@@ -3,7 +3,7 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #   "windows-curses; sys_platform == 'win32'",
-#   "exif>=1.6.0",
+#   "exif>=1.6.1",
 # ]
 # ///
 """
@@ -164,7 +164,7 @@ def load_items(json_path: Path, media_type: str) -> list[Item]:
 
 
 def build_base_name(date_str: str) -> str:
-    dt = datetime.strptime(date_str, DATE_FMT)
+    dt = datetime.strptime(date_str, DATE_FMT).replace(tzinfo=timezone.utc)
     return dt.strftime("%Y-%m-%d_%H-%M-%S")
 
 
