@@ -1,3 +1,12 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "windows-curses; sys_platform == 'win32'",
+#   "exif>=1.6.1",
+# ]
+# ///
+
 import importlib.util
 import json
 import sys
