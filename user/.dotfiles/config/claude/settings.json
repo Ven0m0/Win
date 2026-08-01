@@ -212,6 +212,12 @@
         "source": "github",
         "repo": "DietrichGebert/ponytail"
       }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
     }
   },
   "alwaysThinkingEnabled": true,
