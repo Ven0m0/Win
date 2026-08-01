@@ -1,6 +1,10 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
-  "instructions": [".kilo/rules/*.md", "./AGENTS.md"],
+  "instructions": [
+    ".kilo/rules/*.md", "./AGENTS.md",
+    "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
+    "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
+  ],
   "skills": { "paths": [".kilo/skills", ".claude/skills", ".opencode/skills"] },
   "permission": {
     "*": "allow",
