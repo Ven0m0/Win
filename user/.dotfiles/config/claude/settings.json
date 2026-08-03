@@ -50,7 +50,15 @@
       "Bash(ssh *)",
       "Bash(ssh-keygen -F *)",
       "Bash(ssh-add -l)",
-      "Bash(rtk *)"
+      "Bash(rtk *)",
+      "mcp__codegraph__*",
+      "mcp__codegraph__.*",
+      "mcp__context-mode__ctx_search",
+      "mcp__context-mode__ctx_execute",
+      "mcp__context-mode__ctx_execute_file",
+      "mcp__context-mode__ctx_batch_execute",
+      "mcp__context-mode__ctx_index",
+      "mcp__context-mode__ctx_fetch_and_index"
     ],
     "deny": [
       "Read(./.env)",
@@ -91,7 +99,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "rtk hook claude"
+            "command": "C:/Users/Ven0m0/AppData/Local/Programs/tokless/tokless.exe rtk-hook claude"
           }
         ]
       }
@@ -164,6 +172,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "codegraph prompt-hook"
+          }
+        ]
+      }
     ]
   },
   "enableWorkflows": true,
@@ -177,7 +195,7 @@
     "github@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": false,
     "basedpyright@claude-code-lsps": true,
     "powershell-editor-services@claude-code-lsps": true,
     "vscode-langservers@claude-code-lsps": true,
@@ -185,8 +203,9 @@
     "ponytail@ponytail": true,
     "serena@claude-plugins-official": true,
     "context-mode@context-mode": true,
-    "ty@claude-code-lsps": true,
-    "oh-my-claudecode@omc": true
+    "ty@claude-code-lsps": false,
+    "oh-my-claudecode@omc": true,
+    "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {
@@ -232,5 +251,6 @@
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
   "teammateMode": "auto",
-  "voiceEnabled": false
+  "voiceEnabled": false,
+  "workflowKeywordTriggerEnabled": false
 }

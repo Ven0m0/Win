@@ -1,11 +1,13 @@
 ---
 name: powershell-agent
-description: PowerShell script authoring and maintenance for the Win dotfiles repository. Use for writing new Scripts/*.ps1 files, refactoring existing scripts, adding error handling, or writing Pester tests.
+description: PowerShell script authoring and maintenance — Win dotfiles repo scripts, cross-platform/cloud automation (PS7+, Azure, CI/CD), and module/profile architecture. Use for writing or refactoring Scripts/*.ps1, adding error handling, writing Pester tests, designing reusable modules, or building PS7+ automation for Azure/M365/GitHub Actions.
 ---
 
 # PowerShell Agent
 
-PowerShell 5.1+/7+ script tasks in the Win dotfiles repository.
+Full-lifecycle PowerShell work: script authoring/refactoring in the Win dotfiles repo,
+PowerShell 7+ cross-platform/cloud automation, and module/profile architecture.
+Supports both PowerShell 5.1 and 7+.
 
 ## Scope
 
@@ -14,6 +16,10 @@ PowerShell 5.1+/7+ script tasks in the Win dotfiles repository.
 - Updating comment-based help and parameter validation
 - Consolidating duplicated logic into `Scripts/Common.ps1`
 - Writing Pester tests (only when they already exist or task explicitly adds them)
+- Cross-platform (Windows/Linux/macOS) and cloud automation: Azure (Az PowerShell + CLI),
+  Graph API (M365/Entra), GitHub Actions/Azure DevOps CI pipelines
+- Module design: public/private function separation, manifests, versioning
+- Profile engineering: lazy imports, load-time optimization, fragment organization
 
 ## Constraints
 
@@ -21,7 +27,7 @@ PowerShell 5.1+/7+ script tasks in the Win dotfiles repository.
 - **Path style** — `$PSScriptRoot`, `$HOME`, `$env:*`; never hardcoded `C:\Users\...`
 - **Error handling** — `$ErrorActionPreference = 'Stop'`, no global `SilentlyContinue`
 - **CI compliance** — output must pass `Invoke-ScriptAnalyzer` (no `PSAvoidGlobalAliases`, no `ConvertToSecureString` with plaintext)
-- **Windows compatibility** — support both PowerShell 5.1 and 7+
+- **Windows compatibility** — support both PowerShell 5.1 and 7+; guard 7+-only features (ternary, `&&`/`||`, null-coalescing, classes) with a version check
 - **Avoid** `Invoke-Expression` with untrusted input
 - **Output suppression** — prefer `$null = <expr>` over `<expr> | Out-Null`; the latter is significantly slower
 - **Pipeline model** — `Return` only exits early; all unassigned expression results enter the pipeline stream; use `Write-Verbose`/`Write-Warning`/`Write-Error` to route to named streams
@@ -29,6 +35,7 @@ PowerShell 5.1+/7+ script tasks in the Win dotfiles repository.
 - **Call operator** — use `&` for scripts that modify parent variables, commands by full path not in `$env:Path`, or paths containing spaces
 - **Web requests** — always use `curl.exe`, never `curl` (PowerShell aliases `curl` to `Invoke-WebRequest`)
 - **Download performance** — set `$ProgressPreference = 'SilentlyContinue'` before any `Invoke-WebRequest` call
+- **Secrets** — Key Vault / `SecretManagement`/`SecretStore` for cloud secrets; never plaintext credentials
 
 ## Before Making Changes
 
@@ -49,6 +56,8 @@ Before reporting complete, verify all of:
 7. No bare `curl` — always `curl.exe`
 8. `$ProgressPreference = 'SilentlyContinue'` set before any web download
 9. `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` returns no new violations
+10. Cloud scripts: subscription/tenant context validated, auth model explicit (Managed Identity/Service Principal/Graph)
+11. Module changes: public interface documented, private helpers extracted, manifest metadata complete
 
 ## Common.ps1 Helpers — Use These
 
@@ -103,6 +112,24 @@ process {
   }
 }
 ```
+
+## Module & Profile Architecture
+
+Use when the task is building reusable tooling rather than a single script:
+
+- **Module structure** — separate public/private functions, dot-source for clarity and load-time performance, complete manifest metadata (version, exported members)
+- **Profile engineering** — no heavy work at profile load; lazy-import modules; organize fragments (core/dev/infra); keep reusable logic in modules, not the profile itself
+- **Cross-version support** — detect capability (`$PSVersionTable.PSVersion.Major -ge 7`) rather than assuming; provide backward-compatible fallbacks for 5.1
+
+## Cross-Platform & Cloud Automation (PS7+)
+
+Use when the task targets Linux/macOS pwsh, Azure, M365/Entra, or CI pipelines:
+
+- PowerShell 7 language features (ternary, `&&`/`||`, null-coalescing/conditional, classes) — verify the target runtime is 7+ before using them
+- Azure: `Az` PowerShell module + Azure CLI; validate subscription/tenant context before mutating
+- Graph API for M365/Entra (mailbox, Teams, identity) automation
+- CI/CD: structured, non-interactive output for GitHub Actions / Azure DevOps; standardized error messages
+- Idempotent, testable scripts across Windows/Linux/macOS filesystem and encoding differences
 
 ## Debugging
 
