@@ -522,7 +522,7 @@ function Install-GithubReleaseTool {
                 return
             }
             $installerPath = Join-Path -Path $env:TEMP -ChildPath $AssetName
-            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $installerPath
+            Get-FileFromWeb -URL $asset.browser_download_url -File $installerPath
 
             $installSwitches = if ($Switches) { $Switches } else { Get-SilentInstallSwitches -Path $installerPath }
             if (-not $installSwitches) {

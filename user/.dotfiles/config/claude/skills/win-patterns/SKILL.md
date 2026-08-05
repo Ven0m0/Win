@@ -174,9 +174,7 @@ Scripts/Setup-Dotfiles.ps1
 Arc Raiders scripts and configs **always change together** — update all when any changes:
 
 ```
-Scripts/arc-raiders/ARCRaidersUtility.ps1
 Scripts/arc-raiders/cleanup-arc-raiders.ps1
-Scripts/arc-raiders/arc-raiders.psd1
 Scripts/arc-raiders/SkipVideosMod.ps1
 user/.dotfiles/config/games/arc-raiders/Engine.ini
 user/.dotfiles/config/games/arc-raiders/GameUserSettings.ini

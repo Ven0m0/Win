@@ -1,4 +1,20 @@
 ﻿#Requires -Version 5.1
+#Requires -RunAsAdministrator
+<#
+.SYNOPSIS
+    Disables USB selective suspend across all USB hubs, controllers, and HID devices.
+.DESCRIPTION
+    Based off ThioJoe's Script. Queries Win32_PnPEntity and MSPower_DeviceEnable via
+    WMI/CIM and disables power management on every matched device so peripherals
+    don't power down mid-session.
+.EXAMPLE
+    .\DisableUSBPowerManagement.ps1
+#>
+[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
+param ()
+
+$ErrorActionPreference = 'Stop'
+$VerbosePreference     = 'Continue'
 
 # Title
 Clear-Host
@@ -12,10 +28,6 @@ Write-Host ""
 
 # Disable USB's Power Management
 Write-Host "Disabling USB's Power Management..."
-
-# Config.
-$ErrorActionPreference = 'Stop'
-$VerbosePreference     = 'Continue'
 
 # Counters.
 $disabled  = 0
@@ -72,6 +84,10 @@ foreach ($p in $powerMgmt) {
     }
 
     # Attempt to disable
+    if (-not $PSCmdlet.ShouldProcess($label, 'Disable USB power management')) {
+        $skipped++
+        continue
+    }
     try {
         Set-CimInstance -InputObject $p -Property @{ Enable = $false } -ErrorAction Stop
         Write-Host "  [DISABLED] $label" -ForegroundColor Green
