@@ -24,6 +24,9 @@
     Burn an MP3 data disc instead of a Red Book audio CD. Transcodes every
     source file to 320kbps CBR MP3 in a persistent "<Path>_mp3" folder, then
     burns that folder as an ISO9660+Joliet data disc.
+.PARAMETER Reencode
+    With -DataCd, re-encode source files that are already .mp3 instead of
+    copying them as-is. Non-mp3 sources are always transcoded to MP3.
 .PARAMETER Eject
     Eject the disc after burning completes.
 .PARAMETER Verify
@@ -65,6 +68,8 @@ param (
     [string]$WriteType = 'DAO',
 
     [switch]$DataCd,
+
+    [switch]$Reencode,
 
     [switch]$Eject,
 
@@ -193,6 +198,10 @@ if ($DataCd) {
 
     foreach ($f in $audioFiles) {
         $mp3Path = Join-Path -Path $mp3Dir -ChildPath ($f.BaseName + '.mp3')
+        if (-not $Reencode -and $f.Extension -eq '.mp3') {
+            Copy-Item -LiteralPath $f.FullName -Destination $mp3Path -Force
+            continue
+        }
         $ffmpegArgs = @(
             '-y', '-loglevel', 'error'
             '-i', $f.FullName

@@ -17,8 +17,9 @@
 .PARAMETER Format
     Audio format to extract: mp3 (default) or flac.
 .PARAMETER SponsorBlockCategories
-    SponsorBlock categories to strip from audio (sponsor, intro, outro, selfpromo,
-    preview, filler, interaction, music_offtopic, poi_highlight, all). Default: all.
+    SponsorBlock categories to strip from audio (sponsor, intro, outro, selfpromo, filler,
+    interaction, music_offtopic, all). Default: all except intro (intro often cuts a song's
+    musical start, not just the channel intro).
 .PARAMETER NoSponsorBlock
     Disable SponsorBlock segment removal entirely.
 .PARAMETER CookiesFromBrowser
@@ -62,9 +63,9 @@ param (
     [ValidateSet('mp3', 'flac')]
     [string]$Format = 'mp3',
 
-    [ValidateSet('sponsor', 'intro', 'outro', 'selfpromo', 'preview', 'filler',
-        'interaction', 'music_offtopic', 'poi_highlight', 'all')]
-    [string[]]$SponsorBlockCategories = @('all'),
+    [ValidateSet('sponsor', 'intro', 'outro', 'selfpromo', 'filler',
+        'interaction', 'music_offtopic', 'all')]
+    [string[]]$SponsorBlockCategories = @('sponsor', 'outro', 'selfpromo', 'filler', 'interaction', 'music_offtopic'),
 
     [switch]$NoSponsorBlock,
 
