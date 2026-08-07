@@ -172,8 +172,29 @@
         'BleachBit.BleachBit'
         'maharmstone.btrfs'
         'JAMSoftware.TreeSize.Free'
+        'AntibodySoftware.WizTree'
+        'lostindark.DriverStoreExplorer'
+        'Nlitesoft.NTLite'
         # Uninstallers / maintenance
         'RevoUninstaller.RevoUninstaller'
+        # Gaming (added)
+        'Guru3D.RTSS'
+        'PlayStation.PSRemotePlay'
+        'Playnite.Playnite'
+        'StreetPea.chiaki-ng'
+        'GameSir.GameSirConnect'
+        'EpicGames.EpicOnlineServices'
+        'Oracle.VirtualBox'
+        'CakeWallet.CakeWallet'
+        # Dev / CLI (added)
+        'JesseDuffield.lazygit'
+        'ShareX.ShareX'
+        'afkarxyz.SpotiFLAC'
+        'yt-dlp.FFmpeg'
+        'Gyan.FFmpeg'
+        # Windows tooling (added)
+        'Microsoft.WindowsADK'
+        'Microsoft.OSCDIMG'
     )
 
     # ---------------------------------------------------------------------------
@@ -189,6 +210,7 @@
     ScoopBuckets       = @(
         'extras'
         'java'
+        @{ Name = 'ven0m0'; Url = 'https://github.com/Ven0m0/scoop-bucket' }
     )
 
     # graalvm-oracle-jdk is Oracle GraalVM (GraalVM Free Terms and Conditions license,
@@ -196,9 +218,13 @@
     # graalvm25-jdk, or graalvm-jdk-dev, which are all GraalVM Community Edition (GPL-2.0)
     # despite similar names. Sets JAVA_HOME/GRAALVM_HOME itself via the manifest's env_set.
     ScoopPackages      = @(
+        'azaharplus'
+        'eden'
+        'fclones'
         'graalvm-oracle-jdk'
         'jq'
         'scoop-search'
+        'shellcheck'
         'yq'
     )
 

@@ -439,11 +439,13 @@ function Start-InstallPackage {
 
         if (Get-Command scoop -ErrorAction SilentlyContinue) {
             foreach ($bucket in $catalog.ScoopBuckets) {
+                $bucketName = if ($bucket -is [hashtable]) { $bucket.Name } else { $bucket }
+                $bucketArgs = if ($bucket -is [hashtable]) { @($bucket.Name, $bucket.Url) } else { @($bucket) }
                 try {
-                    scoop bucket add $bucket 2>$null
-                    Write-Status "Scoop bucket '$bucket' added" -Status 'OK'
+                    scoop bucket add @bucketArgs 2>$null
+                    Write-Status "Scoop bucket '$bucketName' added" -Status 'OK'
                 } catch {
-                    Write-Status "Scoop bucket '$bucket' (may already exist)" -Status 'SKIP'
+                    Write-Status "Scoop bucket '$bucketName' (may already exist)" -Status 'SKIP'
                 }
             }
 
