@@ -2,15 +2,19 @@
 
 <#
 .SYNOPSIS
-    Downloads YouTube music as FLAC using yt-dlp for CD burning.
+    Downloads YouTube or Spotify music as FLAC/MP3 for CD burning.
 .DESCRIPTION
-    Downloads YouTube playlists or individual videos as high-quality audio files using
-    yt-dlp with embedded metadata and thumbnail. Defaults to MP3; use -Format flac for
-    lossless output (e.g. for burning audio CDs). Requires yt-dlp and ffmpeg on PATH.
-    Each download is placed in a subfolder named after the playlist or video title,
-    sanitized to lowercase with underscores replacing spaces and special characters removed.
+    Downloads YouTube playlists/videos via yt-dlp, or Spotify tracks/playlists/albums via
+    spotdl, as high-quality audio files with embedded metadata and thumbnail. Source is
+    auto-detected from each URL (open.spotify.com -> spotdl, everything else -> yt-dlp).
+    Defaults to MP3; use -Format flac for lossless output (e.g. for burning audio CDs).
+    Requires yt-dlp and ffmpeg on PATH for YouTube URLs; spotdl and ffmpeg on PATH for
+    Spotify URLs. Each download is placed in a subfolder named after the playlist or
+    video/track title, sanitized to lowercase with underscores replacing spaces and
+    special characters removed.
 .PARAMETER Url
-    One or more YouTube playlist or video URLs. Accepts pipeline input.
+    One or more YouTube or Spotify (open.spotify.com) playlist/video/track/album URLs.
+    Accepts pipeline input.
 .PARAMETER OutputDirectory
     Base directory under which a sanitized playlist/video subfolder is created.
     Default: $env:USERPROFILE\Music
@@ -49,8 +53,9 @@
 .EXAMPLE
     Get-Content urls.txt | .\invoke-ytdlp-download.ps1 -PassThrough
 .NOTES
-    Requires yt-dlp and ffmpeg on PATH.
+    Requires yt-dlp and ffmpeg on PATH for YouTube URLs; spotdl for Spotify URLs.
     Install via: winget install yt-dlp  or  scoop install yt-dlp ffmpeg
+    Install spotdl via: pip install spotdl  (also requires ffmpeg on PATH)
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (
@@ -85,17 +90,29 @@ $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot\Common.ps1"
 
-# Guard: verify required external tools
+# Guard: verify required external tools (spotdl only required when a Spotify URL is present)
+$requiredDeps = @('yt-dlp', 'ffmpeg')
+if ($Url -match 'open\.spotify\.com') {
+    $requiredDeps += 'spotdl'
+}
 $missingDeps = @()
-foreach ($cmd in 'yt-dlp', 'ffmpeg') {
+foreach ($cmd in $requiredDeps) {
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
         $missingDeps += $cmd
     }
 }
 if ($missingDeps.Count -gt 0) {
+    $wingetDeps = $missingDeps | Where-Object { $_ -ne 'spotdl' }
+    $hint = @()
+    if ($wingetDeps) {
+        $hint += "winget install $($wingetDeps -join ' ')  (or scoop install)"
+    }
+    if ($missingDeps -contains 'spotdl') {
+        $hint += 'pip install spotdl'
+    }
     Write-Warning ("Missing required dependencies: $($missingDeps -join ', ')`n" +
-        "Install via winget: winget install $($missingDeps -join ' ')`n" +
-        '(or scoop install) and ensure each is on PATH.')
+        "Install via: $($hint -join '  /  ')`n" +
+        'and ensure each is on PATH.')
     exit 1
 }
 
@@ -147,11 +164,28 @@ if (-not $NoSponsorBlock) {
 $results = [System.Collections.Generic.List[PSObject]]::new()
 
 foreach ($u in $Url) {
+    $isSpotify = $u -match 'open\.spotify\.com'
+
     # Resolve folder name from content title
     Add-Log -Text "Resolving title for: $u"
-    $rawTitle = & yt-dlp @cookieArgs --print playlist_title $u 2>$null | Select-Object -First 1
-    if (-not $rawTitle) {
-        $rawTitle = & yt-dlp @cookieArgs --print title $u 2>$null | Select-Object -First 1
+    if ($isSpotify) {
+        $metaFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "spotdl-$([guid]::NewGuid()).spotdl"
+        try {
+            $null = & spotdl save $u --save-file $metaFile 2>&1
+            $rawTitle = $null
+            if (Test-Path -LiteralPath $metaFile) {
+                $meta = Get-Content -LiteralPath $metaFile -Raw | ConvertFrom-Json
+                $first = if ($meta -is [array]) { $meta[0] } else { $meta }
+                $rawTitle = if ($first.list_name) { $first.list_name } else { $first.name }
+            }
+        } finally {
+            Remove-Item -LiteralPath $metaFile -ErrorAction SilentlyContinue
+        }
+    } else {
+        $rawTitle = & yt-dlp @cookieArgs --print playlist_title $u 2>$null | Select-Object -First 1
+        if (-not $rawTitle) {
+            $rawTitle = & yt-dlp @cookieArgs --print title $u 2>$null | Select-Object -First 1
+        }
     }
     if (-not $rawTitle) {
         Write-Warning "Could not resolve title for: $u"
@@ -167,30 +201,38 @@ foreach ($u in $Url) {
 
     Add-Log -Text "Output folder: $outDir"
 
-    $ytArgs = $cookieArgs + @(
-        '-x'
-        '--audio-format', $Format
-        '--audio-quality', '0'
-        '--embed-metadata'
-        '--embed-thumbnail'
-        '--parse-metadata', '%(playlist_index)s:%(track_number)s'
-        '-o', $OutputTemplate
-        '-P', $outDir
-        '--ignore-errors'
-    ) + $sponsorBlockArgs
-
-    $ytArgs += $u
+    if ($isSpotify) {
+        $exeName = 'spotdl'
+        $downloadArgs = @(
+            'download', $u
+            '--format', $Format
+            '--output', (Join-Path -Path $outDir -ChildPath '{track-number} - {title}.{output-ext}')
+        )
+    } else {
+        $exeName = 'yt-dlp'
+        $downloadArgs = $cookieArgs + @(
+            '-x'
+            '--audio-format', $Format
+            '--audio-quality', '0'
+            '--embed-metadata'
+            '--embed-thumbnail'
+            '--parse-metadata', '%(playlist_index)s:%(track_number)s'
+            '-o', $OutputTemplate
+            '-P', $outDir
+            '--ignore-errors'
+        ) + $sponsorBlockArgs + @($u)
+    }
 
     $label = $u
     if ($label.Length -gt 70) {
         $label = $label.Substring(0, 67) + '...'
     }
 
-    if ($PSCmdlet.ShouldProcess($label, "Download FLAC to $outDir")) {
-        Write-Verbose "Running: yt-dlp $($ytArgs -join ' ')"
+    if ($PSCmdlet.ShouldProcess($label, "Download $Format to $outDir")) {
+        Write-Verbose "Running: $exeName $($downloadArgs -join ' ')"
         Add-Log -Text "Starting: $u"
 
-        & yt-dlp @ytArgs 2>&1
+        & $exeName @downloadArgs 2>&1
         $ec = $LASTEXITCODE
 
         # Post-process: lowercase filenames, replace spaces with underscores, strip special chars

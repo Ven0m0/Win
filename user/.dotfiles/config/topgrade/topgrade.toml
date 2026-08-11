@@ -4,7 +4,7 @@
 [misc]
 no_retry = true
 cleanup = false
-disable = ["gem", "ruby_gems", "containers"]
+disable = ["gem", "ruby_gems", "containers", "system"]
 ignore_failures = ["system", "uv", "pipx", "shell", "bun", "mise", "yadm", "node", "containers", "claude_code", "system"]
 assume_yes = true
 skip_notify = true
@@ -39,3 +39,6 @@ enable_pipupgrade = true
 [cargo]
 git = true
 quiet = true
+
+[commands]
+"lobotomized-claude-code" = 'git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" fetch origin && git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" reset --hard origin/main && git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" clean -fd'
