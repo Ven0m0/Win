@@ -41,4 +41,4 @@ git = true
 quiet = true
 
 [commands]
-"lobotomized-claude-code" = 'git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" fetch origin && git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" reset --hard origin/main && git -C "C:\Users\Ven0m0\.tweakcc\lobotomized-claude-code" clean -fd'
+"lobotomized-claude-code" = 'git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" fetch origin && git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" reset --hard origin/main && git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" clean -fd'
