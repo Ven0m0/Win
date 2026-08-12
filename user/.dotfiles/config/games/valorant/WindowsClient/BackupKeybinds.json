@@ -1,0 +1,24 @@
+{
+	"settingsVersion": 15,
+	"actionMappings": [
+		{
+			"name": "VOICE_PartyPTTAction",
+			"characterName": "None",
+			"bindIndex": 0,
+			"key": "H",
+			"shift": false,
+			"ctrl": false,
+			"alt": false,
+			"cmd": false,
+			"tapHoldType": "None"
+		}
+	],
+	"axisMappings": [],
+	"settingsProfiles": [],
+	"characterProfileData": [
+		{
+			"profileName": "None",
+			"presetIndex": 0
+		}
+	]
+}

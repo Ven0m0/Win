@@ -237,7 +237,7 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 │   ├── browser/firefox/user.js
 │   ├── cmd/alias.cmd
 │   ├── bleachbit/cleaners/
-│   ├── games/(arc-raiders, bf2, bo6, fortnite, minecraft)/
+│   ├── games/(arc-raiders, bf2, bo6, fortnite, minecraft, valorant)/
 │   ├── nvidia/                   # NVIDIA assets
 │   ├── obs/                      # OBS Studio profiles, scenes, plugin_config
 │   ├── scoop/                    # Scoop bucket configs

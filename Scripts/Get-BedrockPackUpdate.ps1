@@ -1,15 +1,16 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-  Reports which Minecraft Bedrock packs installed in LeviLauncher have a newer release upstream.
+  Reports which Minecraft Bedrock packs and mods installed in LeviLauncher have a newer release
+  upstream.
 .DESCRIPTION
-  LeviLauncher has no update mechanism for third-party behavior and resource packs, and Minecraft
-  stores imported packs in base64-named folders without recording where they came from. This script
-  reads every installed pack's manifest, joins it to the hand-maintained source map in
-  bedrock-packs.psd1 by pack UUID, and compares the upstream release date against the pack's install
-  date.
+  LeviLauncher has no update mechanism for third-party behavior/resource packs or native mods.
+  Minecraft stores imported packs in base64-named folders, and mods live under a folder named after
+  the DLL they hijack - neither records where it came from. This script reads every installed pack
+  and mod manifest, joins it to the hand-maintained source map in bedrock-packs.psd1 (by pack UUID,
+  or by mod name), and compares the upstream release date against the install date.
 
-  It is read-only: nothing under the pack root is created, modified, or deleted.
+  It is read-only: nothing under the pack or mod root is created, modified, or deleted.
 
   Upstream lookups are driven by the URL in the source map:
     curseforge.com/minecraft-bedrock/addons/<slug>  checked via the keyless cfwidget API
@@ -17,11 +18,14 @@
     anything else                                   reported as CHECK for a manual visit
 
   Comparison is on release date rather than version string: CurseForge reports the game version a
-  file targets, not the pack's own version, so version strings are not comparable.
+  file targets, not the pack's own version, and mod manifests carry no reliable version at all, so
+  version strings are not comparable.
 .PARAMETER Version
   LeviLauncher instance to inspect, e.g. '1.26.40.05'. Defaults to the newest installed instance.
 .PARAMETER PackRoot
   Full path to a com.mojang directory, bypassing instance resolution entirely.
+.PARAMETER ModRoot
+  Full path to a LeviLauncher instance's mods directory, bypassing instance resolution entirely.
 .PARAMETER SourceMap
   Path to the .psd1 source map. Defaults to bedrock-packs.psd1 beside this script.
 .PARAMETER AsObject
@@ -46,6 +50,9 @@ param (
 
   # Explicit com.mojang path, bypassing instance resolution
   [string]$PackRoot,
+
+  # Explicit mods directory, bypassing instance resolution
+  [string]$ModRoot,
 
   # Source map to load
   [string]$SourceMap = (Join-Path -Path $PSScriptRoot -ChildPath 'bedrock-packs.psd1'),
@@ -130,15 +137,15 @@ function Get-PackDisplayName {
 }
 
 
-function Resolve-PackRoot {
+function Resolve-Instance {
   <#
   .SYNOPSIS
-    Resolves the com.mojang directory for a LeviLauncher instance.
+    Resolves the root directory of a LeviLauncher instance.
   .PARAMETER Version
     Instance version to use; the newest version-shaped directory when omitted.
   .EXAMPLE
-    Resolve-PackRoot
-    Returns the com.mojang path of the newest installed instance.
+    Resolve-Instance
+    Returns the path of the newest installed instance.
   .OUTPUTS
     System.String
   #>
@@ -183,7 +190,7 @@ function Resolve-PackRoot {
       $instance = $newest.Path
     }
 
-    Join-Path -Path $instance -ChildPath 'Minecraft Bedrock\Users\Shared\games\com.mojang'
+    $instance
   }
 }
 
@@ -239,6 +246,58 @@ function Get-InstalledPack {
           Name      = Get-PackDisplayName -Name $manifest.header.name
           Installed = (Get-Item -LiteralPath $manifestPath).LastWriteTime
         }
+      }
+    }
+  }
+}
+
+
+function Get-InstalledMod {
+  <#
+  .SYNOPSIS
+    Reads every installed mod manifest under a LeviLauncher instance's mods directory.
+  .PARAMETER Path
+    The mods directory to enumerate.
+  .EXAMPLE
+    Get-InstalledMod -Path 'C:\...\1.26.40.05\mods'
+    Returns one object per mod with its name (used as the map key) and install date.
+  .OUTPUTS
+    System.Management.Automation.PSCustomObject
+  #>
+  [CmdletBinding()]
+  [OutputType([pscustomobject])]
+  param (
+    # mods directory
+    [Parameter(Mandatory)]
+    [string]$Path
+  )
+  process {
+    foreach ($modDir in Get-ChildItem -LiteralPath $Path -Directory) {
+      $manifestPath = Join-Path -Path $modDir.FullName -ChildPath 'manifest.json'
+      if (-not (Test-Path -LiteralPath $manifestPath)) {
+        Write-Warn "No manifest in $($modDir.Name), skipping"
+        continue
+      }
+
+      try {
+        $raw = Get-Content -LiteralPath $manifestPath -Raw
+        $manifest = ConvertFrom-JsonComment -Text $raw | ConvertFrom-Json
+      } catch {
+        $err = $_
+        Write-Warn "Unreadable manifest in $($modDir.Name): $($err.Exception.Message)"
+        continue
+      }
+
+      # Mod manifests carry no UUID; the folder is named after the DLL being hijacked, not the
+      # project, so the manifest name (falling back to the folder) is the map key instead.
+      $name = if ($manifest.name) { [string]$manifest.name } else { $modDir.Name }
+
+      [pscustomobject]@{
+        Kind      = 'Mod'
+        Folder    = $modDir.Name
+        Uuid      = $name
+        Name      = $name
+        Installed = (Get-Item -LiteralPath $manifestPath).LastWriteTime
       }
     }
   }
@@ -353,10 +412,18 @@ function Get-UpstreamRelease {
 }
 
 
-$root = if ($PackRoot) { $PackRoot } else { Resolve-PackRoot -Version $Version }
+if ($PackRoot -or $ModRoot) {
+  $instance = $null
+} else {
+  $instance = Resolve-Instance -Version $Version
+}
+
+$root = if ($PackRoot) { $PackRoot } else { Join-Path -Path $instance -ChildPath 'Minecraft Bedrock\Users\Shared\games\com.mojang' }
 if (-not (Test-Path -LiteralPath $root)) {
   throw "Pack root not found: $root"
 }
+
+$modRoot = if ($ModRoot) { $ModRoot } elseif ($instance) { Join-Path -Path $instance -ChildPath 'mods' } else { $null }
 
 $sources = if (Test-Path -LiteralPath $SourceMap) {
   Import-PowerShellDataFile -LiteralPath $SourceMap
@@ -371,21 +438,33 @@ Write-Info $root
 $lookupFailed = $false
 # Packs that share a URL (a pack's BP and RP are usually one CurseForge project) share one lookup.
 $upstreamCache = @{}
-$results = foreach ($pack in Get-InstalledPack -Path $root) {
+$installed = @(Get-InstalledPack -Path $root)
+if ($modRoot -and (Test-Path -LiteralPath $modRoot)) {
+  $installed += @(Get-InstalledMod -Path $modRoot)
+} else {
+  Write-Verbose "No mods directory, skipping mod checks: $modRoot"
+}
+
+$results = foreach ($pack in $installed) {
   $entry = $sources[$pack.Uuid]
   $name = if ($entry -and $entry.Name) { $entry.Name } else { $pack.Name }
   if (-not $name) { $name = $pack.Folder }
 
   if (-not $entry) {
     $query = [uri]::EscapeDataString($name)
+    $searchUrl = if ($pack.Kind -eq 'Mod') {
+      "https://github.com/search?q=$query&type=repositories"
+    } else {
+      # Unfiltered by class on purpose - Bedrock packs live under addons, texture-packs and scripts
+      "https://www.curseforge.com/minecraft-bedrock/search?search=$query"
+    }
     [pscustomobject]@{
       Status    = 'UNMAPPED'
       Kind      = $pack.Kind
       Name      = $name
       Installed = $pack.Installed
       Latest    = $null
-      # Unfiltered by class on purpose - Bedrock packs live under addons, texture-packs and scripts
-      Url       = "https://www.curseforge.com/minecraft-bedrock/search?search=$query"
+      Url       = $searchUrl
     }
     continue
   }
