@@ -369,6 +369,8 @@ Write-Header 'Bedrock pack updates'
 Write-Info $root
 
 $lookupFailed = $false
+# Packs that share a URL (a pack's BP and RP are usually one CurseForge project) share one lookup.
+$upstreamCache = @{}
 $results = foreach ($pack in Get-InstalledPack -Path $root) {
   $entry = $sources[$pack.Uuid]
   $name = if ($entry -and $entry.Name) { $entry.Name } else { $pack.Name }
@@ -388,13 +390,18 @@ $results = foreach ($pack in Get-InstalledPack -Path $root) {
     continue
   }
 
-  try {
-    $upstream = Get-UpstreamRelease -Url $entry.Url
-  } catch {
-    $err = $_
-    Write-Verbose "Lookup failed for '$name': $($err.Exception.Message)"
-    $upstream = $null
-    $lookupFailed = $true
+  if ($upstreamCache.ContainsKey($entry.Url)) {
+    $upstream = $upstreamCache[$entry.Url]
+  } else {
+    try {
+      $upstream = Get-UpstreamRelease -Url $entry.Url
+      $upstreamCache[$entry.Url] = $upstream
+    } catch {
+      $err = $_
+      Write-Verbose "Lookup failed for '$name': $($err.Exception.Message)"
+      $upstream = $null
+      $lookupFailed = $true
+    }
   }
 
   if (-not $upstream) {

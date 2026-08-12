@@ -19,7 +19,8 @@
 # with a prefilled CurseForge search URL. Paste the project URL back in here to make it checkable.
 #
 # A behaviour pack and its matching resource pack are separate UUIDs but usually one CurseForge
-# project, so they share a URL.
+# project, so they share a URL. Get-BedrockPackUpdate.ps1 caches upstream lookups by URL, so a
+# shared BP/RP URL costs one network call, not two.
 
 @{
   # ---------------------------------------------------------------------------
@@ -97,12 +98,14 @@
     Name = 'Skilled Items Deluxe (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/skilled-items-deluxe'
   }
-  '88e4d07f-b773-4a30-9fc5-e88647fe4bcc' = @{
-    Name = 'Feather FPS Boost (BP)'
+  # V10 refreshed UUIDs (manifest description says so). Old V9 UUIDs dropped - only newest
+  # instance gets checked.
+  'e9e4a5b2-a153-41a0-a2c1-a569606ca677' = @{
+    Name = 'Feather FPS Boost V10 (BP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod'
   }
-  '876aa161-ae8a-4808-9fd0-015b74a6ff25' = @{
-    Name = 'Feather FPS Boost (RP)'
+  'f78bd6c4-0c9d-45e8-8044-9dea2d49d691' = @{
+    Name = 'Feather FPS Boost V10 (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod'
   }
   '8596c16a-f92a-4dac-892d-5cafd38c9c7f' = @{
@@ -247,6 +250,14 @@
   'd3e4f5a6-b7c8-4d9e-a0f1-b2c3d4e5f6a7' = @{
     Name = 'Dynamic Health Bar (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/dynamic-health-bar'
+  }
+
+  # ---------------------------------------------------------------------------
+  # GitHub
+  # ---------------------------------------------------------------------------
+  'bf898567-c2b5-4782-bc6b-a191fef3a483' = @{
+    Name = 'Ender Chest Always Drops Itself'
+    Url  = 'https://github.com/Ven0m0/mcpe'
   }
 
   # ---------------------------------------------------------------------------
