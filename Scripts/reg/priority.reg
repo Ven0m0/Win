@@ -62,19 +62,19 @@ Windows Registry Editor Version 5.00
 
 ; === Normal priority (Steam/NVIDIA background helpers) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\steam.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000003
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\steamservice.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000003
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\nvcontainer.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000003
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\NVIDIA Overlay.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000003
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\NVDisplay.Container.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000003
+"CpuPriorityClass"=dword:00000005
 
 ; === Low priority (Steam web helper / SteelSeries suite) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\steamwebhelper.exe\PerfOptions]
@@ -90,13 +90,13 @@ Windows Registry Editor Version 5.00
 "CpuPriorityClass"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SteelSeriesGGEZ.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000001
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SteelSeriesGG.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000001
+"CpuPriorityClass"=dword:00000005
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\SteelSeriesEngine.exe\PerfOptions]
-"CpuPriorityClass"=dword:00000001
+"CpuPriorityClass"=dword:00000005
 
 ; === QoS for competitive games: DSCP 46 (Expedited Forwarding) ===
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\QoS\ArcRaiders]
