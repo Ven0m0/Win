@@ -35,11 +35,32 @@ $script:Slashes
     Set-Content -LiteralPath (Join-Path -Path $dir -ChildPath 'manifest.json') -Value $manifest
     $dir
   }
+
+  function New-TestMod {
+    param(
+      [string]$Root,
+      [string]$Folder,
+      [string]$Name
+    )
+    $dir = Join-Path -Path $Root -ChildPath $Folder
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    $manifest = @"
+{
+  "name": "$Name",
+  "entry": "$Folder.dll",
+  "version": "0.0.0",
+  "type": "preload-native"
+}
+"@
+    Set-Content -LiteralPath (Join-Path -Path $dir -ChildPath 'manifest.json') -Value $manifest
+    $dir
+  }
 }
 
 Describe 'Get-BedrockPackUpdate.ps1' {
   BeforeEach {
     $script:PackRoot = Join-Path $TestDrive ([guid]::NewGuid())
+    $script:ModRoot = Join-Path $TestDrive ([guid]::NewGuid())
     # Only non-API URLs are used, so no test in this file reaches the network.
     $script:MapPath = Join-Path $script:PackRoot 'map.psd1'
     New-Item -ItemType Directory -Path $script:PackRoot -Force | Out-Null
@@ -123,6 +144,45 @@ Describe 'Get-BedrockPackUpdate.ps1' {
         -SourceMap (Join-Path $PackRoot 'absent.psd1') -AsObject 6> $null
 
       $result[0].Status | Should -Be 'UNMAPPED'
+    }
+  }
+
+  Context 'Mods' {
+    It 'Reports a mod with a map entry pointing at a non-API URL as CHECK, using the map name' {
+      New-TestMod -Root $ModRoot -Folder 'vcruntime140_1' -Name 'vcruntime140_1' | Out-Null
+      Set-Content -LiteralPath $MapPath -Value @"
+@{
+  'vcruntime140_1' = @{ Name = 'Igneous'; Url = 'https://mcpedl.com/igneous/' }
+}
+"@
+
+      $result = & $ScriptPath -PackRoot $PackRoot -ModRoot $ModRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result.Count | Should -Be 1
+      $result[0].Kind | Should -Be 'Mod'
+      $result[0].Status | Should -Be 'CHECK'
+      $result[0].Name | Should -Be 'Igneous'
+    }
+
+    It 'Reports a mod with no map entry as UNMAPPED with a GitHub search URL' {
+      New-TestMod -Root $ModRoot -Folder 'orphanmod' -Name 'orphanmod' | Out-Null
+      Set-Content -LiteralPath $MapPath -Value '@{}'
+
+      $result = & $ScriptPath -PackRoot $PackRoot -ModRoot $ModRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result[0].Status | Should -Be 'UNMAPPED'
+      $result[0].Url | Should -BeLike '*github.com/search*orphanmod*'
+    }
+
+    It 'Returns packs only, without throwing, when -PackRoot is given without -ModRoot' {
+      New-TestPack -Root $PackRoot -Kind 'behavior_packs' -Folder 'a' `
+        -Uuid '99999999-9999-9999-9999-999999999999' -Name 'Solo' | Out-Null
+      Set-Content -LiteralPath $MapPath -Value '@{}'
+
+      $result = & $ScriptPath -PackRoot $PackRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result.Count | Should -Be 1
+      $result[0].Kind | Should -Be 'BP'
     }
   }
 

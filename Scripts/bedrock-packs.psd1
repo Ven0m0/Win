@@ -6,6 +6,9 @@
 # from, so this map has to be maintained by hand. Keys are the pack's `header.uuid` from its
 # manifest.json — stable across reinstalls, unlike the folder name.
 #
+# LeviLauncher mods (<instance>\mods\<folder>\manifest.json) have no UUID at all, so their entries
+# are keyed by the manifest's `name` instead - see the Mods section at the end of this file.
+#
 # Each entry is just a name and a URL. The script classifies the URL itself:
 #
 #   https://www.curseforge.com/minecraft-bedrock/<class>/<slug>  -> checked automatically via cfwidget
@@ -276,4 +279,15 @@
   # surfaces same-named projects by unrelated authors instead. The author is usually
   # in the manifest description or the pack name itself.
   # ---------------------------------------------------------------------------
+
+  # ---------------------------------------------------------------------------
+  # LeviLauncher mods (<instance>\mods\<folder>\manifest.json)
+  #
+  # Keyed by the manifest's `name` rather than a UUID - mod manifests have no UUID, and the
+  # folder is named after the DLL the mod hijacks, not the project.
+  # ---------------------------------------------------------------------------
+  'Igneous' = @{
+    Name = 'Igneous'
+    Url  = 'https://github.com/Aetopia/Igneous'
+  }
 }

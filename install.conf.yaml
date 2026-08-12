@@ -27,6 +27,7 @@
 #   games\arc-raiders\                             → %LOCALAPPDATA%\PioneerGame\Saved\Config\WindowsClient\
 #   games\fortnite\GameUserSettings.ini            → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
 #   games\fortnite\Engine.ini                      → %LOCALAPPDATA%\EpicGamesLauncher\Saved\Config\WindowsEditor\Engine.ini
+#   games\valorant\                                → %LOCALAPPDATA%\VALORANT\Saved\Config\<account-guid>-<region>\ (auto-detected)
 #   mise\config.toml                               → ~/.config/mise/config.toml
 #   scoop\config.json                              → ~/.config/scoop/config.json
 #   psmux\.psmux.conf                              → ~/.psmux.conf

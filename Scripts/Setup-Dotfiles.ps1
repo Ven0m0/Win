@@ -224,6 +224,27 @@ function Get-StarWarsBattlefrontIIActiveProfilePath {
     )
 }
 
+function Get-ValorantProfileConfigPath {
+    <#
+  .SYNOPSIS
+      Resolves the active VALORANT account config folder under %LOCALAPPDATA%.
+  .DESCRIPTION
+      Folder name is "<riot-account-guid>-<region>" and changes per account/machine,
+      so it is discovered at runtime instead of hardcoded.
+  #>
+    $configRoot = Join-Path $env:LOCALAPPDATA 'VALORANT\Saved\Config'
+    if (-not (Test-Path $configRoot)) {
+        return $null
+    }
+
+    return (
+        Get-ChildItem -Path $configRoot -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -match '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}-[a-z]{2,4}$' } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+    )
+}
+
 function Set-CmdAliasAutoRun {
     <#
   .SYNOPSIS
@@ -773,6 +794,15 @@ function Start-Bootstrap {
                 return $null
             }
             GetSkipReason      = { 'Epic Games Launcher config directory not found' }
+        },
+        @{
+            Path               = 'games\valorant'
+            Mode               = 'directory'
+            Label              = 'VALORANT configs'
+            Filter             = '*'
+            Recurse            = $true
+            ResolveDestination = { Get-ValorantProfileConfigPath }
+            GetSkipReason      = { 'VALORANT account config directory not found' }
         },
         @{
             Path  = 'cursors'
