@@ -4,10 +4,9 @@ experimental = true
 color = true
 yes = true
 auto_install = true
-lockfile = true
 #activate_aggressive = true
 #jobs = 8
-#go_skip_checksum = true
+go_skip_checksum = true
 
 [settings.python]
 uv_venv_auto = "create|source"
