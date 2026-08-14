@@ -1,4 +1,6 @@
 ﻿#Requires -Version 5.1
+#Requires -Modules PSWindowsUpdate
+#Requires -RunAsAdministrator
 
 <#
 .SYNOPSIS

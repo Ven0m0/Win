@@ -3376,7 +3376,7 @@ function applyadvsettings {
         Write-Host "Set CoalesceBufferSize to"$cb_CoalesceBufferSize.Text -ForegroundColor Green
         New-ItemProperty -Path "$KeyPath" -Name "CoalesceBufferSize" -Type "Dword" -Value $cb_CoalesceBufferSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_CoalesceBufferSize.Text -or $cb_CoalesceBufferSize.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing CoalesceBufferSize"
         Remove-ItemProperty -Path "$KeyPath" -Name "CoalesceBufferSize"
     }
@@ -4010,7 +4010,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDefaultReceiveWindow to"$cb_Afd_defaultrecWin.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow" -Value $cb_Afd_defaultrecWin.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_Afd_defaultrecWin.Text -or $cb_Afd_defaultrecWin.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDefaultReceiveWindow"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultReceiveWindow"
     }
@@ -4025,7 +4025,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDefaultSendWindow to"$cb_Afd_defaultSendWin.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow" -Value $cb_Afd_defaultSendWin.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_Afd_defaultSendWin.Text -or $cb_Afd_defaultSendWin.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDefaultSendWindow"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DefaultSendWindow"
     }
@@ -4040,7 +4040,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDisableAddressSharing to"$cb_DisableAddressSharing.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing" -Value $cb_DisableAddressSharing.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DisableAddressSharing.Text -or $cb_DisableAddressSharing.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDisableAddressSharing"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableAddressSharing"
     }
@@ -4055,7 +4055,7 @@ function RegistryTweaks {
         Write-Host "Set AFDBufferMultiplier to"$cb_BufferMultiplier.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier" -Value $cb_BufferMultiplier.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_BufferMultiplier.Text -or $cb_BufferMultiplier.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDBufferMultiplier"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferMultiplier"
     }
@@ -4070,7 +4070,7 @@ function RegistryTweaks {
         Write-Host "Set AFDBufferAlignment to"$cb_BufferAlignment.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment" -Value $cb_BufferAlignment.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_BufferAlignment.Text -or $cb_BufferAlignment.Text -eq '' -or $cb_BufferAlignment.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDBufferAlignment"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "BufferAlignment"
     }
@@ -4085,7 +4085,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDoNotHoldNICBuffers to"$cb_DoNotHoldNICBuffers.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers" -Value $cb_DoNotHoldNICBuffers.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DoNotHoldNICBuffers.Text -or $cb_DoNotHoldNICBuffers.Text -eq '' -or $cb_DoNotHoldNICBuffers.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDoNotHoldNICBuffers"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DoNotHoldNICBuffers"
     }
@@ -4100,7 +4100,7 @@ function RegistryTweaks {
         Write-Host "Set AFDSmallBufferSize to"$cb_SmallBufferSize.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize" -Value $cb_SmallBufferSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_SmallBufferSize.Text -or $cb_SmallBufferSize.Text -eq '' -or $cb_SmallBufferSize.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDSmallBufferSize"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferSize"
     }
@@ -4115,7 +4115,7 @@ function RegistryTweaks {
         Write-Host "Set AFDMediumBufferSize to"$cb_MediumBufferSize.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize" -Value $cb_MediumBufferSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_MediumBufferSize.Text -or $cb_MediumBufferSize.Text -eq '' -or $cb_MediumBufferSize.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDMediumBufferSize"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferSize"
     }
@@ -4130,7 +4130,7 @@ function RegistryTweaks {
         Write-Host "Set AFDLargeBufferSize to"$cb_LargeBufferSize.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize" -Value $cb_LargeBufferSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_LargeBufferSize.Text -or $cb_LargeBufferSize.Text -eq '' -or $cb_LargeBufferSize.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDLargeBufferSize"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargeBufferSize"
     }
@@ -4145,7 +4145,7 @@ function RegistryTweaks {
         Write-Host "Set AFDHugeBufferSize to"$cb_HugeBufferSize.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize" -Value $cb_HugeBufferSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_HugeBufferSize.Text -or $cb_HugeBufferSize.Text -eq '' -or $cb_HugeBufferSize.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDHugeBufferSize"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "HugeBufferSize"
     }
@@ -4160,7 +4160,7 @@ function RegistryTweaks {
         Write-Host "Set AFDSmallBufferListDepth to"$cb_SmallBufferListDepth.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth" -Value $cb_SmallBufferListDepth.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_SmallBufferListDepth.Text -or $cb_SmallBufferListDepth.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDSmallBufferListDepth"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "SmallBufferListDepth"
     }
@@ -4175,7 +4175,7 @@ function RegistryTweaks {
         Write-Host "Set AFDMediumBufferListDepth to"$cb_MediumBufferListDepth.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth" -Value $cb_MediumBufferListDepth.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_MediumBufferListDepth.Text -or $cb_MediumBufferListDepth.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDMediumBufferListDepth"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "MediumBufferListDepth"
     }
@@ -4190,7 +4190,7 @@ function RegistryTweaks {
         Write-Host "Set AFDLargBufferListDepth to"$cb_LargBufferListDepth.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth" -Value $cb_LargBufferListDepth.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_LargBufferListDepth.Text -or $cb_LargBufferListDepth.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDLargBufferListDepth"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "LargBufferListDepth"
     }
@@ -4205,7 +4205,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDisableDirectAcceptEx to"$cb_DisableDirectAcceptEx.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx" -Value $cb_DisableDirectAcceptEx.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DisableDirectAcceptEx.Text -or $cb_DisableDirectAcceptEx.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDisableDirectAcceptEx"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableDirectAcceptEx"
     }
@@ -4220,7 +4220,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDisableChainedReceive to"$cb_DisableChainedReceive.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive" -Value $cb_DisableChainedReceive.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DisableChainedReceive.Text -or $cb_DisableChainedReceive.Text -eq '' -or $cb_DisableChainedReceive.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDisableChainedReceive"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableChainedReceive"
     }
@@ -4235,7 +4235,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDisableRawSecurity to"$cb_DisableRawSecurity.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity" -Value $cb_DisableRawSecurity.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DisableRawSecurity.Text -or $cb_DisableRawSecurity.Text -eq '' -or $cb_DisableRawSecurity.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDisableRawSecurity"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DisableRawSecurity"
     }
@@ -4250,7 +4250,7 @@ function RegistryTweaks {
         Write-Host "Set AFDDynamicSendBufferDisable to"$cb_DynamicSendBufferDisable.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable" -Value $cb_DynamicSendBufferDisable.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_DynamicSendBufferDisable.Text -or $cb_DynamicSendBufferDisable.Text -eq '' -or $cb_DynamicSendBufferDisable.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDDynamicSendBufferDisable"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "DynamicSendBufferDisable"
     }
@@ -4265,7 +4265,7 @@ function RegistryTweaks {
         Write-Host "Set AFDFastSendDatagramThreshold to"$cb_FastSendDatagramThreshold.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold" -Value $cb_FastSendDatagramThreshold.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_FastSendDatagramThreshold.Text -or $cb_FastSendDatagramThreshold.Text -eq '' -or $cb_FastSendDatagramThreshold.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDFastSendDatagramThreshold"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastSendDatagramThreshold"
     }
@@ -4280,7 +4280,7 @@ function RegistryTweaks {
         Write-Host "Set AFDFastCopyReceiveThreshold to"$cb_FastCopyReceiveThreshold.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold" -Value $cb_FastCopyReceiveThreshold.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_FastCopyReceiveThreshold.Text -or $cb_FastCopyReceiveThreshold.Text -eq '') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDFastCopyReceiveThreshold"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "FastCopyReceiveThreshold"
     }
@@ -4295,7 +4295,7 @@ function RegistryTweaks {
         Write-Host "Set AFDIgnorePushBitOnReceives to"$cb_IgnorePushBitOnReceives.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives" -Value $cb_IgnorePushBitOnReceives.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_IgnorePushBitOnReceives.Text -or $cb_IgnorePushBitOnReceives.Text -eq '' -or $cb_IgnorePushBitOnReceives.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDIgnorePushBitOnReceives"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnorePushBitOnReceives"
     }
@@ -4310,7 +4310,7 @@ function RegistryTweaks {
         Write-Host "Set AFDIgnoreOrderlyRelease to"$cb_IgnoreOrderlyRelease.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease" -Value $cb_IgnoreOrderlyRelease.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_IgnoreOrderlyRelease.Text -or $cb_IgnoreOrderlyRelease.Text -eq '' -or $cb_IgnoreOrderlyRelease.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDIgnoreOrderlyRelease"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IgnoreOrderlyRelease"
     }
@@ -4325,7 +4325,7 @@ function RegistryTweaks {
         Write-Host "Set AFDTransmitWorker to"$cb_TransmitWorker.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker" -Value $cb_TransmitWorker.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_TransmitWorker.Text -or $cb_TransmitWorker.Text -eq '' -or $cb_TransmitWorker.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDTransmitWorker"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "TransmitWorker"
     }
@@ -4340,7 +4340,7 @@ function RegistryTweaks {
         Write-Host "Set AFDPriorityBoost to"$cb_PriorityBoost.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost" -Value $cb_PriorityBoost.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_PriorityBoost.Text -or $cb_PriorityBoost.Text -eq '' -or $cb_PriorityBoost.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDPriorityBoost"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "PriorityBoost"
     }
@@ -4355,7 +4355,7 @@ function RegistryTweaks {
         Write-Host "Set AFDIrpStackSize to"$cb_IrpStackSize.Text -ForegroundColor Green
         New-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize" -Value $cb_IrpStackSize.Text -Force
     }
-    elseif ($A -eq $true -and $null -eq $cb_IrpStackSize.Text -or $cb_IrpStackSize.Text -eq '' -or $cb_IrpStackSize.Text -eq '0') {
+    elseif ($A -eq $true) {
         Write-Warning "Removing AFDIrpStackSize"
         Remove-ItemProperty -Path "REGISTRY::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\AFD\Parameters" -Name "IrpStackSize"
     }

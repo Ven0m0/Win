@@ -67,31 +67,8 @@ jobs:
           cache: true
           install: true
 
-      - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.3
-        continue-on-error: true
-        with:
-          modules-to-cache: PSScriptAnalyzer
-
-      - name: Install PSScriptAnalyzer
-        shell: pwsh
-        run: |
-          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          }
-          Import-Module PSScriptAnalyzer
-          Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
-
-      - name: Validate autounattend XML
-        shell: pwsh
-        run: |
-          $xml = [xml]::new()
-          if (Test-Path "$PWD/Scripts/auto/autounattend.xml") {
-            $xml.Load("$PWD/Scripts/auto/autounattend.xml")
-          } else {
-            Write-Host "Scripts/auto/autounattend.xml not present, skipping"
-          }
-          $xml.Load("$PWD/Scripts/auto/autounattend-windows10.xml")
+      - name: Setup PowerShell
+        uses: ./.github/actions/setup-pwsh
 
       - name: Run PSScriptAnalyzer
         shell: pwsh

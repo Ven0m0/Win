@@ -12,7 +12,7 @@ Request-AdminElevation
 $ErrorActionPreference = 'Stop'
 $priv = 'SeLockMemoryPrivilege'
 $sid = ([Security.Principal.NTAccount]"$env:USERNAME").Translate([Security.Principal.SecurityIdentifier]).Value
-Write-Host "Account: $env:USERNAME  ($sid)"
+Write-Info "Account: $env:USERNAME  ($sid)"
 
 $work = Join-Path $env:TEMP 'lpim_grant'
 New-Item -ItemType Directory -Force -Path $work | Out-Null
@@ -41,12 +41,12 @@ if (-not $found) {
 }
 
 if ($already) {
-    Write-Host "Already granted to $env:USERNAME. No change needed." -ForegroundColor Green
+    Write-Success "Already granted to $env:USERNAME. No change needed."
 }
 else {
     Set-Content -Path $inf -Value $new -Encoding Unicode
     secedit /configure /db $db /cfg $inf /areas USER_RIGHTS | Out-Null
-    Write-Host "Granted '$priv' to $env:USERNAME." -ForegroundColor Green
-    Write-Host "Log out and back in (or reboot) for it to take effect." -ForegroundColor Yellow
+    Write-Success "Granted '$priv' to $env:USERNAME."
+    Write-Warn "Log out and back in (or reboot) for it to take effect."
 }
 Read-Host 'Press Enter to close'

@@ -1,5 +1,5 @@
-#!/usr/bin/env pwsh
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
+
 <#
 .SYNOPSIS
     Installs the Claude Code marketplaces, plugins, and MCP servers tracked in this repo.

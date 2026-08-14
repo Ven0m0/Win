@@ -411,6 +411,25 @@ function sed($file, $find, $replace) {
     (Get-Content $file).replace("$find", $replace) | Set-Content $file
 }
 
+function chmod {
+    # chmod -x/+x equivalent for Windows: toggles git's tracked executable bit.
+    # Windows/NTFS has no execute permission bit; git tracks one anyway (file mode
+    # 100755 vs 100644 in the index), which is what hooks like
+    # check-shebang-scripts-are-executable actually check. This flips that bit via
+    # git update-index instead of touching filesystem ACLs.
+    # $args (not param()) because PowerShell's binder treats a leading "-" as a
+    # named-parameter attempt, not a positional value, so "-x" can't bind to a
+    # typed [string]$Mode parameter.
+    $mode = $args[0]
+    if ($mode -ne '+x' -and $mode -ne '-x') {
+        Write-Error 'Usage: chmod +x|-x PATH...'
+        return
+    }
+    foreach ($p in $args[1..($args.Count - 1)]) {
+        git update-index --chmod=$mode -- $p
+    }
+}
+
 function which($name) {
     Get-Command $name | Select-Object -ExpandProperty Definition
 }

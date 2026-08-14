@@ -1,29 +1,64 @@
 name: Setup PowerShell
-description: Setup PowerShell environment for CI/CD
+description: Setup PowerShell environment for CI/CD - installs PSScriptAnalyzer and Pester
 author: Ven0m0
 
 inputs:
-  version:
-    description: PowerShell version to install (e.g., "latest", "7.4", "5.1")
+  pester-min-version:
+    description: Minimum Pester version required
     required: false
-    default: "latest"
-  modules:
-    description: PowerShell modules to cache (space-separated)
+    default: "5.0.0"
+  extra-modules:
+    description: Additional PowerShell modules to install (space-separated)
     required: false
-    default: "PSScriptAnalyzer"
+    default: ""
 
 runs:
   using: composite
   steps:
-    - name: Set up PowerShell via mise
+    - name: Set up PowerShell
       shell: bash
       run: |
-        pwsh_version="${{ inputs.version }}"
-        mise use powershell@$pwsh_version
-        mise exec -- pwsh --version
+        if command -v pwsh &> /dev/null; then
+          pwsh --version
+        else
+          mise install powershell@latest
+          mise exec powershell@latest -- pwsh --version
+        fi
 
     - name: Cache PowerShell modules
       uses: potatoqualitee/psmodulecache@v6.3
+      continue-on-error: true
       with:
-        modules-to-cache: ${{ inputs.modules }}
+        modules-to-cache: PSScriptAnalyzer, Pester, ${{ inputs.extra-modules }}
         updatable: true
+
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
+          Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+        }
+        Import-Module PSScriptAnalyzer
+        Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
+
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        $minVersion = '${{ inputs.pester-min-version }}'
+        if (-not (Get-Module -ListAvailable -Name Pester | Where-Object Version -ge $minVersion)) {
+          Install-Module -Name Pester -MinimumVersion $minVersion -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+        }
+        Import-Module Pester -MinimumVersion $minVersion
+        Write-Host "Pester version: $(Get-Module Pester | Select-Object -ExpandProperty Version)"
+
+    - name: Install extra modules
+      if: inputs.extra-modules != ''
+      shell: pwsh
+      run: |
+        $modules = '${{ inputs.extra-modules }}' -split '\s+' | Where-Object { $_ }
+        foreach ($moduleName in $modules) {
+          if (-not (Get-Module -ListAvailable -Name $moduleName)) {
+            Install-Module -Name $moduleName -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
+          }
+          Write-Host "$moduleName version: $(Get-Module $moduleName -ListAvailable | Select-Object -First 1 -ExpandProperty Version)"
+        }

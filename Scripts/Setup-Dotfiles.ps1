@@ -104,7 +104,7 @@ function Deploy-ConfigDirectory {
 
     $getChildArgs = @{ Path = $SourceDir; Filter = $Filter; File = $true }
     if ($Recurse) { $getChildArgs['Recurse'] = $true }
-    $files = Get-ChildItem @getChildArgs
+    $files = @(Get-ChildItem @getChildArgs)
 
     if ($files.Count -eq 0) {
         Write-Host "  [SKIP] $Label - no files matching '$Filter' in $SourceDir" -ForegroundColor Gray

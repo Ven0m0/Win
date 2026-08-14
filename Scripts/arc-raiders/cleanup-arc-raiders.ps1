@@ -119,38 +119,7 @@ Invoke-GlobClean "$env:TEMP\*"
 # ── Memory: trim working sets + standby list ──────────────────────────────────
 Write-Host "`n[Memory] Trimming..."
 
-Add-Type @"
-using System;
-using System.Runtime.InteropServices;
-public class MemUtil {
-    [DllImport("psapi.dll")]
-    public static extern bool EmptyWorkingSet(IntPtr hProcess);
-    [DllImport("kernel32.dll", SetLastError=true)]
-    public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
-    [DllImport("kernel32.dll")]
-    public static extern bool CloseHandle(IntPtr h);
-    [DllImport("ntdll.dll")]
-    public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
-
-    public static void TrimAll() {
-        foreach (var p in System.Diagnostics.Process.GetProcesses()) {
-            try {
-                IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
-                if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch { }
-        }
-    }
-    public static void PurgeStandby() {
-        IntPtr buf = Marshal.AllocHGlobal(4);
-        Marshal.WriteInt32(buf, 4);
-        NtSetSystemInformation(80, buf, 4);
-        Marshal.FreeHGlobal(buf);
-    }
-}
-"@ -ErrorAction SilentlyContinue
-
-try { [MemUtil]::TrimAll(); Write-Host "  Working sets trimmed." } catch { Write-Host "  WS trim skipped: $_" }
-try { [MemUtil]::PurgeStandby(); Write-Host "  Standby list purged." } catch { Write-Host "  Standby purge skipped: $_" }
+Invoke-MemoryTrim -TypeName 'ArcCleanupMemTrim'
 
 rundll32.exe advapi32.dll, ProcessIdleTasks
 Write-Host "  Idle tasks queued."
@@ -161,31 +130,7 @@ Write-Host "  Idle tasks queued."
 
 # ── Disk Optimization ─────────────────────────────────────────────────────────
 Write-Host "`n[Disk] Optimizing fixed volumes..."
-$physicalDisks = @(Get-PhysicalDisk -ErrorAction SilentlyContinue)
-Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter } | ForEach-Object {
-    $dl = $_.DriveLetter
-    $med = try {
-        $diskId = (Get-Partition -DriveLetter $dl -ErrorAction SilentlyContinue |
-                Get-Disk -ErrorAction SilentlyContinue).UniqueId
-        if ($diskId) {
-            ($physicalDisks | Where-Object { $_.UniqueId -eq $diskId } | Select-Object -First 1).MediaType
-        }
-        else {
-            'Unspecified'
-        }
-    }
-    catch { 'Unspecified' }
+Optimize-FixedVolume
 
-    Write-Host "  ${dl}: ($($_.FileSystem), $med)"
-    if ($med -ne 'HDD') {
-        Optimize-Volume -DriveLetter $dl -ReTrim -Verbose:$false
-        Write-Host "    ReTrim issued."
-    }
-    else {
-        Optimize-Volume -DriveLetter $dl -Defrag -Verbose:$false
-        Write-Host "    Defrag issued."
-    }
-}
-
-    # ── Summary ───────────────────────────────────────────────────────────────────
-    Write-ArcSummary
+# ── Summary ───────────────────────────────────────────────────────────────────
+Write-ArcSummary

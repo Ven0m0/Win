@@ -17,28 +17,28 @@ function Enable-ScriptExecution {
   #>
     [CmdletBinding(SupportsShouldProcess)]
     param()
-    Write-Host "Enabling PowerShell scripts..." -ForegroundColor Cyan
+    Write-Info "Enabling PowerShell scripts..."
     Write-Host ""
 
     if (-not $PSCmdlet.ShouldProcess('PowerShell execution policy and file associations', 'Enable')) { return }
 
-    Write-Host "[1/3] Configuring PowerShell file associations..."
+    Write-Info "[1/3] Configuring PowerShell file associations..."
     Set-RegistryValue -Path 'HKCR\Applications\powershell.exe\shell\open\command' -Name '' `
         -Type REG_SZ `
         -Data 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoLogo -ExecutionPolicy RemoteSigned -File "%1"'
 
-    Write-Host "[2/3] Setting execution policy to RemoteSigned..."
+    Write-Info "[2/3] Setting execution policy to RemoteSigned..."
     Set-RegistryValue -Path 'HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' `
         -Name 'ExecutionPolicy' -Type REG_SZ -Data 'RemoteSigned'
     Set-RegistryValue -Path 'HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' `
         -Name 'ExecutionPolicy' -Type REG_SZ -Data 'RemoteSigned'
 
-    Write-Host "[3/3] Unblocking all scripts in current directory..."
+    Write-Info "[3/3] Unblocking all scripts in current directory..."
     Get-ChildItem -Path $PSScriptRoot -Recurse -ErrorAction SilentlyContinue |
         Unblock-File -ErrorAction SilentlyContinue
 
     Write-Host ""
-    Write-Host "PowerShell Scripts Enabled!" -ForegroundColor Green
+    Write-Success "PowerShell Scripts Enabled!"
     Write-Host "  - Scripts can now be run by double-clicking" -ForegroundColor Gray
     Write-Host "  - Execution policy set to RemoteSigned" -ForegroundColor Gray
     Write-Host "  - All files in this directory unblocked" -ForegroundColor Gray
@@ -51,23 +51,23 @@ function Disable-ScriptExecution {
   #>
     [CmdletBinding(SupportsShouldProcess)]
     param()
-    Write-Host "Disabling PowerShell scripts..." -ForegroundColor Cyan
+    Write-Info "Disabling PowerShell scripts..."
     Write-Host ""
 
     if (-not $PSCmdlet.ShouldProcess('PowerShell execution policy and file associations', 'Disable')) { return }
 
-    Write-Host "[1/2] Removing PowerShell file associations..."
+    Write-Info "[1/2] Removing PowerShell file associations..."
     Remove-RegistryValue -Path 'HKCR\Applications\powershell.exe' -Name '' -ErrorAction SilentlyContinue
     Remove-RegistryValue -Path 'HKCR\ps1_auto_file' -Name '' -ErrorAction SilentlyContinue
 
-    Write-Host "[2/2] Setting execution policy to Restricted..."
+    Write-Info "[2/2] Setting execution policy to Restricted..."
     Set-RegistryValue -Path 'HKCU\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' `
         -Name 'ExecutionPolicy' -Type REG_SZ -Data 'Restricted'
     Set-RegistryValue -Path 'HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' `
         -Name 'ExecutionPolicy' -Type REG_SZ -Data 'Restricted'
 
     Write-Host ""
-    Write-Host "PowerShell Scripts Disabled!" -ForegroundColor Yellow
+    Write-Warn "PowerShell Scripts Disabled!"
     Write-Host "  - Script execution has been restricted" -ForegroundColor Gray
     Write-Host "  - Double-click execution disabled" -ForegroundColor Gray
 }

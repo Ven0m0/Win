@@ -62,19 +62,11 @@ jobs:
         shell: pwsh
         run: |
             try { Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted' -ErrorAction Stop } catch { Write-Warning "Failed to register OttoMatt repo: $_" }
-      - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.3
-        continue-on-error: true
-        with:
-          modules-to-cache: PSScriptAnalyzer,OptimizationRules,powershell-yaml
 
-      - name: Install PSScriptAnalyzer
-        run: |
-          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-            Install-Module -Name PSScriptAnalyzer -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          }
-          Import-Module PSScriptAnalyzer
-          Write-Host "PSScriptAnalyzer version: $(Get-Module PSScriptAnalyzer | Select-Object -ExpandProperty Version)"
+      - name: Setup PowerShell
+        uses: ./.github/actions/setup-pwsh
+        with:
+          extra-modules: OptimizationRules powershell-yaml
 
       - name: Run PSScriptAnalyzer
         shell: pwsh
@@ -244,14 +236,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Install Pester
-        shell: pwsh
-        run: |
-          if (-not (Get-Module -ListAvailable -Name Pester)) {
-            Install-Module -Name Pester -MinimumVersion 5.0.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          }
-          Import-Module Pester
-          Write-Host "Pester version: $(Get-Module Pester | Select-Object -ExpandProperty Version)"
+      - name: Setup PowerShell
+        uses: ./.github/actions/setup-pwsh
 
       - name: Create test output directory
         shell: pwsh
@@ -327,9 +313,10 @@ jobs:
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Continue'
-          $result = pwsh -NoProfile -File Scripts/Setup-Dotfiles.ps1 -WhatIf -SkipWingetTools 2>&1
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "## Deployment -WhatIf failed with exit code $LASTEXITCODE" -ForegroundColor Red
+          pwsh -NoProfile -File Scripts/Setup-Dotfiles.ps1 -WhatIf -SkipWingetTools 2>&1 | ForEach-Object { Write-Host $_ }
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) {
+            Write-Host "## Deployment -WhatIf failed with exit code $exitCode" -ForegroundColor Red
             exit 1
           }
           Write-Host "## Deployment -WhatIf completed successfully" -ForegroundColor Green

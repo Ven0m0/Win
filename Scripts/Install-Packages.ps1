@@ -168,12 +168,14 @@ function Start-InstallPackage {
     }
 
     # Ensure winget is available (wait-loop for fresh installs)
-    try {
-        $null = Wait-ForWinget
-        Write-Status 'winget is available' -Status 'OK'
-    } catch {
-        Write-Status "winget not available: $_. Install from https://aka.ms/getwinget" -Status 'FAIL'
-        exit 1
+    if (-not $SkipWinget) {
+        try {
+            $null = Wait-ForWinget
+            Write-Status 'winget is available' -Status 'OK'
+        } catch {
+            Write-Status "winget not available: $_. Install from https://aka.ms/getwinget" -Status 'FAIL'
+            exit 1
+        }
     }
 
     # ============================================================================

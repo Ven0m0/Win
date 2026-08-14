@@ -30,7 +30,7 @@ function Backup-GameConfig {
   .PARAMETER DotfilesPath
       Root directory for backed-up configs.
   #>
-  [CmdletBinding()]
+  [CmdletBinding(SupportsShouldProcess)]
   param(
     [string]$DotfilesPath = "$env:USERPROFILE\.dotfiles\config\games"
   )
@@ -58,16 +58,20 @@ function Backup-GameConfig {
 
       $filesToCopy = Get-ChildItem -Path $playerFolder.FullName -File -ErrorAction SilentlyContinue
       foreach ($file in $filesToCopy) {
-        Copy-Item -Path $file.FullName -Destination $destPlayerFolder -Force
-        Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
+        if ($PSCmdlet.ShouldProcess($file.FullName, 'Backup')) {
+          Copy-Item -Path $file.FullName -Destination $destPlayerFolder -Force
+          Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
+        }
       }
     }
 
     $rootFiles = Get-ChildItem -Path $bo6Source -File -ErrorAction SilentlyContinue |
       Where-Object { $_.Name -match '^s' }
     foreach ($file in $rootFiles) {
-      Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
-      Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
+      if ($PSCmdlet.ShouldProcess($file.FullName, 'Backup')) {
+        Copy-Item -Path $file.FullName -Destination $bo6Dest -Force
+        Write-ColorOutput "[Backup]   Copied: $($file.Name)" -ForegroundColor Gray
+      }
     }
 
     Write-ColorOutput "[Backup] Black Ops 6 backup complete!" -ForegroundColor Green
@@ -82,7 +86,7 @@ function Backup-GameConfig {
 
     $keybindsFile = Get-ChildItem -Path $arcRaidersSource -File -Filter '*KeyBindings*.sav' `
       -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($keybindsFile) {
+    if ($keybindsFile -and $PSCmdlet.ShouldProcess($keybindsFile.FullName, 'Backup')) {
       Copy-Item -Path $keybindsFile.FullName -Destination (Join-Path -Path $arcRaidersDest -ChildPath 'keybinds.sav') -Force
       Write-ColorOutput "[Backup]   Copied: keybinds.sav" -ForegroundColor Gray
     }
@@ -91,7 +95,7 @@ function Backup-GameConfig {
     foreach ($settingsFile in $settingsFiles) {
       $sourceFile = Get-ChildItem -Path $arcRaidersSource -File -Filter $settingsFile `
         -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-      if ($sourceFile) {
+      if ($sourceFile -and $PSCmdlet.ShouldProcess($sourceFile.FullName, 'Backup')) {
         Copy-Item -Path $sourceFile.FullName -Destination $arcRaidersDest -Force
         Write-ColorOutput "[Backup]   Copied: $settingsFile" -ForegroundColor Gray
       }

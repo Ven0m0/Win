@@ -38,20 +38,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.3
-        continue-on-error: true
-        with:
-          modules-to-cache: PSScriptAnalyzer
-
-      - name: Install PSScriptAnalyzer
-        shell: pwsh
-        run: |
-          if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-            Install-Module -Name PSScriptAnalyzer -MinimumVersion 1.21.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          }
-          Import-Module PSScriptAnalyzer
-          Write-Host "PSScriptAnalyzer $(( Get-Module PSScriptAnalyzer ).Version)"
+      - name: Setup PowerShell
+        uses: ./.github/actions/setup-pwsh
 
       - name: Run PSScriptAnalyzer
         id: analyze
@@ -100,20 +88,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Cache PowerShell modules
-        uses: potatoqualitee/psmodulecache@v6.3
-        continue-on-error: true
+      - name: Setup PowerShell
+        uses: ./.github/actions/setup-pwsh
         with:
-          modules-to-cache: Pester
-
-      - name: Install Pester
-        shell: pwsh
-        run: |
-          if (-not (Get-Module -ListAvailable -Name Pester | Where-Object Version -ge '5.0.0')) {
-            Install-Module -Name Pester -MinimumVersion 5.6.0 -Scope CurrentUser -Force -SkipPublisherCheck -AllowClobber
-          }
-          Import-Module Pester
-          Write-Host "Pester $(( Get-Module Pester ).Version)"
+          pester-min-version: 5.6.0
 
       - name: Run Pester tests
         shell: pwsh

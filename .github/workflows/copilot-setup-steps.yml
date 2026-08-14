@@ -8,6 +8,7 @@ on:
       - '.github/copilot-instructions.md'
       - '.kilo/rules/**'
       - '.kilo/skills/**'
+      - '.claude/**'
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
@@ -18,6 +19,7 @@ on:
       - '.github/copilot-instructions.md'
       - '.kilo/rules/**'
       - '.kilo/skills/**'
+      - '.claude/**'
       - 'AGENTS.md'
       - 'install.conf.yaml'
       - 'Scripts/Setup-Dotfiles.ps1'
@@ -73,8 +75,8 @@ jobs:
             '.github/copilot-instructions.md',
             '.kilo/rules/powershell.md',
             '.kilo/rules/windows-os.md',
-            '.kilo/skills/win-patterns/SKILL.md',
-            '.kilo/skills/bootstrap-deployment/SKILL.md',
+            '.claude/skills/win-patterns/SKILL.md',
+            '.claude/rules/bootstrap-deployment.md',
             'install.conf.yaml',
             'Scripts/Setup-Dotfiles.ps1',
             'bootstrap.ps1'

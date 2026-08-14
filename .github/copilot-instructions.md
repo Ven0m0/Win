@@ -5,8 +5,8 @@ Start with `AGENTS.md` for repo-wide guidance, then load only the instruction fi
 
 Load these only when relevant:
 
-- `.kilo/skills/win-patterns/SKILL.md` for cross-cutting repo workflow context
-- `.kilo/skills/bootstrap-deployment/SKILL.md` for bootstrap entry points and deployment changes
+- `.claude/skills/win-patterns/SKILL.md` for cross-cutting repo workflow context
+- `.claude/rules/bootstrap-deployment.md` for bootstrap entry points and deployment changes
 
 Keep these guardrails in mind:
 
