@@ -102,18 +102,38 @@ foreach ($cmd in $requiredDeps) {
     }
 }
 if ($missingDeps.Count -gt 0) {
-    $wingetDeps = $missingDeps | Where-Object { $_ -ne 'spotdl' }
-    $hint = @()
-    if ($wingetDeps) {
-        $hint += "winget install $($wingetDeps -join ' ')  (or scoop install)"
-    }
+    Write-Warning "Missing required dependencies: $($missingDeps -join ', ') - installing"
+
     if ($missingDeps -contains 'spotdl') {
-        $hint += 'pip install spotdl'
+        if ($PSCmdlet.ShouldProcess('spotdl', 'Install via uv pip')) {
+            & uv pip install spotdl
+        }
     }
-    Write-Warning ("Missing required dependencies: $($missingDeps -join ', ')`n" +
-        "Install via: $($hint -join '  /  ')`n" +
-        'and ensure each is on PATH.')
-    exit 1
+
+    $wingetPackages = @{
+        'yt-dlp' = @('yt-dlp.yt-dlp', 'yt-dlp.FFmpeg')
+        'ffmpeg' = @('Gyan.FFmpeg')
+    }
+    $wingetIds = $missingDeps | Where-Object { $wingetPackages.ContainsKey($_) } |
+        ForEach-Object { $wingetPackages[$_] } | Select-Object -Unique
+    foreach ($id in $wingetIds) {
+        if ($PSCmdlet.ShouldProcess($id, 'Install via winget')) {
+            & winget install --id $id -h --accept-package-agreements --accept-source-agreements `
+                --disable-interactivity --nowarn
+        }
+    }
+
+    $stillMissing = @()
+    foreach ($cmd in $requiredDeps) {
+        if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+            $stillMissing += $cmd
+        }
+    }
+    if ($stillMissing.Count -gt 0) {
+        Write-Warning ("Still missing after install attempt: $($stillMissing -join ', ')`n" +
+            'Ensure each is on PATH (may require restarting the shell).')
+        exit 1
+    }
 }
 
 Add-Log -Text 'YouTube Music Downloader started'
