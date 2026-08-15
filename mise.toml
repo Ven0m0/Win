@@ -1,16 +1,13 @@
 # https://mise.jdx.dev/configuration.html
 [settings]
-experimental = true
 color = true
 yes = true
 auto_install = true
-#activate_aggressive = true
-#jobs = 8
 go_skip_checksum = true
 
 [settings.python]
 uv_venv_auto = "create|source"
-uv_venv_create_args = ["--seed", "--system-site-packages"]
+#uv_venv_create_args = ["--seed", "--system-site-packages"]
 github_attestations = false
 
 [settings.pipx]
@@ -23,19 +20,15 @@ package_manager = "bun"
 cli_telemetry_optout = true
 
 [tools]
-python = "latest"
-"pipx:py-psscriptanalyzer" = "0.3.1"
+# "pipx:py-psscriptanalyzer" = "0.3.1"
 "pipx:dotbot" = "latest"
 #"pipx:dotbot-firefox" = "latest"
 #"pipx:dotbot-windows" = "latest"
 
 [env]
-PROJECT_ROOT = "{{config_root}}"
-# Ensure uv uses the exact Python interpreter installed by `mise install`.
-# `tools = true` makes `tools.python.path` available when mise resolves tool-aware env vars at runime.
-UV_PYTHON = { value = "{{ tools.python.path }}", tools = true }
+# PROJECT_ROOT = "{{config_root}}"
 UV_LINK_MODE = "symlink"
-_.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
+# _.python.venv = { path = ".venv", create = true, uv_create_args = ["--seed", "--system-site-packages"] }
 DO_NOT_TRACK = "1"
 NODE_NO_WARNINGS = "1"
 PYTHONOPTIMIZE = "1"
@@ -43,8 +36,8 @@ CARGO_NET_GIT_FETCH_WITH_CLI = "false"
 CARGO_HTTP_MULTIPLEXING = "true"
 BINSTALL_DISABLE_TELEMETRY = "true"
 
-[hooks]
-enter = "mise i -yq"
+#[hooks]
+#enter = "mise i -yq"
 
 [tasks.bootstrap]
 description = "deploy dotfiles"

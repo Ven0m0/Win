@@ -29,7 +29,6 @@
         'Microsoft.DotNet.DesktopRuntime.6'
         'Microsoft.DotNet.Native.Runtime'
         'Microsoft.DotNet.Framework.DeveloperPack_4'
-        'Microsoft.DotNet.Framework.DeveloperPack.4.6'
         'Microsoft.DirectX'
         'KhronosGroup.VulkanRT'
         'Microsoft.XNARedist'
@@ -39,10 +38,8 @@
         'Microsoft.UI.Xaml.2.8'
         'Microsoft.VCLibs.14'
         'Microsoft.VCLibs.Desktop.14'
-        'Microsoft.WindowsAppRuntime.1.8'
-        'Microsoft.WindowsAppRuntime.2.1'
+        'Microsoft.WindowsAppRuntime.2'
         'Microsoft.GameInput'
-        'Microsoft.VSTOR'
     )
 
     # ---------------------------------------------------------------------------
@@ -51,14 +48,13 @@
     WingetToolchains   = @(
         'MartinStorsjo.LLVM-MinGW.UCRT'
         'Rustlang.Rustup'
+		'Mozilla.sccache'
         'RubyInstallerTeam.Ruby.4.0'
         'Microsoft.VisualStudio.BuildTools'
         'astral-sh.uv'
         'Oven-sh.Bun'
+		'DenoLand.Deno'
         'SQLite.SQLite'
-        'Mozilla.sccache'
-        'tamasfe.taplo'
-        'DenoLand.Deno'
     )
 
     # ---------------------------------------------------------------------------
@@ -72,7 +68,6 @@
         'MathiasCodes.Winstow'
         'OpenJS.NodeJS'
         'Python.Python.3.14'
-        'Python.Launcher'
         'jdx.mise'
         'topgrade-rs.topgrade'
         'sinelaw.fresh-editor'

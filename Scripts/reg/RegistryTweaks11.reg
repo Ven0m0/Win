@@ -311,3 +311,6 @@ Windows Registry Editor Version 5.00
 ; Fix ctfmon
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Input]
 "InputServiceEnabledForCCI"=dword:00000000
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\MRT]
+"DontOfferThroughWUAU"=dword:00000001
