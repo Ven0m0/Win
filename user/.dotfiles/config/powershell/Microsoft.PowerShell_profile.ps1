@@ -7,6 +7,8 @@ if ([bool]([System.Security.Principal.WindowsIdentity]::GetCurrent()).IsSystem) 
     [System.Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', 'true' `
         , [System.EnvironmentVariableTarget]::Machine)
 }
+
+$ProgressPreference = 'SilentlyContinue'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = 'true'
 $env:VCPKG_DISABLE_METRICS = 'true'
 
@@ -54,6 +56,12 @@ $Host.PrivateData.ProgressForegroundColor = "White"
 #endregion
 
 #region Environment Variables
+# Activate default Python venv
+$defaultVenv = "$env:USERPROFILE\.venv\Scripts\Activate.ps1"
+if (Test-Path $defaultVenv) {
+    . $defaultVenv
+}
+
 # Add custom Scripts to PATH if not already there
 $scriptsPath = Join-Path $HOME "Scripts"
 if ((Test-Path $scriptsPath) -and ($env:Path -notlike "*$scriptsPath*")) {
@@ -168,14 +176,6 @@ if (Get-Module -ListAvailable -Name PSColor) {
         }
     }
 }
-
-# Docker aliases (if docker is installed)
-if (Get-Command docker -ErrorAction SilentlyContinue) {
-    function d { docker $args }
-    function dc { docker-compose $args }
-    function dps { docker ps $args }
-    function dimg { docker images $args }
-}
 #endregion
 
 #region Navigation Functions
@@ -184,10 +184,6 @@ function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 function .... { Set-Location ../../.. }
 function ..... { Set-Location ../../../.. }
-
-# Common directories
-function dotfiles { Set-Location -Path (Join-Path $env:USERPROFILE ".dotfiles\$args") }
-function docs { Set-Location -Path ([Environment]::GetFolderPath('MyDocuments')) }
 #endregion
 
 #region Functions
@@ -235,28 +231,6 @@ function Get-FileSize {
         }
 }
 Set-Alias -Name du -Value Get-FileSize
-
-function Update-Profile {
-    <#
-    .SYNOPSIS
-        Reload PowerShell profile
-    #>
-    if (Test-Path $PROFILE) {
-        . $PROFILE
-        Write-Host "Profile reloaded!" -ForegroundColor Green
-    } else {
-        Write-Warning "PowerShell profile not found."
-    }
-}
-Set-Alias -Name sreload -Value Update-Profile
-
-function Edit-Profile {
-    <#
-    .SYNOPSIS
-        Edit PowerShell profile
-    #>
-    & $env:EDITOR (Join-Path $HOME ".dotfiles\config\powershell\Microsoft.PowerShell_profile.ps1")
-}
 
 function Get-PublicIP {
     <#
@@ -411,25 +385,6 @@ function sed($file, $find, $replace) {
     (Get-Content $file).replace("$find", $replace) | Set-Content $file
 }
 
-function chmod {
-    # chmod -x/+x equivalent for Windows: toggles git's tracked executable bit.
-    # Windows/NTFS has no execute permission bit; git tracks one anyway (file mode
-    # 100755 vs 100644 in the index), which is what hooks like
-    # check-shebang-scripts-are-executable actually check. This flips that bit via
-    # git update-index instead of touching filesystem ACLs.
-    # $args (not param()) because PowerShell's binder treats a leading "-" as a
-    # named-parameter attempt, not a positional value, so "-x" can't bind to a
-    # typed [string]$Mode parameter.
-    $mode = $args[0]
-    if ($mode -ne '+x' -and $mode -ne '-x') {
-        Write-Error 'Usage: chmod +x|-x PATH...'
-        return
-    }
-    foreach ($p in $args[1..($args.Count - 1)]) {
-        git update-index --chmod=$mode -- $p
-    }
-}
-
 function which($name) {
     Get-Command $name | Select-Object -ExpandProperty Definition
 }
@@ -496,7 +451,7 @@ function ll { Get-ChildItem -Force | Format-Table -AutoSize }
 if (Get-Command eza -ErrorAction SilentlyContinue) {
     # ls is a built-in alias for Get-ChildItem; remove it so the function below takes over.
     Remove-Item -Path Alias:ls -Force -ErrorAction SilentlyContinue
-    function ls { eza -la @args }
+    function ls { eza -la --group-directories-first --no-git @args }
 }
 # Git Shortcuts
 function gs { git status }
@@ -557,8 +512,6 @@ ${section}Git shortcuts${reset}
   ${command}lazyg <message>${reset}     ${accent}->${reset} ${desc}add + commit + push${reset}
 
 ${section}Navigation${reset}
-  ${command}docs${reset}                ${accent}->${reset} ${desc}Documents folder${reset}
-  ${command}dotfiles${reset}            ${accent}->${reset} ${desc}~/.dotfiles${reset}
   ${command}.. / ... / ....${reset}     ${accent}->${reset} ${desc}up N directories${reset}
 
 ${section}Files${reset}
@@ -577,7 +530,6 @@ ${section}System${reset}
   ${command}myip${reset}                ${accent}->${reset} ${desc}public IP address${reset}
   ${command}winutil / winutildev${reset} ${accent}->${reset} ${desc}run WinUtil (stable / dev)${reset}
   ${command}Clear-TempFile${reset}      ${accent}->${reset} ${desc}clear temp files${reset}
-  ${command}supdate / pupdate${reset}   ${accent}->${reset} ${desc}update PowerShell tools / all winget packages${reset}
 
 ${section}Misc${reset}
   ${command}which <name>${reset}        ${accent}->${reset} ${desc}locate command${reset}
@@ -585,8 +537,6 @@ ${section}Misc${reset}
   ${command}sed <file> <find> <replace>${reset} ${accent}->${reset} ${desc}replace text${reset}
   ${command}pgrep/pkill/k9 <name>${reset} ${accent}->${reset} ${desc}find/stop process${reset}
   ${command}export <name> <value>${reset} ${accent}->${reset} ${desc}set env var${reset}
-  ${command}sreload${reset}             ${accent}->${reset} ${desc}reload this profile${reset}
-  ${command}Edit-Profile${reset}        ${accent}->${reset} ${desc}open this profile in \$EDITOR${reset}
 
 ${dim}------------------------------------------------------------${reset}
 "@
@@ -671,30 +621,6 @@ function Clear-TempFile {
     }
 
     Write-Host "Temp files cleared!" -ForegroundColor Green
-}
-
-# Update PowerShell and related tools
-function supdate {
-    $packages = @(
-        "Microsoft.Powershell",
-        "chrisant996.Clink",
-        "Starship.Starship"
-    )
-
-    foreach ($package in $packages) {
-        Write-Host "Upgrading $package..." -ForegroundColor Cyan
-        [void](winget upgrade --id $package `
-            --silent --accept-source-agreements --accept-package-agreements --disable-interactivity 2>&1)
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "$package upgraded" -ForegroundColor Green
-        }
-    }
-}
-
-# Update all winget packages
-function pupdate {
-    Write-Host "Upgrading all packages..." -ForegroundColor Cyan
-    winget upgrade --all --accept-source-agreements --accept-package-agreements --disable-interactivity
 }
 #endregion
 

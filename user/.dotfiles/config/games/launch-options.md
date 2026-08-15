@@ -1,6 +1,6 @@
 Steam:
 ```text
-"C:\Program Files (x86)\Steam\Steam.exe" -nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser -silent -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite -skipstreamingdrivers -oldtraymenu
+"C:\Program Files (x86)\Steam\steam.exe" -nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite -skipstreamingdrivers -oldtraymenu
 ```
 
 Steam games:
