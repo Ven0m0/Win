@@ -1,6 +1,5 @@
 ci:
   skip: [renovate-config-validator]
-
 repos:
   # Ruff - Python linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -24,7 +23,6 @@ repos:
     rev: v3.21.2
     hooks:
       - id: pyupgrade
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -45,12 +43,10 @@ repos:
       - id: check-shebang-scripts-are-executable
       - id: check-illegal-windows-names
       - id: check-symlinks
-
   - repo: https://github.com/renovatebot/pre-commit-hooks
     rev: 44.30.2
     hooks:
       - id: renovate-config-validator
-
   - repo: https://github.com/biomejs/pre-commit
     rev: v2.5.8
     hooks:
@@ -61,12 +57,19 @@ repos:
       - id: check-dependabot
       - id: check-github-actions
       - id: check-github-workflows
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.21.0
+    hooks:
+      - id: yamlfmt
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
   - repo: https://github.com/mangiucugna/gha-updater-pre-commit
     rev: v0.1
     hooks:
       - id: gha-update
         stages: [manual]
-
   # =============================================================================
   # PowerShell hooks
   # =============================================================================
