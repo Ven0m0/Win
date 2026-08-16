@@ -53,14 +53,6 @@
     Name = 'Cave Dweller Reimagined (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/cave-dweller-reimagined-bedrock-port-100-accurate'
   }
-  'b7bc41df-0a9a-4f1a-8e7c-2fce01e56aab' = @{
-    Name = 'The Fogwalker (BP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/the-fogwalker-the-man-from-the-fog-revamp'
-  }
-  'bbb93e43-319c-41c4-b7cf-4efc70306e2a' = @{
-    Name = 'The Fogwalker (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/the-fogwalker-the-man-from-the-fog-revamp'
-  }
   '5bd7e353-2b7e-43f4-88fa-e98733e6ac02' = @{
     Name = 'Mutant Creatures Bedrock (BP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/mutant-creatures-addon'
@@ -68,14 +60,6 @@
   '2fe0c00c-49b4-43a5-b264-d072d5fc1fb2' = @{
     Name = 'Mutant Creatures Bedrock (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/mutant-creatures-addon'
-  }
-  '77c5c336-99d9-4b44-8373-f0ab35bdab8c' = @{
-    Name = 'Connected Glass (BP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/connected-glass-addon'
-  }
-  '304393ab-4b20-44ca-aa44-7e069b37629e' = @{
-    Name = 'Connected Glass (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/connected-glass-addon'
   }
   '5c98658f-909b-4709-924f-f08e829f0d97' = @{
     Name = 'Craftable Spawners (BP)'
@@ -149,21 +133,9 @@
   # ---------------------------------------------------------------------------
   # CurseForge — dimzcraft. Split across addons, texture-packs and scripts.
   # ---------------------------------------------------------------------------
-  'ea123d85-4252-4698-8224-0ed12c47c7ac' = @{
-    Name = 'Durability Armor Viewer (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/durability-armor-viewer'
-  }
   '6185feef-1bb4-4139-9bd0-d423729e84cd' = @{
     Name = 'Door Air Pockets'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/door-air-pockets'
-  }
-  '9902f832-4669-4d1a-8795-e52a81236150' = @{
-    Name = 'Just Zoom (BP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/just-zoom'
-  }
-  '955c730e-ee13-4cbf-91aa-98d12b8433c8' = @{
-    Name = 'Just Zoom (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/just-zoom'
   }
   '36dd24b2-1791-4331-966b-94f885294833' = @{
     Name = 'Durability Tools Viewer'
@@ -172,10 +144,6 @@
   'ab521cf5-dc95-4d56-aa73-2cfb1f96f12a' = @{
     Name = 'Recipe Book Plus'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/recipe-book-plus'
-  }
-  '5f696ce5-f269-496c-afa9-9980770f7051' = @{
-    Name = 'Coordinates Plus'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/coordinates-plus'
   }
   '876ba3a3-06ec-4b5f-9bfb-64f54b19eb7d' = @{
     Name = 'UI Neck'
@@ -320,3 +288,5 @@
     Url  = 'https://github.com/Aetopia/Igneous'
   }
 }
+  # TODO: integrate flarial
+  # flarial is from "https://github.com/flarialmc/newcdn/raw/refs/heads/main/dll/latest.dll"
