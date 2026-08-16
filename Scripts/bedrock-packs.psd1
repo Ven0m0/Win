@@ -270,6 +270,19 @@
     Name = 'Dynamic Health Bar (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/dynamic-health-bar'
   }
+  '2a03bcd0-afa8-4daf-a53a-f08a67da8cbe' = @{
+    Name = 'Infinite Villager Trades'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/infinite-villager-trades'
+  }
+  'b09eee61-5648-79ef-bb61-269b8ae0d6c7' = @{
+    Name = "PandaMine's Mip-Mapper"
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/pandamines-mip-mapper'
+  }
+  # Manifest credits both arne2655(YT) and Crazyy Hive(MCBEDROK); project is listed under CrazyyHi.
+  '3308f7a1-427b-4bb9-bac2-90800fcb6428' = @{
+    Name = 'Smaller Totem'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/smaller-totem-and-shield'
+  }
 
   # ---------------------------------------------------------------------------
   # GitHub
