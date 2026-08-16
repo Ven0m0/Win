@@ -134,3 +134,10 @@ results.sarif
 
 ## Tool UI state (machine-specific)
 Scripts/reg/DeviceCleanup.ini
+
+## Large binaries stripped from history (kept on disk, not tracked)
+user/.dotfiles/config/games/minecraft-bedrock/backups/
+user/.dotfiles/config/games/minecraft/*.mrpack
+Scripts/third-party/gmk/GMKDriver.7z
+Scripts/third-party/endgame-gear/EndgameGear-OP1-8k-Tools.7z
+user/.dotfiles/config/nvidia/msi-afterburner/Skins/defaultX.uxf
