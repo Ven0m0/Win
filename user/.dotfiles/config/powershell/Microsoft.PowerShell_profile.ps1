@@ -56,11 +56,14 @@ $Host.PrivateData.ProgressForegroundColor = "White"
 #endregion
 
 #region Environment Variables
-# Activate default Python venv
-$defaultVenv = "$env:USERPROFILE\.venv\Scripts\Activate.ps1"
-if (Test-Path $defaultVenv) {
-    . $defaultVenv
-}
+# Activate default Python venv (deferred: Activate.ps1 scopes its prompt/env
+# changes with global:, so dot-sourcing it from the async queue still works).
+$__initQueue.Enqueue({
+    $defaultVenv = "$env:USERPROFILE\.venv\Scripts\Activate.ps1"
+    if (Test-Path $defaultVenv) {
+        . $defaultVenv
+    }
+})
 
 # Add custom Scripts to PATH if not already there
 $scriptsPath = Join-Path $HOME "Scripts"
@@ -76,11 +79,14 @@ if (Test-Path $localBin) {
     $env:Path = "$localBin;$env:Path"
 }
 if (-not $EDITOR) {
-    $EDITOR = if (Get-Command code -ErrorAction SilentlyContinue) { 'code' }
-          elseif (Get-Command codium -ErrorAction SilentlyContinue) { 'codium' }
-          elseif (Get-Command notepad++ -ErrorAction SilentlyContinue) { 'notepad++' }
-          else { 'notepad' }
-    Set-Alias -Name vim -Value $EDITOR
+    # Deferred: the Get-Command probes below scan $env:Path each time and
+    # aren't needed before the prompt renders.
+    $__initQueue.Enqueue({
+        $Script:EDITOR = if (Get-Command fresh -ErrorAction SilentlyContinue) { 'fresh' }
+              elseif (Get-Command notepad++ -ErrorAction SilentlyContinue) { 'notepad++' }
+              elseif (Get-Command codium -ErrorAction SilentlyContinue) { 'codium' }
+              else { 'notepad' }
+    })
 }
 #endregion
 
@@ -144,38 +150,40 @@ function ln {
 
     New-Item -ItemType $(if ($symbolic) { 'SymbolicLink' } else { 'HardLink' }) -Path $linkName -Target $target | Out-Null
 }
-# ls coloring
-if (Get-Module -ListAvailable -Name PSColor) {
-    Import-Module PSColor
-    $global:PSColor = @{
-        File = @{
-            Default    = @{ Color = 'White' }
-            Directory  = @{ Color = 'Blue'}
-            Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.'; }
-            Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html)$' }
-            Executable = @{ Color = 'Red'; Pattern = '\.(exe|bat|cmd|py|pl|ps1|psm1|vbs|rb|reg)$' }
-            Text       = @{ Color = 'Yellow'; Pattern = '\.(txt|cfg|conf|ini|csv|log|config|xml|yml|md|markdown)$' }
-            Compressed = @{ Color = 'Green'; Pattern = '\.(zip|tar|gz|rar|jar|war)$' }
-        }
-        Service = @{
-            Default = @{ Color = 'White' }
-            Running = @{ Color = 'DarkGreen' }
-            Stopped = @{ Color = 'DarkRed' }
-        }
-        Match = @{
-            Default    = @{ Color = 'White' }
-            Path       = @{ Color = 'Cyan'}
-            LineNumber = @{ Color = 'Yellow' }
-            Line       = @{ Color = 'White' }
-        }
-        NoMatch = @{
-            Default    = @{ Color = 'White' }
-            Path       = @{ Color = 'Cyan'}
-            LineNumber = @{ Color = 'Yellow' }
-            Line       = @{ Color = 'White' }
+# ls coloring (deferred: Import-Module + hashtable build isn't needed before the prompt renders)
+$__initQueue.Enqueue({
+    if (Get-Module -ListAvailable -Name PSColor) {
+        Import-Module PSColor
+        $global:PSColor = @{
+            File = @{
+                Default    = @{ Color = 'White' }
+                Directory  = @{ Color = 'Blue'}
+                Hidden     = @{ Color = 'DarkGray'; Pattern = '^\.'; }
+                Code       = @{ Color = 'Magenta'; Pattern = '\.(java|c|cpp|cs|js|css|html)$' }
+                Executable = @{ Color = 'Red'; Pattern = '\.(exe|bat|cmd|py|pl|ps1|psm1|vbs|rb|reg)$' }
+                Text       = @{ Color = 'Yellow'; Pattern = '\.(txt|cfg|conf|ini|csv|log|config|xml|yml|md|markdown)$' }
+                Compressed = @{ Color = 'Green'; Pattern = '\.(zip|tar|gz|rar|jar|war)$' }
+            }
+            Service = @{
+                Default = @{ Color = 'White' }
+                Running = @{ Color = 'DarkGreen' }
+                Stopped = @{ Color = 'DarkRed' }
+            }
+            Match = @{
+                Default    = @{ Color = 'White' }
+                Path       = @{ Color = 'Cyan'}
+                LineNumber = @{ Color = 'Yellow' }
+                Line       = @{ Color = 'White' }
+            }
+            NoMatch = @{
+                Default    = @{ Color = 'White' }
+                Path       = @{ Color = 'Cyan'}
+                LineNumber = @{ Color = 'Yellow' }
+                Line       = @{ Color = 'White' }
+            }
         }
     }
-}
+})
 #endregion
 
 #region Navigation Functions
@@ -543,7 +551,10 @@ ${dim}------------------------------------------------------------${reset}
 }
 
 # PSReadLine Configuration (single consolidated block; see #region below for key handlers)
-if (Get-Module -ListAvailable -Name PSReadLine) {
+# PSReadLine ships built into the PowerShell host and is already imported into the session
+# by the time the profile runs, so checking the loaded-module list (no -ListAvailable disk
+# scan of $env:PSModulePath) is enough to guard these calls.
+if (Get-Module -Name PSReadLine) {
     $PSReadLineOptions = @{
         EditMode                     = 'Windows'
         HistoryNoDuplicates           = $true
@@ -625,11 +636,16 @@ function Clear-TempFile {
 #endregion
 
 #region Chocolatey Profile
-# Import Chocolatey Profile to enable tab-completions
-$ChocolateyProfile = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-    Import-Module "$ChocolateyProfile"
-}
+# Import Chocolatey Profile to enable tab-completions (deferred: tab-completion
+# registration isn't needed before the prompt renders)
+$__initQueue.Enqueue({
+    if ($env:ChocolateyInstall) {
+        $ChocolateyProfile = Join-Path $env:ChocolateyInstall "helpers\chocolateyProfile.psm1"
+        if (Test-Path $ChocolateyProfile) {
+            Import-Module $ChocolateyProfile
+        }
+    }
+})
 #endregion
 
 # Prompt is provided by oh-my-posh, initialized asynchronously via $__initQueue above.

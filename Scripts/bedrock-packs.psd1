@@ -234,6 +234,22 @@
     Name = 'Instant FullBright'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/instant-fullbright-night-vision-achievement-friendly'
   }
+  '502beba6-d371-4b47-b7fe-242136a871a9' = @{
+    Name = 'Clear Nether Portal'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/clear-nether-portals'
+  }
+  '94a8ab24-2cf3-434c-9f76-bf9c06b0a635' = @{
+    Name = 'More Enchantments [V3.0] (BP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyon-s-more-enchantments-addon'
+  }
+  '2622459e-0a39-4728-bc65-fd26696454a2' = @{
+    Name = 'More Enchantments [V3.0] (RP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyon-s-more-enchantments-addon'
+  }
+  'b531dbeb-1ddc-45c9-b59d-13646280c6b0' = @{
+    Name = 'Utility Chunks V4.0'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/scripts/utility-chunks'
+  }
 
   # Name matches exactly and it is the only Bedrock project called this, but the manifest
   # version (1.0.0) never moves while the author versions in the filename ([ v10 ]), so the
