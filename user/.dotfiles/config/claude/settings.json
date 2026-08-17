@@ -258,5 +258,6 @@
   "teammateMode": "auto",
   "voiceEnabled": false,
   "workflowKeywordTriggerEnabled": false,
-  "autoMemoryEnabled": true
+  "autoMemoryEnabled": true,
+  "cleanupPeriodDays": 7
 }
