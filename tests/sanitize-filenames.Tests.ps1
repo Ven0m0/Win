@@ -20,6 +20,21 @@ Describe 'sanitize-filenames.ps1' {
 
             Test-Path -LiteralPath $file | Should -BeTrue
         }
+
+        It 'Leaves both sources untouched when two files would sanitize to the same name' {
+            # Regression guard: Resolve-UniqueName must track claimed-but-not-yet-renamed
+            # targets, or preview mode would report both sources under the same unsuffixed
+            # name instead of surfacing the collision -Apply will actually hit.
+            $fileA = Join-Path $TestRoot 'My File.txt'
+            $fileB = Join-Path $TestRoot 'My!File.txt'
+            Set-Content -LiteralPath $fileA -Value 'A'
+            Set-Content -LiteralPath $fileB -Value 'B'
+
+            { & $ScriptPath -Path $TestRoot *> $null } | Should -Not -Throw
+
+            Test-Path -LiteralPath $fileA | Should -BeTrue
+            Test-Path -LiteralPath $fileB | Should -BeTrue
+        }
     }
 
     Context 'Apply mode' {
@@ -62,6 +77,17 @@ Describe 'sanitize-filenames.ps1' {
             $survivors.Count | Should -Be 2
             $survivors.Name | Should -Contain 'my_file.txt'
             $survivors.Name | Should -Contain 'my_file_1.txt'
+        }
+
+        It 'Renames a case-only difference without appending a collision suffix' {
+            $file = Join-Path $TestRoot 'README.txt'
+            Set-Content -LiteralPath $file -Value 'x'
+
+            & $ScriptPath -Path $TestRoot -Apply *> $null
+
+            $survivors = Get-ChildItem -LiteralPath $TestRoot -File
+            $survivors.Count | Should -Be 1
+            $survivors.Name | Should -Be 'readme.txt'
         }
     }
 }

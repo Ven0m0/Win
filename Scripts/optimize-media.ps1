@@ -73,7 +73,6 @@ param (
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$ProgressPreference = 'SilentlyContinue'
 
 . "$PSScriptRoot\Common.ps1"
 
@@ -114,14 +113,13 @@ function Resolve-VideoTool {
     param([string]$Preference = 'Auto')
     process {
         if ($Preference -eq 'FFzap') {
-            Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap' | Out-Null
-            return 'ffzap'
+            return Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap'
         }
-        if ($Preference -eq 'Auto' -and (Get-Command ffzap -ErrorAction SilentlyContinue)) {
-            return 'ffzap'
+        if ($Preference -eq 'Auto') {
+            $ffzap = Get-Command ffzap -ErrorAction SilentlyContinue
+            if ($ffzap) { return $ffzap.Source }
         }
-        Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared' | Out-Null
-        return 'ffmpeg'
+        return Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared'
     }
 }
 
@@ -158,7 +156,9 @@ function Invoke-ImagePass {
             return 0L
         }
 
-        $files = @(Get-ChildItem -Path $TargetPath -Recurse -File -Include '*.png', '*.jpg', '*.jpeg', '*.webp')
+        $files = @(Get-ChildItem -LiteralPath $TargetPath -Recurse -File | Where-Object {
+                $_.Extension.ToLowerInvariant() -in '.png', '.jpg', '.jpeg', '.webp'
+            })
         if ($files.Count -eq 0) {
             Write-Host 'No image files found.' -ForegroundColor Yellow
             return 0L
@@ -178,10 +178,7 @@ function Invoke-ImagePass {
             $backupFile = Join-Path $BackupPath $relative
             if (-not (Test-Path -LiteralPath $backupFile)) {
                 if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before optimizing')) {
-                    $backupDir = Split-Path -Parent $backupFile
-                    if (-not (Test-Path -LiteralPath $backupDir)) {
-                        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-                    }
+                    Ensure-Directory -Path (Split-Path -Parent $backupFile)
                     Copy-Item -LiteralPath $file.FullName -Destination $backupFile
                 }
             }
@@ -189,28 +186,34 @@ function Invoke-ImagePass {
             $before = $file.Length
             $ext = $file.Extension.ToLowerInvariant()
 
-            switch ($ext) {
-                '.png' {
-                    if (-not $oxipng) { Write-Verbose "Skipping $($file.Name): oxipng not found."; continue }
-                    if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Optimize PNG (oxipng)')) { continue }
+            # if/elseif (not switch): a bare 'continue' inside a switch block only exits the
+            # switch, it does not skip to the next $file - the loop must skip via this shape.
+            if ($ext -eq '.png') {
+                if (-not $oxipng) { Write-Verbose "Skipping $($file.Name): oxipng not found." }
+                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize PNG (oxipng)')) {
                     $cliArgs = @('-o', 'max', '--strip', 'safe')
                     if ($Force) { $cliArgs += '--force' }
                     $cliArgs += $file.FullName
-                    & $oxipng @cliArgs 2>&1 | ForEach-Object { Write-Verbose $_ }
+                    # oxipng writes progress to stderr; do not redirect it into the success
+                    # stream under $ErrorActionPreference = 'Stop' (turns it into a terminating
+                    # NativeCommandError on Windows PowerShell 5.1) - same reasoning as ffmpeg below.
+                    & $oxipng @cliArgs
                 }
-                { $_ -in '.jpg', '.jpeg' } {
-                    if (-not $jpegoptim) { Write-Verbose "Skipping $($file.Name): jpegoptim not found."; continue }
-                    if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Optimize JPEG (jpegoptim)')) { continue }
+            }
+            elseif ($ext -in '.jpg', '.jpeg') {
+                if (-not $jpegoptim) { Write-Verbose "Skipping $($file.Name): jpegoptim not found." }
+                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize JPEG (jpegoptim)')) {
                     $cliArgs = @('-s', "-m$Quality")
                     if ($Force) { $cliArgs += '-f' }
                     $cliArgs += $file.FullName
-                    & $jpegoptim @cliArgs 2>&1 | ForEach-Object { Write-Verbose $_ }
+                    & $jpegoptim @cliArgs
                 }
-                '.webp' {
-                    if (-not $cwebp) { Write-Verbose "Skipping $($file.Name): cwebp not found."; continue }
-                    if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Optimize WEBP (cwebp)')) { continue }
+            }
+            elseif ($ext -eq '.webp') {
+                if (-not $cwebp) { Write-Verbose "Skipping $($file.Name): cwebp not found." }
+                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize WEBP (cwebp)')) {
                     $tmp = "$($file.FullName).tmp.webp"
-                    & $cwebp -quiet -q $Quality $file.FullName -o $tmp 2>&1 | ForEach-Object { Write-Verbose $_ }
+                    & $cwebp -quiet -q $Quality $file.FullName -o $tmp
                     if (Test-Path -LiteralPath $tmp) {
                         $tmpSize = (Get-Item -LiteralPath $tmp).Length
                         if ($Force -or $tmpSize -lt $before) {
@@ -223,9 +226,9 @@ function Invoke-ImagePass {
                 }
             }
 
-            $after = (Get-Item -LiteralPath $file.FullName -ErrorAction SilentlyContinue).Length
-            if ($after -and $after -lt $before) {
-                $saved += ($before - $after)
+            $afterItem = Get-Item -LiteralPath $file.FullName -ErrorAction SilentlyContinue
+            if ($afterItem -and $afterItem.Length -lt $before) {
+                $saved += ($before - $afterItem.Length)
             }
         }
         Write-Progress -Activity 'Optimizing images' -Completed
@@ -254,6 +257,8 @@ function Invoke-VideoPass {
         Folder to mirror original source videos into before each is re-encoded.
     .PARAMETER Force
         Overwrite existing output files.
+    .PARAMETER VideoExtension
+        Extensions (without leading dot) recognized as video source files.
     #>
     param(
         [Parameter(Mandatory)][string]$TargetPath,
@@ -262,11 +267,12 @@ function Invoke-VideoPass {
         [Parameter(Mandatory)][string]$AudioBitrate,
         [Parameter(Mandatory)][int]$Threads,
         [Parameter(Mandatory)][string]$BackupPath,
+        [Parameter(Mandatory)][string[]]$VideoExtension,
         [bool]$Force
     )
     process {
-        $files = @(Get-ChildItem -Path $TargetPath -Recurse -File | Where-Object {
-                ($videoExtensions -contains $_.Extension.TrimStart('.').ToLowerInvariant()) -and
+        $files = @(Get-ChildItem -LiteralPath $TargetPath -Recurse -File | Where-Object {
+                ($VideoExtension -contains $_.Extension.TrimStart('.').ToLowerInvariant()) -and
                 ($_.Name -notmatch '\.h265\.mp4$')
             })
 
@@ -294,41 +300,43 @@ function Invoke-VideoPass {
             $backupFile = Join-Path $BackupPath $relative
             if (-not (Test-Path -LiteralPath $backupFile)) {
                 if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before re-encoding')) {
-                    $backupDir = Split-Path -Parent $backupFile
-                    if (-not (Test-Path -LiteralPath $backupDir)) {
-                        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-                    }
+                    Ensure-Directory -Path (Split-Path -Parent $backupFile)
                     Copy-Item -LiteralPath $file.FullName -Destination $backupFile
                 }
             }
 
+            $isRetry = $false
             $existingOutput = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
             if ($existingOutput -and -not $Force) {
                 if ($existingOutput.Length -gt 0) {
                     Write-Verbose "Skipping $($file.Name): output exists (use -Force to overwrite)"
                     continue
                 }
+                # A prior run's output exists but is empty (interrupted/failed). ffmpeg's default
+                # -n flag refuses to overwrite it, so the retry must force this one output.
                 Write-Verbose "Retrying $($file.Name): existing output is empty (prior failure)"
+                $isRetry = $true
             }
 
             if (-not $PSCmdlet.ShouldProcess($file.Name, 'Re-encode to H.265/Opus')) { continue }
 
-            if ($Tool -eq 'ffzap') {
+            # $Tool is a resolved executable path (see Resolve-VideoTool); dispatch on its leaf name.
+            if ((Split-Path -Leaf $Tool) -like 'ffzap*') {
                 # ffzap writes its status text to stdout, which PowerShell would otherwise fold into
                 # this function's captured return value; route it through Write-Host instead.
                 $ffArgs = ($EncoderArgs + @(
                         '-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2', '-vbr', 'on',
                         '-compression_level', '10', '-application', 'audio', '-movflags', '+faststart'
                     )) -join ' '
-                & ffzap -t $Threads --overwrite --eta -i $file.FullName -f $ffArgs -o $output |
+                & $Tool -t $Threads --overwrite --eta -i $file.FullName -f $ffArgs -o $output |
                     ForEach-Object { Write-Host $_ }
             }
             else {
                 # ffmpeg writes its console output to stderr, which never enters the success stream,
                 # so it must stay unredirected here: 2>&1 combined with $ErrorActionPreference = 'Stop'
                 # would turn ffmpeg's normal stderr banner into a terminating error.
-                $overwriteFlag = if ($Force) { '-y' } else { '-n' }
-                & ffmpeg $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 `
+                $overwriteFlag = if ($Force -or $isRetry) { '-y' } else { '-n' }
+                & $Tool $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 `
                     -vbr on -compression_level 10 -application audio -movflags +faststart $output
             }
 
@@ -357,8 +365,12 @@ if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
     throw "Path is not a folder: $resolvedPath"
 }
 
-$backupPath = Join-Path -Path (Split-Path -Parent $resolvedPath) `
-    -ChildPath "$(Split-Path -Leaf $resolvedPath)-bak"
+$parentPath = Split-Path -Parent $resolvedPath
+if (-not $parentPath) {
+    throw "Path is a drive root ($resolvedPath); a sibling '-bak' backup folder is not defined there. Pass a subfolder instead."
+}
+
+$backupPath = Join-Path -Path $parentPath -ChildPath "$(Split-Path -Leaf $resolvedPath)-bak"
 
 $bytesSaved = 0L
 $videoErrors = 0
@@ -375,7 +387,8 @@ if (-not $SkipVideo) {
         '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-x265-params', $x265Params
     )
     $videoErrors = Invoke-VideoPass -TargetPath $resolvedPath -Tool $tool -EncoderArgs $encoderArgs `
-        -AudioBitrate $AudioBitrate -Threads $Threads -BackupPath $backupPath -Force:$Force
+        -AudioBitrate $AudioBitrate -Threads $Threads -BackupPath $backupPath -VideoExtension $videoExtensions `
+        -Force:$Force
 }
 
 Write-Host ''

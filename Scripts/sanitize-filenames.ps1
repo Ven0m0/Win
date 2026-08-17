@@ -36,6 +36,7 @@ param(
     [switch]$FilesOnly
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot\Common.ps1"
@@ -61,24 +62,36 @@ function Resolve-UniqueName {
         Candidate sanitized name (with extension).
     .PARAMETER OriginalFullName
         Full path of the item being renamed, excluded from the collision check.
+    .PARAMETER ClaimedPath
+        Set of target paths already handed out this run (preview mode never actually
+        renames anything, so the filesystem alone under-reports collisions between two
+        sources that sanitize to the same name).
     #>
     [CmdletBinding()]
     [OutputType([string])]
     param(
         [Parameter(Mandatory)][string]$Directory,
         [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$OriginalFullName
+        [Parameter(Mandatory)][string]$OriginalFullName,
+        # PowerShell treats a Mandatory collection param as unbound when Count is 0 unless
+        # AllowEmptyCollection is present - the very first call always passes an empty set.
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [System.Collections.Generic.HashSet[string]]$ClaimedPath
     )
     process {
         $base = [IO.Path]::GetFileNameWithoutExtension($Name)
         $ext = [IO.Path]::GetExtension($Name)
         $candidate = $Name
         $suffix = 0
-        while (Test-Path -LiteralPath (Join-Path $Directory $candidate)) {
-            if ((Join-Path $Directory $candidate) -eq $OriginalFullName) { break }
+        $candidatePath = Join-Path $Directory $candidate
+        while (((Test-Path -LiteralPath $candidatePath) -or $ClaimedPath.Contains($candidatePath)) -and
+            ($candidatePath -ne $OriginalFullName)) {
             $suffix++
             $candidate = "${base}_$suffix$ext"
+            $candidatePath = Join-Path $Directory $candidate
         }
+        $ClaimedPath.Add($candidatePath) | Out-Null
         $candidate
     }
 }
@@ -94,6 +107,7 @@ $renamed = 0
 $skipped = 0
 $collided = 0
 $failed = 0
+$claimedPath = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 
 foreach ($item in $items) {
     $directory = Split-Path -Parent $item.FullName
@@ -101,9 +115,16 @@ foreach ($item in $items) {
 
     if ($new.Length -gt $maxNameLength) {
         $ext = [IO.Path]::GetExtension($new)
-        $base = [IO.Path]::GetFileNameWithoutExtension($new)
-        $base = $base.Substring(0, $maxNameLength - $ext.Length)
-        $new = "$base$ext"
+        if ($ext.Length -ge $maxNameLength) {
+            # Extension alone already fills (or exceeds) the limit; truncate the whole name
+            # instead of passing a negative length to Substring.
+            $new = $new.Substring(0, $maxNameLength)
+        }
+        else {
+            $base = [IO.Path]::GetFileNameWithoutExtension($new)
+            $base = $base.Substring(0, $maxNameLength - $ext.Length)
+            $new = "$base$ext"
+        }
     }
 
     if ($new -ceq $item.Name) {
@@ -111,7 +132,8 @@ foreach ($item in $items) {
         continue
     }
 
-    $unique = Resolve-UniqueName -Directory $directory -Name $new -OriginalFullName $item.FullName
+    $unique = Resolve-UniqueName -Directory $directory -Name $new -OriginalFullName $item.FullName `
+        -ClaimedPath $claimedPath
     if ($unique -ne $new) {
         Write-Warn "Collision: '$($item.Name)' -> '$new' already exists, using '$unique' instead."
         $collided++
@@ -122,8 +144,8 @@ foreach ($item in $items) {
         if ($PSCmdlet.ShouldProcess($item.FullName, "Rename to '$new'")) {
             Rename-Item -LiteralPath $item.FullName -NewName $new
             Write-Info "'$($item.Name)' -> '$new'"
+            $renamed++
         }
-        $renamed++
     }
     catch {
         $err = $_
