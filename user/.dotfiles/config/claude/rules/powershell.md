@@ -1,6 +1,11 @@
-# PowerShell Rules for Ven0m0/Win
+---
+paths:
+  - '**/*.ps1'
+  - '**/*.psm1'
+  - '**/*.psd1'
+---
 
-Applies to all PowerShell files: `Scripts/**/*.ps1`, `*.psm1`, `*.psd1`, and setup scripts.
+# PowerShell Rules
 
 Based on the [PowerShell Practice and Style guide](https://github.com/PoshCode/PowerShellPracticeAndStyle). Repo convention wins where they disagree (see Indentation).
 
