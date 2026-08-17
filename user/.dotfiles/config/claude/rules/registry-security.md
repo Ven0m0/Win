@@ -1,3 +1,11 @@
+---
+paths:
+  - '**/*.ps1'
+  - '**/*.psm1'
+  - '**/*.psd1'
+  - '**/*.reg'
+---
+
 # Registry and Security Rules
 
 Governs registry modification practices for any script reading or writing the Windows Registry under HKLM or HKCU.
