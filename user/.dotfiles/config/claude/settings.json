@@ -33,6 +33,7 @@
     "pr": ""
   },
   "permissions": {
+    "defaultMode": "acceptEdits",
     "allow": [
       "mcp__codegraph__codegraph_explore",
       "mcp__codegraph__codegraph_search",
