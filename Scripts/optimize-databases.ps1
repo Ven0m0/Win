@@ -30,7 +30,7 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\Common.ps1"
 
 if (-not (Get-Command sqlite3 -ErrorAction SilentlyContinue)) {
-    throw "sqlite3 not found on PATH. Install it (e.g. 'winget install SQLite.SQLite') and retry."
+    throw "sqlite3 not found on PATH. Install it (e.g. 'winget install -h SQLite.SQLite') and retry."
 }
 
 $targets = @(

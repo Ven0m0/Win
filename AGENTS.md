@@ -110,7 +110,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 ## Cochange Rules
 
 **Arc Raiders** — remaining scripts and config change together:
-`arc-raiders/ArcRaidersCommon.ps1`, `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `user/.dotfiles/config/games/arc-raiders/`
+`Scripts/arc-raiders/ArcRaidersCommon.ps1`, `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `user/.dotfiles/config/games/arc-raiders/`
 
 **Bootstrap** — always change together: `bootstrap.ps1`, `Scripts/Setup-Win11.ps1`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections). `bootstrap.ps1` and `Setup-Win11.ps1` share a parameter surface (`-Unattended -Force -SkipWingetTools -SkipWSL -SkipPackages -SkipDebloat`) that must stay in sync since one forwards to the other.
 
