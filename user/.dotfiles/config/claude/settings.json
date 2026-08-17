@@ -5,9 +5,11 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
+    "CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "50",
     "ENABLE_TOOL_SEARCH": "true",
     "ENABLE_LSP_TOOL": "1",
-    "USE_BUILTIN_RIPGREP": "0",
+    "USE_BUILTIN_RIPGREP": "1",
     "PYTHONOPTIMIZE": "1",
     "BUN_OPTIONS": "--bun --prefer-offline --prefer-latest --parallel --silent",
     "CONTEXT_MODE_NO_BUN": "1",
@@ -17,14 +19,14 @@
     "DISABLE_ERROR_REPORTING": "1",
     "DISABLE_AUTOUPDATER": "1",
     "DISABLE_BUG_COMMAND": "1",
-    "MAX_THINKING_TOKENS": "31999",
+    "MAX_THINKING_TOKENS": "10000",
     "BASH_DEFAULT_TIMEOUT_MS": "120000",
     "BASH_MAX_TIMEOUT_MS": "600000",
     "BASH_MAX_OUTPUT_LENGTH": "65536",
     "MCP_TIMEOUT": "60000",
     "MCP_TOOL_TIMEOUT": "120000",
-    "MAX_MCP_OUTPUT_TOKENS": "25000",
-    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "63999"
+    "MAX_MCP_OUTPUT_TOKENS": "15000",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "8000"
   },
   "attribution": {
     "commit": "",
@@ -82,6 +84,7 @@
     ]
   },
   "model": "opusplan",
+  "effortLevel": "high",
   "enableAllProjectMcpServers": true,
   "skillOverrides": {
     "merge-to-main": "user-invocable-only",
@@ -240,17 +243,20 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "autoUpdates": false,
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "voice": {
     "enabled": false,
     "mode": "hold"
   },
+  "includeCoAuthoredBy": false,
   "prefersReducedMotion": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "dark",
   "teammateMode": "auto",
   "voiceEnabled": false,
-  "workflowKeywordTriggerEnabled": false
+  "workflowKeywordTriggerEnabled": false,
+  "autoMemoryEnabled": true
 }
