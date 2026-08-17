@@ -69,13 +69,17 @@
       "Edit(./.env)",
       "Edit(./.env.*)",
       "Edit(./secrets/**)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/credentials.json)",
       "NotebookEdit",
       "mcp__plugin_playwright_playwright__browser_install",
       "mcp__plugin_playwright_playwright__browser_navigate"
     ],
     "ask": [
       "Bash(sudo:*)",
-      "Bash(chmod 777:*)",
+      "Bash(chmod:*)",
+      "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(git reset --hard:*)",
