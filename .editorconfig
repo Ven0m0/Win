@@ -19,7 +19,7 @@ max_line_length = 120
 # =============================================================================
 # PowerShell (Windows)
 # =============================================================================
-[**.{ps1,psm1,psd1}]
+[*.{ps1,psm1,psd1}]
 end_of_line = crlf
 charset = utf-8-bom
 max_line_length = 115
@@ -30,14 +30,14 @@ tab_width = 2
 # =============================================================================
 # Windows Shell Scripts
 # =============================================================================
-[**.{bat,cmd}]
+[*.{bat,cmd}]
 end_of_line = crlf
 charset = utf-8-bom
 indent_style = space
 indent_size = 2
 tab_width = 2
 
-[**.{reg}]
+[*.{reg}]
 end_of_line = crlf
 charset = utf-8
 indent_style = space
@@ -46,33 +46,20 @@ indent_size = 2
 # =============================================================================
 # Unix Shell Scripts (WSL/Linux)
 # =============================================================================
-[**.{sh,bash}]
+[*.{sh,bash},.bashrc,.profile]
 end_of_line = lf
 charset = utf-8
 shell_variant = bash
 
-[bashrc]
-end_of_line = lf
-shell_variant = bash
-
-[.profile]
-end_of_line = lf
-shell_variant = posix
-
 # =============================================================================
 # Windows Terminal/VS Code Settings
 # =============================================================================
-[{*.json,*.jsonc}]
+[*.{json,jsonc}]
 indent_size = 2
 tab_width = 2
 indent_style = space
 
-[{.kilo/kilo.json,.kilo/kilo.jsonc}]
-indent_size = 2
-tab_width = 2
-indent_style = space
-
-[*.yaml,*.yml]
+[*.{yaml,yml}]
 indent_size = 2
 tab_width = 2
 indent_style = space
@@ -80,25 +67,25 @@ indent_style = space
 # =============================================================================
 # Markup/Documentation
 # =============================================================================
-[**.{md,markdown}]
+[*.{md,markdown}]
 trim_trailing_whitespace = false
 max_line_length = unset
 
-[**.{patch,diff}]
+[*.{patch,diff}]
 trim_trailing_whitespace = false
 insert_final_newline = false
 
 # =============================================================================
 # Web Assets
 # =============================================================================
-[**.{css,scss,sass,less}]
+[*.{css,scss,sass,less}]
 indent_size = 2
 
-[**.{js,jsx,mjs,cjs}]
+[*.{js,jsx,mjs,cjs}]
 indent_size = 2
 quote_type = single
 
-[**.{ts,tsx,mts,cts}]
+[*.{ts,tsx,mts,cts}]
 indent_size = 2
 quote_type = single
 
@@ -108,7 +95,7 @@ quote_type = single
 [*.xml]
 indent_size = 4
 
-[*.ini,*.cfg,*.conf]
+[*.{ini,cfg,conf}]
 indent_size = 2
 
 # =============================================================================
@@ -117,9 +104,6 @@ indent_size = 2
 [*.{py,pyw,pyi}]
 indent_size = 4
 quote_type = double
-
-[*.nix]
-indent_size = 2
 
 # =============================================================================
 # Special Cases
