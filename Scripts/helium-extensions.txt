@@ -1,0 +1,12 @@
+# Helium extension IDs. Lines are "<id>  # <name>"; comments after # are ignored.
+# Exported 2026-08-18 03:10 from $env:LOCALAPPDATA\imput\Helium\User Data
+ajopnjidmegmdimjlfnijceegpefgped  # BetterTTV
+bnomihfieiccainjcjblhegjgglakjdd  # Improve YouTube! (for YouTube & Videos)
+dhdgffkkebhmkfjojejmpbldmpobfkfo  # Tampermonkey
+effdbpeggelllpfkjppbokhmmiinhlmg  # Better Lyrics (Lyrics for YouTube Music)
+faeadnfmdfamenfhaipofoffijhlnkif  # Into The Black Hole - True Amoled Black Theme
+fcoeoabgfenejglbffodgkkbkcdhcgfn  # Claude
+hhinaapppaileiechjoiifaancjggfjm  # Web Scrobbler
+hlepfoohegkhhmjieoechaddaejaokhf  # Refined GitHub
+mnjggcdmjocbbbhaepdhchncahnbgone  # SponsorBlock for YouTube - Skip Sponsorships
+nngceckbapebfimnlniiiahkandclblb  # Bitwarden Password Manager
