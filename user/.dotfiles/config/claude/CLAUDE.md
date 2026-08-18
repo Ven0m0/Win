@@ -127,7 +127,7 @@ Example: not "fix the bug" — "fix the null pointer in the auth handler when us
 ## Progressive Disclosure
 Keep this file short, high-frequency rules only. Detailed workflows go in SKILL.md files. Prefer pointers over long code blocks.
 ## Memory (Mandatory)
-Obsidian vault at `$env:USERPROFILE\Nextcloud\obsidian-vault` is the **canonical durable brain** - it outranks project-scoped memory, the OMC notepad, and harness auto-memory for anything that should survive this session. Those are scratch; the vault is where it actually lives. This applies in every project, not only when the vault itself is the working directory.
+Obsidian vault at `$env:USERPROFILE\Nextcloud\obsidian-vault` is the **canonical durable brain** - it outranks project-scoped memory, the OMC notepad, and harness auto-memory for anything that must survive this session. Those are scratch; the vault is where it actually lives. This applies in every project, not only when the vault itself is the working directory.
 **Write the moment one of these happens, don't wait to be asked:** a preference stated, a decision made (+ why), a bug root-caused, a correction/feedback given, a workflow worked out, or a tool/credential/external-resource fact learned.
 1. Check first: does `Index.md` -> the relevant `_about.md` already cover this? Update, don't duplicate.
 2. Write an atomic note: `Memory/` (fact/decision/preference), `Knowledge/` (synthesized topic), or `Projects/` (active work) - use the vault's templates. Full protocol: `C:\Users\Ven0m0\Nextcloud\obsidian-vault\CLAUDE.md`.

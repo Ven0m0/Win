@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    VACUUM SQLite databases for Legcord, Floorp, and Helium to reclaim disk space.
+    Optimize and VACUUM SQLite databases for Legcord, Floorp, and Helium to reclaim disk space.
 .DESCRIPTION
     Detects SQLite databases by file magic header (not filename), so it works
     across Chromium-style extensionless files (Cookies, History, Web Data) and
@@ -88,11 +88,11 @@ foreach ($target in $targets) {
     $reclaimed = 0
     $vacuumed = 0
     foreach ($db in $dbFiles) {
-        if (-not $PSCmdlet.ShouldProcess($db.FullName, 'VACUUM')) { continue }
+        if (-not $PSCmdlet.ShouldProcess($db.FullName, 'Optimize, VACUUM, and ANALYZE')) { continue }
         $before = $db.Length
-        & sqlite3 $db.FullName 'VACUUM;' 2>$null
+        & sqlite3 $db.FullName 'PRAGMA optimize; VACUUM; ANALYZE;' 2>$null
         if ($LASTEXITCODE -ne 0) {
-            Write-Warning "  Failed to vacuum $($db.Name) (locked or corrupt) - skipped"
+            Write-Warning "  Failed to optimize $($db.Name) (locked or corrupt) - skipped"
             continue
         }
         $after = (Get-Item -LiteralPath $db.FullName).Length
@@ -100,5 +100,5 @@ foreach ($target in $targets) {
         $vacuumed++
     }
 
-    Write-ColorOutput "$($target.Name): vacuumed $vacuumed database(s), reclaimed $([math]::Round($reclaimed / 1KB, 1)) KB" -ForegroundColor Green
+    Write-ColorOutput "$($target.Name): optimized $vacuumed database(s), reclaimed $([math]::Round($reclaimed / 1KB, 1)) KB" -ForegroundColor Green
 }

@@ -218,6 +218,10 @@
     Name = 'Utility Chunks V4.0'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/scripts/utility-chunks'
   }
+  '90d553cc-14c0-42c5-9fa1-34941a65c8cb' = @{
+    Name = 'Old Netherite Upgrade | No Template'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/old-netherite-upgrade'
+  }
 
   # Name matches exactly and it is the only Bedrock project called this, but the manifest
   # version (1.0.0) never moves while the author versions in the filename ([ v10 ]), so the
@@ -257,6 +261,14 @@
   # ---------------------------------------------------------------------------
   'bf898567-c2b5-4782-bc6b-a191fef3a483' = @{
     Name = 'Ender Chest Always Drops Itself'
+    Url  = 'https://github.com/Ven0m0/mcpe'
+  }
+  'cd20dae0-2963-4f26-89e2-ecd808f5c74a' = @{
+    Name = 'No Bat Spawn'
+    Url  = 'https://github.com/Ven0m0/mcpe'
+  }
+  '29cdfca8-781e-4426-9921-20a53f74087c' = @{
+    Name = 'Silk Touch Drops'
     Url  = 'https://github.com/Ven0m0/mcpe'
   }
 

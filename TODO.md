@@ -1,6 +1,0 @@
-- [ ] "No Bat Spawn" and "Silk Touch Drops" are from "https://github.com/Ven0m0/mcpe". "Instant FullBright" is from "https://www.curseforge.com/minecraft-bedrock/addons/instant-fullbright-night-vision-achievement-friendly". Add them to "Scripts\bedrock-packs.psd1"
-- [ ] update @Scripts/optimize-steam.ps1 with the current steam startup arguments: "-nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole -no-browser -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite -skipstreamingdrivers". Also remove the arc raiders specific parts and remove the small mode and remove the NoSteamWebHelper
-- [ ] merge "https://raw.githubusercontent.com/zoicware/zScripts/refs/heads/main/DeviceManagerPowerSaving.ps1" into "Scripts/DisableUSBPowerManagement.ps1"
-- [ ] update @Scripts/optimize-databases.ps1 with to properly optimize the databases: `sqlite3 database.sqlite 'PRAGMA optimize; VACUUM; ANALYZE;'`. For example: "Get-ChildItem "$env:LOCALAPPDATA\Chromium\User Data" -Recurse -Filter *.sqlite | % { sqlite3 $_.FullName 'PRAGMA optimize; VACUUM; ANALYZE;' }"
-- [ ] also clear "C:\Users\Ven0m0\AppData\Local\Temp\" and "C:\Windows\Temp\" in "Scripts/clear-memory.ps1"
-- [ ] evaluate if "https://github.com/MathiasCodes/winstow" would be useful to use symlinks instead of manually deploying

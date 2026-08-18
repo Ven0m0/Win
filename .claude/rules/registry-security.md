@@ -1,3 +1,11 @@
+---
+paths:
+  - '**/*.ps1'
+  - '**/*.psm1'
+  - '**/*.psd1'
+  - '**/*.reg'
+---
+
 # Registry and Security Rules
 
 Governs registry modification practices for any script reading or writing the Windows Registry under HKLM or HKCU.
@@ -6,7 +14,7 @@ Governs registry modification practices for any script reading or writing the Wi
 
 1. Always create a restore point before making changes (unless explicitly suppressed with `-NoRestorePoint`)
 2. Wrap system-modifying operations with `SupportsShouldProcess` and support `-WhatIf` / `-Confirm`
-3. Use Common.ps1 helpers — `Set-RegistryValue`, `Remove-RegistryValue`, and `Get-NvidiaGpuRegistryPath` — instead of raw `Set-ItemProperty` or `reg.exe`
+3. Use Common.ps1 helpers — `Set-RegistryValue`, `Remove-RegistryValue`, and `Get-NvidiaGpuRegistryPaths` — instead of raw `Set-ItemProperty` or `reg.exe`
 4. Document rollback — provide a `-Restore` parameter or clear instructions on how to undo the change
 5. Never commit machine-specific values — no hardcoded hardware IDs, serial numbers, or personalized tweaks
 
@@ -59,10 +67,10 @@ if (-not (Test-Path $keyPath)) {
 
 ## GPU Registry Discovery
 
-**Never hardcode PCI vendor/device IDs.** Use `Get-NvidiaGpuRegistryPath` from `Common.ps1`:
+**Never hardcode PCI vendor/device IDs.** Use `Get-NvidiaGpuRegistryPaths` from `Common.ps1`:
 
 ```powershell
-$gpuPaths = Get-NvidiaGpuRegistryPath
+$gpuPaths = Get-NvidiaGpuRegistryPaths
 foreach ($regPath in $gpuPaths) {
   Set-RegistryValue -Path $regPath -Name "PowerPreference" -Value 2
 }

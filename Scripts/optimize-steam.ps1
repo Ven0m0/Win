@@ -7,19 +7,15 @@
     Consolidates steam.ps1, Steam-Config.ps1, New-SteamShortcut.ps1, and Optimize-Steam.ps1.
 
     Actions:
-      Configure               Apply performance settings to Steam localconfig.vdf.
-      Launch                  Stop and restart Steam with optimized launch arguments.
-      CreateShortcut          Create an optimized Steam desktop shortcut.
-      CleanRedist             Remove redistributable installer cache files.
-      InstallNoSteamWebHelper Install NoSteamWebHelper DLL (umpdc.dll) to reduce CPU/RAM.
-      RestoreNoSteamWebHelper Restore the original umpdc.dll from backup.
-      All                     Configure + CleanRedist + InstallNoSteamWebHelper + CreateShortcut.
+      Configure      Apply performance settings to Steam localconfig.vdf.
+      Launch         Stop and restart Steam with optimized launch arguments.
+      CreateShortcut Create an optimized Steam desktop shortcut.
+      CleanRedist    Remove redistributable installer cache files.
+      All            Configure + CleanRedist + CreateShortcut.
 .PARAMETER Action
     Action to perform. Defaults to All.
 .PARAMETER SteamPath
     Custom Steam installation path. Auto-detected from registry when omitted.
-.PARAMETER Mode
-    Launch/configure mode: Default (small mode, no GPU) or ArcRaiders (full mode).
 .PARAMETER ShortcutName
     Name for the desktop shortcut (default: "Steam (Optimized)").
 .PARAMETER ConfigPaths
@@ -31,18 +27,15 @@
 .EXAMPLE
     .\Optimize-Steam.ps1 -Action Configure
 .EXAMPLE
-    .\Optimize-Steam.ps1 -Action Launch -Mode ArcRaiders
+    .\Optimize-Steam.ps1 -Action Launch
 .EXAMPLE
     .\Optimize-Steam.ps1 -Action CleanRedist -DryRun
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [ValidateSet('Configure', 'Launch', 'CreateShortcut', 'CleanRedist',
-                 'InstallNoSteamWebHelper', 'RestoreNoSteamWebHelper', 'All')]
+    [ValidateSet('Configure', 'Launch', 'CreateShortcut', 'CleanRedist', 'All')]
     [string]$Action = 'All',
     [string]$SteamPath,
-    [ValidateSet('Default', 'ArcRaiders')]
-    [string]$Mode = 'Default',
     [string]$ShortcutName = 'Steam (Optimized)',
     [string[]]$ConfigPaths,
     [switch]$DryRun
@@ -200,7 +193,6 @@ $settings = [ordered]@{
         SteamController_Enable_Chord   = '0'
         Controller_CheckGuideButton    = '0'
         SteamController_PSSupport      = '0'
-        SmallMode                      = '1'
     }
     Accessibility = [ordered]@{ ReduceMotion = '1' }
 }
@@ -215,9 +207,7 @@ function Invoke-Configure {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [string]$SteamPath,
-        [string[]]$Paths,
-        [ValidateSet('Default', 'ArcRaiders')]
-        [string]$SteamMode = 'Default'
+        [string[]]$Paths
     )
 
     if (-not $Paths) {
@@ -230,11 +220,7 @@ function Invoke-Configure {
         return
     }
 
-    # Clone settings so we can adjust SmallMode per mode without mutating the script-level var
-    $cfg = [System.Collections.Specialized.OrderedDictionary]::new()
-    foreach ($k in $settings.Keys) { $cfg[$k] = $settings[$k] }
-    $cfg['root'] = [ordered]@{} + $settings['root']
-    $cfg['root']['SmallMode'] = if ($SteamMode -eq 'ArcRaiders') { '0' } else { '1' }
+    $cfg = $settings
 
     foreach ($path in $Paths) {
         if (-not $PSCmdlet.ShouldProcess($path, 'Apply Steam config')) { continue }
@@ -274,9 +260,7 @@ function Invoke-Launch {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
-        [string]$SteamPath,
-        [ValidateSet('Default', 'ArcRaiders')]
-        [string]$SteamMode = 'Default'
+        [string]$SteamPath
     )
 
     $steamExe = Join-Path $SteamPath 'Steam.exe'
@@ -285,11 +269,9 @@ function Invoke-Launch {
         return
     }
 
-    $noGPU = ($SteamMode -ne 'ArcRaiders')
-
-    $launchArgs = '-silent -quicklogin -forceservice -vrdisable -oldtraymenu -nofriendsui -no-dwrite -nojoy -noshaders'
-    if ($noGPU) { $launchArgs += ' -nodirectcomp -cef-disable-gpu -cef-disable-gpu-sandbox' }
-    $launchArgs += ' -cef-allow-browser-underlay -cef-delaypageload -cef-force-occlusion -cef-disable-hang-timeouts -console'
+    $launchArgs = '-nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole' +
+                  ' -no-browser -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite' +
+                  ' -skipstreamingdrivers'
 
     $wasRunning = $null -ne (Get-Process -Name 'steam' -ErrorAction SilentlyContinue)
     if ($wasRunning) {
@@ -298,8 +280,8 @@ function Invoke-Launch {
         $launchArgs += ' -foreground'
     }
 
-    if ($PSCmdlet.ShouldProcess($steamExe, "Start Steam ($SteamMode)")) {
-        Write-ColorOutput "Starting Steam ($SteamMode)..." -ForegroundColor Cyan
+    if ($PSCmdlet.ShouldProcess($steamExe, 'Start Steam')) {
+        Write-ColorOutput 'Starting Steam...' -ForegroundColor Cyan
         Start-Process -FilePath $steamExe -ArgumentList $launchArgs
     }
 }
@@ -324,9 +306,9 @@ function Invoke-CreateShortcut {
         return
     }
 
-    $launchArgs = '-nofriendsui -nointro -nobigpicture -cef-single-process -cef-disable-breakpad' +
-                  ' -cef-disable-gpu-compositing -cef-disable-gpu -cef-disable-js-logging -noconsole' +
-                  ' +open steam://open/minigameslist'
+    $launchArgs = '-nofriendsui -nochatui -nointro -nobigpicture -cef-disable-js-logging -noconsole' +
+                  ' -no-browser -steamwebhelper-disable -vrdisable -cef-force-occlusion -no-dwrite' +
+                  ' -skipstreamingdrivers'
 
     $shortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) "$Name.lnk"
 
@@ -390,69 +372,6 @@ function Invoke-CleanRedist {
 }
 #endregion
 
-#region NoSteamWebHelper
-function Invoke-InstallNoSteamWebHelper {
-    [CmdletBinding(SupportsShouldProcess)]
-    param([string]$SteamPath)
-
-    $targetDll = Join-Path $SteamPath 'umpdc.dll'
-    $backupDll = "$targetDll.bak"
-
-    if ($PSCmdlet.ShouldProcess('Download NoSteamWebHelper DLL')) {
-        Write-ColorOutput "Downloading NoSteamWebHelper DLL..." -ForegroundColor Cyan
-        Write-Warning "This modifies Steam's Web Helper DLL. Steam features (Store, Community) may not work afterward."
-
-        try {
-            $url     = 'https://github.com/Aetopia/NoSteamWebHelper/releases/latest/download/umpdc.dll'
-            $tempDll = Join-Path $env:TEMP 'umpdc.dll'
-
-            Get-FileFromWeb -URL $url -File $tempDll
-
-            $fileSize = (Get-Item -Path $tempDll).Length
-            if ($fileSize -lt 100kb) {
-                Remove-Item -Path $tempDll -Force -ErrorAction SilentlyContinue
-                throw "Downloaded file too small ($fileSize bytes)"
-            }
-
-            if ((Test-Path $targetDll) -and -not (Test-Path $backupDll)) {
-                Copy-Item -Path $targetDll -Destination $backupDll -Force
-                Write-ColorOutput "  Backed up original DLL to umpdc.dll.bak" -ForegroundColor Yellow
-            }
-
-            Copy-Item -Path $tempDll -Destination $targetDll -Force
-            Remove-Item -Path $tempDll -Force -ErrorAction SilentlyContinue
-            Write-ColorOutput "NoSteamWebHelper installed successfully" -ForegroundColor Green
-            Write-Warning "Steam Web Helper disabled. Some features (Store, Community) may not work."
-        } catch {
-            Write-Warning "Failed to download NoSteamWebHelper: $_"
-        }
-    }
-}
-
-function Invoke-RestoreNoSteamWebHelper {
-    [CmdletBinding(SupportsShouldProcess)]
-    param([string]$SteamPath)
-
-    $targetDll = Join-Path $SteamPath 'umpdc.dll'
-    $backupDll = "$targetDll.bak"
-
-    if (Test-Path $backupDll) {
-        if ($PSCmdlet.ShouldProcess('Restore original DLL')) {
-            Copy-Item -Path $backupDll -Destination $targetDll -Force
-            Remove-Item -Path $backupDll -Force -ErrorAction SilentlyContinue
-            Write-ColorOutput "NoSteamWebHelper removed, original DLL restored" -ForegroundColor Green
-        }
-    } elseif (Test-Path $targetDll) {
-        if ($PSCmdlet.ShouldProcess('Remove NoSteamWebHelper DLL')) {
-            Remove-Item -Path $targetDll -Force -ErrorAction SilentlyContinue
-            Write-ColorOutput "NoSteamWebHelper DLL removed" -ForegroundColor Green
-        }
-    } else {
-        Write-ColorOutput "NoSteamWebHelper DLL not found" -ForegroundColor Yellow
-    }
-}
-#endregion
-
 #region Main
 if ($MyInvocation.InvocationName -ne '.') {
     Write-ColorOutput "Steam Optimization" -ForegroundColor Cyan
@@ -461,11 +380,9 @@ if ($MyInvocation.InvocationName -ne '.') {
     $resolvedPath = Get-SteamPath -Override $SteamPath
     Write-ColorOutput "Steam path: $resolvedPath"
 
-    if ($Action -ne 'RestoreNoSteamWebHelper') {
-        if (-not (Test-Path (Join-Path $resolvedPath 'Steam.exe'))) {
-            Write-Warning "Steam not found at: $resolvedPath. Specify -SteamPath."
-            exit 1
-        }
+    if (-not (Test-Path (Join-Path $resolvedPath 'Steam.exe'))) {
+        Write-Warning "Steam not found at: $resolvedPath. Specify -SteamPath."
+        exit 1
     }
 
     if ($DryRun) {
@@ -474,18 +391,14 @@ if ($MyInvocation.InvocationName -ne '.') {
     }
 
     switch ($Action) {
-        'Configure'               { Invoke-Configure -SteamPath $resolvedPath -Paths $ConfigPaths -SteamMode $Mode }
-        'Launch'                  { Invoke-Launch -SteamPath $resolvedPath -SteamMode $Mode }
-        'CreateShortcut'          { Invoke-CreateShortcut -SteamPath $resolvedPath -Name $ShortcutName -DryRun:$DryRun }
-        'CleanRedist'             { Invoke-CleanRedist -SteamPath $resolvedPath }
-        'InstallNoSteamWebHelper' { Invoke-InstallNoSteamWebHelper -SteamPath $resolvedPath }
-        'RestoreNoSteamWebHelper' { Invoke-RestoreNoSteamWebHelper -SteamPath $resolvedPath }
+        'Configure'      { Invoke-Configure -SteamPath $resolvedPath -Paths $ConfigPaths }
+        'Launch'         { Invoke-Launch -SteamPath $resolvedPath }
+        'CreateShortcut' { Invoke-CreateShortcut -SteamPath $resolvedPath -Name $ShortcutName -DryRun:$DryRun }
+        'CleanRedist'    { Invoke-CleanRedist -SteamPath $resolvedPath }
         'All' {
-            Invoke-Configure -SteamPath $resolvedPath -Paths $ConfigPaths -SteamMode $Mode
+            Invoke-Configure -SteamPath $resolvedPath -Paths $ConfigPaths
             Write-ColorOutput ""
             Invoke-CleanRedist -SteamPath $resolvedPath
-            Write-ColorOutput ""
-            Invoke-InstallNoSteamWebHelper -SteamPath $resolvedPath
             Write-ColorOutput ""
             Invoke-CreateShortcut -SteamPath $resolvedPath -Name $ShortcutName -DryRun:$DryRun
         }

@@ -4,9 +4,12 @@
 .SYNOPSIS
     Disables USB selective suspend across all USB hubs, controllers, and HID devices.
 .DESCRIPTION
-    Based off ThioJoe's Script. Queries Win32_PnPEntity and MSPower_DeviceEnable via
-    WMI/CIM and disables power management on every matched device so peripherals
-    don't power down mid-session.
+    Based off ThioJoe's Script, merged with zoicware's DeviceManagerPowerSaving.ps1.
+    Queries Win32_PnPEntity and MSPower_DeviceEnable via WMI/CIM and disables power
+    management on every matched device so peripherals don't power down mid-session.
+    Also clears the IdleInWorkingState WDF registry flag (required alongside the CIM
+    property for the setting to actually stick) and disables wake-on-device for every
+    device currently armed to wake the system.
 .EXAMPLE
     .\DisableUSBPowerManagement.ps1
 #>
@@ -15,6 +18,8 @@ param ()
 
 $ErrorActionPreference = 'Stop'
 $VerbosePreference     = 'Continue'
+
+. "$PSScriptRoot\Common.ps1"
 
 # Title
 Clear-Host
@@ -90,6 +95,11 @@ foreach ($p in $powerMgmt) {
     }
     try {
         Set-CimInstance -InputObject $p -Property @{ Enable = $false } -ErrorAction Stop
+        # CIM alone doesn't stick for every device class; the WDF driver also checks this
+        # registry flag, so both have to be cleared together (zoicware's DeviceManagerPowerSaving.ps1).
+        $instanceId = $p.InstanceName -replace '_0$', ''
+        Set-RegistryValue -Path "HKLM\SYSTEM\ControlSet001\Enum\$instanceId\Device Parameters\WDF" `
+            -Name 'IdleInWorkingState' -Type REG_DWORD -Data '0'
         Write-Host "  [DISABLED] $label" -ForegroundColor Green
         $disabled++
     } catch {
@@ -98,11 +108,26 @@ foreach ($p in $powerMgmt) {
     }
 }
 
+# Disable wake-on-device for everything currently armed to wake the system - a sleeping
+# USB peripheral that can still wake the PC defeats the point of suspending it.
+Write-Host "`nDisabling wake-on-device for armed devices..."
+$wakeArmed  = @(powercfg -devicequery wake_armed) | Where-Object { $_ -and $_ -ne 'NONE' }
+$wakeCleared = 0
+foreach ($deviceName in $wakeArmed) {
+    if ($PSCmdlet.ShouldProcess($deviceName, 'Disable wake-on-device')) {
+        powercfg -devicedisablewake "$deviceName" *>$null
+        Write-Host "  [WAKE DISABLED] $deviceName" -ForegroundColor Green
+        $wakeCleared++
+    }
+}
+if ($wakeCleared -eq 0) { Write-Host '  No wake-armed devices found.' -ForegroundColor Gray }
+
 # Summary
 Write-Host "`n=== Summary ===" -ForegroundColor Cyan
-Write-Host "  Disabled : $disabled" -ForegroundColor Green
-Write-Host "  Skipped  : $skipped"  -ForegroundColor Gray
-Write-Host "  Failed   : $failed"   -ForegroundColor $(if ($failed -gt 0) { 'Red' } else { 'Gray' })
+Write-Host "  Disabled     : $disabled"    -ForegroundColor Green
+Write-Host "  Skipped      : $skipped"     -ForegroundColor Gray
+Write-Host "  Failed       : $failed"      -ForegroundColor $(if ($failed -gt 0) { 'Red' } else { 'Gray' })
+Write-Host "  Wake cleared : $wakeCleared" -ForegroundColor Green
 Write-Host ""
 
 if ($failed -gt 0) {
