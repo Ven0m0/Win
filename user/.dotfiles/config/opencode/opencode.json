@@ -1,7 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    ".kilo/rules/*.md", ".opencode/rules/*.md", "./AGENTS.md",
+    "./AGENTS.md", ".opencode/rules/*.md", ".kilo/rules/*.md",
     "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
     "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
   ],
@@ -20,16 +20,11 @@
     "doom_loop": "deny"
   },
   "agent": {
-    "compaction": { "model": "kilo/kilo-auto/free" },
-    "debug": {
-      "model": "kilo/kilo-auto/free"
-    },
-    "code": {
-      "model": "opencode/deepseek-v4-flash-free"
-    },
-    "ask": {
-      "model": "kilo/kilo-auto/free"
-    },
+    "compaction": { "model": "opencode/hy3-free" },
+    "debug": { "model": "opencode/nemotron-3-ultra-free" },
+    "code": { "model": "opencode/big-pickle" },
+    "plan": { "model": "opencode/mimo-v2.5-free" },
+    "ask": { "model": "opencode/mimo-v2.5-free" },
     "powershell-agent": {
       "temperature": 0.2,
       "prompt": "# PowerShell Agent\r\n\r\nUse this agent for any task involving PowerShell 5.1+/7+ scripts in the Win dotfiles repository.\r\n\r\n## Scope\r\n\r\n- Writing new PowerShell automation scripts (`Scripts/*.ps1`)\r\n- Refactoring existing scripts (improving functions, adding error handling)\r\n- Updating comment-based help and parameter validation\r\n- Consolidating duplicated logic into `Scripts/Common.ps1`\r\n- Writing Pester tests (only when they already exist or task explicitly adds them)\r\n\r\n## When to Use\r\n\r\n- \"Create a script that does X\" (PowerShell-based)\r\n- \"Refactor Scripts/foo.ps1 to use Common.ps1 helpers\"\r\n- \"Add parameter validation to function Y\"\r\n- \"Write tests for Scripts/bar.ps1\"\r\n\r\n## Constraints\r\n\r\n- **Preserve admin elevation pattern** — use `Request-AdminElevation` from `Common.ps1` when system changes are needed\r\n- **Path style** — `$PSScriptRoot`, `$HOME`, `$env:*`, `A_ScriptDir`, never hardcoded `C:\\Users\\...`\r\n- **Error handling** — `$ErrorActionPreference = 'Stop'`, no global `SilentlyContinue`\r\n- **CI compliance** — output must pass `Invoke-ScriptAnalyzer` (no `PSAvoidGlobalAliases`, no `ConvertToSecureString` with plaintext)\r\n- **Windows compatibility** — support both PowerShell 5.1 and 7+\r\n- **Avoid** `Invoke-Expression` with untrusted input\r\n- **Output suppression** — prefer `$null = <expr>` over `<expr> | Out-Null`; the latter is significantly slower\r\n- **Pipeline model** — `Return` only exits early; it does not return values. All unassigned expression results enter the pipeline stream. Use `Write-Verbose`/`Write-Warning`/`Write-Error` to route to named streams\r\n- **String comparisons** — `.NET` string methods (`.StartsWith()`, `.Contains()`, etc.) are case-sensitive by default; pass `'CurrentCultureIgnoreCase'` when case-insensitive matching is needed\r\n- **Call operator** — use `&` when invoking scripts that modify parent variables, commands by full path not in `$Env:Path`, or paths containing spaces; build argument arrays with leading comma: `$Args = , '--flag', 'value'`\r\n- **Web requests** — always use `curl.exe`, never `curl` (PowerShell aliases `curl` to `Invoke-WebRequest`)\r\n- **Download performance** — set `$ProgressPreference = 'SilentlyContinue'` before any `Invoke-WebRequest` call; progress rendering can reduce throughput to unusable speeds on large files\r\n\r\n## Guidance Loading\r\n\r\n- Always load `windows-dotfiles.md` skill for repo conventions\r\n- Load `bootstrap-deployment.md` if script touches deployment/bootstrapping\r\n- Load `validation.md` before reporting completion (run appropriate checks)\r\n\r\n## Tool Usage\r\n\r\n- Use `task (explore)` to map the `Scripts/` directory before heavy changes\r\n- Use `grep`/`glob` to locate existing patterns and similar functions\r\n- Reference `Scripts/Common.ps1` frequently — prefer existing helpers\r\n- After code changes, run ScriptAnalyzer on modified files before marking complete\r\n\r\n## Quality Gates\r\n\r\n1. Script has comment-based help (synopsis, description, parameters, examples)\r\n2. All cmdlet names are full (no aliases in script body)\r\n3. Uses `[CmdletBinding()]` and `SupportsShouldProcess` for system modifications\r\n4. Parameters validated (`[ValidateNotNullOrEmpty()]`, `[ValidateSet()]` where appropriate)\r\n5. Exit codes checked on external commands (`reg.exe`, `winget`, etc.)\r\n6. `Write-Verbose`/`Write-Warning` used instead of `Write-Host` for non-UI output\r\n7. No bare `curl` — always `curl.exe`\r\n8. `$ProgressPreference = 'SilentlyContinue'` set before any web download\r\n\r\n## Debugging\r\n\r\n```powershell\r\nSet-PSDebug -Trace 2          # trace every statement (like bash set -x)\r\n$VerbosePreference = 'Continue'   # enable Write-Verbose output\r\nWrite-Verbose \"Debug: $Var\"\r\n```\r\n\r\n## Related\r\n\r\n- Orchestrator delegates PowerShell tasks here\r\n- Windows Optimizer Agent handles system tweak workflows (may call into PowerShell scripts)\r\n- Config Deployer Agent handles dotfile deployment logic",
@@ -56,7 +51,7 @@
         "doom_loop": "deny"
       },
       "name": "explore-codebase",
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "opencode/nemotron-3.5-lightning-free"
     },
     "documentation-writer": {
       "temperature": 0.3,
@@ -70,11 +65,11 @@
       "name": "documentation-writer"
     },
     "explore": {
-      "model": "kilo/kilo-auto/free",
+      "model": "opencode/nemotron-3.5-lightning-free",
       "temperature": 0.1
     }
   },
-  "small_model": "kilo/kilo-auto/free",
+  "small_model": "opencode/nemotron-3.5-lightning-free",
   "disabled_providers": ["openai", "google", "anthropic"],
   "plugin": [
     "opencode-ignore@1.1.0",
@@ -85,24 +80,18 @@
     "opencode-pty@0.3.2",
     "@tarquinen/opencode-dcp@3.1.9",
     "opencode-session-handoff@1.1.6",
-	"@howaboua/opencode-chat@0.1.10",
-	"opencode-agent-browser@1.0.0",
-    "@dietrichgebert/ponytail",
-	"opencode-ascii@0.1.8",
-	"opencode-adaptive-thinking@0.1.6",
+    "@howaboua/opencode-chat@0.1.10",
+    "@dietrichgebert/ponytail@1.0.57",
+    "opencode-ascii@0.1.8",
+	"context-mode@1.0.169",
     "superpowers@git+https://github.com/obra/superpowers.git",
     "kilo-tools@git+https://github.com/Ven0m0/claude-config.git"
   ],
   "formatter": {
     "biome": {
       "command": [
-        "npx",
-        "-y",
-        "@biomejs/biome",
-        "check",
-        "--write",
-        "--format-with-errors=true",
-        "$FILE"
+        "bunx", "--bun", "@biomejs/biome",
+        "check", "--write", "--format-with-errors=true", "$FILE"
       ],
       "extensions": [".json", ".jsonc", ".js", ".ts"]
     },
@@ -113,21 +102,15 @@
   },
   "watcher": {
     "ignore": [
-      "node_modules/**",
-      "dist/**",
-      ".git/**",
-      ".venv/**",
-      "__pycache__/**",
-      ".ruff_cache/**"
+      "node_modules/**", "dist/**", ".git/**",
+      ".venv/**", "__pycache__/**", ".ruff_cache/**"
     ]
   },
   "mcp": {
     "codegraph": {
       "type": "local",
       "command": [
-        "codegraph",
-        "serve",
-        "--mcp"
+        "codegraph", "serve", "--mcp"
       ],
       "enabled": true
     },
@@ -135,11 +118,6 @@
       "type": "remote",
       "url": "https://api.ref.tools/mcp",
       "enabled": true
-    },
-    "gitmcp": {
-      "type": "remote",
-      "url": "https://gitmcp.io/docs",
-      "enabled": false
     },
     "grep": {
       "type": "remote",
@@ -169,14 +147,10 @@
     "serena": {
       "type": "local",
       "command": [
-        "uvx",
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide",
-        "--project-from-cwd"
+        "uvx", "-p 3.13",
+        "--from", "git+https://github.com/oraios/serena",
+        "serena", "start-mcp-server",
+        "--context", "ide", "--project-from-cwd"
       ],
       "enabled": true
     },
@@ -187,7 +161,7 @@
     },
     "filesystem": {
       "type": "local",
-      "command": ["npx", "-y", "fast-filesystem-mcp"]
+      "command": ["bunx", "--bun", "fast-filesystem-mcp"]
     }
   },
   "lsp": {
@@ -218,20 +192,6 @@
     "rust": {
       "command": ["rust-analyzer"],
       "extensions": [".rs"]
-    },
-    "eslint": {
-      "command": ["vscode-eslint-language-server", "--stdio"],
-      "extensions": [
-        ".js",
-        ".jsx",
-        ".mjs",
-        ".cjs",
-        ".ts",
-        ".tsx",
-        ".vue",
-        ".svelte",
-        ".astro"
-      ]
     },
     "yaml-ls": {
       "command": ["yaml-language-server", "--stdio"],
@@ -268,11 +228,6 @@
       "extensions": [".ps1", ".psm1", ".psd1"]
     }
   },
-  "indexing": {
-    "provider": "kilo",
-    "model": "mistralai/mistral-embed-2312",
-    "enabled": true
-  },
   "terminal_command_display": "collapsed",
   "auto_collapse_reasoning": true,
   "compaction": { "auto": true, "prune": true },
@@ -281,12 +236,9 @@
     "codebase_search": true,
     "mcp_timeout": 30000,
     "openTelemetry": false,
-    "batch_tool": true,
-    "native_notebook_tools": true,
-    "swe_pruner": true,
-    "swe_pruner_model": "kilo/kilo-auto/free"
+    "batch_tool": true
   },
-  "model": "opencode/deepseek-v4-flash-free",
-  "subagent_model": "opencode/deepseek-v4-flash-free",
+  "model": "opencode/nemotron-3-ultra-free",
+  "subagent_model": "opencode/nemotron-3.5-lightning-free",
   "remote_control": false
 }
