@@ -1,0 +1,1 @@
+add [LeviLauncher](https://github.com/LiteLDev/LeviLauncher) as a github install. Create a reusable github release installer and use it for LeviLauncher and ".\Scripts\third-party\ds4windows\install-ds4windows.ps1"

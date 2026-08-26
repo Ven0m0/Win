@@ -18,7 +18,7 @@
     )
 
     # ---------------------------------------------------------------------------
-    # Runtimes — VC++, .NET, DirectX, Java, OpenAL
+    # Runtimes
     # ---------------------------------------------------------------------------
     WingetRuntimes     = @(
         'abbodi1406.vcredist'
@@ -26,17 +26,12 @@
         'Microsoft.DotNet.DesktopRuntime.9'
         'Microsoft.DotNet.DesktopRuntime.8'
         'Microsoft.DotNet.DesktopRuntime.7'
-        'Microsoft.DotNet.DesktopRuntime.6'
-        'Microsoft.DotNet.Native.Runtime'
         'Microsoft.DotNet.Framework.DeveloperPack_4'
         'Microsoft.DirectX'
         'KhronosGroup.VulkanRT'
         'Microsoft.XNARedist'
         'Microsoft.EdgeWebView2Runtime'
-        'Oracle.JavaRuntimeEnvironment'
         'Microsoft.AppInstaller'
-        'Microsoft.UI.Xaml.2.8'
-        'Microsoft.VCLibs.14'
         'Microsoft.VCLibs.Desktop.14'
         'Microsoft.WindowsAppRuntime.2'
         'Microsoft.GameInput'
@@ -48,12 +43,12 @@
     WingetToolchains   = @(
         'MartinStorsjo.LLVM-MinGW.UCRT'
         'Rustlang.Rustup'
-		'Mozilla.sccache'
+		    'Mozilla.sccache'
         'RubyInstallerTeam.Ruby.4.0'
         'Microsoft.VisualStudio.BuildTools'
         'astral-sh.uv'
         'Oven-sh.Bun'
-		'DenoLand.Deno'
+		    'DenoLand.Deno'
         'SQLite.SQLite'
     )
 
@@ -65,7 +60,6 @@
         'Notepad++.Notepad++'
         'VSCodium.VSCodium'
         'CodeSector.TeraCopy'
-        'MathiasCodes.Winstow'
         'OpenJS.NodeJS'
         'Python.Python.3.14'
         'jdx.mise'
@@ -73,6 +67,8 @@
         'sinelaw.fresh-editor'
         'Anthropic.ClaudeCode'
         'Anthropic.Claude'
+        'SST.OpenCodeDesktop'
+        'Microsoft.Coreutils'
     )
 
     # ---------------------------------------------------------------------------
@@ -81,15 +77,13 @@
     WingetCliTools     = @(
         'eza-community.eza'
         'BurntSushi.ripgrep.MSVC'
-        # 'sharkdp.fd'
+        'sharkdp.fd'
         'sharkdp.bat'
         'JanDeDobbeleer.OhMyPosh'
         'ajeetdsouza.zoxide'
         'DEVCOM.JetBrainsMonoNerdFont'
         'marlocarlo.psmux'
-        'bootandy.dust'
         'gerardog.gsudo'
-        'activescott.lessmsi'
         'yt-dlp.yt-dlp'
     )
 
@@ -100,17 +94,13 @@
     WingetApplications = @(
         # Media / video / audio
         'VideoLAN.VLC'
-        'mpv.net'
         'OBSProject.OBSStudio'
         #'Meltytech.Shotcut'
         'KDE.Kdenlive'
         'HandBrake.HandBrake'
-        'Gyan.FFmpeg.Shared'
+        'Gyan.FFmpeg'
         'CodeF0x.ffzap'
-        'ch.LosslessCut'
         # Image / graphics
-        'GIMP.GIMP'
-        'KDE.Krita'
         'tannerhelland.PhotoDemon'
         'Greenshot.Greenshot'
         'XnSoft.XnConvert'
@@ -133,9 +123,9 @@
         'smartfrigde.Legcord'
         # Productivity / utilities
         #'Microsoft.PowerToys'
-        # 'voidtools.Everything'
         'AutoHotkey.AutoHotkey'
-        'ONLYOFFICE.DesktopEditors'
+        #'ONLYOFFICE.DesktopEditors'
+        'TheDocumentFoundation.LibreOffice'
         'Microsoft.Sysinternals.Autoruns'
         'Microsoft.Sysinternals.Autologon'
         'Obsidian.Obsidian'
@@ -166,7 +156,6 @@
         # Disk / storage / cleanup
         'BleachBit.BleachBit'
         'maharmstone.btrfs'
-        'JAMSoftware.TreeSize.Free'
         'AntibodySoftware.WizTree'
         'lostindark.DriverStoreExplorer'
         'Nlitesoft.NTLite'
@@ -178,17 +167,16 @@
         'Playnite.Playnite'
         'StreetPea.chiaki-ng'
         'GameSir.GameSirConnect'
-        'EpicGames.EpicOnlineServices'
         'Oracle.VirtualBox'
         'CakeWallet.CakeWallet'
         # Dev / CLI (added)
-        'JesseDuffield.lazygit'
         'ShareX.ShareX'
         'afkarxyz.SpotiFLAC'
         'yt-dlp.FFmpeg'
         'Gyan.FFmpeg'
         # Windows tooling (added)
         'Microsoft.WindowsADK'
+        'Microsoft.WindowsADK.WinPEAddon'
         'Microsoft.OSCDIMG'
     )
 
@@ -219,8 +207,11 @@
         'graalvm-oracle-jdk'
         'jq'
         'scoop-search'
-        'shellcheck'
         'yq'
+        'snappy-driver-installer-origin'
+        'lessmsi'
+        'innounp'
+        'dark'
     )
 
     # ---------------------------------------------------------------------------
@@ -229,13 +220,14 @@
     # winbtrfs removed 2026-07-10: same upstream project (maharmstone/btrfs) is
     # tracked via winget as 'maharmstone.btrfs' in WingetApplications, sourced
     # directly from the author rather than a community re-package.
-    ChocoPackages      = @()
+    ChocoPackages      = @(
+        'dolphin'
+    )
 
     # ---------------------------------------------------------------------------
     # Bun global packages
     # ---------------------------------------------------------------------------
     BunPackages        = @(
-        '@ast-grep/cli'
         '@biomejs/biome'
         '@colbymchenry/codegraph'
         '@kilocode/cli'
@@ -243,6 +235,7 @@
         '@zed-industries/vscode-langservers-extracted'
         'typescript-language-server'
         'yaml-language-server'
+        '@googleworkspace/cli'
     )
 
     # ---------------------------------------------------------------------------
@@ -250,6 +243,7 @@
     # ---------------------------------------------------------------------------
     NpmPackages        = @(
         'oh-my-claude-sisyphus'
+        'context-mode'
     )
 
     # ---------------------------------------------------------------------------
@@ -262,6 +256,8 @@
         'cargo-binstall'
         'cargo-cache'
         'cargo-update'
+        'cargo-edit'
+        'agnix-cli'
         @{ Name = 'rtk'; Git = 'https://github.com/rtk-ai/rtk' }
     )
 
@@ -274,6 +270,8 @@
         'PSScriptAnalyzer'
         'PSWindowsUpdate'
         'Terminal-Icons'
+        'Microsoft.WinGet.Client'
+        'Microsoft.WinGet.CommandNotFound'
     )
 
     # ---------------------------------------------------------------------------
@@ -284,10 +282,10 @@
         'VirtualMachinePlatform'
         'LegacyComponents'
         'DirectPlay'
-		'MediaPlayback'
-		'Microsoft-Hyper-V-All'
-		'NetFx3'
-		'NetFx4-AdvSrvs'
+        'MediaPlayback'
+        'Microsoft-Hyper-V-All'
+        'NetFx3'
+        'NetFx4-AdvSrvs'
     )
 
     # ---------------------------------------------------------------------------
