@@ -644,7 +644,7 @@ function Start-Bootstrap {
             }
 
             # Not on winget - installed from its latest GitHub release instead.
-            Install-GithubReleaseTool -Repo 'LiteLDev/LeviLauncher' -AssetName 'LeviLauncher-amd64-installer.exe' -Name 'LeviLauncher'
+            Install-GitHubRelease -Repository 'LiteLDev/LeviLauncher' -ExactAssetName 'LeviLauncher-amd64-installer.exe' -Name 'LeviLauncher' -InstallType Exe
         }
     }
 

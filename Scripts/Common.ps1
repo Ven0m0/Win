@@ -685,6 +685,226 @@ function Get-SilentInstallSwitches {
 #endregion
 
 
+#region GitHub Release Helpers
+function Get-GitHubRelease {
+    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Fetches the latest GitHub release for a repository.
+    .PARAMETER Repository
+        Repository in owner/name form.
+    .EXAMPLE
+        Get-GitHubRelease -Repository 'PowerShell/PowerShell'
+        Returns the release object with assets.
+    .OUTPUTS
+        System.Management.Automation.PSCustomObject
+    #>
+    param (
+        [Parameter(Mandatory)]
+        [string]$Repository
+    )
+
+    process {
+        $headers = @{ 'User-Agent' = 'Win-Dotfiles' }
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases/latest" `
+            -Headers $headers -TimeoutSec 20
+        return $release
+    }
+}
+
+function Get-GitHubReleaseAsset {
+    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Finds a specific asset in the latest GitHub release.
+    .PARAMETER Repository
+        Repository in owner/name form.
+    .PARAMETER AssetPattern
+        Wildcard pattern to match the asset name (e.g., '*.zip', '*x64*.msi').
+    .PARAMETER ExactName
+        Exact asset name to match (takes precedence over AssetPattern).
+    .EXAMPLE
+        Get-GitHubReleaseAsset -Repository 'ds4windowsapp/DS4Windows' -AssetPattern 'DS4Windows.*.zip'
+    .OUTPUTS
+        System.Management.Automation.PSCustomObject with Name and BrowserDownloadUrl properties
+    #>
+    param (
+        [Parameter(Mandatory)]
+        [string]$Repository,
+
+        [string]$AssetPattern,
+
+        [string]$ExactName
+    )
+
+    process {
+        $release = Get-GitHubRelease -Repository $Repository
+
+        if ($ExactName) {
+            $asset = $release.assets | Where-Object { $_.name -eq $ExactName } | Select-Object -First 1
+        }
+        elseif ($AssetPattern) {
+            $asset = $release.assets | Where-Object { $_.name -like $AssetPattern } | Select-Object -First 1
+        }
+        else {
+            throw 'Either -AssetPattern or -ExactName must be specified.'
+        }
+
+        if (-not $asset) {
+            throw "Could not find matching release asset in $Repository (pattern: '$AssetPattern', exact: '$ExactName')."
+        }
+
+        # GitHub API returns browser_download_url (snake_case), PowerShell preserves original casing
+        $downloadUrl = $asset.browser_download_url
+        if (-not $downloadUrl) { $downloadUrl = $asset.BrowserDownloadUrl }
+        if (-not $downloadUrl) { $downloadUrl = $asset.'browser_download_url' }
+        return [pscustomobject]@{
+            Name               = $asset.name
+            BrowserDownloadUrl = $downloadUrl
+            ReleaseTag         = $release.tag_name
+            ReleaseDate        = [datetime]$release.published_at
+        }
+    }
+}
+
+function Install-GitHubRelease {
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Zip')]
+    <#
+    .SYNOPSIS
+        Installs a tool from its latest GitHub release.
+    .DESCRIPTION
+        Downloads and installs a tool from a GitHub release. Supports ZIP archives (extract and optionally create shortcuts),
+        MSI installers (silent install), and EXE installers (silent install with auto-detected switches).
+    .PARAMETER Repository
+        GitHub repository in 'owner/name' form.
+    .PARAMETER AssetPattern
+        Wildcard pattern to match the asset name (e.g., '*.zip', '*x64*.msi').
+    .PARAMETER ExactAssetName
+        Exact asset name to download (takes precedence over AssetPattern).
+    .PARAMETER Name
+        Human-readable tool name for output messages.
+    .PARAMETER InstallType
+        Type of installer: 'Zip', 'Msi', or 'Exe'. Determines installation method.
+    .PARAMETER DestinationPath
+        For Zip: directory to extract to. For Msi/Exe: not used (installs system-wide).
+    .PARAMETER ExecutableName
+        For Zip: name of the executable to create shortcuts for (relative to DestinationPath).
+    .PARAMETER ShortcutName
+        For Zip: name for the shortcuts (Desktop, Start Menu, Startup).
+    .PARAMETER Switches
+        For Exe: silent install switches (auto-detected if not provided).
+    .PARAMETER NoShortcuts
+        For Zip: skip creating shortcuts.
+    .EXAMPLE
+        Install-GitHubRelease -Repository 'ds4windowsapp/DS4Windows' -AssetPattern 'DS4Windows.*.zip' -Name 'DS4Windows' -InstallType Zip -DestinationPath "$env:USERPROFILE\Documents\DS4Windows" -ExecutableName 'win-x64\DS4Windows.exe' -ShortcutName 'DS4Windows'
+    .EXAMPLE
+        Install-GitHubRelease -Repository 'xt0n1-t3ch/DLSSync' -AssetPattern '*_x64_en-US.msi' -Name 'DLSSync' -InstallType Msi
+    .EXAMPLE
+        Install-GitHubRelease -Repository 'LiteLDev/LeviLauncher' -ExactAssetName 'LeviLauncher-amd64-installer.exe' -Name 'LeviLauncher' -InstallType Exe
+    #>
+    param (
+        [Parameter(Mandatory)]
+        [string]$Repository,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [Parameter(ParameterSetName = 'Msi')]
+        [Parameter(ParameterSetName = 'Exe')]
+        [string]$AssetPattern,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [Parameter(ParameterSetName = 'Msi')]
+        [Parameter(ParameterSetName = 'Exe')]
+        [string]$ExactAssetName,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('Zip', 'Msi', 'Exe')]
+        [string]$InstallType,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [string]$DestinationPath,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [string]$ExecutableName,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [string]$ShortcutName,
+
+        [Parameter(ParameterSetName = 'Exe')]
+        [string[]]$Switches,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [switch]$NoShortcuts
+    )
+
+    if ($PSCmdlet.ShouldProcess($Name, "Install from GitHub release ($InstallType)")) {
+        try {
+            Write-Info "Fetching latest release for $Repository..."
+            $asset = Get-GitHubReleaseAsset -Repository $Repository -AssetPattern $AssetPattern -ExactName $ExactAssetName
+            Write-Info "Found asset: $($asset.Name) (release $($asset.ReleaseTag))"
+
+            $tempFile = Join-Path -Path $env:TEMP -ChildPath $asset.Name
+            Write-Info "Downloading $($asset.Name)..."
+            Get-FileFromWeb -URL $asset.BrowserDownloadUrl -File $tempFile
+
+            switch ($InstallType) {
+                'Zip' {
+                    if (-not $DestinationPath) {
+                        throw 'DestinationPath is required for Zip install type.'
+                    }
+                    if (Test-Path -LiteralPath $DestinationPath) {
+                        Write-Info "Removing previous install at $DestinationPath..."
+                        Remove-Item -LiteralPath $DestinationPath -Recurse -Force
+                    }
+                    Ensure-Directory -Path $DestinationPath
+                    Write-Info "Extracting to $DestinationPath..."
+                    Expand-Archive -LiteralPath $tempFile -DestinationPath $DestinationPath -Force
+
+                    if ($ExecutableName -and -not $NoShortcuts) {
+                        $exePath = Join-Path $DestinationPath $ExecutableName
+                        if (Test-Path -LiteralPath $exePath) {
+                            $shortcutName = if ($ShortcutName) { $ShortcutName } else { $Name }
+                            $desktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) "$shortcutName.lnk"
+                            $startMenuShortcut = Join-Path ([Environment]::GetFolderPath('Programs')) "$shortcutName.lnk"
+                            $startupShortcut = Join-Path ([Environment]::GetFolderPath('Startup')) "$shortcutName.lnk"
+
+                            New-Shortcut -ShortcutPath $desktopShortcut -TargetPath $exePath
+                            New-Shortcut -ShortcutPath $startMenuShortcut -TargetPath $exePath
+                            New-Shortcut -ShortcutPath $startupShortcut -TargetPath $exePath
+                            Write-Info "Created shortcuts for $shortcutName"
+                        }
+                        else {
+                            Write-Warning "Executable not found at $exePath, skipping shortcut creation."
+                        }
+                    }
+                }
+                'Msi' {
+                    Write-Info 'Installing MSI...'
+                    Start-Process -FilePath 'msiexec.exe' -ArgumentList "/i `"$tempFile`" /quiet /norestart" -Wait
+                }
+                'Exe' {
+                    $installSwitches = if ($Switches) { $Switches } else { Get-SilentInstallSwitches -Path $tempFile }
+                    if (-not $installSwitches) {
+                        throw "Could not detect silent-install switches for $Name; pass -Switches explicitly."
+                    }
+                    Write-Info "Installing with switches: $($installSwitches -join ' ')"
+                    Start-Process -FilePath $tempFile -ArgumentList $installSwitches -Wait
+                }
+            }
+
+            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+            Write-Success "${Name} $($asset.ReleaseTag) installed."
+        }
+        catch {
+            Write-Error "Failed to install ${Name}: $_"
+            throw
+        }
+    }
+}
+#endregion
+
 #region Monitor Management
 $script:CachedMonitorInstances = $null
 
