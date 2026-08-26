@@ -43,12 +43,12 @@
     WingetToolchains   = @(
         'MartinStorsjo.LLVM-MinGW.UCRT'
         'Rustlang.Rustup'
-		    'Mozilla.sccache'
+        'Mozilla.sccache'
         'RubyInstallerTeam.Ruby.4.0'
         'Microsoft.VisualStudio.BuildTools'
         'astral-sh.uv'
         'Oven-sh.Bun'
-		    'DenoLand.Deno'
+        'DenoLand.Deno'
         'SQLite.SQLite'
     )
 
@@ -174,6 +174,8 @@
         'afkarxyz.SpotiFLAC'
         'yt-dlp.FFmpeg'
         'Gyan.FFmpeg'
+        'beeradmoore.dlss-swapper'
+        'Recol.DLSSUpdater'
         # Windows tooling (added)
         'Microsoft.WindowsADK'
         'Microsoft.WindowsADK.WinPEAddon'
@@ -184,7 +186,8 @@
     # Manual installs — no winget package; installed via dedicated script
     # ---------------------------------------------------------------------------
     ManualInstalls     = @(
-        @{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
+        #@{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
+        @{ Name = 'Ds4Windows'; Script = 'third-party\ds4windows\install-ds4windows.ps1' }
     )
 
     # ---------------------------------------------------------------------------
