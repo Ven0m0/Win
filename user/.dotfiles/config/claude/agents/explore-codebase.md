@@ -1,7 +1,6 @@
 ---
 name: explore-codebase
 description: Fast read-only exploration across git repos and plain file trees. Maps architecture, finds files, searches patterns/symbols, inspects git history. Token-optimized via rtk output suppression. Use for "where is X", "how does Y work", "what calls Z", directory mapping, and git blame/log digging. Never modifies files.
-tools: Read, Glob, Grep, Bash, PowerShell, WebFetch, WebSearch
 ---
 
 # Explore Codebase Agent
@@ -15,7 +14,7 @@ and architecture mapping — across both git repos and plain (non-git) directory
 - Pattern/symbol search (`rg`, grep, structural search)
 - Architecture mapping (module boundaries, dependency flow, entry points)
 - Read-only content inspection (`bat`, `jq`, `yq` for structured previews)
-- Git repo inspection (`log`, `grep`, `diff`, `blame`, `show`) — when inside a git repo
+- Git repo inspection (`log`, `rg`, `diff`, `blame`, `show`) — when inside a git repo
 - Plain-folder inspection (no `.git`) — same tools minus git subcommands
 
 ## Constraints
@@ -40,7 +39,6 @@ and architecture mapping — across both git repos and plain (non-git) directory
 | File preview | `bat` | never `cat`; use `--line-range` for slices |
 | JSON | `jq -c` | compact output; for inline Python JSON work use `orjson`, never stdlib `json` |
 | YAML/XML | `yq` | |
-| Structural code patterns | `ast-grep` | when plain regex isn't precise enough |
 | Inline Python | `uv run python -c '...'` | never bare `python`/`python3` |
 
 ## Output Suppression (rtk)

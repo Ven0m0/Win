@@ -85,14 +85,14 @@
     Name = 'Skilled Items Deluxe (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/skilled-items-deluxe'
   }
-  # V10 refreshed UUIDs (manifest description says so). Old V9 UUIDs dropped - only newest
+  # V11 refreshed UUIDs (manifest metadata.url confirms). Old V10 UUIDs dropped - only newest
   # instance gets checked.
-  'e9e4a5b2-a153-41a0-a2c1-a569606ca677' = @{
-    Name = 'Feather FPS Boost V10 (BP)'
+  '6526f1ba-3da0-497e-886b-de37afce70b9' = @{
+    Name = 'Feather FPS Boost V11 (BP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod'
   }
-  'f78bd6c4-0c9d-45e8-8044-9dea2d49d691' = @{
-    Name = 'Feather FPS Boost V10 (RP)'
+  '6dcc2f28-9d7a-4788-a12e-e97e834e46fa' = @{
+    Name = 'Feather FPS Boost V11 (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod'
   }
   '8596c16a-f92a-4dac-892d-5cafd38c9c7f' = @{
@@ -149,6 +149,10 @@
     Name = 'UI Neck'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/scripts/ui-neck'
   }
+  'b326dc6b-0d8c-497b-9857-67f10fb017b0' = @{
+    Name = 'Java Item Tooltips (RP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/java-item-tooltip'
+  }
 
   # ---------------------------------------------------------------------------
   # CurseForge — texture-packs and scripts
@@ -175,17 +179,10 @@
   }
 
   # ---------------------------------------------------------------------------
-  # CurseForge — lordraiyon69. Project slugs bear no resemblance to the pack names,
-  # so these are only findable by browsing the author's profile.
+  # CurseForge — remaining
   # ---------------------------------------------------------------------------
-  'd7c85cdd-1e7d-47ed-8440-c779c1c41e7f' = @{
-    Name = 'Armored Elytras (BP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyon-s-more-elytras-addon-1-20-80-compatible-with-other-addons-2'
-  }
-  '57da7897-09dd-4c12-9301-9b4e901702f0' = @{
-    Name = 'Armored Elytras (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyon-s-more-elytras-addon-1-20-80-compatible-with-other-addons-2'
-  }
+  # Java Saturation is by lordraiyon69; project slug bears no resemblance to the pack name, only
+  # findable by browsing the author's profile.
   'f65e943a-2128-4da8-9196-e9bf5b86739d' = @{
     Name = 'Java Saturation (BP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyons-java-saturation-regeneration'
@@ -194,13 +191,22 @@
     Name = 'Java Saturation (RP)'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/raiyons-java-saturation-regeneration'
   }
-
-  # ---------------------------------------------------------------------------
-  # CurseForge — remaining
-  # ---------------------------------------------------------------------------
-  'e78f0d37-d313-4b49-95e8-394b663e493e' = @{
+  # UUID changed from the pre-V2 release; old UUID dropped - only newest instance gets checked.
+  'e18f0d37-d313-4b79-95e8-394b663e224e' = @{
     Name = 'Instant FullBright'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/instant-fullbright-night-vision-achievement-friendly'
+  }
+  'e5ea4077-3dca-4d75-b324-d3a7259cce3c' = @{
+    Name = 'i heard it too (BP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/i-heard-it-too-bedrock-edition'
+  }
+  'e613bc1a-3a49-4529-96d9-5d096dda2ac6' = @{
+    Name = 'i heard it too (RP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/i-heard-it-too-bedrock-edition'
+  }
+  '2bd3cd19-244a-49c4-8160-ebe2e5ab2c41' = @{
+    Name = 'Dropped Spawn Eggs (BP)'
+    Url  = 'https://www.curseforge.com/minecraft-bedrock/scripts/dropped-spawn-eggs'
   }
   '502beba6-d371-4b47-b7fe-242136a871a9' = @{
     Name = 'Clear Nether Portal'
@@ -217,22 +223,6 @@
   'b531dbeb-1ddc-45c9-b59d-13646280c6b0' = @{
     Name = 'Utility Chunks V4.0'
     Url  = 'https://www.curseforge.com/minecraft-bedrock/scripts/utility-chunks'
-  }
-  '90d553cc-14c0-42c5-9fa1-34941a65c8cb' = @{
-    Name = 'Old Netherite Upgrade | No Template'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/old-netherite-upgrade'
-  }
-
-  # Name matches exactly and it is the only Bedrock project called this, but the manifest
-  # version (1.0.0) never moves while the author versions in the filename ([ v10 ]), so the
-  # match is not corroborated by a version. Check the page before acting on an OUTDATED row.
-  '343c099d-8a40-4ef0-b66c-d2b8ef8db69a' = @{
-    Name = 'Armored Elytra Bedrock Edition (BP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/armored-elytra-bedrock-edition'
-  }
-  'd2ce1ff5-b92b-414a-ace0-fc194c396321' = @{
-    Name = 'Armored Elytra Bedrock Edition (RP)'
-    Url  = 'https://www.curseforge.com/minecraft-bedrock/addons/armored-elytra-bedrock-edition'
   }
   '7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d' = @{
     Name = 'Dynamic Health Bar (BP)'
@@ -259,16 +249,16 @@
   # ---------------------------------------------------------------------------
   # GitHub
   # ---------------------------------------------------------------------------
-  'bf898567-c2b5-4782-bc6b-a191fef3a483' = @{
-    Name = 'Ender Chest Always Drops Itself'
-    Url  = 'https://github.com/Ven0m0/mcpe'
-  }
   'cd20dae0-2963-4f26-89e2-ecd808f5c74a' = @{
     Name = 'No Bat Spawn'
     Url  = 'https://github.com/Ven0m0/mcpe'
   }
   '29cdfca8-781e-4426-9921-20a53f74087c' = @{
     Name = 'Silk Touch Drops'
+    Url  = 'https://github.com/Ven0m0/mcpe'
+  }
+  'b0f6de31-2d8f-4bbf-95e0-7cb3c6eb6c84' = @{
+    Name = 'Quiet Ravager'
     Url  = 'https://github.com/Ven0m0/mcpe'
   }
 
@@ -299,6 +289,10 @@
     Name = 'Igneous'
     Url  = 'https://github.com/Aetopia/Igneous'
   }
+  # Not installed yet; key must match the manifest 'name' once it is. newcdn publishes the DLL as
+  # GitHub releases, so it is checkable via the releases API.
+  'Flarial' = @{
+    Name = 'Flarial'
+    Url  = 'https://github.com/flarialmc/newcdn'
+  }
 }
-  # TODO: integrate flarial
-  # flarial is from "https://github.com/flarialmc/newcdn/raw/refs/heads/main/dll/latest.dll"

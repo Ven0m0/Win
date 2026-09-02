@@ -977,6 +977,12 @@ function Start-Bootstrap {
                     }
                 }
             }
+        },
+        @{
+            Path               = 'legcord\flags.json'
+            Mode               = 'file'
+            Label              = 'Legcord flags'
+            ResolveDestination = { Join-Path $env:APPDATA 'legcord\flags.json' }
         }
     )
 

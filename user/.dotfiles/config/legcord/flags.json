@@ -1,0 +1,24 @@
+{
+  "switches": [
+    ["enable-gpu-rasterization"],
+    ["enable-zero-copy"],
+    ["ignore-gpu-blocklist"],
+    ["enable-hardware-overlays", "single-fullscreen,single-on-top,underlay"],
+    ["force_high_performance_gpu"]
+  ],
+  "enableFeatures": [
+    "EnableDrDc",
+    "CanvasOopRasterization",
+    "BackForwardCache:TimeToLiveInBackForwardCacheInSeconds/300/should_ignore_blocklists/true/enable_same_site/true",
+    "ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes",
+    "UseSkiaRenderer",
+    "WebAssemblyLazyCompilation",
+    "ZeroCopyDesktopCapture",
+    "CalculateNativeWinOcclusion",
+    "WebRtcHWDecoding",
+    "WebRtcHWEncoding",
+    "AcceleratedVideoDecoder",
+    "AcceleratedVideoEncoder"
+  ],
+  "disableFeatures": ["Vulkan", "TurnOffStreamingMediaCachingOnBattery", "UseChromeOSDirectVideoDecoder"]
+}

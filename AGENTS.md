@@ -100,7 +100,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `games/valorant/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `games/valorant/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`
 
 ## Gotchas
 

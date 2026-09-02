@@ -1,6 +1,11 @@
-# Bootstrap Deployment Rules
+---
+paths:
+  - '**/Setup-Win11.ps1'
+  - '**/bootstrap.ps1'
+  - '**/Setup-Dotfiles.ps1'
+---
 
-Applies to bootstrap and deployment scripts: `**/Setup-Win11.ps1`, `**/bootstrap.ps1`, `**/Setup-Dotfiles.ps1`.
+# Bootstrap Deployment Rules
 
 ## Bootstrap Layers
 
