@@ -20,5 +20,5 @@
     "AcceleratedVideoDecoder",
     "AcceleratedVideoEncoder"
   ],
-  "disableFeatures": ["Vulkan", "TurnOffStreamingMediaCachingOnBattery", "UseChromeOSDirectVideoDecoder"]
+  "disableFeatures": ["Vulkan", "TurnOffStreamingMediaCachingOnBattery"]
 }
