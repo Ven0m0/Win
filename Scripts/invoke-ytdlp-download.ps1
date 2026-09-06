@@ -40,6 +40,15 @@
 .PARAMETER OutputTemplate
     yt-dlp output template string within the subfolder.
     Default: %(playlist_index)03d - %(title)s.%(ext)s
+.PARAMETER NoPotProvider
+    Skip installing the bgutil PO token provider (plugin + generator script). Without a PO
+    token, YouTube Music playlists expose no audio-only formats and cookie-free downloads
+    of the still-offered android_vr format return HTTP 403 - see PlayerClient for the
+    fallback used when this happens anyway.
+.PARAMETER PlayerClient
+    Forces yt-dlp's --extractor-args youtube:player_client to a specific value (e.g.
+    'web_safari'). Used automatically as a one-time retry when a download 403s; set
+    explicitly to skip straight to a known-working client.
 .PARAMETER PassThrough
     Emit download result objects to the pipeline for further processing.
 .EXAMPLE
@@ -51,11 +60,16 @@
 .EXAMPLE
     .\invoke-ytdlp-download.ps1 -Url "https://..." -CookiesFromBrowser helium
 .EXAMPLE
+    .\invoke-ytdlp-download.ps1 -Url "https://music.youtube.com/playlist?list=PL..." -PlayerClient web_safari
+.EXAMPLE
     Get-Content urls.txt | .\invoke-ytdlp-download.ps1 -PassThrough
 .NOTES
     Requires yt-dlp and ffmpeg on PATH for YouTube URLs; spotdl for Spotify URLs.
     Install via: winget install yt-dlp  or  scoop install yt-dlp ffmpeg
     Install spotdl via: pip install spotdl  (also requires ffmpeg on PATH)
+    YouTube Music playlists require a GVS PO token for audio-only formats; without one,
+    downloads fall back to AAC ~128k stripped from a 1080p HLS stream. See the PO Token
+    Guide: https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param (
@@ -81,6 +95,10 @@ param (
     [string]$CookiesFile = (Join-Path -Path $env:USERPROFILE -ChildPath 'Downloads\cookies.txt'),
 
     [string]$OutputTemplate = '%(playlist_index)03d - %(title)s.%(ext)s',
+
+    [switch]$NoPotProvider,
+
+    [string]$PlayerClient,
 
     [switch]$PassThrough
 )
@@ -136,6 +154,51 @@ if ($missingDeps.Count -gt 0) {
     }
 }
 
+# Guard: install the bgutil PO token provider (plugin + generator script), unless skipped.
+# Without a PO token, YouTube Music playlists offer no audio-only formats and the
+# remaining android_vr format 403s on real downloads - see PlayerClient fallback below.
+$potPluginPath = Join-Path -Path $env:APPDATA -ChildPath 'yt-dlp\plugins\bgutil-ytdlp-pot-provider.zip'
+$potGeneratorPath = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider\server\build\main.js'
+if (-not $NoPotProvider -and -not ((Test-Path -LiteralPath $potPluginPath) -and (Test-Path -LiteralPath $potGeneratorPath))) {
+    $potDeps = @('git', 'node')
+    $potMissing = @($potDeps | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) })
+    if ($potMissing.Count -gt 0) {
+        Write-Warning "PO token provider needs $($potMissing -join ', ') on PATH - skipping install; YouTube Music playlists may 403"
+    } elseif ($PSCmdlet.ShouldProcess('bgutil-ytdlp-pot-provider', 'Install PO token provider')) {
+        try {
+            $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/Brainicism/bgutil-ytdlp-pot-provider/releases/latest'
+            $potTag = $release.tag_name
+
+            if (-not (Test-Path -LiteralPath $potPluginPath)) {
+                Ensure-Directory -Path (Split-Path -Path $potPluginPath -Parent)
+                $ProgressPreference = 'SilentlyContinue'
+                Invoke-WebRequest -Uri "https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases/download/$potTag/bgutil-ytdlp-pot-provider.zip" `
+                    -OutFile $potPluginPath
+            }
+
+            if (-not (Test-Path -LiteralPath $potGeneratorPath)) {
+                $potRepoDir = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider'
+                if (-not (Test-Path -LiteralPath $potRepoDir)) {
+                    & git clone --single-branch --branch $potTag `
+                        'https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git' $potRepoDir
+                }
+                Push-Location -LiteralPath (Join-Path -Path $potRepoDir -ChildPath 'server')
+                try {
+                    & npm ci
+                    & npx tsc
+                } finally {
+                    Pop-Location
+                }
+            }
+            Add-Log -Text "PO token provider installed: $potTag"
+        } catch {
+            $err = $_
+            Write-Warning "Failed to install PO token provider: $($err.Exception.Message) - YouTube Music playlists may 403"
+            Add-Log -Text "PO token provider install FAILED: $($err.Exception.Message)"
+        }
+    }
+}
+
 Add-Log -Text 'YouTube Music Downloader started'
 
 # Resolve cookie args once and verify they actually authenticate before downloading.
@@ -166,6 +229,10 @@ if ($cookieArgs.Count -gt 0) {
     Write-Verbose "Validating cookies against: $($Url[0])"
     # -playlist-items 1 bounds validation to the first entry: a full playlist -simulate
     # would fail (and wipe good cookies) if any single unrelated entry errors out.
+    # Deliberately -skip-download, not -check-formats: a -check-formats range probe can
+    # succeed against a googlevideo URL that then 403s on the real sequential download
+    # (reproduced against android_vr-selected formats without a PO token), so it would
+    # just trade one false negative for a false positive.
     $null = & yt-dlp @cookieArgs --simulate --skip-download --no-warnings --quiet --playlist-items 1 $Url[0] 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "Cookies from '$cookieSourceLabel' failed validation (exit $LASTEXITCODE) - continuing without cookies"
@@ -230,6 +297,9 @@ foreach ($u in $Url) {
         )
     } else {
         $exeName = 'yt-dlp'
+        # Archive lives under $OutputDirectory, not $outDir, so the filename cleanup loop
+        # below (which rewrites every file in $outDir) never touches it.
+        $archivePath = Join-Path -Path $OutputDirectory -ChildPath "$folderName.archive.txt"
         $downloadArgs = $cookieArgs + @(
             '-x'
             '--audio-format', $Format
@@ -240,7 +310,16 @@ foreach ($u in $Url) {
             '-o', $OutputTemplate
             '-P', $outDir
             '--ignore-errors'
-        ) + $sponsorBlockArgs + @($u)
+            '--download-archive', $archivePath
+            '--retries', '10'
+            '--fragment-retries', '10'
+            '--extractor-retries', '3'
+            '--retry-sleep', 'http:exp=1:60'
+        )
+        if ($PlayerClient) {
+            $downloadArgs += @('--extractor-args', "youtube:player_client=$PlayerClient")
+        }
+        $downloadArgs += $sponsorBlockArgs + @($u)
     }
 
     $label = $u
@@ -254,6 +333,24 @@ foreach ($u in $Url) {
 
         & $exeName @downloadArgs 2>&1
         $ec = $LASTEXITCODE
+
+        # A cookie-free android_vr-selected format can 403 on the real download despite
+        # passing metadata/cookie validation (no PO token = no audio-only format). Retry
+        # once with a client verified to still hand out a downloadable format
+        # (web_safari -> format 96, AAC ~128k from a 1080p HLS stream) before giving up.
+        if ($ec -ne 0 -and -not $isSpotify -and -not $PlayerClient) {
+            Write-Warning "Retrying with -extractor-args youtube:player_client=web_safari for: $u"
+            Add-Log -Text "Retrying with player_client=web_safari: $u"
+            $retryArgs = $downloadArgs + @('--extractor-args', 'youtube:player_client=web_safari', '-f', '96/bestaudio/best')
+            & $exeName @retryArgs 2>&1
+            $ec = $LASTEXITCODE
+            if ($ec -eq 0) {
+                Add-Log -Text "Retry succeeded with player_client=web_safari: $u"
+                if ($Format -eq 'flac') {
+                    Write-Warning "Source for '$u' was AAC ~128k stripped from a 1080p HLS stream (no PO token available) - the FLAC is a lossless container around lossy audio"
+                }
+            }
+        }
 
         # Post-process: lowercase filenames, replace spaces with underscores, strip special chars
         if ($ec -eq 0 -and (Test-Path -LiteralPath $outDir)) {
