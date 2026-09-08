@@ -17,11 +17,11 @@ Describe 'optimize-media.ps1' {
             { & $ScriptPath -Path $missing -SkipImages -SkipVideo *> $null } | Should -Throw
         }
 
-        It 'Rejects a drive root with an explicit message instead of a Join-Path error' {
-            $driveRoot = (Get-Item -LiteralPath $TestRoot).Root.FullName
+        It 'Refuses a -BackupPath inside the scanned folder' {
+            $inside = Join-Path $TestRoot 'bak'
 
-            { & $ScriptPath -Path $driveRoot -SkipImages -SkipVideo *> $null } |
-                Should -Throw -ExpectedMessage '*drive root*'
+            { & $ScriptPath -Path $TestRoot -BackupPath $inside -SkipImages -SkipVideo *> $null } |
+                Should -Throw -ExpectedMessage '*inside the scanned folder*'
         }
     }
 
@@ -41,11 +41,13 @@ Describe 'optimize-media.ps1' {
             New-Item -ItemType Directory -Path $bracketDir -Force | Out-Null
             $file = Join-Path $bracketDir 'photo.png'
             Set-Content -LiteralPath $file -Value 'x'
+            $backup = Join-Path $TestDrive 'bak'
 
-            { & $ScriptPath -Path $bracketDir -SkipVideo -WhatIf *> $null } | Should -Not -Throw
+            { & $ScriptPath -Path $bracketDir -BackupPath $backup -SkipVideo -WhatIf *> $null } |
+                Should -Not -Throw
 
             # No optimizer installed in the test environment, so the file is left untouched -
-            # this test only proves Get-ChildItem -LiteralPath located it instead of silently
+            # this test only proves Directory.EnumerateFiles located it instead of silently
             # matching zero files against the [...] wildcard pattern.
             Test-Path -LiteralPath $file | Should -BeTrue
         }
@@ -55,10 +57,10 @@ Describe 'optimize-media.ps1' {
         It 'Performs no writes: no backup folder, no output files, sources untouched' {
             $file = Join-Path $TestRoot 'photo.png'
             Set-Content -LiteralPath $file -Value 'x'
+            $backupPath = Join-Path $TestDrive 'whatif-bak'
 
-            & $ScriptPath -Path $TestRoot -SkipVideo -WhatIf *> $null
+            & $ScriptPath -Path $TestRoot -BackupPath $backupPath -SkipVideo -WhatIf *> $null
 
-            $backupPath = "$TestRoot-bak"
             Test-Path -LiteralPath $backupPath | Should -BeFalse
             Test-Path -LiteralPath $file | Should -BeTrue
         }

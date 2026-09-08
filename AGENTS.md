@@ -42,10 +42,9 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `Scripts/reg/`                            | Registry `.reg` files and priority tweaks               |
 | `Scripts/auto/autounattend-windows10.xml` | Unattended Windows 10 USB installer                     |
 | `tests/`                                  | Pester test files (`*.Tests.ps1`)                       |
-| `setup.Tests.ps1`                         | Root-level Pester tests                                 |
 | `user/.dotfiles/config/`                  | Tracked dotfile content (deploy targets)                |
 | `install.conf.yaml`                       | Dotbot configuration                                    |
-| `mise.toml`                                | Tool manifest — Python/uv, pipx-managed dotbot, `mise run bootstrap`/`deploy` tasks |
+| `mise.toml`                                | Tool manifest — Python/uv, pipx-managed dotbot, `mise run bootstrap`/`deploy`/`lint`/`format`/`validate`/`ci` tasks |
 | `Scripts/packages.psd1`                    | Canonical package catalog — winget/scoop/choco/Bun/npm/Cargo/PS-modules/DISM-features/Appx-removal |
 | `.kilo/`                                  | Kilo AI configuration (skills, agents, rules, commands) |
 | `.github/workflows/`                      | CI pipeline definitions                                 |
@@ -63,7 +62,8 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `fix-system.ps1`              | Repair hub (`-Action System\|WindowsUpdate\|All`)            |
 | `DLSS-force-latest.ps1`       | Force latest DLSS version across games                       |
 | `New-SteamShortcut.ps1`       | Steam shortcut creator                                       |
-| `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp) + encode video to H.265/Opus |
+| `dedupe-media.ps1`            | Remove duplicate media: fclones exact pass, czkawka fuzzy image/video passes. Run **before** `optimize-media.ps1`. Preview by default (`-Apply` to act); czkawka's redundant dup pass is opt-in via `-IncludeDup` |
+| `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp/gifsicle) + re-encode video to H.265/Opus, replacing validated sources so the folder shrinks. Originals go to `-BackupPath` (default `$env:USERPROFILE\Pictures\optimize-media-bak`, must be outside the scanned tree); `-Encoder Auto\|NVENC\|x265` |
 
 ## High-Signal Rules
 
@@ -134,9 +134,9 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `powershell.yml`       | push/PR on `*.ps1`           | SARIF-based PSScriptAnalyzer (Security tab)   |
 | `ps-format.yml`        | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
-| `secret-scan.yml`      | all push/PR                  | Gitleaks secret detection                     |
+| `pr-checks.yml`        | PR to `main`                 | Quality gate: PSScriptAnalyzer + full Pester suite, posts check annotations/inline comments |
 
-**Pester:** 25 test files in `tests/` + `setup.Tests.ps1` at root. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 24 test files in `tests/`. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## Agent Delegation
 

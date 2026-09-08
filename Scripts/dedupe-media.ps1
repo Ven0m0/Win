@@ -1,5 +1,4 @@
 #Requires -Version 5.1
-#Requires -RunAsAdministrator
 
 <#
 .SYNOPSIS
@@ -7,10 +6,15 @@
 .DESCRIPTION
     Passes run fastest/exact first, fuzzy last:
       1. fclones - removes byte-for-byte identical duplicates (fast, exact).
-      2. czkawka - duplicate-file hash pass, restricted to media extensions.
+      2. czkawka - duplicate-file hash pass, opt-in via -IncludeDup.
       3. czkawka - finds perceptually similar images (fuzzy).
       4. czkawka - finds perceptually similar videos (fuzzy, slowest).
       5. czkawka - removes zero-byte media files.
+    The czkawka duplicate-file pass is off by default: fclones already found
+    every byte-identical file in pass 1, faster, so running it again is a
+    second full-tree hash for no additional matches. -IncludeDup re-enables it.
+    Both fclones passes are scoped to media extensions, case-insensitively,
+    and skip Nextcloud/sync metadata (see -Exclude).
     The dup/image/video passes use Lanczos3 image resampling (highest-quality
     hashing input) and include files below czkawka's default minimum size, so
     small media is no longer silently skipped. Match strictness (ImageDifference,
@@ -36,8 +40,13 @@
     Skip the confirmation prompt when used with -Apply.
 .PARAMETER SkipExact
     Skip the fclones exact-duplicate pass.
-.PARAMETER SkipDup
-    Skip the czkawka duplicate-file hash pass.
+.PARAMETER IncludeDup
+    Run the czkawka duplicate-file hash pass. Off by default because the
+    fclones pass already removes every byte-identical file, and czkawka's
+    dup mode is a slower way of finding the same set.
+.PARAMETER Exclude
+    Extra glob patterns matched against the full path and skipped by the
+    fclones passes, appended to the built-in Nextcloud/sync-metadata list.
 .PARAMETER SkipImages
     Skip the czkawka similar-image pass.
 .PARAMETER SkipVideos
@@ -79,7 +88,8 @@ param (
     [switch]$Apply,
     [switch]$Force,
     [switch]$SkipExact,
-    [switch]$SkipDup,
+    [switch]$IncludeDup,
+    [string[]]$Exclude = @(),
     [switch]$SkipImages,
     [switch]$SkipVideos,
     [switch]$SkipEmptyFiles,
@@ -120,6 +130,15 @@ $mediaExtensions = @(
     'mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg', 'ts', 'm2ts'
 )
 
+# Nextcloud/Syncthing metadata and partial-transfer files. fclones matches --exclude
+# patterns against the full path, hence the leading '**/'. Deduplicating a version
+# history or a trash bin against the live file would delete the live copy.
+$excludePatterns = @(
+    '**/files_versions/**', '**/files_trashbin/**', '**/.nextcloud/**', '**/.nextcloud*',
+    '**/.sync_*.db', '**/*.part', '**/*.partial', '**/.stfolder/**', '**/.stversions/**',
+    '**/.thumbnails/**', '**/Thumbs.db', '**/.cache/**', '**/thumbnails/**'
+) + $Exclude
+
 
 # Unit multipliers: fclones reports decimal (KB=1000), czkawka reports binary (KiB=1024).
 $decimalUnits = @{ B = 1; KB = 1000; MB = 1000 * 1000; GB = 1000 * 1000 * 1000; TB = 1000 * 1000 * 1000 * 1000 }
@@ -145,16 +164,33 @@ function Get-ReclaimedByteCount {
 
 
 function Invoke-ToolAboveNormal {
+    <#
+    .SYNOPSIS
+        Runs a console tool at Above Normal priority, streaming its output live.
+    .PARAMETER FilePath
+        Executable to run.
+    .PARAMETER ArgumentList
+        Arguments passed to the executable.
+    .PARAMETER StandardInputPath
+        File piped to the process's stdin.
+    .PARAMETER WatchFfmpeg
+        Also raise the priority of ffmpeg processes the tool spawns while it runs.
+        Only meaningful for czkawka's video pass; leave off elsewhere so unrelated
+        encodes (for example a concurrent optimize-media.ps1) are never touched.
+    #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
         [Parameter(Mandatory)][string]$FilePath,
         [Parameter(Mandatory)][string[]]$ArgumentList,
-        [string]$StandardInputPath
+        [string]$StandardInputPath,
+        [switch]$WatchFfmpeg
     )
     process {
         $stdOutFile = [System.IO.Path]::GetTempFileName()
         $stdErrFile = [System.IO.Path]::GetTempFileName()
+        $readers = @()
+        $collected = [System.Collections.Generic.List[string]]::new()
         try {
             $startArgs = @{
                 FilePath               = $FilePath
@@ -175,31 +211,55 @@ function Invoke-ToolAboveNormal {
                 Write-Verbose "Could not raise priority for $FilePath (PID $($proc.Id)): $($_.Exception.Message)"
             }
 
-            # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
-            # child process and does not inherit our priority bump, so poll for it
-            # and raise it too for as long as the parent tool is still running.
-            while (-not $proc.HasExited) {
-                Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue |
-                    Where-Object { $_.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal } |
-                    ForEach-Object {
-                        $ffmpegProc = $_
-                        try {
-                            $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
-                        }
-                        catch {
-                            Write-Verbose "Could not raise priority for ffmpeg (PID $($ffmpegProc.Id)): $($_.Exception.Message)"
-                        }
-                    }
-                Start-Sleep -Milliseconds 250
+            # Read the redirect files as the process writes them (FileShare.ReadWrite so
+            # the child keeps its own handle) instead of dumping everything after exit -
+            # a multi-hour video pass otherwise shows nothing at all until it finishes.
+            $readers = @($stdOutFile, $stdErrFile) | ForEach-Object {
+                [System.IO.StreamReader]::new(
+                    [System.IO.File]::Open($_, [System.IO.FileMode]::Open,
+                        [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite))
             }
 
+            $drain = {
+                foreach ($reader in $readers) {
+                    while ($null -ne ($line = $reader.ReadLine())) {
+                        $collected.Add($line)
+                        Write-Host $line
+                    }
+                }
+            }
+
+            while (-not $proc.HasExited) {
+                & $drain
+                if ($WatchFfmpeg) {
+                    # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
+                    # child process and does not inherit our priority bump. Only touch ffmpeg
+                    # processes that started after this tool did, so a concurrent encode
+                    # started by something else is left alone.
+                    foreach ($ffmpegProc in @(Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue)) {
+                        try {
+                            if ($ffmpegProc.StartTime -ge $proc.StartTime -and
+                                $ffmpegProc.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal) {
+                                $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+                            }
+                        }
+                        catch {
+                            Write-Verbose ("Could not raise priority for ffmpeg " +
+                                "(PID $($ffmpegProc.Id)): $($_.Exception.Message)")
+                        }
+                    }
+                }
+                Start-Sleep -Milliseconds 250
+            }
+            & $drain
+
             [PSCustomObject]@{
-                Output   = @(Get-Content -LiteralPath $stdOutFile -ErrorAction SilentlyContinue) +
-                @(Get-Content -LiteralPath $stdErrFile -ErrorAction SilentlyContinue)
+                Output   = $collected.ToArray()
                 ExitCode = $proc.ExitCode
             }
         }
         finally {
+            foreach ($reader in $readers) { $reader.Dispose() }
             Remove-Item -LiteralPath $stdOutFile, $stdErrFile -ErrorAction SilentlyContinue
         }
     }
@@ -213,13 +273,35 @@ function Invoke-FclonesPass {
         [Parameter(Mandatory)][string]$Tool,
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][string[]]$NameGlob,
+        [string[]]$ExcludeGlob = @(),
         [Parameter(Mandatory)][string]$ReportPath,
         [Parameter(Mandatory)][bool]$DryRun
     )
     process {
+        # Scoping belongs on `group`, not `remove`: without --name, group hashes every file
+        # in the tree (documents, archives, sync journals) only for `remove` to then ignore
+        # them. -i because fclones globs are case-sensitive by default, so *.jpg would never
+        # match IMG_0001.JPG. `remove` accepts neither --exclude nor -i, and needs no filter
+        # of its own - the report it reads back is already scoped by this pass.
+        $scopeArgs = [System.Collections.Generic.List[string]]::new()
+        foreach ($glob in $NameGlob) {
+            $scopeArgs.Add('--name')
+            $scopeArgs.Add($glob)
+        }
+        foreach ($glob in $ExcludeGlob) {
+            $scopeArgs.Add('--exclude')
+            $scopeArgs.Add($glob)
+        }
+        $scopeArgs.Add('--ignore-case')
+
         Write-Phase "fclones: scanning for exact duplicates in $TargetPath"
-        $groupResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList @('group', '--output', $ReportPath, $TargetPath)
-        $groupResult.Output | ForEach-Object { Write-Host $_ }
+        $groupArgs = [System.Collections.Generic.List[string]]::new()
+        $groupArgs.Add('group')
+        $groupArgs.Add('--cache')
+        $groupArgs.AddRange($scopeArgs)
+        $groupArgs.Add('--output'); $groupArgs.Add($ReportPath)
+        $groupArgs.Add($TargetPath)
+        $groupResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $groupArgs
         if ($groupResult.ExitCode -ne 0) {
             throw "fclones group failed (exit $($groupResult.ExitCode))."
         }
@@ -229,10 +311,6 @@ function Invoke-FclonesPass {
         if ($DryRun) {
             $removeArgs.Add('--dry-run')
         }
-        foreach ($glob in $NameGlob) {
-            $removeArgs.Add('--name')
-            $removeArgs.Add($glob)
-        }
 
         if ($DryRun) {
             Write-Phase 'fclones: previewing removals (nothing deleted)'
@@ -241,7 +319,6 @@ function Invoke-FclonesPass {
             Write-Phase 'fclones: removing exact duplicates'
         }
         $removeResult = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $removeArgs -StandardInputPath $ReportPath
-        $removeResult.Output | ForEach-Object { Write-Host $_ }
         if ($removeResult.ExitCode -ne 0) {
             throw "fclones remove failed (exit $($removeResult.ExitCode))."
         }
@@ -279,6 +356,13 @@ function Invoke-CzkawkaPass {
         $cliArgs = [System.Collections.Generic.List[string]]::new()
         $cliArgs.Add($Mode)
         $cliArgs.Add('--directories'); $cliArgs.Add($TargetPath)
+        # ponytail: Nextcloud/sync metadata is excluded from the fclones passes only.
+        # czkawka is not installed on the machine this was written on and its
+        # excluded-items flag name was not verified, so nothing is guessed here.
+        # To wire it up: run `czkawka_cli dup --help`, confirm the flag (expected to be
+        # --excluded-items / --excluded-directories, taking comma-separated globs), then
+        # append $excludePatterns through a new -ExcludeGlob parameter exactly as
+        # Invoke-FclonesPass does.
         foreach ($ext in $AllowedExtensions) {
             $cliArgs.Add('--allowed-extensions')
             $cliArgs.Add($ext)
@@ -320,8 +404,7 @@ function Invoke-CzkawkaPass {
             $cliArgs.Add('--move-to-trash')
         }
 
-        $result = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $cliArgs
-        $result.Output | ForEach-Object { Write-Host $_ }
+        $result = Invoke-ToolAboveNormal -FilePath $Tool -ArgumentList $cliArgs -WatchFfmpeg:($Mode -eq 'video')
         # czkawka returns non-zero when it finds matches; -W keeps that at 0.
         if ($result.ExitCode -ne 0) {
             throw "czkawka $Mode failed (exit $($result.ExitCode))."
@@ -344,7 +427,13 @@ if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
 }
 
 $fclones = Resolve-OrInstallTool -Name 'fclones' -ScoopPackage 'fclones'
-$czkawka = Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
+
+# Resolved lazily: with every czkawka pass skipped (or only the fclones pass wanted)
+# there is no reason to install czkawka first.
+$czkawka = $null
+if ($IncludeDup -or -not ($SkipImages -and $SkipVideos -and $SkipEmptyFiles)) {
+    $czkawka = Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
+}
 
 $dryRun = -not $Apply
 if ($WhatIfPreference) {
@@ -365,6 +454,8 @@ if (-not $dryRun -and -not $Force) {
 if ($dryRun) {
     Write-Host 'PREVIEW MODE - no files will be deleted. Re-run with -Apply to act.' -ForegroundColor Yellow
 }
+Write-Host ('Note: the Recycle Bin has a per-volume size cap. A large czkawka pass can push ' +
+    'older recycled items out permanently, so "recoverable" only holds up to that cap.') -ForegroundColor DarkYellow
 
 $reportDir = Join-Path -Path $env:TEMP -ChildPath 'dedupe-media'
 $null = New-Item -Path $reportDir -ItemType Directory -Force
@@ -377,10 +468,10 @@ if (-not $SkipExact) {
         $mediaGlob.Add("*.$ext")
     }
     $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
-        -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
+        -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
 }
 
-if (-not $SkipDup) {
+if ($IncludeDup) {
     $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
         -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
 }
@@ -405,7 +496,10 @@ if (-not $SkipEmptyFiles) {
 Write-Host ''
 if ($dryRun) {
     Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
-    Write-Host '(Preview totals may double-count exact duplicates: fclones only simulates removal in a dry run, so the later czkawka dup pass still sees and reports the same files.)' -ForegroundColor DarkGray
+    if ($IncludeDup) {
+        Write-Host ('(Preview totals may double-count exact duplicates: fclones only simulates removal in a ' +
+            'dry run, so the -IncludeDup czkawka dup pass still sees and reports the same files.)') -ForegroundColor DarkGray
+    }
 }
 else {
     Write-Host "Space freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green

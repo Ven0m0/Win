@@ -4,50 +4,79 @@
 .SYNOPSIS
     Batch-optimize images and re-encode videos to H.265/Opus.
 .DESCRIPTION
-    Images (png/jpg/jpeg/webp) are compressed in place:
-      - PNG  -> oxipng, lossless. Original is kept unless the result is
-        smaller (oxipng's default behavior; see -Force).
-      - JPEG -> jpegoptim -m<ImageQuality>. Original is kept unless the
-        result is smaller (jpegoptim's default behavior; see -Force).
-      - WEBP -> cwebp -q<ImageQuality>. Result size is compared manually and
-        the original is kept unless the result is smaller (see -Force).
+    Intended to run after Scripts\dedupe-media.ps1 has removed duplicates.
+    Images are compressed in place:
+      - PNG      -> oxipng, lossless, batched. No backup is taken (lossless,
+        and oxipng refuses to grow a file without --force).
+      - JPEG     -> jpegoptim -m<ImageQuality>, batched. Lossy, so the
+        original is copied into -BackupPath first. Metadata (EXIF date, GPS,
+        orientation) is preserved unless -StripMetadata is passed.
+      - WEBP     -> cwebp -q<ImageQuality>, lossy, backed up first. The result
+        is kept only when smaller (see -Force).
+      - GIF      -> gifsicle -O3 -b, lossless. Skipped with a warning when
+        gifsicle is not available.
+      - BMP/TIFF -> converted to PNG with ffmpeg and then run through the
+        oxipng batch; the original is moved into -BackupPath because the
+        extension changes.
+      - HEIC/HEIF are left untouched and reported: they are already
+        HEVC-compressed, so a re-encode costs quality for almost no bytes.
     Videos are re-encoded to H.265 MP4 (10-bit, hvc1 tag, faststart) with
-    stereo Opus audio via libx265 on the CPU. Files already named
-    "*.h265.mp4" are treated as prior output and skipped as sources.
-    Automatically prefers ffzap for parallel encoding when available; falls
-    back to sequential ffmpeg.
-    Before a file is touched (image compression) or re-encoded (video), its
-    original is copied into a sibling "<FolderName>-bak" directory (mirroring
-    the same relative subpath), so neither in-place compression nor
-    re-encoding ever risks the only copy.
-    Progress for both passes is shown via Write-Progress.
-    Missing tools (oxipng, jpegoptim, cwebp, ffmpeg, ffzap) are installed
-    automatically via winget on first use.
+    stereo Opus audio, using NVENC when the GPU offers it and libx265
+    otherwise (see -Encoder). Sources already encoded as HEVC or AV1 are
+    skipped, as are files already named "*.h265.mp4".
+    An encode is only accepted when ffmpeg exits 0, the output exists, is
+    non-empty, is readable by ffprobe, and is smaller than the source. On
+    success the source is moved into -BackupPath (unless -KeepOriginals), so
+    the folder actually shrinks. On any failure the partial output is deleted
+    and the source is left untouched.
+    Nextcloud/Syncthing metadata directories, sync journals, and partial
+    transfers are skipped by both passes.
+    Missing tools (oxipng, jpegoptim, cwebp, gifsicle) are installed via
+    winget on first use and degrade to a warning when unavailable; ffmpeg and
+    ffprobe are required.
 .PARAMETER Path
     Folder to scan recursively. If omitted, a folder picker dialog opens.
 .PARAMETER Help
     Show this help and exit. Aliased to -h; a literal "-h", "--help", or "/?"
     typed as the first argument is also recognized.
+.PARAMETER BackupPath
+    Folder that originals are mirrored into before lossy or destructive work.
+    Defaults to "$env:USERPROFILE\Pictures\optimize-media-bak". Must not sit inside -Path: a
+    backup inside a synced folder is uploaded and doubles server storage.
 .PARAMETER SkipImages
     Skip the image compression pass.
 .PARAMETER SkipVideo
     Skip the video re-encode pass.
 .PARAMETER ImageQuality
-    JPEG/WEBP quality factor, 0 (worst) to 100 (best). Default 90. PNG is
-    always lossless regardless of this value.
+    JPEG/WEBP quality factor, 0 (worst) to 100 (best). Default 90. PNG and GIF
+    are always lossless regardless of this value.
+.PARAMETER OxipngLevel
+    oxipng optimization level, 0 (fastest) to 6 (slowest). Default 4; level 6
+    costs several times the runtime for a fraction of a percent.
+.PARAMETER StripMetadata
+    Pass -s to jpegoptim, discarding EXIF, GPS, and orientation. Off by
+    default because that is silent data loss on a photo library.
 .PARAMETER VideoQuality
-    libx265 crf, 0 (best/largest) to 51 (worst/smallest). Default 24.
+    Quality target: libx265 crf, or the NVENC constant-quality value. 0
+    (best/largest) to 51 (worst/smallest). Default 24.
 .PARAMETER AudioBitrate
     Opus audio bitrate. Default 128k.
-.PARAMETER VideoTool
-    Auto (default, prefers ffzap when available), FFmpeg, or FFzap.
-.PARAMETER Threads
-    Parallel jobs passed to ffzap (default: 4). Ignored when using ffmpeg.
+.PARAMETER Encoder
+    Auto (default; NVENC when ffmpeg reports hevc_nvenc, else x265), NVENC, or
+    x265.
+.PARAMETER KeepOriginals
+    Keep the source video in place after a successful encode instead of moving
+    it into -BackupPath. The folder will not shrink.
 .PARAMETER Force
-    Keep optimized images even if not smaller than the original, and
-    overwrite existing video outputs.
+    Keep optimized images even if not smaller than the original, overwrite
+    existing video outputs, and re-encode videos that are already HEVC or AV1.
 .EXAMPLE
     .\optimize-media.ps1 -Path 'D:\Pictures'
+    Compress images and re-encode videos, mirroring originals into
+    "$env:USERPROFILE\Pictures\optimize-media-bak".
+.EXAMPLE
+    .\optimize-media.ps1 -Path 'D:\Nextcloud\Photos' -BackupPath 'E:\media-bak' -Encoder x265
+    Force CPU encoding and keep the backups off the synced volume entirely.
 .EXAMPLE
     .\optimize-media.ps1 -Help
     Show full help and exit.
@@ -58,16 +87,20 @@ param (
     [string]$Path,
     [Alias('h')]
     [switch]$Help,
+    [string]$BackupPath = (Join-Path -Path $env:USERPROFILE -ChildPath 'Pictures\optimize-media-bak'),
     [switch]$SkipImages,
     [switch]$SkipVideo,
     [ValidateRange(0, 100)]
     [int]$ImageQuality = 90,
+    [ValidateRange(0, 6)]
+    [int]$OxipngLevel = 4,
+    [switch]$StripMetadata,
     [ValidateRange(0, 51)]
     [int]$VideoQuality = 24,
     [string]$AudioBitrate = '128k',
-    [ValidateSet('Auto', 'FFmpeg', 'FFzap')]
-    [string]$VideoTool = 'Auto',
-    [int]$Threads = 4,
+    [ValidateSet('Auto', 'NVENC', 'x265')]
+    [string]$Encoder = 'Auto',
+    [switch]$KeepOriginals,
     [switch]$Force
 )
 
@@ -92,34 +125,159 @@ if ($Help -or $Path -in @('-h', '--help', '/?')) {
 }
 
 $videoExtensions = @('mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'wmv', 'flv', 'mpg', 'mpeg', 'ts', 'm2ts')
+$imageExtensions = @('png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'heic', 'heif')
 
-# Quality-preserving libx265 tuning: no spaces so the string survives the ffzap -join ' '.
-# sao=0: SAO's edge/band smoothing fights psy-rd's detail retention, so it stays off rather
-# than lowering psy-rd. rc-lookahead raised from the preset default to give bframes=8 more
-# frames to plan against.
+# Nextcloud/Syncthing metadata, sync journals, and partial transfers. Optimizing a
+# version history or a half-transferred file corrupts what the sync client expects.
+$excludeRegex = '(?i)[\\/](files_versions|files_trashbin|\.nextcloud|\.stfolder|\.stversions|' +
+    '\.thumbnails|thumbnails|\.cache)[\\/]|[\\/]\.sync_[^\\/]*\.db$|[\\/]Thumbs\.db$|\.(part|partial)$'
+
+# How many paths to hand a single oxipng/jpegoptim invocation. Both accept many files
+# per run; ~200 keeps the command line well under the Windows 32k limit.
+$batchSize = 200
+
+# Quality-preserving libx265 tuning, applied to the x265 path only (hevc_nvenc rejects
+# -x265-params and -preset slow). sao=0: SAO's edge/band smoothing fights psy-rd's detail
+# retention, so it stays off rather than lowering psy-rd. rc-lookahead raised from the
+# preset default to give bframes=8 more frames to plan against.
 $x265Params = 'aq-mode=3:aq-strength=0.8:qcomp=0.7:rd=4:rdoq-level=2:bframes=8:ref=5:' +
     'limit-refs=1:strong-intra-smoothing=1:deblock=-1,-1:me=3:subme=5:psy-rd=2.0:psy-rdoq=1.0:' +
     'sao=0:rc-lookahead=48'
 
 
-function Resolve-VideoTool {
-    [CmdletBinding()]
-    [OutputType([string])]
+function Get-MediaFile {
     <#
     .SYNOPSIS
-        Picks ffzap or ffmpeg based on preference and availability, installing via
-        winget if the required tool is missing.
+        Streams files under a folder whose extension is in the given set.
+    .DESCRIPTION
+        Uses Directory.EnumerateFiles so nothing is materialized up front, and skips
+        sync metadata via $excludeRegex. Get-ChildItem -Recurse | Where-Object builds
+        a FileInfo for every file in the tree first, which is the slow part at
+        library scale.
+    .PARAMETER TargetPath
+        Folder to scan recursively.
+    .PARAMETER Extension
+        Extensions to keep, with or without a leading dot.
+    .EXAMPLE
+        Get-MediaFile -TargetPath 'D:\Pictures' -Extension 'png', 'jpg'
     #>
-    param([string]$Preference = 'Auto')
+    [CmdletBinding()]
+    [OutputType([System.IO.FileInfo])]
+    param(
+        [Parameter(Mandatory)][string]$TargetPath,
+        [Parameter(Mandatory)][string[]]$Extension
+    )
     process {
-        if ($Preference -eq 'FFzap') {
-            return Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap'
+        $wanted = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($ext in $Extension) {
+            $null = $wanted.Add('.' + $ext.TrimStart('.'))
         }
-        if ($Preference -eq 'Auto') {
-            $ffzap = Get-Command ffzap -ErrorAction SilentlyContinue
-            if ($ffzap) { return $ffzap.Source }
+        $enumerated = [System.IO.Directory]::EnumerateFiles($TargetPath, '*',
+            [System.IO.SearchOption]::AllDirectories)
+        foreach ($file in $enumerated) {
+            if (-not $wanted.Contains([System.IO.Path]::GetExtension($file))) { continue }
+            if ($file -match $excludeRegex) { continue }
+            [System.IO.FileInfo]::new($file)
         }
-        return Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared'
+    }
+}
+
+
+function Backup-MediaFile {
+    <#
+    .SYNOPSIS
+        Mirrors a file into the backup folder at its relative subpath.
+    .PARAMETER FullName
+        File to back up.
+    .PARAMETER TargetPath
+        Root of the scan, used to compute the relative subpath.
+    .PARAMETER BackupPath
+        Root of the backup mirror.
+    .PARAMETER Move
+        Move the file instead of copying it (used after a validated video encode
+        and after a format conversion, where the original is no longer wanted).
+    .EXAMPLE
+        Backup-MediaFile -FullName $file.FullName -TargetPath $root -BackupPath $bak
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)][string]$FullName,
+        [Parameter(Mandatory)][string]$TargetPath,
+        [Parameter(Mandatory)][string]$BackupPath,
+        [switch]$Move
+    )
+    process {
+        $relative = $FullName.Substring($TargetPath.Length).TrimStart('\', '/')
+        $destination = Join-Path -Path $BackupPath -ChildPath $relative
+        $verb = if ($Move) { 'Move original into backup' } else { 'Back up original' }
+        if ((-not $Move) -and (Test-Path -LiteralPath $destination)) { return $true }
+        if (-not $PSCmdlet.ShouldProcess($destination, $verb)) { return $false }
+        Ensure-Directory -Path (Split-Path -Parent $destination)
+        if ($Move) {
+            Move-Item -LiteralPath $FullName -Destination $destination -Force
+        }
+        else {
+            Copy-Item -LiteralPath $FullName -Destination $destination
+        }
+        $true
+    }
+}
+
+
+function Invoke-BatchTool {
+    <#
+    .SYNOPSIS
+        Runs a file-list tool over the given paths in chunks, returning bytes saved.
+    .PARAMETER Tool
+        Executable path.
+    .PARAMETER ToolArgument
+        Arguments placed before the file paths.
+    .PARAMETER FilePath
+        Files to process in place.
+    .PARAMETER Activity
+        Write-Progress activity label.
+    .EXAMPLE
+        Invoke-BatchTool -Tool $oxipng -ToolArgument @('-o', '4') -FilePath $pngs -Activity 'PNG'
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([long])]
+    param(
+        [Parameter(Mandatory)][string]$Tool,
+        [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$ToolArgument,
+        [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$FilePath,
+        [Parameter(Mandatory)][string]$Activity
+    )
+    process {
+        [long]$saved = 0
+        if ($FilePath.Count -eq 0) { return $saved }
+
+        for ($offset = 0; $offset -lt $FilePath.Count; $offset += $batchSize) {
+            $chunk = @($FilePath[$offset..([Math]::Min($offset + $batchSize, $FilePath.Count) - 1)])
+            $done = $offset + $chunk.Count
+            Write-Progress -Activity $Activity -Status "$done/$($FilePath.Count)" `
+                -PercentComplete (($done / $FilePath.Count) * 100)
+            if (-not $PSCmdlet.ShouldProcess("$($chunk.Count) file(s)", $Activity)) { continue }
+
+            [long]$before = 0
+            foreach ($file in $chunk) {
+                $item = Get-Item -LiteralPath $file -ErrorAction SilentlyContinue
+                if ($item) { $before += $item.Length }
+            }
+            # Route the tool's stdout through Write-Host: left in the success stream it
+            # would be folded into this function's return value. stderr stays unredirected
+            # on purpose - 2>&1 under $ErrorActionPreference = 'Stop' turns a native tool's
+            # normal stderr chatter into a terminating NativeCommandError on PowerShell 5.1.
+            & $Tool @ToolArgument @chunk | ForEach-Object { Write-Host $_ }
+            [long]$after = 0
+            foreach ($file in $chunk) {
+                $item = Get-Item -LiteralPath $file -ErrorAction SilentlyContinue
+                if ($item) { $after += $item.Length }
+            }
+            if ($after -lt $before) { $saved += ($before - $after) }
+        }
+        Write-Progress -Activity $Activity -Completed
+        $saved
     }
 }
 
@@ -129,187 +287,300 @@ function Invoke-ImagePass {
     [OutputType([long])]
     <#
     .SYNOPSIS
-        Compresses PNG/JPEG/WEBP files in place and returns bytes saved.
+        Compresses images in place and returns bytes saved.
     .PARAMETER TargetPath
         Folder to scan recursively.
     .PARAMETER Quality
         JPEG/WEBP quality factor.
+    .PARAMETER OxipngLevel
+        oxipng optimization level.
     .PARAMETER BackupPath
-        Folder to mirror pre-optimization originals into before each file is
-        compressed in place.
+        Folder to mirror originals into before lossy or destructive work.
+    .PARAMETER Ffmpeg
+        ffmpeg path, used for the BMP/TIFF to PNG conversion.
+    .PARAMETER StripMetadata
+        Let jpegoptim discard EXIF/GPS/orientation.
     .PARAMETER Force
         Keep the optimized result even if not smaller than the original.
     #>
     param(
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][int]$Quality,
+        [Parameter(Mandatory)][int]$OxipngLevel,
         [Parameter(Mandatory)][string]$BackupPath,
+        [Parameter(Mandatory)][string]$Ffmpeg,
+        [bool]$StripMetadata,
         [bool]$Force
     )
     process {
-        $oxipng = Resolve-OrInstallTool -Name 'oxipng' -WingetId 'Shssoichiro.Oxipng' -Optional
-        $jpegoptim = Resolve-OrInstallTool -Name 'jpegoptim' -WingetId 'TimoKokkonen.Jpegoptim' -Optional
-        $cwebp = Resolve-OrInstallTool -Name 'cwebp' -WingetId 'Google.Libwebp' -Optional
-
-        if (-not ($oxipng -or $jpegoptim -or $cwebp)) {
-            Write-Warning 'No image optimizer found on PATH (oxipng/jpegoptim/cwebp); skipping image pass.'
-            return 0L
-        }
-
-        $files = @(Get-ChildItem -LiteralPath $TargetPath -Recurse -File | Where-Object {
-                $_.Extension.ToLowerInvariant() -in '.png', '.jpg', '.jpeg', '.webp'
-            })
+        $files = @(Get-MediaFile -TargetPath $TargetPath -Extension $imageExtensions)
         if ($files.Count -eq 0) {
             Write-Host 'No image files found.' -ForegroundColor Yellow
             return 0L
         }
 
+        $byKind = @{}
+        foreach ($file in $files) {
+            $kind = switch ($file.Extension.ToLowerInvariant()) {
+                '.png' { 'png' }
+                '.jpg' { 'jpeg' }
+                '.jpeg' { 'jpeg' }
+                '.webp' { 'webp' }
+                '.gif' { 'gif' }
+                '.bmp' { 'convert' }
+                '.tif' { 'convert' }
+                '.tiff' { 'convert' }
+                default { 'heic' }
+            }
+            if (-not $byKind.ContainsKey($kind)) {
+                $byKind[$kind] = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+            }
+            $byKind[$kind].Add($file)
+        }
+
         Write-Phase "Optimizing $($files.Count) image(s) in $TargetPath"
 
+        if ($byKind.ContainsKey('heic')) {
+            [long]$heicBytes = 0
+            foreach ($file in $byKind['heic']) { $heicBytes += $file.Length }
+            Write-Info ("$($byKind['heic'].Count) HEIC/HEIF file(s) left untouched " +
+                "($(Format-Size $heicBytes)): already HEVC-compressed.")
+        }
+
         [long]$saved = 0
-        $i = 0
-        foreach ($file in $files) {
-            $i++
-            Write-Progress -Activity 'Optimizing images' -Status "$($file.Name) ($i/$($files.Count))" `
-                -PercentComplete (($i / $files.Count) * 100)
-            Write-Host "[$i/$($files.Count)] $($file.Name)"
+        $pngPaths = [System.Collections.Generic.List[string]]::new()
+        if ($byKind.ContainsKey('png')) {
+            foreach ($file in $byKind['png']) { $pngPaths.Add($file.FullName) }
+        }
 
-            $relative = $file.FullName.Substring($TargetPath.Length).TrimStart('\', '/')
-            $backupFile = Join-Path $BackupPath $relative
-            if (-not (Test-Path -LiteralPath $backupFile)) {
-                if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before optimizing')) {
-                    Ensure-Directory -Path (Split-Path -Parent $backupFile)
-                    Copy-Item -LiteralPath $file.FullName -Destination $backupFile
+        # BMP/TIFF first: the PNGs they produce join the oxipng batch below.
+        if ($byKind.ContainsKey('convert')) {
+            $convertible = $byKind['convert']
+            $i = 0
+            foreach ($file in $convertible) {
+                $i++
+                if ($i % 25 -eq 0 -or $i -eq $convertible.Count) {
+                    Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Status "$i/$($convertible.Count)" `
+                        -PercentComplete (($i / $convertible.Count) * 100)
                 }
+                $output = Join-Path -Path $file.DirectoryName -ChildPath "$($file.BaseName).png"
+                if ((Test-Path -LiteralPath $output) -and -not $Force) {
+                    Write-Verbose "Skipping $($file.Name): $output already exists."
+                    continue
+                }
+                if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Convert to PNG (ffmpeg)')) { continue }
+                $before = $file.Length
+                & $Ffmpeg -y -loglevel error -i $file.FullName $output
+                $outputItem = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
+                if ($LASTEXITCODE -ne 0 -or -not $outputItem -or $outputItem.Length -eq 0) {
+                    Write-Warning "  [FAIL] convert $($file.Name)"
+                    if ($outputItem) { Remove-Item -LiteralPath $output -ErrorAction SilentlyContinue }
+                    continue
+                }
+                # The extension changes, so the source is not replaced in place: move it out.
+                if (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
+                    $saved += $before
+                }
+                $saved -= $outputItem.Length
+                $pngPaths.Add($output)
             }
+            Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Completed
+        }
 
-            $before = $file.Length
-            $ext = $file.Extension.ToLowerInvariant()
-
-            # if/elseif (not switch): a bare 'continue' inside a switch block only exits the
-            # switch, it does not skip to the next $file - the loop must skip via this shape.
-            if ($ext -eq '.png') {
-                if (-not $oxipng) { Write-Verbose "Skipping $($file.Name): oxipng not found." }
-                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize PNG (oxipng)')) {
-                    $cliArgs = @('-o', 'max', '--strip', 'safe')
-                    if ($Force) { $cliArgs += '--force' }
-                    $cliArgs += $file.FullName
-                    # oxipng writes progress to stderr; do not redirect it into the success
-                    # stream under $ErrorActionPreference = 'Stop' (turns it into a terminating
-                    # NativeCommandError on Windows PowerShell 5.1) - same reasoning as ffmpeg below.
-                    & $oxipng @cliArgs
-                }
+        $oxipng = Resolve-OrInstallTool -Name 'oxipng' -WingetId 'Shssoichiro.Oxipng' -Optional
+        if ($pngPaths.Count -gt 0) {
+            if (-not $oxipng) {
+                Write-Warning 'oxipng not found; PNG files left uncompressed.'
             }
-            elseif ($ext -in '.jpg', '.jpeg') {
-                if (-not $jpegoptim) { Write-Verbose "Skipping $($file.Name): jpegoptim not found." }
-                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize JPEG (jpegoptim)')) {
-                    $cliArgs = @('-s', "-m$Quality")
-                    if ($Force) { $cliArgs += '-f' }
-                    $cliArgs += $file.FullName
-                    & $jpegoptim @cliArgs
-                }
-            }
-            elseif ($ext -eq '.webp') {
-                if (-not $cwebp) { Write-Verbose "Skipping $($file.Name): cwebp not found." }
-                elseif ($PSCmdlet.ShouldProcess($file.FullName, 'Optimize WEBP (cwebp)')) {
-                    $tmp = "$($file.FullName).tmp.webp"
-                    & $cwebp -quiet -q $Quality $file.FullName -o $tmp
-                    if (Test-Path -LiteralPath $tmp) {
-                        $tmpSize = (Get-Item -LiteralPath $tmp).Length
-                        if ($Force -or $tmpSize -lt $before) {
-                            Move-Item -LiteralPath $tmp -Destination $file.FullName -Force
-                        }
-                        else {
-                            Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
-                        }
-                    }
-                }
-            }
-
-            $afterItem = Get-Item -LiteralPath $file.FullName -ErrorAction SilentlyContinue
-            if ($afterItem -and $afterItem.Length -lt $before) {
-                $saved += ($before - $afterItem.Length)
+            else {
+                # Lossless, and oxipng will not grow a file without --force, so no backup.
+                $oxipngArgs = @('-o', "$OxipngLevel", '--strip', 'safe')
+                if ($Force) { $oxipngArgs += '--force' }
+                $saved += Invoke-BatchTool -Tool $oxipng -ToolArgument $oxipngArgs `
+                    -FilePath $pngPaths.ToArray() -Activity 'Optimizing PNG'
             }
         }
-        Write-Progress -Activity 'Optimizing images' -Completed
-        return $saved
+
+        if ($byKind.ContainsKey('jpeg')) {
+            $jpegoptim = Resolve-OrInstallTool -Name 'jpegoptim' -WingetId 'TimoKokkonen.Jpegoptim' -Optional
+            if (-not $jpegoptim) {
+                Write-Warning 'jpegoptim not found; JPEG files left uncompressed.'
+            }
+            else {
+                $jpegPaths = [System.Collections.Generic.List[string]]::new()
+                foreach ($file in $byKind['jpeg']) {
+                    # -m<quality> is lossy, so the original goes to the backup mirror first.
+                    if (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath) {
+                        $jpegPaths.Add($file.FullName)
+                    }
+                }
+                $jpegoptimArgs = @("-m$Quality")
+                if ($StripMetadata) { $jpegoptimArgs += '-s' }
+                if ($Force) { $jpegoptimArgs += '-f' }
+                $saved += Invoke-BatchTool -Tool $jpegoptim -ToolArgument $jpegoptimArgs `
+                    -FilePath $jpegPaths.ToArray() -Activity 'Optimizing JPEG'
+            }
+        }
+
+        if ($byKind.ContainsKey('gif')) {
+            # gifsicle is in neither the winget community repo nor scoop's main bucket, so
+            # there is no -WingetId to give: it installs only if the scoop extras bucket is
+            # already present, and otherwise degrades to a warning.
+            $gifsicle = Resolve-OrInstallTool -Name 'gifsicle' -ScoopPackage 'extras/gifsicle' -Optional
+            if (-not $gifsicle) {
+                Write-Warning ('gifsicle not found; GIF files left uncompressed. ' +
+                    'Install with: scoop bucket add extras; scoop install gifsicle')
+            }
+            else {
+                # -O3 -b is lossless and rewrites in place, so no backup is needed.
+                $gifPaths = [System.Collections.Generic.List[string]]::new()
+                foreach ($file in $byKind['gif']) { $gifPaths.Add($file.FullName) }
+                $saved += Invoke-BatchTool -Tool $gifsicle -ToolArgument @('-O3', '-b') `
+                    -FilePath $gifPaths.ToArray() -Activity 'Optimizing GIF'
+            }
+        }
+
+        if ($byKind.ContainsKey('webp')) {
+            $cwebp = Resolve-OrInstallTool -Name 'cwebp' -WingetId 'Google.Libwebp' -Optional
+            if (-not $cwebp) {
+                Write-Warning 'cwebp not found; WEBP files left uncompressed.'
+            }
+            else {
+                # cwebp handles one file per invocation, so this pass stays a loop.
+                $webpFiles = $byKind['webp']
+                $i = 0
+                foreach ($file in $webpFiles) {
+                    $i++
+                    if ($i % 25 -eq 0 -or $i -eq $webpFiles.Count) {
+                        Write-Progress -Activity 'Optimizing WEBP' -Status "$i/$($webpFiles.Count)" `
+                            -PercentComplete (($i / $webpFiles.Count) * 100)
+                    }
+                    if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Optimize WEBP (cwebp)')) { continue }
+                    if (-not (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath)) {
+                        continue
+                    }
+                    $before = $file.Length
+                    $tmp = "$($file.FullName).tmp.webp"
+                    & $cwebp -quiet -q $Quality $file.FullName -o $tmp
+                    $tmpItem = Get-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+                    if (-not $tmpItem) { continue }
+                    if ($Force -or $tmpItem.Length -lt $before) {
+                        Move-Item -LiteralPath $tmp -Destination $file.FullName -Force
+                        if ($tmpItem.Length -lt $before) { $saved += ($before - $tmpItem.Length) }
+                    }
+                    else {
+                        Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+                    }
+                }
+                Write-Progress -Activity 'Optimizing WEBP' -Completed
+            }
+        }
+
+        $saved
+    }
+}
+
+
+function Resolve-HevcEncoder {
+    <#
+    .SYNOPSIS
+        Picks the H.265 encoder, probing ffmpeg for hevc_nvenc when set to Auto.
+    .PARAMETER Ffmpeg
+        ffmpeg path.
+    .PARAMETER Preference
+        Auto, NVENC, or x265.
+    .EXAMPLE
+        Resolve-HevcEncoder -Ffmpeg $ffmpeg -Preference 'Auto'
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)][string]$Ffmpeg,
+        [Parameter(Mandatory)][ValidateSet('Auto', 'NVENC', 'x265')][string]$Preference
+    )
+    process {
+        if ($Preference -ne 'Auto') { return $Preference }
+        # ffmpeg writes the encoder list to stdout, so this needs no stderr redirect.
+        $encoders = @(& $Ffmpeg -hide_banner -encoders)
+        if ($encoders -match 'hevc_nvenc') { 'NVENC' } else { 'x265' }
     }
 }
 
 
 function Invoke-VideoPass {
     [CmdletBinding(SupportsShouldProcess)]
-    [OutputType([int])]
+    [OutputType([PSCustomObject])]
     <#
     .SYNOPSIS
-        Re-encodes video files to H.265/Opus MP4 and returns the failure count.
+        Re-encodes videos to H.265/Opus MP4, replacing validated sources.
     .PARAMETER TargetPath
         Folder to scan recursively.
-    .PARAMETER Tool
-        'ffzap' or 'ffmpeg'.
+    .PARAMETER Ffmpeg
+        ffmpeg path.
+    .PARAMETER Ffprobe
+        ffprobe path, used for the source codec check and output validation.
     .PARAMETER EncoderArgs
-        ffmpeg libx265 video-codec arguments (see $x265Params).
+        Video-codec arguments for the selected encoder.
     .PARAMETER AudioBitrate
         Opus audio bitrate.
-    .PARAMETER Threads
-        Parallel jobs passed to ffzap.
     .PARAMETER BackupPath
-        Folder to mirror original source videos into before each is re-encoded.
+        Folder that validated sources are moved into.
+    .PARAMETER KeepOriginals
+        Leave the source in place instead of moving it into the backup mirror.
     .PARAMETER Force
-        Overwrite existing output files.
-    .PARAMETER VideoExtension
-        Extensions (without leading dot) recognized as video source files.
+        Overwrite existing outputs and re-encode HEVC/AV1 sources.
     #>
     param(
         [Parameter(Mandatory)][string]$TargetPath,
-        [Parameter(Mandatory)][string]$Tool,
+        [Parameter(Mandatory)][string]$Ffmpeg,
+        [Parameter(Mandatory)][string]$Ffprobe,
         [Parameter(Mandatory)][string[]]$EncoderArgs,
         [Parameter(Mandatory)][string]$AudioBitrate,
-        [Parameter(Mandatory)][int]$Threads,
         [Parameter(Mandatory)][string]$BackupPath,
-        [Parameter(Mandatory)][string[]]$VideoExtension,
+        [bool]$KeepOriginals,
         [bool]$Force
     )
     process {
-        $files = @(Get-ChildItem -LiteralPath $TargetPath -Recurse -File | Where-Object {
-                ($VideoExtension -contains $_.Extension.TrimStart('.').ToLowerInvariant()) -and
-                ($_.Name -notmatch '\.h265\.mp4$')
-            })
+        $files = @(Get-MediaFile -TargetPath $TargetPath -Extension $videoExtensions |
+                Where-Object { $_.Name -notmatch '\.h265\.mp4$' })
 
+        $result = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; Reclaimed = 0L }
         if ($files.Count -eq 0) {
             Write-Host 'No video files found.' -ForegroundColor Yellow
-            return 0
+            return $result
         }
 
-        Write-Phase "Re-encoding $($files.Count) video(s) in $TargetPath ($Tool)"
+        Write-Phase "Re-encoding $($files.Count) video(s) in $TargetPath"
 
-        $errors = 0
         $i = 0
         foreach ($file in $files) {
             $i++
-            Write-Progress -Activity 'Re-encoding videos' -Status "$($file.Name) ($i/$($files.Count))" `
-                -PercentComplete (($i / $files.Count) * 100)
+            if ($i % 25 -eq 0 -or $i -eq $files.Count) {
+                Write-Progress -Activity 'Re-encoding videos' -Status "$i/$($files.Count)" `
+                    -PercentComplete (($i / $files.Count) * 100)
+            }
+
+            # Re-encoding HEVC/AV1 costs quality and usually saves nothing.
+            $codec = (& $Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name `
+                    -of csv=p=0 $file.FullName | Select-Object -First 1)
+            if (-not $Force -and $codec -in 'hevc', 'av1') {
+                Write-Verbose "Skipping $($file.Name): already $codec."
+                $result.Skipped++
+                continue
+            }
 
             # Strip any pre-existing ".h265" tag (from the source's own filename, or a prior
             # partial run) before re-appending it once, so the output name never stacks the
             # tag (".h265.h265.mp4") regardless of what the source was already named.
             $cleanBase = ConvertTo-SafeFileName -Name ($file.BaseName -replace '(?i)\.h265', '')
-            $output = Join-Path $file.DirectoryName "$cleanBase.h265.mp4"
-
-            $relative = $file.FullName.Substring($TargetPath.Length).TrimStart('\', '/')
-            $backupFile = Join-Path $BackupPath $relative
-            if (-not (Test-Path -LiteralPath $backupFile)) {
-                if ($PSCmdlet.ShouldProcess($backupFile, 'Back up original before re-encoding')) {
-                    Ensure-Directory -Path (Split-Path -Parent $backupFile)
-                    Copy-Item -LiteralPath $file.FullName -Destination $backupFile
-                }
-            }
+            $output = Join-Path -Path $file.DirectoryName -ChildPath "$cleanBase.h265.mp4"
 
             $isRetry = $false
             $existingOutput = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
             if ($existingOutput -and -not $Force) {
                 if ($existingOutput.Length -gt 0) {
                     Write-Verbose "Skipping $($file.Name): output exists (use -Force to overwrite)"
+                    $result.Skipped++
                     continue
                 }
                 # A prior run's output exists but is empty (interrupted/failed). ffmpeg's default
@@ -320,38 +591,42 @@ function Invoke-VideoPass {
 
             if (-not $PSCmdlet.ShouldProcess($file.Name, 'Re-encode to H.265/Opus')) { continue }
 
-            # $Tool is a resolved executable path (see Resolve-VideoTool); dispatch on its leaf name.
-            if ((Split-Path -Leaf $Tool) -like 'ffzap*') {
-                # ffzap writes its status text to stdout, which PowerShell would otherwise fold into
-                # this function's captured return value; route it through Write-Host instead.
-                $ffArgs = ($EncoderArgs + @(
-                        '-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2', '-vbr', 'on',
-                        '-compression_level', '10', '-application', 'audio', '-movflags', '+faststart'
-                    )) -join ' '
-                & $Tool -t $Threads --overwrite --eta -i $file.FullName -f $ffArgs -o $output |
-                    ForEach-Object { Write-Host $_ }
-            }
-            else {
-                # ffmpeg writes its console output to stderr, which never enters the success stream,
-                # so it must stay unredirected here: 2>&1 combined with $ErrorActionPreference = 'Stop'
-                # would turn ffmpeg's normal stderr banner into a terminating error.
-                $overwriteFlag = if ($Force -or $isRetry) { '-y' } else { '-n' }
-                & $Tool $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 `
-                    -vbr on -compression_level 10 -application audio -movflags +faststart $output
+            # ffmpeg writes its console output to stderr, which never enters the success stream,
+            # so it must stay unredirected here: 2>&1 combined with $ErrorActionPreference = 'Stop'
+            # would turn ffmpeg's normal stderr banner into a terminating error.
+            $overwriteFlag = if ($Force -or $isRetry) { '-y' } else { '-n' }
+            $sourceLength = $file.Length
+            & $Ffmpeg $overwriteFlag -i $file.FullName @EncoderArgs -c:a libopus -b:a $AudioBitrate -ac 2 `
+                -vbr on -compression_level 10 -application audio -movflags +faststart $output
+
+            $outputItem = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
+            $outputOk = ($LASTEXITCODE -eq 0) -and $outputItem -and ($outputItem.Length -gt 0) -and
+                ($outputItem.Length -lt $sourceLength)
+            if ($outputOk) {
+                # A file ffprobe cannot read is not a replacement, however large it is.
+                $null = & $Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 $output
+                $outputOk = ($LASTEXITCODE -eq 0)
             }
 
-            $outputOk = ($LASTEXITCODE -eq 0) -and (Test-Path -LiteralPath $output) -and
-                ((Get-Item -LiteralPath $output).Length -gt 0)
             if (-not $outputOk) {
                 Write-Warning "  [FAIL] ($i/$($files.Count)) $($file.Name)"
-                $errors++
+                if ($outputItem) { Remove-Item -LiteralPath $output -ErrorAction SilentlyContinue }
+                $result.Errors++
+                continue
             }
-            else {
-                Write-Host "  [ OK ] ($i/$($files.Count)) $($file.BaseName).h265.mp4" -ForegroundColor Green
+
+            $result.Encoded++
+            if ($KeepOriginals) {
+                Write-Host "  [ OK ] ($i/$($files.Count)) $cleanBase.h265.mp4 (original kept)" -ForegroundColor Green
+                continue
+            }
+            if (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
+                $result.Reclaimed += ($sourceLength - $outputItem.Length)
+                Write-Host "  [ OK ] ($i/$($files.Count)) $cleanBase.h265.mp4" -ForegroundColor Green
             }
         }
         Write-Progress -Activity 'Re-encoding videos' -Completed
-        return $errors
+        $result
     }
 }
 
@@ -365,43 +640,77 @@ if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
     throw "Path is not a folder: $resolvedPath"
 }
 
-$parentPath = Split-Path -Parent $resolvedPath
-if (-not $parentPath) {
-    throw "Path is a drive root ($resolvedPath); a sibling '-bak' backup folder is not defined there. Pass a subfolder instead."
+# Resolved without requiring existence: the mirror is created lazily, per file, so that
+# a -WhatIf run and a run that touches nothing both leave no empty folder behind.
+if ([System.IO.Path]::IsPathRooted($BackupPath)) {
+    $resolvedBackupPath = [System.IO.Path]::GetFullPath($BackupPath)
+}
+else {
+    $resolvedBackupPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PWD.Path -ChildPath $BackupPath))
+}
+$scanRoot = $resolvedPath.TrimEnd('\', '/')
+if ($resolvedBackupPath.TrimEnd('\', '/') -eq $scanRoot -or
+    $resolvedBackupPath.StartsWith($scanRoot + [System.IO.Path]::DirectorySeparatorChar,
+        [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw ("BackupPath '$resolvedBackupPath' is inside the scanned folder '$resolvedPath'. " +
+        'In a synced folder (Nextcloud, OneDrive) the backups would be uploaded too, doubling ' +
+        'server storage instead of shrinking it. Pass -BackupPath outside the scanned tree.')
 }
 
-$backupPath = Join-Path -Path $parentPath -ChildPath "$(Split-Path -Leaf $resolvedPath)-bak"
+$ffmpeg = Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared'
 
 $bytesSaved = 0L
-$videoErrors = 0
+$videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; Reclaimed = 0L }
 
 if (-not $SkipImages) {
-    $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -BackupPath $backupPath `
-        -Force:$Force
+    $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -OxipngLevel $OxipngLevel `
+        -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg -StripMetadata:$StripMetadata -Force:$Force
 }
 
 if (-not $SkipVideo) {
-    $tool = Resolve-VideoTool -Preference $VideoTool
-    $encoderArgs = @(
-        '-c:v', 'libx265', '-preset', 'slow', '-crf', "$VideoQuality",
-        '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-x265-params', $x265Params
-    )
-    $videoErrors = Invoke-VideoPass -TargetPath $resolvedPath -Tool $tool -EncoderArgs $encoderArgs `
-        -AudioBitrate $AudioBitrate -Threads $Threads -BackupPath $backupPath -VideoExtension $videoExtensions `
-        -Force:$Force
+    $ffprobe = Resolve-OrInstallTool -Name 'ffprobe' -WingetId 'Gyan.FFmpeg.Shared'
+    $selectedEncoder = Resolve-HevcEncoder -Ffmpeg $ffmpeg -Preference $Encoder
+    Write-Info "Video encoder: $selectedEncoder"
+    # -movflags +faststart is appended once at the call site for both encoders.
+    if ($selectedEncoder -eq 'NVENC') {
+        $encoderArgs = @(
+            '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr',
+            '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-tag:v', 'hvc1'
+        )
+    }
+    else {
+        $encoderArgs = @(
+            '-c:v', 'libx265', '-preset', 'slow', '-crf', "$VideoQuality",
+            '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-x265-params', $x265Params
+        )
+    }
+    $videoResult = Invoke-VideoPass -TargetPath $resolvedPath -Ffmpeg $ffmpeg -Ffprobe $ffprobe `
+        -EncoderArgs $encoderArgs -AudioBitrate $AudioBitrate -BackupPath $resolvedBackupPath `
+        -KeepOriginals:$KeepOriginals -Force:$Force
 }
 
 Write-Host ''
 if (-not $SkipImages) {
     Write-Host "Image space saved: $(Format-Size $bytesSaved)" -ForegroundColor Green
 }
-if (-not $SkipVideo -and $videoErrors -gt 0) {
-    Write-Host "$videoErrors video file(s) failed to encode." -ForegroundColor Red
+if (-not $SkipVideo) {
+    Write-Host ("Videos: $($videoResult.Encoded) encoded, $($videoResult.Skipped) skipped, " +
+        "$($videoResult.Errors) failed.") -ForegroundColor Green
+    if ($KeepOriginals) {
+        Write-Host 'Originals kept in place (-KeepOriginals); no video space reclaimed.' -ForegroundColor DarkGray
+    }
+    else {
+        Write-Host "Video space reclaimed: $(Format-Size $videoResult.Reclaimed)" -ForegroundColor Green
+    }
+    if ($videoResult.Errors -gt 0) {
+        Write-Host "$($videoResult.Errors) video file(s) failed to encode." -ForegroundColor Red
+    }
 }
+Write-Host "Originals are in: $resolvedBackupPath" -ForegroundColor DarkGray
 
 Write-Host ''
 Write-Host 'Optimization complete.' -ForegroundColor Green
 
-if ($videoErrors -gt 0) {
+if ($videoResult.Errors -gt 0) {
     exit 1
 }
