@@ -798,8 +798,6 @@ function Install-GitHubRelease {
     .EXAMPLE
         Install-GitHubRelease -Repository 'PowerShell/PowerShell' -AssetPattern '*win-x64.zip' -Name 'PowerShell' -InstallType Zip -DestinationPath "$env:USERPROFILE\Documents\PowerShell" -ExecutableName 'pwsh.exe' -ShortcutName 'PowerShell'
     .EXAMPLE
-        Install-GitHubRelease -Repository 'xt0n1-t3ch/DLSSync' -AssetPattern '*_x64_en-US.msi' -Name 'DLSSync' -InstallType Msi
-    .EXAMPLE
         Install-GitHubRelease -Repository 'LiteLDev/LeviLauncher' -ExactAssetName 'LeviLauncher-amd64-installer.exe' -Name 'LeviLauncher' -InstallType Exe
     #>
     param (

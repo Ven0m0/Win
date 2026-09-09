@@ -21,7 +21,7 @@
 .PARAMETER SkipPeripherals
     Skip peripheral driver/tool installs (GMK Driver, Endgame Gear OP1 8k tools).
 .PARAMETER SkipManualInstalls
-    Skip manual (no winget package) app installs (DLSSync).
+    Skip manual (no winget package) app installs.
 .PARAMETER SkipLanguagePackages
     Skip bun/npm/cargo global package installs.
 .PARAMETER ApplyPostInstall

@@ -174,19 +174,11 @@
         'afkarxyz.SpotiFLAC'
         'yt-dlp.FFmpeg'
         'Gyan.FFmpeg'
-        'beeradmoore.dlss-swapper'
         'Recol.DLSSUpdater'
         # Windows tooling (added)
         'Microsoft.WindowsADK'
         'Microsoft.WindowsADK.WinPEAddon'
         'Microsoft.OSCDIMG'
-    )
-
-    # ---------------------------------------------------------------------------
-    # Manual installs — no winget package; installed via dedicated script
-    # ---------------------------------------------------------------------------
-    ManualInstalls     = @(
-        #@{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
     )
 
     # ---------------------------------------------------------------------------
