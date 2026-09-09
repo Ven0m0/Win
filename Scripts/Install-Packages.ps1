@@ -19,7 +19,7 @@
 .PARAMETER SkipNotepadReplacer
     Skip Notepad Replacer setup.
 .PARAMETER SkipPeripherals
-    Skip peripheral driver/tool installs (GMK Driver, DS4Windows, Endgame Gear OP1 8k tools).
+    Skip peripheral driver/tool installs (GMK Driver, Endgame Gear OP1 8k tools).
 .PARAMETER SkipManualInstalls
     Skip manual (no winget package) app installs (DLSSync).
 .PARAMETER SkipLanguagePackages
@@ -294,7 +294,7 @@ function Start-InstallPackage {
     }
 
     # ============================================================================
-    # Phase 7.6: Peripheral drivers/tools (GMK Driver, DS4Windows, Endgame Gear OP1 8k)
+    # Phase 7.6: Peripheral drivers/tools (GMK Driver, Endgame Gear OP1 8k)
     # ============================================================================
     if (-not $SkipPeripherals) {
         Write-Host ''
@@ -302,7 +302,6 @@ function Start-InstallPackage {
 
         foreach ($peripheral in @(
                 @{ Name = 'GMK Driver'; Script = 'third-party\gmk\install-gmk-driver.ps1' }
-                @{ Name = 'DS4Windows'; Script = 'third-party\ds4windows\install-ds4windows.ps1' }
                 @{ Name = 'Endgame Gear OP1 8k Tools'; Script = 'third-party\endgame-gear\install-op1-tools.ps1' }
             )) {
             $scriptPath = Join-Path $PSScriptRoot $peripheral.Script

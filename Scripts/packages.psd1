@@ -187,7 +187,6 @@
     # ---------------------------------------------------------------------------
     ManualInstalls     = @(
         #@{ Name = 'DLSSync'; Script = 'third-party\dlssync\install-dlssync.ps1' }
-        @{ Name = 'Ds4Windows'; Script = 'third-party\ds4windows\install-ds4windows.ps1' }
     )
 
     # ---------------------------------------------------------------------------
@@ -225,6 +224,7 @@
     # directly from the author rather than a community re-package.
     ChocoPackages      = @(
         'dolphin'
+        'ds4windows'
     )
 
     # ---------------------------------------------------------------------------

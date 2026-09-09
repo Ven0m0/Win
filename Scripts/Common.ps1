@@ -724,7 +724,7 @@ function Get-GitHubReleaseAsset {
     .PARAMETER ExactName
         Exact asset name to match (takes precedence over AssetPattern).
     .EXAMPLE
-        Get-GitHubReleaseAsset -Repository 'ds4windowsapp/DS4Windows' -AssetPattern 'DS4Windows.*.zip'
+        Get-GitHubReleaseAsset -Repository 'PowerShell/PowerShell' -AssetPattern '*win-x64.zip'
     .OUTPUTS
         System.Management.Automation.PSCustomObject with Name and BrowserDownloadUrl properties
     #>
@@ -796,7 +796,7 @@ function Install-GitHubRelease {
     .PARAMETER NoShortcuts
         For Zip: skip creating shortcuts.
     .EXAMPLE
-        Install-GitHubRelease -Repository 'ds4windowsapp/DS4Windows' -AssetPattern 'DS4Windows.*.zip' -Name 'DS4Windows' -InstallType Zip -DestinationPath "$env:USERPROFILE\Documents\DS4Windows" -ExecutableName 'win-x64\DS4Windows.exe' -ShortcutName 'DS4Windows'
+        Install-GitHubRelease -Repository 'PowerShell/PowerShell' -AssetPattern '*win-x64.zip' -Name 'PowerShell' -InstallType Zip -DestinationPath "$env:USERPROFILE\Documents\PowerShell" -ExecutableName 'pwsh.exe' -ShortcutName 'PowerShell'
     .EXAMPLE
         Install-GitHubRelease -Repository 'xt0n1-t3ch/DLSSync' -AssetPattern '*_x64_en-US.msi' -Name 'DLSSync' -InstallType Msi
     .EXAMPLE
