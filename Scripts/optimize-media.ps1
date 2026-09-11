@@ -5,6 +5,9 @@
     Batch-optimize images and re-encode videos to H.265/Opus.
 .DESCRIPTION
     Intended to run after Scripts\dedupe-media.ps1 has removed duplicates.
+    When -MaxDimension is set, oversized JPEG/WEBP/PNG/AVIF images are
+    downscaled first (longer side capped, aspect ratio kept, never upscaled),
+    so the per-format compression passes below run on the smaller result.
     Images are compressed in place:
       - PNG      -> oxipng, lossless, batched. No backup is taken (lossless,
         and oxipng refuses to grow a file without --force).
@@ -53,6 +56,12 @@
 .PARAMETER OxipngLevel
     oxipng optimization level, 0 (fastest) to 6 (slowest). Default 4; level 6
     costs several times the runtime for a fraction of a percent.
+.PARAMETER MaxDimension
+    Cap the longer side of JPEG/WEBP/PNG/AVIF images to this many pixels
+    before compressing, preserving aspect ratio and never upscaling. Default
+    0 disables resizing. Requires ImageMagick (installed via winget on first
+    use). GIF and HEIC/HEIF are excluded (animation risk; HEIC is already
+    left untouched, see above).
 .PARAMETER StripMetadata
     Pass -s to jpegoptim, discarding EXIF, GPS, and orientation. Off by
     default because that is silent data loss on a photo library.
@@ -78,6 +87,9 @@
     .\optimize-media.ps1 -Path 'D:\Nextcloud\Photos' -BackupPath 'E:\media-bak' -Encoder x265
     Force CPU encoding and keep the backups off the synced volume entirely.
 .EXAMPLE
+    .\optimize-media.ps1 -Path 'D:\Pictures' -MaxDimension 1920
+    Downscale oversized stills to 1920px on the longer side, then compress.
+.EXAMPLE
     .\optimize-media.ps1 -Help
     Show full help and exit.
 #>
@@ -94,6 +106,8 @@ param (
     [int]$ImageQuality = 90,
     [ValidateRange(0, 6)]
     [int]$OxipngLevel = 4,
+    [ValidateRange(0, 20000)]
+    [int]$MaxDimension = 0,
     [switch]$StripMetadata,
     [ValidateRange(0, 51)]
     [int]$VideoQuality = 24,
@@ -125,7 +139,7 @@ if ($Help -or $Path -in @('-h', '--help', '/?')) {
 }
 
 $videoExtensions = @('mp4', 'mkv', 'avi', 'mov', 'webm', 'm4v', 'wmv', 'flv', 'mpg', 'mpeg', 'ts', 'm2ts')
-$imageExtensions = @('png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'heic', 'heif')
+$imageExtensions = @('png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'heic', 'heif', 'avif')
 
 # Nextcloud/Syncthing metadata, sync journals, and partial transfers. Optimizing a
 # version history or a half-transferred file corrupts what the sync client expects.
@@ -282,6 +296,80 @@ function Invoke-BatchTool {
 }
 
 
+function Invoke-ResizePass {
+    [CmdletBinding(SupportsShouldProcess)]
+    [OutputType([long])]
+    <#
+    .SYNOPSIS
+        Downscales oversized raster images in place and returns bytes saved.
+    .DESCRIPTION
+        Caps the longer side at -MaxDimension using ImageMagick's "WxH>"
+        geometry: aspect ratio kept, never upscales, no explicit -quality so
+        JPEG reuses its own source quantization tables. Runs before the
+        per-format compression passes so they work on the smaller result.
+    .PARAMETER FilePath
+        Candidate image paths (JPEG/WEBP/PNG/AVIF).
+    .PARAMETER MaxDimension
+        Cap for the longer side, in pixels.
+    .PARAMETER Magick
+        ImageMagick "magick" executable path.
+    .PARAMETER TargetPath
+        Folder scanned, used to compute the backup mirror's relative subpath.
+    .PARAMETER BackupPath
+        Folder that originals are mirrored into before resizing.
+    .EXAMPLE
+        Invoke-ResizePass -FilePath $paths -MaxDimension 1920 -Magick $magick `
+            -TargetPath $root -BackupPath $bak
+    #>
+    param(
+        [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$FilePath,
+        [Parameter(Mandatory)][int]$MaxDimension,
+        [Parameter(Mandatory)][string]$Magick,
+        [Parameter(Mandatory)][string]$TargetPath,
+        [Parameter(Mandatory)][string]$BackupPath
+    )
+    process {
+        [long]$saved = 0
+        if ($FilePath.Count -eq 0) { return $saved }
+
+        # Batched "%i\t%w\t%h" identify calls, not one process per file: -ping skips the
+        # pixel decode, and %i echoes the path exactly as passed so tab-splitting the
+        # output can't be confused by paths containing spaces.
+        $oversized = [System.Collections.Generic.List[string]]::new()
+        for ($offset = 0; $offset -lt $FilePath.Count; $offset += $batchSize) {
+            $chunk = @($FilePath[$offset..([Math]::Min($offset + $batchSize, $FilePath.Count) - 1)])
+            $done = $offset + $chunk.Count
+            Write-Progress -Activity 'Scanning image dimensions' -Status "$done/$($FilePath.Count)" `
+                -PercentComplete (($done / $FilePath.Count) * 100)
+            $lines = & $Magick identify -ping -format "%i`t%w`t%h`n" -- @chunk
+            foreach ($line in $lines) {
+                $parts = $line -split "`t"
+                if ($parts.Count -lt 3) { continue }
+                if ([int]$parts[1] -gt $MaxDimension -or [int]$parts[2] -gt $MaxDimension) {
+                    $oversized.Add($parts[0])
+                }
+            }
+        }
+        Write-Progress -Activity 'Scanning image dimensions' -Completed
+        if ($oversized.Count -eq 0) { return $saved }
+
+        Write-Info "$($oversized.Count) image(s) exceed ${MaxDimension}px on the long side; resizing."
+        $toResize = [System.Collections.Generic.List[string]]::new()
+        foreach ($file in $oversized) {
+            # Resizing is lossy regardless of format, so even a normally-lossless PNG
+            # needs the pre-resize original backed up.
+            if (Backup-MediaFile -FullName $file -TargetPath $TargetPath -BackupPath $BackupPath) {
+                $toResize.Add($file)
+            }
+        }
+        $saved += Invoke-BatchTool -Tool $Magick `
+            -ToolArgument @('mogrify', '-resize', "${MaxDimension}x${MaxDimension}>") `
+            -FilePath $toResize.ToArray() -Activity 'Resizing images'
+        $saved
+    }
+}
+
+
 function Invoke-ImagePass {
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([long])]
@@ -294,6 +382,8 @@ function Invoke-ImagePass {
         JPEG/WEBP quality factor.
     .PARAMETER OxipngLevel
         oxipng optimization level.
+    .PARAMETER MaxDimension
+        Cap for the longer side, in pixels. 0 disables resizing.
     .PARAMETER BackupPath
         Folder to mirror originals into before lossy or destructive work.
     .PARAMETER Ffmpeg
@@ -307,6 +397,7 @@ function Invoke-ImagePass {
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][int]$Quality,
         [Parameter(Mandatory)][int]$OxipngLevel,
+        [Parameter(Mandatory)][int]$MaxDimension,
         [Parameter(Mandatory)][string]$BackupPath,
         [Parameter(Mandatory)][string]$Ffmpeg,
         [bool]$StripMetadata,
@@ -330,6 +421,7 @@ function Invoke-ImagePass {
                 '.bmp' { 'convert' }
                 '.tif' { 'convert' }
                 '.tiff' { 'convert' }
+                '.avif' { 'avif' }
                 default { 'heic' }
             }
             if (-not $byKind.ContainsKey($kind)) {
@@ -345,6 +437,13 @@ function Invoke-ImagePass {
             foreach ($file in $byKind['heic']) { $heicBytes += $file.Length }
             Write-Info ("$($byKind['heic'].Count) HEIC/HEIF file(s) left untouched " +
                 "($(Format-Size $heicBytes)): already HEVC-compressed.")
+        }
+
+        if ($byKind.ContainsKey('avif')) {
+            [long]$avifBytes = 0
+            foreach ($file in $byKind['avif']) { $avifBytes += $file.Length }
+            Write-Info ("$($byKind['avif'].Count) AVIF file(s) resized only if oversized " +
+                "($(Format-Size $avifBytes)): no AVIF re-encoder wired up here.")
         }
 
         [long]$saved = 0
@@ -385,6 +484,24 @@ function Invoke-ImagePass {
                 $pngPaths.Add($output)
             }
             Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Completed
+        }
+
+        if ($MaxDimension -gt 0) {
+            $magick = Resolve-OrInstallTool -Name 'magick' -WingetId 'ImageMagick.ImageMagick' -Optional
+            if (-not $magick) {
+                Write-Warning 'ImageMagick (magick) not found; skipping resize pass.'
+            }
+            else {
+                $resizeCandidates = [System.Collections.Generic.List[string]]::new()
+                foreach ($kind in 'jpeg', 'webp', 'avif') {
+                    if ($byKind.ContainsKey($kind)) {
+                        foreach ($file in $byKind[$kind]) { $resizeCandidates.Add($file.FullName) }
+                    }
+                }
+                foreach ($path in $pngPaths) { $resizeCandidates.Add($path) }
+                $saved += Invoke-ResizePass -FilePath $resizeCandidates.ToArray() -MaxDimension $MaxDimension `
+                    -Magick $magick -TargetPath $TargetPath -BackupPath $BackupPath
+            }
         }
 
         $oxipng = Resolve-OrInstallTool -Name 'oxipng' -WingetId 'Shssoichiro.Oxipng' -Optional
@@ -664,7 +781,8 @@ $videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; Reclaime
 
 if (-not $SkipImages) {
     $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -OxipngLevel $OxipngLevel `
-        -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg -StripMetadata:$StripMetadata -Force:$Force
+        -MaxDimension $MaxDimension -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg `
+        -StripMetadata:$StripMetadata -Force:$Force
 }
 
 if (-not $SkipVideo) {
