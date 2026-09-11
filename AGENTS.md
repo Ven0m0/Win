@@ -63,7 +63,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `DLSS-force-latest.ps1`       | Force latest DLSS version across games                       |
 | `New-SteamShortcut.ps1`       | Steam shortcut creator                                       |
 | `dedupe-media.ps1`            | Remove duplicate media: fclones exact pass, czkawka fuzzy image/video passes. Run **before** `optimize-media.ps1`. Preview by default (`-Apply` to act); czkawka's redundant dup pass is opt-in via `-IncludeDup` |
-| `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp/gifsicle) + re-encode video to H.265/Opus, replacing validated sources so the folder shrinks. Originals go to `-BackupPath` (default `$env:USERPROFILE\Pictures\optimize-media-bak`, must be outside the scanned tree); `-Encoder Auto\|NVENC\|x265` |
+| `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp/gifsicle) + re-encode video to H.265/Opus (SSIM-tuned x265, CRF 28, web-optimized MP4) via ffzap (`-ThreadCount` concurrent encodes), replacing validated sources so the folder shrinks. Originals go to `-BackupPath` (default `$env:USERPROFILE\Pictures\optimize-media-bak`, must be outside the scanned tree); `-Encoder Auto\|NVENC\|x265`; `-Denoise`/`-MaxVideoDimension` are opt-in lossy filters for clips that won't otherwise shrink; `-ConvertToWebp` converts JPEG/PNG to WebP (cwebp, metadata kept) instead of in-place compression |
 
 ## High-Signal Rules
 

@@ -64,5 +64,18 @@ Describe 'optimize-media.ps1' {
             Test-Path -LiteralPath $backupPath | Should -BeFalse
             Test-Path -LiteralPath $file | Should -BeTrue
         }
+
+        It '-ConvertToWebp performs no writes: no backup folder, no .webp output, source untouched' {
+            $file = Join-Path $TestRoot 'photo.jpg'
+            Set-Content -LiteralPath $file -Value 'x'
+            $backupPath = Join-Path $TestDrive 'webp-whatif-bak'
+            $webpOutput = Join-Path $TestRoot 'photo.webp'
+
+            & $ScriptPath -Path $TestRoot -BackupPath $backupPath -SkipVideo -ConvertToWebp -WhatIf *> $null
+
+            Test-Path -LiteralPath $backupPath | Should -BeFalse
+            Test-Path -LiteralPath $webpOutput | Should -BeFalse
+            Test-Path -LiteralPath $file | Should -BeTrue
+        }
     }
 }
