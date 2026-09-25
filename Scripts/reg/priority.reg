@@ -53,6 +53,17 @@ Windows Registry Editor Version 5.00
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\Hollow Knight Silksong.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
 
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\KSP_x64.exe]
+"UseLargePages"=dword:00000001
+"MitigationOptions"=hex:22,22,22,22,22,22,22,02,20,02,22,22,20,22,00,20,00,00,\
+  00,00,00,00,00,00
+"MitigationAuditOptions"=hex:00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,\
+  00,00,00,00,00,00,00,00
+"EAFModules"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\KSP_x64.exe\PerfOptions]
+"CpuPriorityClass"=dword:00000006
+
 [HKEY_CURRENT_USER\Software\Microsoft\DirectX\UserGpuPreferences]
 "DirectXUserGlobalSettings"="VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
 "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Arc Raiders\\PioneerGame\\Binaries\\Win64\\PioneerGame.exe"="GpuPreference=2;SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;"
