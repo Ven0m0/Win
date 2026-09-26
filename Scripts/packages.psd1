@@ -190,7 +190,7 @@
         @{ Name = 'ven0m0'; Url = 'https://github.com/Ven0m0/scoop-bucket' }
     )
 
-    # graalvm-oracle-jdk is Oracle GraalVM (GraalVM Free Terms and Conditions license,
+    # graalvm-oracle-jdk-ea is Oracle GraalVM (GraalVM Free Terms and Conditions license,
     # includes native-image and the enterprise Truffle/SVM modules) - NOT graalvm-jdk,
     # graalvm25-jdk, or graalvm-jdk-dev, which are all GraalVM Community Edition (GPL-2.0)
     # despite similar names. Sets JAVA_HOME/GRAALVM_HOME itself via the manifest's env_set.
@@ -198,7 +198,7 @@
         'azaharplus'
         'eden'
         'fclones'
-        'graalvm-oracle-jdk'
+        'graalvm-oracle-jdk-ea'
         'jq'
         'scoop-search'
         'yq'
@@ -261,6 +261,7 @@
     # ---------------------------------------------------------------------------
     PsModules          = @(
         'Pester'
+        'PSCompletions'
         'PSIni'
         'PSScriptAnalyzer'
         'PSWindowsUpdate'

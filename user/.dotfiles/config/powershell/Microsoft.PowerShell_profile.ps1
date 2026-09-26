@@ -43,6 +43,10 @@ if (Get-Module -ListAvailable -Name Terminal-Icons) {
         }
     })
 }
+# PSCompletions: tab-completion for many CLIs. Enable per tool once with `psc add <name>`.
+if (Get-Module -ListAvailable -Name PSCompletions) {
+    $__initQueue.Enqueue({ Import-Module -Name PSCompletions -ErrorAction SilentlyContinue })
+}
 # Registration happens once, after zoxide (below) has had a chance to enqueue its own init step.
 
 #region UI Configuration
