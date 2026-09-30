@@ -45,6 +45,24 @@ Describe "Install-Packages" {
             Mock tzutil.exe {}
             Mock Set-TimeZone {}
             Mock Set-Culture {}
+            # Post-install writes HKLM (LabConfig, WPBT, DeviceRegion) through this helper.
+            Mock Set-RegistryValue {}
+            Mock Install-Module {}
+            Mock Start-Process {}
+            Mock Get-FileFromWeb {}
+            # Second guard: report child installer scripts as missing even if a skip switch is dropped.
+            Mock Test-Path { $false } -ParameterFilter { "$LiteralPath" -like '*third-party*' }
+
+            # Peripheral/manual-install phases invoke child scripts that re-dot-source Common.ps1,
+            # shadowing these mocks and running real winget/7z; language packages call real
+            # bun/npm/cargo. Always skip them.
+            $safeSkips = @{
+                SkipPowerShellModules = $true
+                SkipNotepadReplacer   = $true
+                SkipPeripherals       = $true
+                SkipManualInstalls    = $true
+                SkipLanguagePackages  = $true
+            }
 
             # The script uses $env:SystemDrive. On Linux, this is null.
             # So $env:SystemDrive.TrimEnd('\') fails with "You cannot call a method on a null-valued expression."
@@ -57,39 +75,50 @@ Describe "Install-Packages" {
         }
 
         It "Should bypass winget when SkipWinget is provided" {
-            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall:$false
-            Assert-MockCalled winget -Times 0
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall:$false @safeSkips
+            Should -Invoke winget -Times 0
         }
 
         It "Should bypass scoop when SkipScoop is provided" {
-            Start-InstallPackage -SkipScoop -ApplyPostInstall:$false
-            Assert-MockCalled scoop -Times 0
-            Assert-MockCalled Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'scoop' }
+            Start-InstallPackage -SkipScoop -ApplyPostInstall:$false @safeSkips
+            Should -Invoke scoop -Times 0
+            Should -Invoke Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'scoop' }
         }
 
         It "Should bypass choco when SkipChoco is provided" {
-            Start-InstallPackage -SkipChoco -ApplyPostInstall:$false
-            Assert-MockCalled choco -Times 0
-            Assert-MockCalled Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'chocolatey' }
+            Start-InstallPackage -SkipChoco -ApplyPostInstall:$false @safeSkips
+            Should -Invoke choco -Times 0
+            Should -Invoke Invoke-RestMethod -Times 0 -ParameterFilter { $Uri -match 'chocolatey' }
         }
 
         It "Should bypass system features when SkipSystemFeatures is provided" {
-            Start-InstallPackage -SkipSystemFeatures -ApplyPostInstall:$false
-            Assert-MockCalled DISM -Times 0
+            Start-InstallPackage -SkipSystemFeatures -ApplyPostInstall:$false @safeSkips
+            Should -Invoke DISM -Times 0
         }
 
         It "Should not apply post-install when ApplyPostInstall is missing" {
-            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures
-            Assert-MockCalled Set-TimeZone -Times 0
-            Assert-MockCalled Set-Culture -Times 0
-            Assert-MockCalled fsutil.exe -Times 0
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures @safeSkips
+            Should -Invoke Set-TimeZone -Times 0
+            Should -Invoke Set-Culture -Times 0
+            Should -Invoke fsutil.exe -Times 0
+        }
+
+        It "Should not throw when packages.psd1 has no ManualInstalls key" {
+            # Manual installs enabled on purpose; every child script path reads as missing
+            # (Test-Path mock above), so nothing real can run even if the key is added later.
+            $manualSkips = $safeSkips.Clone()
+            $manualSkips.Remove('SkipManualInstalls')
+            {
+                Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures `
+                    -ApplyPostInstall:$false @manualSkips
+            } | Should -Not -Throw
         }
 
         It "Should apply post-install when ApplyPostInstall is provided" {
-            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall
-            Assert-MockCalled Set-TimeZone -Times 1
-            Assert-MockCalled Set-Culture -Times 1
-            Assert-MockCalled fsutil.exe -Times 2
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall @safeSkips
+            Should -Invoke Set-TimeZone -Times 1
+            Should -Invoke Set-Culture -Times 1
+            Should -Invoke fsutil.exe -Times 2
         }
     }
 }

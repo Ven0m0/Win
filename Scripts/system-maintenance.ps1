@@ -27,8 +27,8 @@
 .PARAMETER NoRestorePoint
   For the Extra action, skip creating a system restore point.
 .PARAMETER DryRun
-  Show what would run without executing (Defrag and Extra actions). Suppresses the maintenance
-  log file write for Extra, since no maintenance actually ran.
+  Show what would run without executing. Defrag and Extra list each step; Shader, DriverCleanup,
+  and Disk are skipped entirely. Suppresses the maintenance log file write for Extra.
 .EXAMPLE
   .\system-maintenance.ps1 -Action Defrag -AllVolumes
 .EXAMPLE
@@ -39,7 +39,8 @@
   .\system-maintenance.ps1 -Action Disk
 #>
 # $DryRun is referenced inside nested functions; suppress PSSA cross-scope false-positive.
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'DryRun', Justification = 'Used inside nested functions Invoke-DefragCommand and Invoke-MsiCleanup')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'DryRun',
+  Justification = 'Read by the action functions via script scope')]
 [CmdletBinding(SupportsShouldProcess)]
 param(
   [ValidateSet('Defrag', 'Disk', 'Shader', 'Extra', 'DriverCleanup', 'All')]
@@ -85,16 +86,14 @@ function Invoke-Defrag {
     [string]$TargetVolume,
     [switch]$All
   )
+  # /O picks the proper optimization for each volume's media type (SSD retrim vs HDD defrag).
+  # A bare /C pass would force a traditional defrag on SSDs too, so it is not run.
   if ($All) {
-    Write-Info "Defrag: all volumes full pass (/C)"
-    Invoke-DefragCommand -Arguments '/C'
     Write-Info "Defrag: all volumes optimize (/C /O)"
     Invoke-DefragCommand -Arguments '/C /O'
     Write-Info "Defrag: all volumes retrim (/C /L)"
     Invoke-DefragCommand -Arguments '/C /L'
   } else {
-    # /O picks the proper optimization for the volume's media type (SSD retrim vs HDD defrag),
-    # so per-media-type flags (/X, /G tiered-only, /B) are redundant or unsupported and were dropped.
     Write-Info "Defrag: optimize $TargetVolume (/O)"
     Invoke-DefragCommand -Arguments "$TargetVolume /O"
     Write-Info "Defrag: retrim $TargetVolume (/L)"
@@ -212,18 +211,21 @@ function Start-AdditionalMaintenance {
       }
   }
 
-  # 2. System file check + component store repair (sfc + DISM in one pass)
+  # 2. Component store repair, then system file check. DISM runs first because sfc repairs
+  # system files from the component store - a corrupt store makes sfc's repairs fail.
   # WARNING: DISM /RestoreHealth can take 30+ minutes and may require a reboot.
+  Write-Info "=== DISM RestoreHealth ==="
+  Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
+  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
+
   Write-Info "=== System File Check (sfc /scannow) ==="
   Invoke-Operation -Name 'SFC_ScanNow' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'sfc.exe' -ArgumentList '/scannow'
 
-  Write-Info "=== DISM RestoreHealth + Component Cleanup ==="
-  Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
   # /Cleanup-Image accepts one operation per invocation, so RestoreHealth and
   # StartComponentCleanup must run as separate DISM calls.
-  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
-    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
+  Write-Info "=== DISM Component Cleanup ==="
   Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
 
@@ -254,7 +256,7 @@ function Start-AdditionalMaintenance {
     }
   }
 
-  # 6. Clear Icon Cache
+  # 6. Clear Icon + Thumbnail Cache (explorer is stopped so the thumbcache_*.db files are unlocked)
   Invoke-Operation -Name 'IconCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
     Stop-Process -Name 'explorer' -Force -ErrorAction SilentlyContinue
     $iconCachePath = "$env:LOCALAPPDATA\IconCache.db"
@@ -265,11 +267,6 @@ function Start-AdditionalMaintenance {
     Start-Process -FilePath 'explorer.exe'
   }
 
-  # 7. Clear Thumbnail Cache
-  Invoke-Operation -Name 'ThumbCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
-    Clear-PathSafe -Path "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\thumbcache_*.db"
-  }
-
   # 8. Clear DNS Client Cache
   Invoke-Operation -Name 'DNSCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
     Clear-DnsClientCache -ErrorAction Stop
@@ -277,12 +274,13 @@ function Start-AdditionalMaintenance {
 
   # 9. Clear Temp Files
   Invoke-Operation -Name 'TempFiles' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    # $env:TEMP is normally "$env:LOCALAPPDATA\Temp"; Sort-Object -Unique (case-insensitive) avoids a second pass.
     $tempPaths = @(
       $env:TEMP,
       "$env:SystemRoot\Temp",
       "$env:LOCALAPPDATA\Temp",
       "$HOME\AppData\LocalLow\Temp"
-    )
+    ) | Sort-Object -Unique
     $cleared = 0
     foreach ($path in $tempPaths) {
       if (Test-Path -Path $path) {
@@ -331,6 +329,12 @@ function Start-AdditionalMaintenance {
 function Start-UltimateDiskCleanup {
   [CmdletBinding(SupportsShouldProcess)]
   param()
+
+  # -DryRun skips elevation, so running the GUI here would delete caches unelevated with no preview.
+  if ($DryRun) {
+    Write-Warn '[DRY RUN] Disk cleanup is interactive and has no preview mode; skipping'
+    return
+  }
 
   Add-Type -AssemblyName System.Windows.Forms
   Add-Type -AssemblyName System.Drawing
@@ -494,10 +498,6 @@ function Start-UltimateDiskCleanup {
       "$env:SystemRoot\System32\LogFiles\setupcln\*"
       "$env:SystemRoot\Temp\CBS\*"
       "$env:SystemRoot\System32\catroot2\dberr.txt"
-      "$env:SystemRoot\System32\catroot2.log"
-      "$env:SystemRoot\System32\catroot2.jrs"
-      "$env:SystemRoot\System32\catroot2.edb"
-      "$env:SystemRoot\System32\catroot2.chk"
       "$env:SystemRoot\Traces\WindowsUpdate\*"
     )
 
@@ -547,6 +547,11 @@ function Invoke-ShaderCacheCleanup {
   #>
   [CmdletBinding()]
   param()
+
+  if ($DryRun) {
+    Write-Warn '[DRY RUN] Would stop Steam and clear Steam/Epic/GPU shader, log, and crash caches'
+    return
+  }
 
   #--- Detect Steam
   try {
@@ -680,11 +685,17 @@ function Start-DriverCleanup {
   [CmdletBinding(SupportsShouldProcess)]
   param()
 
-  Write-Information 'Removing orphaned/unused driver packages from the driver store...'
-  if ($PSCmdlet.ShouldProcess('Driver store', 'Clean unused driver packages')) {
-    $null = & rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN
+  if ($DryRun) {
+    Write-Warn '[DRY RUN] Would run: rundll32.exe pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN'
+    return
   }
-  Write-Information 'Driver cleanup complete.'
+
+  Write-Info 'Removing orphaned/unused driver packages from the driver store...'
+  if ($PSCmdlet.ShouldProcess('Driver store', 'Clean unused driver packages')) {
+    # rundll32 exit codes do not reflect the entry point's result, so there is nothing meaningful to check.
+    $null = & rundll32.exe 'pnpclean.dll,RunDLL_PnpClean' /DRIVERS /MAXCLEAN
+  }
+  Write-Success 'Driver cleanup complete.'
 }
 
 

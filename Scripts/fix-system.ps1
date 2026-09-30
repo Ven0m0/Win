@@ -10,7 +10,7 @@
       WindowsUpdate  - reset WU services/caches/catroot2, re-register DLLs
       Health         - read-only diagnostics: disk health, pending updates, service anomalies,
                        large temp dirs, startup items (no repairs; not included in All)
-      All            - run System, then WindowsUpdate
+      All            - run System (minus its WU reset step), then WindowsUpdate
       Restart        - restart the system now
       RestartToBios  - restart the system directly into firmware/BIOS setup
 .PARAMETER Action
@@ -26,7 +26,7 @@
 .PARAMETER ScheduleChkdsk
     System action: auto-schedule CHKDSK /f /r on next reboot.
 .PARAMETER DryRun
-    System action: show what would run without executing.
+    Show what would run without executing (System, WindowsUpdate, All, Health). Equivalent to -WhatIf.
 .PARAMETER NoReboot
     System action: don't prompt about rebooting after network/WU resets.
 .PARAMETER NoReport
@@ -61,6 +61,53 @@ $ProgressPreference = 'SilentlyContinue'
 # ===========================================================================
 # System repair: DISM, SFC, CHKDSK, network, WMI, WU reset, component cleanup
 # ===========================================================================
+function Get-WmiRepositoryState {
+  <#
+  .SYNOPSIS
+    Classifies `winmgmt /verifyrepository` output as CONSISTENT, INCONSISTENT, or UNKNOWN.
+  .PARAMETER Output
+    Combined verify output text.
+  .EXAMPLE
+    Get-WmiRepositoryState -Output 'WMI repository is inconsistent'
+  #>
+  [CmdletBinding()]
+  [OutputType([string])]
+  param([AllowEmptyString()][string]$Output)
+
+  # "inconsistent" contains "consistent", so it must be tested first.
+  if ($Output -match 'inconsistent|error') { return 'INCONSISTENT' }
+  if ($Output -match 'consistent') { return 'CONSISTENT' }
+  'UNKNOWN'
+}
+
+function Invoke-SfcScan {
+  <#
+  .SYNOPSIS
+    Runs sfc /scannow and returns CLEAN, REPAIRED, PARTIAL, or "Exit Code: N".
+  .EXAMPLE
+    $status = Invoke-SfcScan
+  #>
+  [CmdletBinding()]
+  [OutputType([string])]
+  param()
+
+  # sfc writes UTF-16LE when redirected; PowerShell decodes it as OEM, leaving a NUL after each char.
+  $output = ((& sfc.exe /scannow 2>&1) -join "`n") -replace "`0", ''
+  $exitCode = $LASTEXITCODE
+  Add-Log "SFC output (exit $exitCode): $output"
+
+  # Text first: sfc's exit code is undocumented. Exit-code mapping stays as the non-English fallback.
+  if ($output -match 'did not find any integrity violations') { return 'CLEAN' }
+  if ($output -match 'successfully repaired') { return 'REPAIRED' }
+  if ($output -match 'unable to fix') { return 'PARTIAL' }
+  switch ($exitCode) {
+    0 { 'CLEAN' }
+    1 { 'REPAIRED' }
+    2 { 'PARTIAL' }
+    default { "Exit Code: $exitCode" }
+  }
+}
+
 function Start-SystemFix {
   [CmdletBinding(SupportsShouldProcess)]
   param(
@@ -105,16 +152,14 @@ function Start-SystemFix {
   }
   else {
     Write-Info "DISM /Online /Cleanup-Image /CheckHealth"
-    $dismOutput = & DISM.exe /Online /Cleanup-Image /CheckHealth 2>&1
+    $dismOutput = (& DISM.exe /Online /Cleanup-Image /CheckHealth 2>&1) -join "`n"
     $exitCode = $LASTEXITCODE
     Add-Log "CheckHealth output: $dismOutput"
     Write-Info "Exit code: $exitCode"
 
-    if ($exitCode -eq 0 -or $exitCode -eq 3010) {
-      Write-Success "DISM CheckHealth: No corruption found or already scheduled"
-      $results.DISM = 'HEALTHY'
-    }
-    elseif ($exitCode -eq 2) {
+    # CheckHealth exits 0 even when it reports "The component store is repairable",
+    # so the output text is the only corruption signal.
+    if ($exitCode -eq 2 -or $dismOutput -match '\brepairable\b') {
       Write-Warn "DISM CheckHealth: Corruption detected, running ScanHealth..."
       Write-Info "DISM /Online /Cleanup-Image /ScanHealth"
       $null = & DISM.exe /Online /Cleanup-Image /ScanHealth 2>&1
@@ -144,6 +189,10 @@ function Start-SystemFix {
         $results.DISM = "Exit Code: $restoreExitCode"
       }
     }
+    elseif ($exitCode -eq 0 -or $exitCode -eq 3010) {
+      Write-Success "DISM CheckHealth: No corruption found or already scheduled"
+      $results.DISM = 'HEALTHY'
+    }
     else {
       Write-Warn "DISM CheckHealth exit code: $exitCode"
       $results.DISM = "Exit Code: $exitCode"
@@ -159,26 +208,8 @@ function Start-SystemFix {
   }
   else {
     Write-Info "Running SFC /scannow (this may take 10-30 minutes)..."
-    $sfcOutput = & cmd.exe /c "sfc /scannow 2>&1"
-    $sfcExitCode = $LASTEXITCODE
-    Add-Log "SFC Output: $sfcOutput"
-
-    if ($sfcExitCode -eq 0) {
-      Write-Success "SFC found no integrity violations"
-      $results.SFC1 = 'CLEAN'
-    }
-    elseif ($sfcExitCode -eq 1) {
-      Write-Success "SFC found and repaired integrity violations"
-      $results.SFC1 = 'REPAIRED'
-    }
-    elseif ($sfcExitCode -eq 2) {
-      Write-Warn "SFC found integrity violations but could not repair them all"
-      $results.SFC1 = 'PARTIAL'
-    }
-    else {
-      Write-Warn "SFC exit code: $sfcExitCode"
-      $results.SFC1 = "Exit Code: $sfcExitCode"
-    }
+    $results.SFC1 = Invoke-SfcScan
+    Write-Info "SFC Pass 1 result: $($results.SFC1)"
   }
 
   if (-not $QuickScan) {
@@ -188,11 +219,11 @@ function Start-SystemFix {
 
       if ($DryRun) {
         $results.CHKDSK = 'DRY RUN'
-        Write-Warn "[DRY RUN] Would run: chkdsk C: /scan"
+        Write-Warn "[DRY RUN] Would run: chkdsk $env:SystemDrive /scan"
       }
       else {
         Write-Info "Running CHKDSK /scan (online, non-disruptive)..."
-        $chkdskOutput = & chkdsk.exe C: /scan 2>&1
+        $chkdskOutput = & chkdsk.exe $env:SystemDrive /scan 2>&1
         $chkdskExitCode = $LASTEXITCODE
         Add-Log "CHKDSK /scan: $chkdskOutput"
 
@@ -210,7 +241,9 @@ function Start-SystemFix {
 
           if ($ScheduleChkdsk) {
             Write-Info "Scheduling CHKDSK /f /r for next reboot..."
-            $null = & chkdsk.exe C: /f /r 2>&1
+            # The system volume is locked, so chkdsk asks "schedule on next restart? (Y/N)";
+            # with output captured that prompt is invisible and would block forever - answer it.
+            $null = 'Y' | & chkdsk.exe $env:SystemDrive /f /r 2>&1
             Write-Warn "CHKDSK /f /r scheduled for next reboot"
             $results.CHKDSK = 'SCHEDULED (reboot)'
           }
@@ -234,9 +267,11 @@ function Start-SystemFix {
         Write-Warn "[DRY RUN] Would run: netsh winsock reset, netsh int ip reset, ipconfig /flushdns"
       }
       else {
-        Invoke-Operation -Name 'WinsockReset' -Results $results -Command 'netsh' -ArgumentList 'winsock reset'
-        Invoke-Operation -Name 'TCPIPReset' -Results $results -Command 'netsh' -ArgumentList 'int ip reset'
-        Invoke-Operation -Name 'DNSFlush' -Results $results -Command 'ipconfig' -ArgumentList '/flushdns'
+        # -Action is mandatory on Invoke-Operation even when -Command is used.
+        $netOp = @{ Results = $results; Action = {} }
+        Invoke-Operation -Name 'WinsockReset' -Command 'netsh' -ArgumentList 'winsock reset' @netOp
+        Invoke-Operation -Name 'TCPIPReset' -Command 'netsh' -ArgumentList 'int ip reset' @netOp
+        Invoke-Operation -Name 'DNSFlush' -Command 'ipconfig' -ArgumentList '/flushdns' @netOp
         Write-Success "Network repairs complete"
         $results.Network = 'COMPLETE'
         Write-Warn "NOTE: A reboot is required for network changes to take effect"
@@ -255,15 +290,16 @@ function Start-SystemFix {
     }
     else {
       Write-Info "Verifying WMI repository..."
-      $wmiOutput = & winmgmt.exe /verifyrepository 2>&1
+      $wmiOutput = (& winmgmt.exe /verifyrepository 2>&1) -join "`n"
       $wmiExitCode = $LASTEXITCODE
       Add-Log "WMI Verify: $wmiOutput"
+      $wmiState = Get-WmiRepositoryState -Output $wmiOutput
 
-      if ($wmiOutput -match 'consistent|ok|OK') {
+      if ($wmiState -eq 'CONSISTENT') {
         Write-Success "WMI repository is consistent"
         $results.WMI = 'CONSISTENT'
       }
-      elseif ($wmiOutput -match 'inconsistent|ERROR') {
+      elseif ($wmiState -eq 'INCONSISTENT') {
         Write-Warn "WMI repository is inconsistent, attempting repair..."
         $salvageOutput = & winmgmt.exe /salvagerepository 2>&1
         $salvageExitCode = $LASTEXITCODE
@@ -307,7 +343,10 @@ function Start-SystemFix {
             if (Test-Path -Path $catRootPath) {
               $backupName = "CatRoot2-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
               Write-Info "Renaming CatRoot2 to $backupName"
-              Rename-Item -Path $catRootPath -NewName $backupName -Force -ErrorAction SilentlyContinue
+              # CryptSvc holds catroot2 open; without stopping it the rename always fails (silently).
+              Invoke-ServiceOperation -Name 'CryptSvc' -Force -Action {
+                Rename-Item -Path $catRootPath -NewName $backupName -Force -ErrorAction SilentlyContinue
+              }
             }
 
             Write-Info "Triggering Windows Update scan..."
@@ -331,22 +370,8 @@ function Start-SystemFix {
     }
     else {
       Write-Info "Running SFC /scannow (second pass)..."
-      $sfcOutput = & cmd.exe /c "sfc /scannow 2>&1"
-      $sfcExitCode = $LASTEXITCODE
-      Add-Log "SFC Pass 2: $sfcOutput"
-
-      if ($sfcExitCode -eq 0) {
-        Write-Success "SFC Pass 2: No integrity violations"
-        $results.SFC2 = 'CLEAN'
-      }
-      elseif ($sfcExitCode -eq 1) {
-        Write-Success "SFC Pass 2: Repaired additional files"
-        $results.SFC2 = 'REPAIRED'
-      }
-      else {
-        Write-Warn "SFC Pass 2 exit code: $sfcExitCode"
-        $results.SFC2 = "Exit Code: $sfcExitCode"
-      }
+      $results.SFC2 = Invoke-SfcScan
+      Write-Info "SFC Pass 2 result: $($results.SFC2)"
     }
 
     # Step 8: Component Store Cleanup
@@ -377,7 +402,7 @@ function Start-SystemFix {
 
   # Write report file
   if (-not $NoReport -and -not $DryRun) {
-    $reportFile = Join-Path -Path $PSScriptRoot -ChildPath "fix-system-report-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $reportFile = Join-Path -Path $env:TEMP -ChildPath "fix-system-report-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
     $durationInfo = Measure-Execution -StartTime $startTime
     $resultLines = $results.GetEnumerator() | Sort-Object -Property Name | ForEach-Object { "$($_.Key) = $($_.Value)" }
 
@@ -438,11 +463,14 @@ function Invoke-ExternalCommand {
   $proc = New-Object System.Diagnostics.Process
   $proc.StartInfo = $psi
   $null = $proc.Start()
+  # Drain both pipes before waiting: a child that fills an unread pipe buffer blocks forever.
+  $stdoutTask = $proc.StandardOutput.ReadToEndAsync()
+  $stderrTask = $proc.StandardError.ReadToEndAsync()
   $proc.WaitForExit()
+  $null = $stdoutTask.Result
 
   if ($proc.ExitCode -ne 0) {
-    $stderr = $proc.StandardError.ReadToEnd()
-    Write-Warning "$FilePath exited $($proc.ExitCode) : $stderr"
+    Write-Warning "$FilePath exited $($proc.ExitCode) : $($stderrTask.Result)"
   }
 }
 
@@ -477,10 +505,11 @@ function Clear-UpdateCache {
   [CmdletBinding(SupportsShouldProcess)]
   param()
 
+  # Downloader holds the BITS queue (qmgr*.dat); the old "Application Data" path is only a legacy junction.
   $paths = @(
-    'C:\Windows\Temp'
-    'C:\Windows\Prefetch'
-    "$env:ALLUSERSPROFILE\application data\Microsoft\Network\downloader"
+    "$env:SystemRoot\Temp"
+    "$env:SystemRoot\Prefetch"
+    "$env:ProgramData\Microsoft\Network\Downloader"
   )
 
   foreach ($path in $paths) {
@@ -554,7 +583,7 @@ function Start-WindowsUpdateFix {
 
   Set-StrictMode -Version Latest
 
-  Write-Information 'Fixing Windows Update components...'
+  Write-Info 'Fixing Windows Update components...'
 
   # 1. Stop services
   Reset-WUService -Name 'BITS' -StartupType 'delayed-auto'
@@ -596,9 +625,16 @@ function Start-WindowsUpdateFix {
     Invoke-ExternalCommand -FilePath 'gpupdate.exe' -ArgumentList '/force'
   }
 
-  Write-Information ''
-  Write-Information 'Windows Update repair complete. A reboot is recommended.'
-  Write-Information 'Run this script with -WhatIf to preview changes.'
+  # Step 1 stopped these; CryptSvc in particular must not stay down until the next reboot.
+  # msiserver/AppReadiness/appidsvc are demand/trigger-start and restart on their own.
+  foreach ($svcName in @('CryptSvc', 'BITS', 'wuauserv')) {
+    if ((Get-Service -Name $svcName -ErrorAction SilentlyContinue) -and
+      $PSCmdlet.ShouldProcess($svcName, 'Start service')) {
+      Start-Service -Name $svcName -ErrorAction SilentlyContinue
+    }
+  }
+
+  Write-Success 'Windows Update repair complete. A reboot is recommended.'
 }
 
 
@@ -779,7 +815,7 @@ function Start-SystemHealthCheck {
 
   # Write report file
   if (-not $NoReport) {
-    $reportFile = Join-Path -Path $PSScriptRoot -ChildPath "fix-system-health-report-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+    $reportFile = Join-Path -Path $env:TEMP -ChildPath "fix-system-health-report-$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
     $durationInfo = Measure-Execution -StartTime $startTime
     $resultLines = $results.GetEnumerator() | Sort-Object -Property Name | ForEach-Object { "$($_.Key) = $($_.Value)" }
 
@@ -810,21 +846,35 @@ $((Get-Log) -join "`n")
 # Dispatcher
 # ===========================================================================
 if ($MyInvocation.InvocationName -ne '.') {
+  # Start-SystemFix only honors -DryRun and Start-WindowsUpdateFix only honors -WhatIf, so map each
+  # preview switch onto the other; otherwise `-Action All -DryRun` would run the WU repair for real.
+  $preview = [bool]($DryRun -or $WhatIfPreference)
+  $systemFixParams = @{
+    QuickScan      = $QuickScan
+    SkipDiskCheck  = $SkipDiskCheck
+    SkipNetworkFix = $SkipNetworkFix
+    SkipWUReset    = $SkipWUReset
+    ScheduleChkdsk = $ScheduleChkdsk
+    DryRun         = $preview
+    NoReboot       = $NoReboot
+    NoReport       = $NoReport
+  }
   switch ($Action) {
     'System' {
-      Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
-        -SkipWUReset:$SkipWUReset -ScheduleChkdsk:$ScheduleChkdsk -DryRun:$DryRun -NoReboot:$NoReboot -NoReport:$NoReport
+      Start-SystemFix @systemFixParams
     }
     'WindowsUpdate' {
-      Start-WindowsUpdateFix
+      Start-WindowsUpdateFix -WhatIf:$preview
     }
     'Health' {
       Start-SystemHealthCheck -DryRun:$DryRun -NoReport:$NoReport
     }
     'All' {
-      Start-SystemFix -QuickScan:$QuickScan -SkipDiskCheck:$SkipDiskCheck -SkipNetworkFix:$SkipNetworkFix `
-        -SkipWUReset:$SkipWUReset -ScheduleChkdsk:$ScheduleChkdsk -DryRun:$DryRun -NoReboot:$NoReboot -NoReport:$NoReport
-      Start-WindowsUpdateFix
+      # The WindowsUpdate pass below does a fuller reset; skip the System one so
+      # SoftwareDistribution/CatRoot2 are not renamed twice.
+      $systemFixParams.SkipWUReset = $true
+      Start-SystemFix @systemFixParams
+      Start-WindowsUpdateFix -WhatIf:$preview
     }
     'Restart' {
       if ($PSCmdlet.ShouldProcess('System', 'Restart')) {

@@ -17,10 +17,10 @@ Describe "gpu-display-manager.ps1 functions" {
 
             Set-P0State -Value "1"
 
-            Assert-MockCalled Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
+            Should -Invoke Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
                 $Name -eq "DisableDynamicPstate" -and $Type -eq "REG_DWORD" -and $Data -eq "1"
             }
-            Assert-MockCalled Show-NvidiaGpuSetting -Times 1
+            Should -Invoke Show-NvidiaGpuSetting -Times 1
         }
     }
 
@@ -33,10 +33,10 @@ Describe "gpu-display-manager.ps1 functions" {
 
             Set-HDCP -Value "0"
 
-            Assert-MockCalled Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
+            Should -Invoke Set-NvidiaGpuRegistryValue -Times 1 -ParameterFilter {
                 $Name -eq "RMHdcpKeyglobZero" -and $Type -eq "REG_DWORD" -and $Data -eq "0"
             }
-            Assert-MockCalled Show-NvidiaGpuSetting -Times 1
+            Should -Invoke Show-NvidiaGpuSetting -Times 1
         }
     }
 }

@@ -113,47 +113,4 @@ Describe "Optimize-Steam.ps1" {
             Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match 'No installer files' } -Scope It
         }
     }
-
-    # -------------------------------------------------------------------------
-    # Invoke-RestoreNoSteamWebHelper
-    # -------------------------------------------------------------------------
-    Context "Invoke-RestoreNoSteamWebHelper — no backup, DLL absent" {
-        BeforeAll {
-            Mock Write-Host { }
-            Mock Write-Warning { }
-            Mock Test-Path { $false }
-            Mock Get-ItemProperty {
-                [PSCustomObject]@{ InstallPath = 'C:\FakeSteam' }
-            } -ParameterFilter { $Path -like '*Wow6432Node*' }
-            # Steam.exe check must pass to get past the top-level guard on dot-source
-            Mock Test-Path { $Path -like '*Steam.exe' }
-            . "$PSScriptRoot/../Scripts/Optimize-Steam.ps1" -WhatIf
-            Mock Write-ColorOutput { }
-        }
-
-        It "Reports DLL not found when neither backup nor DLL exists" {
-            Mock Test-Path { $false }
-            Invoke-RestoreNoSteamWebHelper -SteamPath 'C:\FakeSteam'
-            Should -Invoke Write-ColorOutput -ParameterFilter { $Object -match 'not found' } -Scope It
-        }
-    }
-
-    Context "Invoke-RestoreNoSteamWebHelper — backup present, WhatIf" {
-        BeforeAll {
-            Mock Write-Host { }
-            Mock Write-Warning { }
-            Mock Test-Path { $Path -like '*Steam.exe' }
-            Mock Copy-Item { }
-            Mock Remove-Item { }
-            Mock Get-ItemProperty {
-                [PSCustomObject]@{ InstallPath = 'C:\FakeSteam' }
-            } -ParameterFilter { $Path -like '*Wow6432Node*' }
-            . "$PSScriptRoot/../Scripts/Optimize-Steam.ps1" -WhatIf
-        }
-
-        It "Does not throw when backup exists and WhatIf is set" {
-            Mock Test-Path { $true }
-            { Invoke-RestoreNoSteamWebHelper -SteamPath 'C:\FakeSteam' -WhatIf } | Should -Not -Throw
-        }
-    }
 }

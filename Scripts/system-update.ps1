@@ -1,5 +1,4 @@
 ﻿#Requires -Version 5.1
-#Requires -Modules PSWindowsUpdate
 #Requires -RunAsAdministrator
 
 <#
@@ -600,7 +599,8 @@ function Update-ScoopState {
 function Update-ChocolateyState {
     [CmdletBinding()]
     param()
-    if (Test-Command 'choco' -and $isAdmin) {
+    # Parenthesized: bare `Test-Command 'choco' -and $isAdmin` passes -and/$isAdmin as extra arguments.
+    if ((Test-Command 'choco') -and $isAdmin) {
         try {
             $list = choco list -lo 2>&1 | Out-String
             $map = @{}
@@ -1501,9 +1501,10 @@ else {
 
     if ($isAdmin) {
         try {
-            if (Test-Path 'C:\Windows\Temp') {
-                Get-ChildItem -Path 'C:\Windows\Temp' -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Status "C:\Windows\Temp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
+            $winTemp = Join-Path $env:SystemRoot 'Temp'
+            if (Test-Path $winTemp) {
+                Get-ChildItem -Path $winTemp -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -lt $cutoff } | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Status "$winTemp cleared (older than $($script:Config.TempCleanupDays) days)" -Type Success
             }
         }
         catch { Write-Verbose "Captured output read failed: $_" }
@@ -1520,7 +1521,7 @@ else {
         try { DISM /Online /Cleanup-Image /StartComponentCleanup 2>&1 | Out-Null; Write-Status "DISM component store cleaned" -Type Success } catch { Write-Verbose "DISM cleanup skipped: $_" }
         try { Clear-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue; Write-Status "Delivery Optimization cache cleared" -Type Success } catch { Write-Verbose "Delivery Optimization cache clear skipped: $_" }
         if (-not $SkipDestructive) {
-            try { Get-ChildItem -Path 'C:\Windows\Prefetch' -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue; Write-Status "Prefetch files cleared" -Type Success } catch { Write-Verbose "Prefetch clear skipped: $_" }
+            try { Get-ChildItem -Path (Join-Path $env:SystemRoot 'Prefetch') -Filter '*.pf' -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue; Write-Status "Prefetch files cleared" -Type Success } catch { Write-Verbose "Prefetch clear skipped: $_" }
         }
     }
     $updateResults.Checked.Add('cleanup')

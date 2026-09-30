@@ -106,6 +106,12 @@ param (
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# The script body has no process block, so pipeline binding leaves only the last item in
+# $Url; $input still holds every piped item.
+if ($MyInvocation.ExpectingInput) {
+    $Url = @(foreach ($pipedUrl in $input) { $pipedUrl })
+}
+
 . "$PSScriptRoot\Common.ps1"
 
 # Guard: verify required external tools (spotdl only required when a Spotify URL is present)

@@ -32,19 +32,21 @@
 param (
   # One or more files or directories to lint/format
   [Parameter(Position = 0, ValueFromRemainingArguments)]
-  [ValidateNotNullOrEmpty()]
-  [string[]]$Path = $PSScriptRoot,
+  [string[]]$Path,
 
   # Lint reports only; Format rewrites; Fix auto-fixes then reformats
   [ValidateSet('Lint', 'Format', 'Fix')]
   [string]$Mode = 'Lint',
 
   # PSScriptAnalyzer settings file
-  [ValidateNotNullOrEmpty()]
-  [string]$SettingsPath = (Join-Path -Path $PSScriptRoot -ChildPath '..\PSScriptAnalyzerSettings.psd1')
+  [string]$SettingsPath
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Defaults resolved here: PS 5.1 leaves $PSScriptRoot empty inside param() default expressions.
+if (-not $Path) { $Path = $PSScriptRoot }
+if (-not $SettingsPath) { $SettingsPath = Join-Path -Path $PSScriptRoot -ChildPath '..\PSScriptAnalyzerSettings.psd1' }
 
 . (Join-Path -Path $PSScriptRoot -ChildPath 'Common.ps1')
 
@@ -54,6 +56,24 @@ if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
 if (-not (Test-Path -Path $SettingsPath)) {
   throw "Settings file not found: ${SettingsPath}"
 }
+
+# Repo style (2-space OTBS). The formatter's built-in default is 4-space, and
+# PSScriptAnalyzerSettings.psd1 enables no formatting rules (CI lint must accept legacy
+# 4-space files), so neither can drive Format mode.
+$formatterSettings = @{
+  IncludeRules = @(
+    'PSPlaceOpenBrace', 'PSPlaceCloseBrace', 'PSUseConsistentIndentation',
+    'PSUseConsistentWhitespace', 'PSUseCorrectCasing'
+  )
+  Rules        = @{
+    PSPlaceOpenBrace           = @{ Enable = $true; OnSameLine = $true; NewLineAfter = $true; IgnoreOneLineBlock = $true }
+    PSPlaceCloseBrace          = @{ Enable = $true; NewLineAfter = $false; IgnoreOneLineBlock = $true }
+    PSUseConsistentIndentation = @{ Enable = $true; IndentationSize = 2; Kind = 'space' }
+    PSUseConsistentWhitespace  = @{ Enable = $true }
+    PSUseCorrectCasing         = @{ Enable = $true }
+  }
+}
+
 
 function Get-TargetScript {
   <#
@@ -136,7 +156,7 @@ function Invoke-ScriptFormat {
     }
 
     $original = Get-Content -Path $File.FullName -Raw
-    $formatted = Invoke-Formatter -ScriptDefinition $original
+    $formatted = Invoke-Formatter -ScriptDefinition $original -Settings $formatterSettings
 
     if ($original -eq $formatted) {
       Write-Success $File.FullName
@@ -144,8 +164,10 @@ function Invoke-ScriptFormat {
     }
 
     if ($PSCmdlet.ShouldProcess($File.FullName, 'Reformat')) {
-      # Set-Content always appends a trailing newline; write raw text to avoid a double one.
-      Set-Content -Path $File.FullName -Value $formatted -Encoding utf8NoBom -NoNewline
+      # .NET write keeps the file's existing BOM state and works on PS 5.1, which lacks -Encoding utf8NoBom.
+      $bytes = [System.IO.File]::ReadAllBytes($File.FullName)
+      $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+      [System.IO.File]::WriteAllText($File.FullName, $formatted, [System.Text.UTF8Encoding]::new($hasBom))
     }
     Write-Warn "$($File.FullName) (reformatted)"
     return $true

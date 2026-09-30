@@ -327,7 +327,8 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[7.7/11] Installing manual (no winget package) apps...' -ForegroundColor Cyan
 
-        foreach ($manualApp in $catalog.ManualInstalls) {
+        # Index access: the key is optional in packages.psd1 and dot access throws under StrictMode.
+        foreach ($manualApp in $catalog['ManualInstalls']) {
             $scriptPath = Join-Path $PSScriptRoot $manualApp.Script
             if (-not (Test-Path -LiteralPath $scriptPath)) {
                 Write-Status "$($manualApp.Name) - script not found, skipping" -Status 'SKIP'

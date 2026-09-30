@@ -186,6 +186,13 @@ if ($audioFiles.Length -eq 0) {
 }
 Add-Log -Text "Audio tracks: $($audioFiles.Length)"
 
+# Ask before transcoding: under -WhatIf, New-Item skips the work folder too, so ffmpeg would
+# fail on it, and a declined burn would still spend minutes transcoding.
+$discKind = if ($DataCd) { 'MP3 data' } else { 'audio' }
+if (-not $PSCmdlet.ShouldProcess($destDrive, "Burn $discKind CD from $Path @ ${Speed}x $WriteType")) {
+    return
+}
+
 $projectLabel = Split-Path -Leaf $Path
 
 if ($DataCd) {
@@ -300,53 +307,50 @@ if ($DataCd) {
 if ($Eject) { $imgArgs += '/EJECT' }
 if ($Verify) { $imgArgs += '/VERIFY' }
 
-$discKind = if ($DataCd) { 'MP3 data' } else { 'audio' }
-if ($PSCmdlet.ShouldProcess($destDrive, "Burn $discKind CD from $Path @ ${Speed}x $WriteType")) {
-    Write-Verbose "Command: $imgburnPath $($imgArgs -join ' ')"
-    Add-Log -Text "Starting burn: $Speed`x $WriteType"
-    Add-Log -Text "Tracks: $($audioFiles.Length) files, ~$([math]::Round(($audioFiles | Measure-Object -Property Length -Sum).Sum / 1MB)) MB"
+Write-Verbose "Command: $imgburnPath $($imgArgs -join ' ')"
+Add-Log -Text "Starting burn: $Speed`x $WriteType"
+Add-Log -Text "Tracks: $($audioFiles.Length) files, ~$([math]::Round(($audioFiles | Measure-Object -Property Length -Sum).Sum / 1MB)) MB"
 
-    # If ImgBurn is already running (e.g. tray icon), a new invocation just
-    # relays the command to that instance and exits immediately - our
-    # temp-folder cleanup below would then race the actual burn. Close any
-    # existing instance so this invocation is the one that blocks until done.
-    Get-Process -Name 'ImgBurn' -ErrorAction SilentlyContinue | Stop-Process -Force
+# If ImgBurn is already running (e.g. tray icon), a new invocation just
+# relays the command to that instance and exits immediately - our
+# temp-folder cleanup below would then race the actual burn. Close any
+# existing instance so this invocation is the one that blocks until done.
+Get-Process -Name 'ImgBurn' -ErrorAction SilentlyContinue | Stop-Process -Force
 
-    try {
-        # ImgBurn is a GUI app - '&' does not block for it, so Start-Process
-        # -Wait is required to keep the temp CUE/WAV files alive until the
-        # burn actually finishes (otherwise the finally below deletes them
-        # while ImgBurn is still starting up, and it fails to find the CUE).
-        $proc = Start-Process -FilePath $imgburnPath -ArgumentList $imgArgs -Wait -PassThru
-        $ec = $proc.ExitCode
-    } finally {
-        if ($cleanupDir) { Remove-Item -Path $cleanupDir -Recurse -Force -ErrorAction SilentlyContinue }
-    }
+try {
+    # ImgBurn is a GUI app - '&' does not block for it, so Start-Process
+    # -Wait is required to keep the temp CUE/WAV files alive until the
+    # burn actually finishes (otherwise the finally below deletes them
+    # while ImgBurn is still starting up, and it fails to find the CUE).
+    $proc = Start-Process -FilePath $imgburnPath -ArgumentList $imgArgs -Wait -PassThru
+    $ec = $proc.ExitCode
+} finally {
+    if ($cleanupDir) { Remove-Item -Path $cleanupDir -Recurse -Force -ErrorAction SilentlyContinue }
+}
 
-    if ($ec -eq 0) {
-        Add-Log -Text 'Burn completed successfully'
-        if ($PassThrough) {
-            [PSCustomObject]@{
-                Source   = $Path
-                Drive    = $destDrive
-                Speed    = $Speed
-                WriteType = $WriteType
-                Status   = 'Completed'
-                ExitCode = $ec
-            }
+if ($ec -eq 0) {
+    Add-Log -Text 'Burn completed successfully'
+    if ($PassThrough) {
+        [PSCustomObject]@{
+            Source    = $Path
+            Drive     = $destDrive
+            Speed     = $Speed
+            WriteType = $WriteType
+            Status    = 'Completed'
+            ExitCode  = $ec
         }
-    } else {
-        Write-Warning "ImgBurn exited with code $ec"
-        Add-Log -Text "FAILED (exit $ec)"
-        if ($PassThrough) {
-            [PSCustomObject]@{
-                Source   = $Path
-                Drive    = $destDrive
-                Speed    = $Speed
-                WriteType = $WriteType
-                Status   = "Failed (exit $ec)"
-                ExitCode = $ec
-            }
+    }
+} else {
+    Write-Warning "ImgBurn exited with code $ec"
+    Add-Log -Text "FAILED (exit $ec)"
+    if ($PassThrough) {
+        [PSCustomObject]@{
+            Source    = $Path
+            Drive     = $destDrive
+            Speed     = $Speed
+            WriteType = $WriteType
+            Status    = "Failed (exit $ec)"
+            ExitCode  = $ec
         }
     }
 }

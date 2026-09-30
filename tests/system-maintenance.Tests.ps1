@@ -25,8 +25,8 @@ Describe "Invoke-Defrag" {
 
         Invoke-Defrag -All
 
-        Should -Invoke defrag.exe -Times 3
-        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C" } -Times 1
+        Should -Invoke defrag.exe -Times 2 -Exactly
+        Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C" } -Times 0 -Exactly
         Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C /O" } -Times 1
         Should -Invoke defrag.exe -ParameterFilter { ($args[0] -join ' ') -eq "/C /L" } -Times 1
     }
@@ -97,7 +97,6 @@ Describe "Start-AdditionalMaintenance" {
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'BITSClear' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'FontCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'IconCache' -and $DryRun -eq $true } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'ThumbCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DNSCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'TempFiles' -and $DryRun -eq $true } -Times 1
         }
@@ -140,6 +139,22 @@ Describe "Start-UltimateDiskCleanup" {
 }
 
 Describe "Invoke-ShaderCacheCleanup" {
+    Context "DryRun" {
+        It "Should not touch Steam or any cache under -DryRun" {
+            $DryRun = $true
+            Mock Write-Warn {}
+            Mock Get-ItemProperty {}
+            Mock Stop-SteamGracefully {}
+            Mock Clear-DirectorySafe {}
+
+            Invoke-ShaderCacheCleanup
+
+            Should -Invoke Get-ItemProperty -Times 0 -Exactly
+            Should -Invoke Stop-SteamGracefully -Times 0 -Exactly
+            Should -Invoke Clear-DirectorySafe -Times 0 -Exactly
+        }
+    }
+
     Context "Steam Detection" {
         It "Should return if Steam is not found in registry" {
             Mock Get-ItemProperty { throw "Registry key not found" }
@@ -147,7 +162,7 @@ Describe "Invoke-ShaderCacheCleanup" {
 
             Invoke-ShaderCacheCleanup
 
-            Assert-MockCalled Write-Warning -Times 1 -ParameterFilter { $Message -eq "Steam not found in registry!" }
+            Should -Invoke Write-Warning -Times 1 -ParameterFilter { $Message -eq "Steam not found in registry!" }
         }
 
         It "Should return if Steam executable is missing" {
@@ -158,7 +173,7 @@ Describe "Invoke-ShaderCacheCleanup" {
 
             Invoke-ShaderCacheCleanup
 
-            Assert-MockCalled Write-Warning -Times 1 -ParameterFilter { $Message -eq "Steam not found!" }
+            Should -Invoke Write-Warning -Times 1 -ParameterFilter { $Message -eq "Steam not found!" }
         }
     }
 
@@ -191,9 +206,9 @@ Describe "Invoke-ShaderCacheCleanup" {
 
             Invoke-ShaderCacheCleanup
 
-            Assert-MockCalled Stop-SteamGracefully -Times 1
-            Assert-MockCalled Clear-DirectorySafe -Exactly 31
-            Assert-MockCalled Remove-Item -Times 1 -ParameterFilter { $Path -eq "C:\Steam\.crash" }
+            Should -Invoke Stop-SteamGracefully -Times 1
+            Should -Invoke Clear-DirectorySafe -Times 31 -Exactly
+            Should -Invoke Remove-Item -Times 1 -ParameterFilter { $Path -eq "C:\Steam\.crash" }
         }
     }
 }

@@ -27,22 +27,24 @@ Describe "allow-scripts.ps1" {
 
         It "Should call Set-RegistryValue for HKCR and both HKCU/HKLM execution policies" {
             Enable-ScriptExecution
-            Assert-MockCalled -CommandName Set-RegistryValue -Times 3
+            Should -Invoke -CommandName Set-RegistryValue -Times 3
         }
 
         It "Should call Unblock-File for each script in the directory" {
             Enable-ScriptExecution
-            Assert-MockCalled -CommandName Unblock-File -Times 1
+            Should -Invoke -CommandName Unblock-File -Times 1
         }
 
-        It "Should write enabling status messages (at least banner and completion)" {
+        It "Should write enabling status messages (summary lines)" {
             Enable-ScriptExecution
-            Assert-MockCalled -CommandName Write-Host -Times 6
+            Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+                "$Object" -like '*Execution policy set to RemoteSigned*'
+            }
         }
 
         It "Should not call Remove-RegistryValue when enabling" {
             Enable-ScriptExecution
-            Assert-MockCalled -CommandName Remove-RegistryValue -Times 0
+            Should -Invoke -CommandName Remove-RegistryValue -Times 0
         }
     }
 
@@ -53,22 +55,24 @@ Describe "allow-scripts.ps1" {
 
         It "Should call Remove-RegistryValue for HKCR ps1 associations" {
             Disable-ScriptExecution
-            Assert-MockCalled -CommandName Remove-RegistryValue -Times 2
+            Should -Invoke -CommandName Remove-RegistryValue -Times 2
         }
 
         It "Should call Set-RegistryValue for HKCU/HKLM to Restricted" {
             Disable-ScriptExecution
-            Assert-MockCalled -CommandName Set-RegistryValue -Times 2
+            Should -Invoke -CommandName Set-RegistryValue -Times 2
         }
 
         It "Should not call Unblock-File when disabling" {
             Disable-ScriptExecution
-            Assert-MockCalled -CommandName Unblock-File -Times 0
+            Should -Invoke -CommandName Unblock-File -Times 0
         }
 
-        It "Should write disabling status messages (at least banner and completion)" {
+        It "Should write disabling status messages (summary lines)" {
             Disable-ScriptExecution
-            Should -Invoke Write-Host -Times 5 -Scope It
+            Should -Invoke -CommandName Write-Host -Times 1 -Exactly -ParameterFilter {
+                "$Object" -like '*Script execution has been restricted*'
+            }
         }
     }
 

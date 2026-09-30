@@ -28,7 +28,9 @@ $new = foreach ($l in $content) {
     if ($l -match "^\s*$priv\s*=") {
         $found = $true
         $sids = ($l -split '=', 2)[1].Trim()
-        if ($sids -match [regex]::Escape($sid)) { $already = $true; $l }
+        # Exact per-entry match: a substring test would treat ...-10011 as ...-1001.
+        $holders = $sids -split ',' | ForEach-Object { $_.Trim().TrimStart('*') }
+        if ($holders -contains $sid) { $already = $true; $l }
         else { "$priv = $sids,*$sid" }
     }
     else { $l }

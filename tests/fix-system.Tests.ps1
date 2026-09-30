@@ -72,7 +72,7 @@ Describe "fix-system.ps1 (System action)" {
 
         It "Should skip CHKDSK when SkipDiskCheck is provided" {
             Start-SystemFix -SkipDiskCheck -DryRun -NoReboot -NoReport
-            Assert-MockCalled -CommandName chkdsk -Times 0 -Exactly
+            Should -Invoke -CommandName chkdsk -Times 0 -Exactly
         }
     }
 }
@@ -80,6 +80,9 @@ Describe "fix-system.ps1 (System action)" {
 Describe "fix-system.ps1 (Health action)" {
     BeforeAll {
         . "$PSScriptRoot/../Scripts/fix-system.ps1"
+        # Pester cannot build mock proxies for these CDXML cmdlets on newer pwsh; stub them first.
+        function Get-PhysicalDisk { }
+        function Get-Volume { }
     }
 
     BeforeEach {
@@ -109,7 +112,7 @@ Describe "fix-system.ps1 (Health action)" {
 
     It "Should skip live checks in DryRun mode" {
         Start-SystemHealthCheck -DryRun -NoReport
-        Assert-MockCalled -CommandName Get-PhysicalDisk -Times 0 -Exactly
+        Should -Invoke -CommandName Get-PhysicalDisk -Times 0 -Exactly
     }
 
     It "Should run the live checks without errors" {
@@ -129,9 +132,6 @@ Describe "fix-system.ps1 (WindowsUpdate action) - Initialization" {
             "Clear-UpdateCache",
             "Reset-Catroot2",
             "Register-WuDll",
-            "Set-WURegistryTweak",
-            "Remove-WURegistryTweak",
-            "Remove-TargetReleaseConstraint",
             "Start-WindowsUpdateFix"
         )
 
@@ -167,7 +167,10 @@ Describe "fix-system.ps1 (WindowsUpdate action) - Functions" {
         Mock Test-Path { return $false }
         Mock Get-ChildItem { return @() }
         Mock Remove-Item {}
+        # Clear-UpdateCache renames the live SoftwareDistribution folder; never let a test do that.
+        Mock Rename-Item {}
         Mock Stop-Service {}
+        Mock Start-Service {}
     }
 
     It "Should run Reset-WUService without errors" {
@@ -182,5 +185,29 @@ Describe "fix-system.ps1 (WindowsUpdate action) - Functions" {
 
     It "Should support -WhatIf forwarding" {
         { Clear-UpdateCache -WhatIf } | Should -Not -Throw
+    }
+}
+
+Describe "fix-system.ps1 (output parsing)" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/fix-system.ps1"
+    }
+
+    It "Classifies '<Output>' as <Expected>" -ForEach @(
+        @{ Output = 'WMI repository is consistent'; Expected = 'CONSISTENT' }
+        @{ Output = 'WMI repository is inconsistent'; Expected = 'INCONSISTENT' }
+        @{ Output = "WMI repository verification failed`nError code: 0x8007041B"; Expected = 'INCONSISTENT' }
+        @{ Output = ''; Expected = 'UNKNOWN' }
+    ) {
+        Get-WmiRepositoryState -Output $Output | Should -Be $Expected
+    }
+
+    It "Parses sfc's NUL-interleaved UTF-16 output" {
+        Mock Add-Log {}
+        Mock sfc.exe {
+            $global:LASTEXITCODE = 0
+            ('Windows Resource Protection found corrupt files and successfully repaired them.'.ToCharArray() -join "`0")
+        }
+        Invoke-SfcScan | Should -Be 'REPAIRED'
     }
 }
