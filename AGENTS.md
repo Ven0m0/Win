@@ -130,13 +130,13 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 
 | Workflow               | Trigger                      | Checks                                        |
 | ---------------------- | ---------------------------- | --------------------------------------------- |
-| `lint-format-test.yml` | push/PR on `*.ps1`           | PSScriptAnalyzer + format + Pester            |
+| `ci.yml`               | push to/PR on `main`         | PSScriptAnalyzer + full Pester suite, posts check annotations/inline comments |
+| `lint-format-test.yml` | push/PR on `*.ps1`           | Format check + dotbot `-WhatIf` dry-run       |
 | `powershell.yml`       | push/PR on `*.ps1`           | SARIF-based PSScriptAnalyzer (Security tab)   |
 | `ps-format.yml`        | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
-| `pr-checks.yml`        | PR to `main`                 | Quality gate: PSScriptAnalyzer + full Pester suite, posts check annotations/inline comments |
 
-**Pester:** 24 test files in `tests/`. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 40 test files in `tests/`. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## Agent Delegation
 

@@ -1,15 +1,13 @@
 # =============================================================================
-# PowerShell Lint, Format, and Test CI Workflow
+# PowerShell Format and Deploy Dry-Run CI Workflow
 # =============================================================================
-# Unified workflow for comprehensive PowerShell code quality:
-# - PSScriptAnalyzer linting with severity checks
+# Formatting and deployment checks (lint and tests live in ci.yml):
 # - Formatting validation (indentation, BOM, trailing whitespace, line length)
-# - Pester unit tests
 #
 # Triggers: Push to main, PRs, and manual dispatch
 # =============================================================================
 
-name: PowerShell Lint, Format & Test
+name: PowerShell Format & Deploy Dry-Run
 
 on:
   workflow_dispatch:
@@ -17,17 +15,14 @@ on:
     branches: ["main"]
     paths:
       - "**.ps1"
-      - "**.psm1"
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
       - "install.conf.yaml"
       - ".github/workflows/lint-format-test.yml"
-      - ".github/workflows/lint.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "**.ps1"
-      - "**.psm1"
       - "**.psd1"
       - "PSScriptAnalyzerSettings.psd1"
       - ".github/workflows/lint-format-test.yml"
@@ -42,89 +37,19 @@ permissions:
 
 jobs:
   # ===========================================================================
-  # Job 1: Linting with PSScriptAnalyzer
-  # ===========================================================================
-  lint:
-    name: PSScriptAnalyzer Lint
-    runs-on: windows-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Set up mise
-        uses: jdx/mise-action@v5.0.1
-        with:
-          cache: true
-          install: true
-
-      - name: Setting additional PSRepositories
-        shell: pwsh
-        run: |
-            try { Register-PSRepository -Name 'OttoMatt' -PublishLocation 'https://www.myget.org/F/ottomatt/api/v2/package' -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' -InstallationPolicy 'Trusted' -ErrorAction Stop } catch { Write-Warning "Failed to register OttoMatt repo: $_" }
-
-      - name: Setup PowerShell
-        uses: ./.github/actions/setup-pwsh
-        with:
-          extra-modules: OptimizationRules powershell-yaml
-
-      - name: Run PSScriptAnalyzer
-        shell: pwsh
-        env:
-          PSANALYZER_SETTINGS: ./PSScriptAnalyzerSettings.psd1
-        run: |
-          Set-StrictMode -Version Latest
-          $ErrorActionPreference = 'Continue'
-
-          $settingsPath = if (Test-Path $env:PSANALYZER_SETTINGS) { $env:PSANALYZER_SETTINGS } else { $null }
-          $psFiles = Get-ChildItem -Recurse -Include *.ps1, *.psm1, *.psd1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git|user|\.dotfiles' }
-
-          $issues = @()
-          foreach ($file in $psFiles) {
-            $params = @{ Path = $file.FullName }
-            if ($settingsPath) { $params['Settings'] = $settingsPath }
-
-            try {
-              $results = Invoke-ScriptAnalyzer @params
-              foreach ($result in $results) {
-                if ($result.Severity -eq 'Warning' -or $result.Severity -eq 'Error') {
-                  $issues += [PSCustomObject]@{
-                    File = $result.ScriptPath
-                    Line = $result.Line
-                    Severity = $result.Severity
-                    Rule = $result.RuleName
-                    Message = $result.Message
-                  }
-                }
-              }
-            } catch {
-              Write-Warning "Error analyzing $($file.FullName): $_"
-            }
-          }
-
-          if ($issues.Count -gt 0) {
-            Write-Host "## Lint Issues Found ($($issues.Count))" -ForegroundColor Red
-            Write-Host ""
-            $issues | Sort-Object Severity, File, Line | Format-Table -AutoSize -Wrap
-            $issues | ConvertTo-Json -Depth 5 | Out-File "lint-output.json" -Encoding utf8
-            exit 1
-          } else {
-            Write-Host "## No lint issues found" -ForegroundColor Green
-            exit 0
-          }
-
-
-
-  # ===========================================================================
-  # Job 2: Formatting validation
+  # Job 1: Formatting validation
   # ===========================================================================
   format:
     name: PowerShell Format Check
     runs-on: windows-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Run formatting check
         shell: pwsh
@@ -226,77 +151,7 @@ jobs:
           }
 
   # ===========================================================================
-  # Job 3: Pester tests
-  # ===========================================================================
-  test:
-    name: Pester Tests
-    runs-on: windows-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
-      - name: Setup PowerShell
-        uses: ./.github/actions/setup-pwsh
-
-      - name: Create test output directory
-        shell: pwsh
-        run: |
-          $outputDir = ".agents_tmp"
-          if (-not (Test-Path $outputDir)) {
-            New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
-          }
-
-      - name: Run Pester tests
-        shell: pwsh
-        env:
-          DOTFILES_ROOT: ${{ github.workspace }}
-        run: |
-          Set-StrictMode -Version Latest
-
-          $testFiles = Get-ChildItem -Path . -Recurse -Include *.Tests.ps1 -File | Where-Object { $_.FullName -notmatch 'node_modules|\.git|user|\.dotfiles' }
-
-          if ($testFiles.Count -eq 0) {
-            Write-Host "No test files found"
-            exit 0
-          }
-
-          Write-Host "Running $($testFiles.Count) test file(s)..."
-
-          $config = New-PesterConfiguration
-          $config.Run.Container = @($testFiles | ForEach-Object { New-PesterContainer -Path $_.FullName })
-          $config.Output.Verbosity = 'Detailed'
-          $config.TestResult.Enabled = $true
-          $config.TestResult.OutputPath = ".agents_tmp/test-results.xml"
-          $config.TestResult.OutputFormat = 'NUnitXml'
-
-          $config.Run.PassThru = $true
-          $result = Invoke-Pester -Configuration $config
-
-          if (-not $result) {
-            Write-Host "Pester did not return a result object. This can happen if tests crash or timeout." -ForegroundColor Red
-            exit 1
-          }
-
-          Write-Host ""
-          if ($result.FailedCount -gt 0) {
-            Write-Host "Tests failed: $($result.FailedCount) of $($result.TotalCount)" -ForegroundColor Red
-            exit 1
-          } else {
-            Write-Host "All tests passed: $($result.PassedCount)" -ForegroundColor Green
-            exit 0
-          }
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-results
-          path: .agents_tmp/test-results.xml
-          retention-days: 14
-
-  # ===========================================================================
-  # Job 4: Dotbot deployment dry-run integration test
+  # Job 2: Dotbot deployment dry-run integration test
   # ===========================================================================
   deploy-dry-run:
     name: Dotbot Deployment -WhatIf
@@ -307,6 +162,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Run Setup-Dotfiles.ps1 with -WhatIf for all targets
         shell: pwsh
@@ -328,26 +185,30 @@ jobs:
   summary:
     name: CI Summary
     runs-on: windows-latest
-    needs: [lint, format, test, deploy-dry-run]
+    timeout-minutes: 5
+    needs: [format, deploy-dry-run]
     if: always()
+    permissions: {}
+    env:
+      FORMAT_RESULT: ${{ needs.format.result }}
+      DEPLOY_RESULT: ${{ needs.deploy-dry-run.result }}
     steps:
       - name: Summary
         shell: bash
         run: |
-          echo "## PowerShell CI Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Format | ${{ needs.format.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy Dry-Run | ${{ needs.deploy-dry-run.result == 'success' && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          status() { [ "$1" = success ] && echo '✅ Success' || echo '❌ Failed'; }
+          {
+            echo "## PowerShell CI Results"
+            echo ""
+            echo "| Job | Status |"
+            echo "|------|--------|"
+            echo "| Format | $(status "$FORMAT_RESULT") |"
+            echo "| Deploy Dry-Run | $(status "$DEPLOY_RESULT") |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "${{ needs.lint.result }}" == 'failure' ] || [ "${{ needs.format.result }}" == 'failure' ] || [ "${{ needs.test.result }}" == 'failure' ] || [ "${{ needs.deploy-dry-run.result }}" == 'failure' ]; then
-            echo "### :x: Some checks failed. Please review the logs above." >> $GITHUB_STEP_SUMMARY
+          if [ "$FORMAT_RESULT" = failure ] || [ "$DEPLOY_RESULT" = failure ]; then
+            echo "### :x: Some checks failed. Please review the logs above." >> "$GITHUB_STEP_SUMMARY"
             exit 1
-          else
-            echo "### :white_check_mark: All checks passed!" >> $GITHUB_STEP_SUMMARY
-            exit 0
           fi
+          echo "### :white_check_mark: All checks passed!" >> "$GITHUB_STEP_SUMMARY"

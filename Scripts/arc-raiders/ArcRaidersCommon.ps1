@@ -108,7 +108,7 @@ function Set-VdfValue {
         Ensure a nested VDF path exists and optionally set a value.
     #>
     param(
-        [hashtable]$Vdf,
+        [System.Collections.IDictionary]$Vdf,
         [string]$Path,
         [string]$Value
     )

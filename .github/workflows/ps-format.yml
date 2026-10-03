@@ -6,7 +6,6 @@ on:
     branches: ["main"]
     paths:
       - "**.ps1"
-      - "**.psm1"
       - "**.psd1"
       - ".github/workflows/ps-format.yml"
       - ".editorconfig"
@@ -14,7 +13,6 @@ on:
     branches: ["main"]
     paths:
       - "**.ps1"
-      - "**.psm1"
       - "**.psd1"
       - ".github/workflows/ps-format.yml"
       - ".editorconfig"
@@ -31,6 +29,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Get changed PowerShell files

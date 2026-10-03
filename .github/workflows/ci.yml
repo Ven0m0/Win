@@ -1,20 +1,24 @@
 # =============================================================================
-# PR Quality Gates
+# CI - lint and full Pester suite
 # =============================================================================
-# Dedicated pull request checks — runs on every PR regardless of which files
-# changed, so the gate is always present on the merge button.
+# Runs on every push to main and every PR regardless of which files changed,
+# so the gate is always present on the merge button.
 #
 # Jobs:
-#   1. psscriptanalyzer  — lint all .ps1/.psm1/.psd1 files; fail on Error/Warning
-#   2. pester            — run the full Pester test suite; publish results
+#   1. lint - PSScriptAnalyzer over all .ps1/.psm1/.psd1 files; fail on Error/Warning
+#   2. test - every tests/*.Tests.ps1 file; results published as check annotations
+#
+# Formatting and the dotbot dry-run live in lint-format-test.yml.
 # =============================================================================
 
-name: PR Quality Gates
+name: CI
 
 on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
   pull_request:
     branches: ["main"]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,27 +26,27 @@ concurrency:
 
 permissions:
   contents: read
-  checks: write        # required to post test results as check annotations
-  pull-requests: write # required to post inline PR comments from test reporter
 
 jobs:
   # ===========================================================================
   # Job 1: PSScriptAnalyzer
   # ===========================================================================
-  psscriptanalyzer:
+  lint:
     name: PSScriptAnalyzer
     runs-on: windows-latest
     timeout-minutes: 15
-
+    permissions:
+      contents: read
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup PowerShell
         uses: ./.github/actions/setup-pwsh
 
       - name: Run PSScriptAnalyzer
-        id: analyze
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
@@ -58,66 +62,60 @@ jobs:
           $params = @{ Path = $psFiles.FullName }
           if ($settingsFile) { $params['Settings'] = $settingsFile }
 
-          $results  = Invoke-ScriptAnalyzer @params -ErrorAction Continue
-          $issues   = $results | Where-Object { $_.Severity -in 'Error','Warning' }
+          $results = Invoke-ScriptAnalyzer @params -ErrorAction Continue
+          $issues  = $results | Where-Object { $_.Severity -in 'Error','Warning' }
 
           # Emit GitHub workflow annotations
           foreach ($r in $issues) {
-            $rel  = ($r.ScriptPath -replace [regex]::Escape($PWD.Path + '\'), '') -replace '\\','/'
-            $lvl  = if ($r.Severity -eq 'Error') { 'error' } else { 'warning' }
+            $rel = ($r.ScriptPath -replace [regex]::Escape($PWD.Path + '\'), '') -replace '\\','/'
+            $lvl = if ($r.Severity -eq 'Error') { 'error' } else { 'warning' }
             Write-Host "::$lvl file=$rel,line=$($r.Line),col=$($r.Column)::[$($r.RuleName)] $($r.Message)"
           }
 
           if ($issues.Count -gt 0) {
             Write-Host ""
-            Write-Host "❌ $($issues.Count) issue(s) found (Error: $(($issues | Where-Object Severity -eq 'Error').Count), Warning: $(($issues | Where-Object Severity -eq 'Warning').Count))"
+            Write-Host "$($issues.Count) issue(s) found (Error: $(($issues | Where-Object Severity -eq 'Error').Count), Warning: $(($issues | Where-Object Severity -eq 'Warning').Count))"
             exit 1
           }
 
-          Write-Host "✅ No PSScriptAnalyzer errors or warnings"
+          Write-Host "No PSScriptAnalyzer errors or warnings"
 
   # ===========================================================================
-  # Job 2: Pester Tests
+  # Job 2: Pester tests
   # ===========================================================================
-  pester:
+  test:
     name: Pester Tests
     runs-on: windows-latest
     timeout-minutes: 20
-
+    permissions:
+      contents: read
+      actions: read # dorny/test-reporter reads the workflow run
+      checks: write # dorny/test-reporter posts the check run
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Setup PowerShell
         uses: ./.github/actions/setup-pwsh
         with:
           pester-min-version: 5.6.0
 
-      - name: Run Pester tests
+      - name: Run all Pester tests
         shell: pwsh
         env:
           DOTFILES_ROOT: ${{ github.workspace }}
         run: |
           Set-StrictMode -Version Latest
 
-          $testFiles = Get-ChildItem -Path . -Recurse -Include '*.Tests.ps1' -File |
-            Where-Object { $_.FullName -notmatch '\\(node_modules|\.git|user|\.dotfiles)\\' }
-
-          if ($testFiles.Count -eq 0) {
-            Write-Host "No test files found — skipping"
-            exit 0
-          }
-
-          Write-Host "Discovered $($testFiles.Count) test file(s)"
-
           $config = New-PesterConfiguration
-          $config.Run.Path        = $testFiles.FullName
+          $config.Run.Path = 'tests'
+          $config.Run.PassThru = $true
           $config.Output.Verbosity = 'Detailed'
-          $config.Run.PassThru    = $true
-
-          $config.TestResult.Enabled      = $true
+          $config.TestResult.Enabled = $true
           $config.TestResult.OutputFormat = 'JUnitXml'
-          $config.TestResult.OutputPath   = 'pester-results.xml'
+          $config.TestResult.OutputPath = 'pester-results.xml'
 
           $result = Invoke-Pester -Configuration $config
 
@@ -144,3 +142,11 @@ jobs:
           path: pester-results.xml
           reporter: java-junit
           fail-on-error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: pester-results.xml
+          retention-days: 14
