@@ -107,8 +107,7 @@ jobs:
         env:
           DOTFILES_ROOT: ${{ github.workspace }}
         run: |
-          Set-StrictMode -Version Latest
-
+          # No Set-StrictMode here: pwsh steps are dot-sourced, so it would leak into every test.
           $config = New-PesterConfiguration
           $config.Run.Path = 'tests'
           $config.Run.PassThru = $true

@@ -551,7 +551,7 @@ function Invoke-ImagePass {
         [Parameter(Mandatory)][int]$OxipngLevel,
         [Parameter(Mandatory)][int]$MaxDimension,
         [Parameter(Mandatory)][string]$BackupPath,
-        [Parameter(Mandatory)][string]$Ffmpeg,
+        [string]$Ffmpeg,
         [bool]$StripMetadata,
         [bool]$ConvertToWebp,
         [bool]$Force
@@ -606,7 +606,10 @@ function Invoke-ImagePass {
         }
 
         # BMP/TIFF first: the PNGs they produce join the oxipng batch below.
-        if ($byKind.ContainsKey('convert')) {
+        if ($byKind.ContainsKey('convert') -and -not $Ffmpeg) {
+            Write-Warning "$($byKind['convert'].Count) BMP/TIFF file(s) left unconverted: ffmpeg not available."
+        }
+        elseif ($byKind.ContainsKey('convert')) {
             $convertible = $byKind['convert']
             $i = 0
             foreach ($file in $convertible) {
@@ -1014,7 +1017,7 @@ if ($resolvedBackupPath.TrimEnd('\', '/') -eq $scanRoot -or
         'server storage instead of shrinking it. Pass -BackupPath outside the scanned tree.')
 }
 
-$ffmpeg = Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared'
+$ffmpeg = Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared' -Optional:$SkipVideo
 
 $bytesSaved = 0L
 $videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; NoGain = 0; Reclaimed = 0L }
