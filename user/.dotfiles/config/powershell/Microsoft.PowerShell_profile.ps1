@@ -44,10 +44,6 @@ if (Get-Module -ListAvailable -Name Terminal-Icons) {
         }
     })
 }
-# PSCompletions: tab-completion for many CLIs. Enable per tool once with `psc add <name>`.
-if (Get-Module -ListAvailable -Name PSCompletions) {
-    $__initQueue.Enqueue({ Import-Module -Name PSCompletions -ErrorAction SilentlyContinue })
-}
 # Registration happens once, after zoxide (below) has had a chance to enqueue its own init step.
 
 #region UI Configuration
@@ -582,8 +578,7 @@ if ($__initQueue.Count -gt 0) {
     Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -SupportEvent -Action {
         if ($__initQueue.Count -gt 0) {
             # Dot-source, not `&`: steps must run in global scope like normal profile code.
-            # PSCompletions creates $PSCompletions in the importing scope; in a child scope
-            # it vanishes after the step and its Tab handler then fails on a null variable.
+            # Variables and functions a step defines would vanish with a child scope.
             . $__initQueue.Dequeue()
         }
         else {

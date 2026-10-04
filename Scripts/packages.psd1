@@ -261,7 +261,6 @@
     # ---------------------------------------------------------------------------
     PsModules          = @(
         'Pester'
-        'PSCompletions'
         'PSIni'
         'PSScriptAnalyzer'
         'PSWindowsUpdate'
