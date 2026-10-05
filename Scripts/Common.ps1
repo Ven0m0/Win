@@ -1261,7 +1261,7 @@ function Remove-Glob {
 function Invoke-MemoryTrim {
     <#
     .SYNOPSIS
-        Trim working sets of all processes and purge the standby list.
+        Trim working sets, flush the modified list, and purge the standby list (needs admin).
     .PARAMETER TypeName
         Name for the generated Add-Type class. Use a distinct name per call site
         within the same process to avoid colliding with an earlier Invoke-MemoryTrim.
@@ -1275,51 +1275,47 @@ function Invoke-MemoryTrim {
 using System;
 using System.Runtime.InteropServices;
 public class $TypeName {
-    [DllImport("psapi.dll")]
-    public static extern bool EmptyWorkingSet(IntPtr hProcess);
-    [DllImport("kernel32.dll", SetLastError=true)]
-    public static extern IntPtr OpenProcess(uint access, bool inherit, int pid);
-    [DllImport("kernel32.dll")]
-    public static extern bool CloseHandle(IntPtr h);
     [DllImport("ntdll.dll")]
     public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
+    [DllImport("ntdll.dll")]
+    public static extern uint RtlAdjustPrivilege(int privilege, bool enable, bool currentThread, out bool previous);
 
-    public static void TrimAll() {
-        foreach (var p in System.Diagnostics.Process.GetProcesses()) {
-            try {
-                IntPtr h = OpenProcess(0x1F0FFF, false, p.Id);
-                if (h != IntPtr.Zero) { EmptyWorkingSet(h); CloseHandle(h); }
-            } catch { System.Diagnostics.Debug.WriteLine("TrimAll process failed: " + p.ProcessName); }
-        }
+    // SeProfileSingleProcessPrivilege (13) must be enabled or every memory-list command fails.
+    public static uint EnablePrivilege() {
+        bool previous;
+        return RtlAdjustPrivilege(13, true, false, out previous);
     }
-    public static void PurgeStandby() {
+    // SystemMemoryListInformation (80); returns the NTSTATUS (0 = success).
+    public static uint MemoryCommand(int command) {
         IntPtr buf = Marshal.AllocHGlobal(4);
-        Marshal.WriteInt32(buf, 4);
-        NtSetSystemInformation(80, buf, 4);
-        Marshal.FreeHGlobal(buf);
+        try {
+            Marshal.WriteInt32(buf, command);
+            return NtSetSystemInformation(80, buf, 4);
+        } finally { Marshal.FreeHGlobal(buf); }
     }
 }
 "@ -ErrorAction SilentlyContinue
 
-    if ($PSCmdlet.ShouldProcess('All processes', 'Trim working sets')) {
-        try {
-            $method = [type]$TypeName
-            $method::TrimAll()
-            Write-Verbose "  Working sets trimmed."
-        }
-        catch {
-            Write-Verbose "Working set trim skipped: $_"
-        }
+    $memUtil = [type]$TypeName
+    $status = $memUtil::EnablePrivilege()
+    if ($status -ne 0) {
+        Write-Warning ("Could not enable SeProfileSingleProcessPrivilege: 0x{0:X8}" -f $status)
+        return
     }
 
-    if ($PSCmdlet.ShouldProcess('Standby list', 'Purge')) {
-        try {
-            $method = [type]$TypeName
-            $method::PurgeStandby()
-            Write-Verbose "  Standby list purged."
-        }
-        catch {
-            Write-Verbose "Standby purge skipped: $_"
+    # RAMMap order: trim working sets, flush modified pages to standby, then purge standby.
+    $steps = @(
+        @{ Command = 2; Target = 'All processes'; Action = 'Trim working sets' }
+        @{ Command = 3; Target = 'Modified list'; Action = 'Flush' }
+        @{ Command = 4; Target = 'Standby list'; Action = 'Purge' }
+    )
+    foreach ($step in $steps) {
+        if (-not $PSCmdlet.ShouldProcess($step.Target, $step.Action)) { continue }
+        $status = $memUtil::MemoryCommand($step.Command)
+        if ($status -eq 0) {
+            Write-Verbose "  $($step.Target): $($step.Action) done."
+        } else {
+            Write-Warning ("{0} - {1} failed: 0x{2:X8}" -f $step.Target, $step.Action, $status)
         }
     }
 }
