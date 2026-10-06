@@ -3,8 +3,13 @@
 # Consumed by Scripts/Get-BedrockPackUpdate.ps1.
 #
 # Minecraft stores imported packs in base64-named folders and records nothing about where they came
-# from, so this map has to be maintained by hand. Keys are the pack's `header.uuid` from its
-# manifest.json — stable across reinstalls, unlike the folder name.
+# from. Keys are the pack's `header.uuid` from its manifest.json.
+#
+# Scripts/Get-BedrockPackUpdate.ps1 -Update appends new entries under an "Auto-discovered" comment: from a
+# project URL in the pack's own manifest, from a sibling entry with the same name (a re-release
+# with a new UUID), or from a CurseForge search when an API key is available: $env:CURSEFORGE_API_KEY,
+# or the 'curseforge' field of the Bitwarden item 'api-keys' (unlock first: $env:BW_SESSION = bw unlock --raw).
+# Hand edits are only needed for packs reported CANDIDATE, CHECK or UNMAPPED.
 #
 # LeviLauncher mods (<instance>\mods\<folder>\manifest.json) have no UUID at all, so their entries
 # are keyed by the manifest's `name` instead - see the Mods section at the end of this file.

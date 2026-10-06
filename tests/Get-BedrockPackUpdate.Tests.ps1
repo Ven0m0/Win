@@ -147,6 +147,60 @@ Describe 'Get-BedrockPackUpdate.ps1' {
     }
   }
 
+  Context 'Source discovery' {
+    BeforeEach {
+      $script:SavedKey = $env:CURSEFORGE_API_KEY
+      $script:SavedBw = $env:BW_SESSION
+      $env:CURSEFORGE_API_KEY = $null
+      $env:BW_SESSION = $null
+    }
+    AfterEach {
+      $env:CURSEFORGE_API_KEY = $script:SavedKey
+      $env:BW_SESSION = $script:SavedBw
+    }
+
+    It 'Matches a re-released pack with a new UUID to its sibling map entry' {
+      New-TestPack -Root $PackRoot -Kind 'behavior_packs' -Folder 'a' `
+        -Uuid 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' -Name 'Feather FPS Boost V12' | Out-Null
+      Set-Content -LiteralPath $MapPath -Value @"
+@{
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb' = @{ Name = 'Feather FPS Boost V11 (BP)'; Url = 'https://mcpedl.com/feather/' }
+}
+"@
+
+      $result = & $ScriptPath -PackRoot $PackRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result[0].Source | Should -Be 'sibling'
+      $result[0].Status | Should -Be 'CHECK'
+      $result[0].Url | Should -Be 'https://mcpedl.com/feather/'
+    }
+
+    It 'Uses a project URL found in the pack manifest' {
+      $dir = New-TestPack -Root $PackRoot -Kind 'behavior_packs' -Folder 'a' `
+        -Uuid 'cccccccc-cccc-cccc-cccc-cccccccccccc' -Name 'Self Described'
+      $manifestPath = Join-Path $dir 'manifest.json'
+      (Get-Content -LiteralPath $manifestPath -Raw) -replace '"header"', '"metadata": { "url": "https://github.com/a/b" }, "header"' |
+        Set-Content -LiteralPath $manifestPath
+      Set-Content -LiteralPath $MapPath -Value '@{}'
+
+      $result = & $ScriptPath -PackRoot $PackRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result[0].Source | Should -Be 'manifest'
+      $result[0].Url | Should -Be 'https://github.com/a/b'
+    }
+
+    It 'Keeps the search URL for a pack with no sibling and no API key' {
+      New-TestPack -Root $PackRoot -Kind 'behavior_packs' -Folder 'a' `
+        -Uuid 'dddddddd-dddd-dddd-dddd-dddddddddddd' -Name 'Totally New' | Out-Null
+      Set-Content -LiteralPath $MapPath -Value '@{}'
+
+      $result = & $ScriptPath -PackRoot $PackRoot -SourceMap $MapPath -AsObject 6> $null
+
+      $result[0].Status | Should -Be 'UNMAPPED'
+      $result[0].Source | Should -Be 'none'
+    }
+  }
+
   Context 'Mods' {
     It 'Reports a mod with a map entry pointing at a non-API URL as CHECK, using the map name' {
       New-TestMod -Root $ModRoot -Folder 'vcruntime140_1' -Name 'vcruntime140_1' | Out-Null
