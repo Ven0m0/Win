@@ -42,7 +42,6 @@
 #   nvidia\msi-afterburner\                        → manual — copy skin files to MSI Afterburner Skins directory
 #   cursors\                                       → manual — run setup-cursors.cmd as admin
 #   kilo\lsp.json                                  → ~/.kilo/lsp.json
-#   opencode\lsp.json                              → ~/.config/opencode/lsp.json
 #   games\minecraft\                               → manual — open .mrpack files with Prism Launcher or MultiMC
 #   wsl\                                           → %USERPROFILE%\.wslconfig (host) + staged ~/.config/wsl.conf for manual /etc/wsl.conf copy
 #   vscode\User\settings.json                      → %APPDATA%\Code\User\settings.json or %APPDATA%\VSCodium\User\settings.json

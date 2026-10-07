@@ -67,7 +67,6 @@
         'sinelaw.fresh-editor'
         'Anthropic.ClaudeCode'
         'Anthropic.Claude'
-        'SST.OpenCodeDesktop'
         'Microsoft.Coreutils'
     )
 
@@ -187,6 +186,7 @@
     ScoopBuckets       = @(
         'extras'
         'java'
+        'versions'
         @{ Name = 'ven0m0'; Url = 'https://github.com/Ven0m0/scoop-bucket' }
     )
 
@@ -201,6 +201,7 @@
         'graalvm-oracle-jdk-ea'
         'jq'
         'scoop-search'
+        'versions/opencode2'
         'yq'
         'snappy-driver-installer-origin'
         'lessmsi'

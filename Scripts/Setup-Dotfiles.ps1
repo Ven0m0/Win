@@ -884,12 +884,6 @@ function Start-Bootstrap {
             ResolveDestination = { Join-Path $HOME '.kilo\lsp.json' }
         },
         @{
-            Path               = 'opencode\lsp.json'
-            Mode               = 'file'
-            Label              = 'OpenCode LSP config'
-            ResolveDestination = { Join-Path $HOME '.config\opencode\lsp.json' }
-        },
-        @{
             Path               = 'vscode\User\settings.json'
             Mode               = 'file'
             Label              = 'VS Code / VSCodium settings'
