@@ -300,4 +300,28 @@
     Name = 'Flarial'
     Url  = 'https://github.com/flarialmc/newcdn'
   }
+
+  # Auto-discovered 2026-10-06
+  '4eb3e415-6bc5-4d30-8a13-d637886ed746' = @{ Name = 'Feather FPS Boost v11.1.0 | Lightweight Optimizer [BP]'; Url = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod' }
+
+  # Auto-discovered 2026-10-06
+  'b09eee61-5648-7bef-eb61-269b8ae0d6c7' = @{ Name = 'PandaMine''s Mip-Mapper'; Url = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/pandamines-mip-mapper' }
+
+  # Auto-discovered 2026-10-06
+  'a4508941-b4e4-4d90-90c2-923f0de4b9ed' = @{ Name = 'Feather FPS Boost v11.1.0 | Lightweight Optimizer [RP]'; Url = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod' }
+
+  # Auto-discovered 2026-10-06
+  'bc4874cf-09b1-4299-8861-35d1183a06f3' = @{ Name = 'PandaMine''s ... Fog Remover'; Url = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/pandamines-fog-remover' }
+
+  # Auto-discovered 2026-10-06
+  'b12edc61-5648-7bef-eb61-269b8ae0d6c7' = @{ Name = 'PandaMine''s Mip-Mapper'; Url = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/pandamines-mip-mapper' }
+
+  # Auto-discovered 2026-10-06
+  '3feaac4e-ba58-4db4-890d-857b402d4b9c' = @{ Name = 'Feather FPS Boost v11.1.0 | Lightweight Optimizer [BP]'; Url = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod' }
+
+  # Auto-discovered 2026-10-06
+  '1e644004-7df8-46e6-b033-a50670f314e5' = @{ Name = 'Feather FPS Boost v11.1.0 | Lightweight Optimizer [RP]'; Url = 'https://www.curseforge.com/minecraft-bedrock/addons/feather-fps-boost-mod' }
+
+  # Auto-discovered 2026-10-06
+  'b54874cf-09b1-4299-8861-35d1183a06f0' = @{ Name = 'PandaMine''s ... Fog Remover'; Url = 'https://www.curseforge.com/minecraft-bedrock/texture-packs/pandamines-fog-remover' }
 }
