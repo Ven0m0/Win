@@ -207,6 +207,8 @@ zprofile text eol=lf
 # =============================================================================
 # Dotbot config
 install.conf.yaml text eol=lf
+# Agent guidance (LF so chunkers/indexers split on headings)
+AGENTS.md text eol=lf
 
 # CI/CD
 *.yml text eol=lf

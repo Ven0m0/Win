@@ -29,6 +29,12 @@ Describe 'clear-memory.ps1' -Skip:$notAdmin {
       $status = $clearMemState.ServiceStatus[$Name]
       if ($status) { [pscustomobject]@{ Name = $Name; Status = $status } }
     }
+    $clearMemState.Processes = @(
+      [pscustomobject]@{ Name = 'SearchIndexer'; Id = 1 }
+      [pscustomobject]@{ Name = 'CrossDeviceResume'; Id = 2 }
+    )
+    Mock Get-Process { $clearMemState.Processes }
+    Mock Stop-Process { }
     Mock Stop-Service { }
     Mock Get-CimInstance {
       $value = $clearMemState.FreeKb[[math]::Min($clearMemState.CimCalls, 1)]
@@ -50,6 +56,13 @@ Describe 'clear-memory.ps1' -Skip:$notAdmin {
 
     Should -Invoke Stop-Service -Times 1 -Exactly
     Should -Invoke Stop-Service -Times 1 -Exactly -ParameterFilter { $Name -eq 'WSearch' }
+  }
+
+  It 'Stops the listed background processes' {
+    & $scriptPath
+
+    Should -Invoke Stop-Process -Times 2 -Exactly
+    Should -Invoke Stop-Process -Times 1 -Exactly -ParameterFilter { $Id -eq 1 }
   }
 
   It 'Skips services that do not exist' {
@@ -95,6 +108,7 @@ Describe 'clear-memory.ps1' -Skip:$notAdmin {
     & $scriptPath -WhatIf
 
     Should -Invoke Stop-Service -Times 0
+    Should -Invoke Stop-Process -Times 0
     Should -Invoke Invoke-MemoryTrim -Times 0
     Should -Invoke Clear-DirectorySafe -Times 0
   }

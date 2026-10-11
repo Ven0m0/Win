@@ -4,7 +4,8 @@
 .SYNOPSIS
     Stops background services, trims working sets, purges the standby list, and clears temp folders.
 .DESCRIPTION
-    Stops WSearch and DoSvc (not disabled; they return on next boot), then reports free RAM
+    Stops WSearch and DoSvc (not disabled; they return on next boot), kills SearchIndexer,
+    SearchProtocolHost, SearchFilterHost and CrossDeviceResume, then reports free RAM
     before/after around Common.ps1's Invoke-MemoryTrim and clears the per-user and system
     temp folders.
 .EXAMPLE
@@ -31,7 +32,20 @@ foreach ($serviceName in @('WSearch', 'DoSvc')) {
     }
 }
 
-if ($PSCmdlet.ShouldProcess('All processes', 'Trim working sets and purge standby list')) {
+# Leftovers after WSearch stops, plus Phone Link's resume helper; Windows relaunches them on demand.
+$processNames = @('SearchIndexer', 'SearchProtocolHost', 'SearchFilterHost', 'CrossDeviceResume')
+foreach ($process in @(Get-Process -Name $processNames -ErrorAction SilentlyContinue)) {
+    if ($PSCmdlet.ShouldProcess("$($process.Name) ($($process.Id))", 'Stop process')) {
+        try {
+            Stop-Process -Id $process.Id -Force -ErrorAction Stop
+            Write-Info "Stopped process: $($process.Name)"
+        } catch {
+            Write-Warn "Could not stop $($process.Name): $($_.Exception.Message)"
+        }
+    }
+}
+
+if ($PSCmdlet.ShouldProcess('All processes','Trim working sets and purge standby list')) {
     $memBefore = (Get-CimInstance -ClassName Win32_OperatingSystem).FreePhysicalMemory
     Write-Info "Free RAM before: $(Format-Size ($memBefore * 1KB))"
 

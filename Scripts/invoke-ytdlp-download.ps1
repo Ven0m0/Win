@@ -119,8 +119,31 @@ $requiredDeps = @('yt-dlp', 'ffmpeg')
 if ($Url -match 'open\.spotify\.com') {
     $requiredDeps += 'spotdl'
 }
+# winget can leave a tool installed but off PATH (no Links shim, stale versioned PATH entry
+# after an upgrade), so probe the package dirs and add the newest hit to this process's PATH.
+function Add-WingetToolToPath {
+    param ([Parameter(Mandatory)][string]$Name)
+    $roots = @(
+        (Join-Path -Path $env:ProgramFiles -ChildPath 'WinGet\Packages')
+        (Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Microsoft\WinGet\Packages')
+    ) | Where-Object { Test-Path -LiteralPath $_ }
+    $exe = foreach ($root in $roots) {
+        Get-ChildItem -LiteralPath $root -Directory -Filter "*$Name*" |
+            ForEach-Object {
+                Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter "$Name.exe" -ErrorAction SilentlyContinue
+            }
+    }
+    $best = $exe | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
+    if ($best) {
+        $env:Path = "$($best.DirectoryName);$env:Path"
+    }
+}
+
 $missingDeps = @()
 foreach ($cmd in $requiredDeps) {
+    if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+        Add-WingetToolToPath -Name $cmd
+    }
     if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
         $missingDeps += $cmd
     }
@@ -147,8 +170,12 @@ if ($missingDeps.Count -gt 0) {
         }
     }
 
+    Update-EnvironmentPath
     $stillMissing = @()
     foreach ($cmd in $requiredDeps) {
+        if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+            Add-WingetToolToPath -Name $cmd
+        }
         if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
             $stillMissing += $cmd
         }

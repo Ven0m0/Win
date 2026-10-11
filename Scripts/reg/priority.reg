@@ -88,11 +88,10 @@ Windows Registry Editor Version 5.00
 "MitigationOptions"=-
 "MitigationAuditOptions"=-
 "EAFModules"=-
-"UseLargePages"=-
+"UseLargePages"=dword:00000001
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\FortniteClient-Win64-Shipping.exe\PerfOptions]
 "CpuPriorityClass"=dword:00000006
-
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\ffmpeg.exe]
 "UseLargePages"=dword:00000001
