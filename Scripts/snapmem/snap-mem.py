@@ -36,7 +36,7 @@ import time
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import NoReturn
 from urllib.error import HTTPError, URLError
@@ -164,14 +164,12 @@ def load_items(json_path: Path, media_type: str) -> list[Item]:
 
 
 def build_base_name(date_str: str) -> str:
-    dt = datetime.strptime(date_str, DATE_FMT).replace(tzinfo=timezone.utc)
+    dt = datetime.strptime(date_str, DATE_FMT).replace(tzinfo=UTC)
     return dt.strftime("%Y-%m-%d_%H-%M-%S")
 
 
 def parse_capture_epoch(date_str: str) -> float:
-    return (
-        datetime.strptime(date_str, DATE_FMT).replace(tzinfo=timezone.utc).timestamp()
-    )
+    return datetime.strptime(date_str, DATE_FMT).replace(tzinfo=UTC).timestamp()
 
 
 def make_unique_name(
@@ -459,7 +457,7 @@ def main(argv: list[str]) -> int:
                     zip_path, base, out_dir, existing, lock, capture_epoch
                 )
                 if ns.exif:
-                    capture_dt = datetime.fromtimestamp(capture_epoch, tz=timezone.utc)
+                    capture_dt = datetime.fromtimestamp(capture_epoch, tz=UTC)
                     for name in extracted:
                         if name.endswith(".jpg"):
                             write_exif_geotag(
@@ -474,7 +472,7 @@ def main(argv: list[str]) -> int:
                 os.replace(zip_path, final_path)
                 os.utime(final_path, (capture_epoch, capture_epoch))
                 if ns.exif and ext == ".jpg":
-                    capture_dt = datetime.fromtimestamp(capture_epoch, tz=timezone.utc)
+                    capture_dt = datetime.fromtimestamp(capture_epoch, tz=UTC)
                     write_exif_geotag(final_path, capture_dt, it.latitude, it.longitude)
                 print(f"✓ {final_name}")
             return True
