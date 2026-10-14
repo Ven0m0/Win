@@ -89,10 +89,13 @@
     same number is visibly softer than x265's -crf; there is no separate
     knob for that.
 .PARAMETER AudioBitrate
-    Opus audio bitrate. Default 128k.
+    Opus audio bitrate. Default 96k.
 .PARAMETER Encoder
     Auto (default; NVENC when ffmpeg reports hevc_nvenc, else x265), NVENC, or
     x265.
+.PARAMETER X265Preset
+    libx265 speed/efficiency preset: medium, slow, slower (default), or veryslow. Slower
+    presets give a smaller file at the same CRF. Ignored by the NVENC encoder.
 .PARAMETER Denoise
     Apply hqdn3d before encoding. Helps already-compressed mobile clips
     actually shrink; lossy, off by default.
@@ -146,9 +149,11 @@ param (
     [switch]$ConvertToWebp,
     [ValidateRange(0, 51)]
     [int]$VideoQuality = 28,
-    [string]$AudioBitrate = '128k',
+    [string]$AudioBitrate = '96k',
     [ValidateSet('Auto', 'NVENC', 'x265')]
     [string]$Encoder = 'Auto',
+    [ValidateSet('medium', 'slow', 'slower', 'veryslow')]
+    [string]$X265Preset = 'slower',
     [switch]$Denoise,
     [ValidateRange(0, 20000)]
     [int]$MaxVideoDimension = 0,
@@ -195,7 +200,8 @@ $batchSize = 200
 # ffmpeg applies -tune before -x265-params and lets the latter override, so this list must
 # not re-specify any psy-oriented option or it silently cancels the tune. What remains is
 # policy (closed 2-5s GOP for seeking/streaming at up to 60fps) plus tune-neutral
-# compression gains layered on top of -preset slow's own table.
+# compression gains layered on top of the preset's own table (bframes/ref/rc-lookahead
+# equal -preset slower's values, so they only change the result for medium/slow).
 $x265Params = 'open-gop=0:min-keyint=24:bframes=8:ref=5:rc-lookahead=40'
 
 
@@ -805,6 +811,95 @@ function Resolve-HevcEncoder {
 }
 
 
+function Invoke-VideoEncode {
+    <#
+    .SYNOPSIS
+        Encodes a batch of videos with ffzap, falling back to plain ffmpeg.
+    .DESCRIPTION
+        ffzap runs -ThreadCount ffmpeg processes concurrently over the whole batch. When ffzap
+        is not available, or exits non-zero, the files that still have no output are encoded
+        one at a time with ffmpeg directly. Callers validate the outputs afterwards, so this
+        function reports nothing.
+    .PARAMETER Ffmpeg
+        ffmpeg path. Its folder is added to PATH for this process so ffzap, which shells out
+        to "ffmpeg" by name, can find it.
+    .PARAMETER Ffzap
+        ffzap path, or empty to use ffmpeg directly.
+    .PARAMETER Batch
+        Objects with Source and Output paths.
+    .PARAMETER FfmpegOption
+        Everything ffmpeg needs between the input and the output path.
+    .PARAMETER OutputSuffix
+        Output filename suffix; ffzap derives each output path from it.
+    .PARAMETER ThreadCount
+        Number of files ffzap encodes concurrently.
+    .PARAMETER Force
+        Overwrite existing outputs (ffzap --overwrite).
+    .EXAMPLE
+        Invoke-VideoEncode -Ffmpeg $ffmpeg -Ffzap $ffzap -Batch $batch -FfmpegOption $opts `
+            -OutputSuffix '.h265.mp4' -ThreadCount 4
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Ffmpeg,
+        [AllowEmptyString()][string]$Ffzap,
+        [Parameter(Mandatory)][PSCustomObject[]]$Batch,
+        [Parameter(Mandatory)][string[]]$FfmpegOption,
+        [Parameter(Mandatory)][string]$OutputSuffix,
+        [Parameter(Mandatory)][int]$ThreadCount,
+        [bool]$Force
+    )
+    process {
+        $pending = $Batch
+        if ($Ffzap) {
+            $ffmpegDir = Split-Path -Parent $Ffmpeg
+            if ($env:PATH -notlike "*$ffmpegDir*") { $env:PATH = "$ffmpegDir;$env:PATH" }
+
+            $listFile = [System.IO.Path]::GetTempFileName()
+            try {
+                # WriteAllLines is UTF-8 without BOM; Set-Content -Encoding UTF8 on PS 5.1
+                # prepends a BOM that ffzap would read as part of the first path.
+                [System.IO.File]::WriteAllLines($listFile, [string[]]$Batch.Source)
+                # {{dir}} expands without a trailing separator, so one must be added explicitly.
+                # Overwrite/-y is left to ffzap's own --overwrite so -Force still gates it.
+                $ffzapArgs = @(
+                    '--file-list', $listFile, '-t', "$ThreadCount", '--eta',
+                    '-f', ($FfmpegOption -join ' '), '-o', "{{dir}}\{{name}}$OutputSuffix"
+                )
+                if ($Force) { $ffzapArgs += '--overwrite' }
+                # Route stdout through Write-Host: left in the success stream, ffzap's progress
+                # lines would be folded into the caller's return value.
+                & $Ffzap @ffzapArgs | ForEach-Object { Write-Host $_ }
+                if ($LASTEXITCODE -eq 0) { return }
+                Write-Warning "ffzap exited with code $LASTEXITCODE; falling back to ffmpeg for unfinished files."
+            }
+            catch {
+                $err = $_
+                Write-Warning "ffzap failed ($($err.Exception.Message)); falling back to ffmpeg for unfinished files."
+            }
+            finally {
+                Remove-Item -LiteralPath $listFile -ErrorAction SilentlyContinue
+            }
+            $pending = @($Batch | Where-Object {
+                    $existing = Get-Item -LiteralPath $_.Output -ErrorAction SilentlyContinue
+                    -not $existing -or $existing.Length -eq 0
+                })
+        }
+        else {
+            Write-Info 'ffzap not available; encoding with ffmpeg one file at a time.'
+        }
+
+        $i = 0
+        foreach ($item in $pending) {
+            $i++
+            Write-Info "ffmpeg ($i/$($pending.Count)): $(Split-Path -Leaf $item.Source)"
+            # -i must precede the codec options so they apply to the output, not the input.
+            & $Ffmpeg '-y' '-i' $item.Source @FfmpegOption $item.Output | ForEach-Object { Write-Host $_ }
+        }
+    }
+}
+
+
 function Invoke-VideoPass {
     [CmdletBinding(SupportsShouldProcess)]
     [OutputType([PSCustomObject])]
@@ -820,12 +915,12 @@ function Invoke-VideoPass {
     .PARAMETER TargetPath
         Folder to scan recursively.
     .PARAMETER Ffmpeg
-        ffmpeg path. Its folder is added to PATH for this process so ffzap,
-        which shells out to "ffmpeg" by name, can find it.
+        ffmpeg path (see Invoke-VideoEncode).
     .PARAMETER Ffprobe
         ffprobe path, used for the source codec check and output validation.
     .PARAMETER Ffzap
-        ffzap path, used as the ffmpeg wrapper that parallelizes the encode.
+        ffzap path, used as the ffmpeg wrapper that parallelizes the encode. Empty to
+        encode with ffmpeg directly.
     .PARAMETER EncoderArgs
         Video-codec arguments for the selected encoder.
     .PARAMETER VideoFilterArgs
@@ -849,7 +944,7 @@ function Invoke-VideoPass {
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][string]$Ffmpeg,
         [Parameter(Mandatory)][string]$Ffprobe,
-        [Parameter(Mandatory)][string]$Ffzap,
+        [AllowEmptyString()][string]$Ffzap,
         [Parameter(Mandatory)][string[]]$EncoderArgs,
         [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$VideoFilterArgs,
         [Parameter(Mandatory)][PSCustomObject]$VideoProfile,
@@ -910,36 +1005,16 @@ function Invoke-VideoPass {
             return $result
         }
 
-        # Phase B: one ffzap call for the whole batch. ffzap shells out to "ffmpeg" by name.
-        $ffmpegDir = Split-Path -Parent $Ffmpeg
-        if ($env:PATH -notlike "*$ffmpegDir*") { $env:PATH = "$ffmpegDir;$env:PATH" }
-
-        $listFile = [System.IO.Path]::GetTempFileName()
-        try {
-            # WriteAllLines is UTF-8 without BOM; Set-Content -Encoding UTF8 on PS 5.1 prepends
-            # a BOM that ffzap would read as part of the first path.
-            [System.IO.File]::WriteAllLines($listFile, [string[]]$batch.Source)
-            # -nostdin: ffzap runs -ThreadCount ffmpegs at once, and without it they contend
-            # for stdin and can block on an interactive prompt. -sn drops subtitle streams,
-            # which the mp4 muxer can otherwise fail on. Overwrite/-y is left to ffzap's own
-            # --overwrite flag below rather than hardcoded, so -Force still gates it.
-            $ffmpegOptions = (@('-hide_banner', '-nostdin', '-loglevel', 'error', '-sn') +
-                $EncoderArgs + $VideoFilterArgs +
-                @('-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2') +
-                $VideoProfile.MuxArgs) -join ' '
-            # {{dir}} expands without a trailing separator, so one must be added explicitly.
-            $ffzapArgs = @(
-                '--file-list', $listFile, '-t', "$ThreadCount", '--eta',
-                '-f', $ffmpegOptions, '-o', "{{dir}}\{{name}}$($VideoProfile.Suffix)"
-            )
-            if ($Force) { $ffzapArgs += '--overwrite' }
-            # Route stdout through Write-Host: left in the success stream, ffzap's per-file
-            # progress lines would be folded into this function's PSCustomObject return value.
-            & $Ffzap @ffzapArgs | ForEach-Object { Write-Host $_ }
-        }
-        finally {
-            Remove-Item -LiteralPath $listFile -ErrorAction SilentlyContinue
-        }
+        # Phase B: encode the batch, through ffzap when available, plain ffmpeg otherwise.
+        # -nostdin: ffzap runs -ThreadCount ffmpegs at once, and without it they contend
+        # for stdin and can block on an interactive prompt. -sn drops subtitle streams,
+        # which the mp4 muxer can otherwise fail on.
+        $ffmpegOptions = @('-hide_banner', '-nostdin', '-loglevel', 'error', '-sn') +
+            $EncoderArgs + $VideoFilterArgs +
+            @('-c:a', 'libopus', '-b:a', $AudioBitrate, '-ac', '2') + $VideoProfile.MuxArgs
+        Invoke-VideoEncode -Ffmpeg $Ffmpeg -Ffzap $Ffzap -Batch $batch.ToArray() `
+            -FfmpegOption $ffmpegOptions -OutputSuffix $VideoProfile.Suffix `
+            -ThreadCount $ThreadCount -Force:$Force
 
         # Phase C: validate each output and back up the source on success.
         $i = 0
@@ -1030,7 +1105,10 @@ if (-not $SkipImages) {
 
 if (-not $SkipVideo) {
     $ffprobe = Resolve-OrInstallTool -Name 'ffprobe' -WingetId 'Gyan.FFmpeg.Shared'
-    $ffzap = Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap'
+    $ffzap = Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap' -Optional
+    if (-not $ffzap) {
+        Write-Warning 'ffzap not found and could not be installed; encoding with ffmpeg one file at a time.'
+    }
     $selectedEncoder = Resolve-HevcEncoder -Ffmpeg $ffmpeg -Preference $Encoder
     Write-Info "Video encoder: $selectedEncoder"
     # hevc -> mp4 today; an av1/vp9 encoder path would add entries here (.av1.mkv / .vp9.mkv,
@@ -1050,7 +1128,7 @@ if (-not $SkipVideo) {
     }
     else {
         $encoderArgs = @(
-            '-c:v', 'libx265', '-preset', 'slow', '-tune', 'ssim', '-crf', "$VideoQuality",
+            '-c:v', 'libx265', '-preset', $X265Preset, '-tune', 'ssim', '-crf', "$VideoQuality",
             '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-g', '120', '-x265-params', $x265Params
         )
     }

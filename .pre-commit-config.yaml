@@ -44,7 +44,7 @@ repos:
       - id: check-illegal-windows-names
       - id: check-symlinks
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: "44.150.1"
+    rev: "44.158.1"
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/biomejs/pre-commit
@@ -66,19 +66,3 @@ repos:
     hooks:
       - id: gha-update
         stages: [manual]
-  - repo: https://github.com/thetestlabs/py-psscriptanalyzer
-    # =============================================================================
-
-    # =============================================================================
-
-    # PowerShell hooks
-    rev: v0.3.1
-    hooks:
-      - id: py-psscriptanalyzer
-        args:
-          - "--severity"
-          - "Warning"
-          - "--include-rules"
-          - "PSAvoidGlobalAliases,PSAvoidUsingConvertToSecureStringWithPlainText,PSAvoidUsingEmptyCatchBlock,PSAvoidUsingInvokeExpression,PSAvoidUsingPositionalParameters,PSAvoidUsingUsernameAndPasswordParams,PSUseBOMForUnicodeEncodedFile,PSUseCorrectCasing,PSProvideCommentHelp,PSReservedCmdletChar,PSReservedParams,PSUseApprovedVerbs,PSUseCmdletCorrectly,PSUseConsistentIndentation,PSUseConsistentWhitespace,PSUseSupportsShouldProcess,PSUseVerbosityForRequestedLevel"
-        files: ^Scripts/.*\.(ps1|psm1|psd1)$
-        stages: [pre-commit]

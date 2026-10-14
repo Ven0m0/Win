@@ -42,7 +42,7 @@ on success the original is moved into `-BackupPath`, since the extension changes
 
 Videos are re-encoded to H.265 MP4 (10-bit, `hvc1` tag, faststart, web-optimized) with
 stereo Opus audio, using NVENC when the GPU/ffmpeg offers `hevc_nvenc` and libx265
-otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slow`, with a
+otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slower` (`-X265Preset`), with a
 closed 2-5s GOP (`-g 120`) so the output stays seekable and HTTP-range-streamable at any
 framerate up to 60fps. NVENC has no SSIM tune and uses `-cq` at the same value, which reads
 visibly softer than x265's `-crf` for the same number. Sources already encoded as HEVC,
@@ -82,7 +82,8 @@ instead of shrinking it.
 ## Prerequisites
 
 - `ffmpeg`/`ffprobe` — required, installed via winget (`Gyan.FFmpeg.Shared`) if missing.
-- `ffzap` — required for the video pass, installed via winget (`CodeF0x.ffzap`) if missing.
+- `ffzap` — used for the video pass, installed via winget (`CodeF0x.ffzap`) if missing. If it
+  cannot be installed, or exits non-zero, the script falls back to plain `ffmpeg`, one file at a time.
 - `oxipng`, `jpegoptim`, `cwebp`, `gifsicle` — optional; installed via winget/scoop on
   first use, degrade to a warning (format left uncompressed) if unavailable.
 - `exiftool` — optional, only used by `-ConvertToWebp` to copy EXIF/XMP into the WebP
@@ -129,8 +130,9 @@ Show full help and exit:
 | `-StripMetadata` | off | Passes `-s` to jpegoptim, discarding EXIF/GPS/orientation — off by default (silent data loss on a photo library) |
 | `-ConvertToWebp` | off | Convert JPEG/PNG to WebP instead of compressing in place; see "ConvertToWebp" above |
 | `-VideoQuality` | `28` | libx265 crf, or the NVENC constant-quality value; 0 (best/largest) to 51 (worst/smallest); NVENC's `-cq` reads softer than x265's `-crf` at the same number |
-| `-AudioBitrate` | `128k` | Opus audio bitrate |
+| `-AudioBitrate` | `96k` | Opus audio bitrate |
 | `-Encoder` | `Auto` | `Auto` (NVENC when ffmpeg reports `hevc_nvenc`, else x265), `NVENC`, or `x265` |
+| `-X265Preset` | `slower` | libx265 preset: `medium`, `slow`, `slower`, or `veryslow`; ignored by NVENC |
 | `-Denoise` | off | Apply `hqdn3d` before encoding; lossy, helps already-compressed clips shrink |
 | `-MaxVideoDimension` | `0` (disabled) | Cap the longer side to this many pixels before encoding, aspect ratio kept, never upscaled; lossy |
 | `-ThreadCount` | `4` | Number of videos ffzap encodes concurrently |
