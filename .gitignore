@@ -124,5 +124,5 @@ results.sarif
 ## Tool UI state (machine-specific)
 Scripts/reg/DeviceCleanup.ini
 
-!Scripts/third-party/gmk/GMKDriver.7z
 !Scripts/third-party/endgame-gear/EndgameGear-OP1-8k-Tools.7z
+Scripts/ooshutup10.cfg
