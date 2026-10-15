@@ -42,7 +42,7 @@ on success the original is moved into `-BackupPath`, since the extension changes
 
 Videos are re-encoded to H.265 MP4 (10-bit, `hvc1` tag, faststart, web-optimized) with
 stereo Opus audio, using NVENC when the GPU/ffmpeg offers `hevc_nvenc` and libx265
-otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slower` (`-X265Preset`), with a
+otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slow` (`-X265Preset`), with a
 closed 2-5s GOP (`-g 120`) so the output stays seekable and HTTP-range-streamable at any
 framerate up to 60fps. NVENC has no SSIM tune and uses `-cq` at the same value, which reads
 visibly softer than x265's `-crf` for the same number. Sources already encoded as HEVC,
@@ -132,7 +132,7 @@ Show full help and exit:
 | `-VideoQuality` | `28` | libx265 crf, or the NVENC constant-quality value; 0 (best/largest) to 51 (worst/smallest); NVENC's `-cq` reads softer than x265's `-crf` at the same number |
 | `-AudioBitrate` | `96k` | Opus audio bitrate |
 | `-Encoder` | `Auto` | `Auto` (NVENC when ffmpeg reports `hevc_nvenc`, else x265), `NVENC`, or `x265` |
-| `-X265Preset` | `slower` | libx265 preset: `medium`, `slow`, `slower`, or `veryslow`; ignored by NVENC |
+| `-X265Preset` | `slow` | libx265 preset: `medium`, `slow`, `slower`, or `veryslow`; ignored by NVENC |
 | `-Denoise` | off | Apply `hqdn3d` before encoding; lossy, helps already-compressed clips shrink |
 | `-MaxVideoDimension` | `0` (disabled) | Cap the longer side to this many pixels before encoding, aspect ratio kept, never upscaled; lossy |
 | `-ThreadCount` | `4` | Number of videos ffzap encodes concurrently |

@@ -94,7 +94,7 @@
     Auto (default; NVENC when ffmpeg reports hevc_nvenc, else x265), NVENC, or
     x265.
 .PARAMETER X265Preset
-    libx265 speed/efficiency preset: medium, slow, slower (default), or veryslow. Slower
+    libx265 speed/efficiency preset: medium, slow (default), slower, or veryslow. Slower
     presets give a smaller file at the same CRF. Ignored by the NVENC encoder.
 .PARAMETER Denoise
     Apply hqdn3d before encoding. Helps already-compressed mobile clips
@@ -153,7 +153,7 @@ param (
     [ValidateSet('Auto', 'NVENC', 'x265')]
     [string]$Encoder = 'Auto',
     [ValidateSet('medium', 'slow', 'slower', 'veryslow')]
-    [string]$X265Preset = 'slower',
+    [string]$X265Preset = 'slow',
     [switch]$Denoise,
     [ValidateRange(0, 20000)]
     [int]$MaxVideoDimension = 0,
@@ -1123,13 +1123,14 @@ if (-not $SkipVideo) {
         # hevc_nvenc has no ssim tune (only hq/ll/ull/lossless) and rejects -x265-params.
         $encoderArgs = @(
             '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr',
-            '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-tag:v', 'hvc1', '-g', '120'
+            '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120'
         )
     }
     else {
         $encoderArgs = @(
             '-c:v', 'libx265', '-preset', $X265Preset, '-tune', 'ssim', '-crf', "$VideoQuality",
-            '-pix_fmt', 'yuv420p10le', '-tag:v', 'hvc1', '-g', '120', '-x265-params', $x265Params
+            '-pix_fmt', 'yuv420p10le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120',
+            '-x265-params', $x265Params
         )
     }
 
