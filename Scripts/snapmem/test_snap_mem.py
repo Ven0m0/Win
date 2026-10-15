@@ -14,7 +14,7 @@ import tempfile
 import threading
 import unittest
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Import snap-mem.py using importlib because of the hyphen in the filename
@@ -100,7 +100,7 @@ class TestSnapMem(unittest.TestCase):
         # date_str carries no real tzinfo for strptime ("UTC" is a literal string match),
         # so a naive .timestamp() would silently use local time instead of UTC.
         date_str = "2023-01-01 12:00:00 UTC"
-        expected = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc).timestamp()
+        expected = datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC).timestamp()
         self.assertEqual(snap_mem.parse_capture_epoch(date_str), expected)
 
     def test_extract_zip_atomically_sets_mtime(self):
