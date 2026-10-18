@@ -41,8 +41,8 @@ Describe 'mc-freeze.ps1 (static)' {
       $parseErrors.Count | Should -Be 0
     }
 
-    It 'Requires PowerShell 7.0' {
-      $text | Should -Match '(?m)^#Requires -Version 7\.0\s*$'
+    It 'Requires PowerShell 5.1' {
+      $text | Should -Match '(?m)^#Requires -Version 5\.1\s*$'
     }
 
     It 'Has comment-based help with synopsis, description and example' {
