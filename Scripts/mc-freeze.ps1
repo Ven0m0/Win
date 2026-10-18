@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
   Freezes the Minecraft client for a fixed time when a global hotkey is pressed.
