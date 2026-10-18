@@ -9,6 +9,9 @@
 
   On a server, suspending also stops network keep-alives. Keep -Seconds below the
   ~15 s keep-alive timeout. Anticheat or admins may treat the stall as a lag switch.
+
+  On resume Minecraft runs up to 10 catch-up ticks before drawing a frame, so a player in mid-air drops
+  ~0.5 s worth of gravity at once. The script cannot prevent this; only a client mod can.
 .EXAMPLE
   pwsh -NoProfile -File mc-freeze.ps1 -Key R -Seconds 10
   Press R in any window to freeze Minecraft for 10 seconds. While the script runs,

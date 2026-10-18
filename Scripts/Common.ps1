@@ -225,7 +225,11 @@ function Set-RegistryValue {
     )
 
     if ($PSCmdlet.ShouldProcess("$Path\$Name", 'Set registry value')) {
-        $null = reg add $Path /v $Name /t $Type /d $Data /f 2>&1
+        $output = reg add $Path /v $Name /t $Type /d $Data /f 2>&1
+        # Warn, not throw: many callers rely on non-terminating behavior
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "reg add failed (exit $LASTEXITCODE) for $Path\$Name : $($output -join ' ')"
+        }
     }
 }
 

@@ -171,6 +171,9 @@ function Invoke-GlobClean {
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param([string]$Pattern)
+    if (-not $PSCmdlet.ShouldProcess($Pattern, 'Remove matching files')) {
+        return
+    }
     Remove-Glob -Pattern $Pattern -TotalSize ([ref]$script:ARC_TOTAL_SIZE) -TotalCount ([ref]$script:ARC_TOTAL_COUNT) `
         -FailedCount ([ref]$script:ARC_SKIPPED_COUNT)
 }

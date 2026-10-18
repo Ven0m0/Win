@@ -81,4 +81,39 @@ Describe 'grant-lock-pages.ps1' {
       $args[0] -eq '/export' -and ($args -join ' ') -like '*/areas USER_RIGHTS*'
     }
   }
+
+  It 'Requests elevation before touching the policy' {
+    & $scriptPath
+
+    Should -Invoke Request-AdminElevation -Times 1 -Exactly
+  }
+
+  It 'Works in a temp folder and configures only the USER_RIGHTS area' {
+    & $scriptPath
+
+    Should -Invoke New-Item -Times 1 -Exactly -ParameterFilter { $Path -like "$env:TEMP*lpim_grant" }
+    Should -Invoke secedit -Times 1 -Exactly -ParameterFilter {
+      $args[0] -eq '/configure' -and ($args -join ' ') -like '*/areas USER_RIGHTS*'
+    }
+  }
+
+  It 'Warns that a logoff is needed after granting' {
+    & $scriptPath
+
+    Should -Invoke Write-Warn -Times 1 -Exactly -ParameterFilter { $Text -like 'Log out*' }
+  }
+
+  It 'Does not warn about a logoff when nothing changed' {
+    $lpimState.Inf = @('[Privilege Rights]', "SeLockMemoryPrivilege = *$userSid")
+
+    & $scriptPath
+
+    Should -Invoke Write-Warn -Times 0 -Exactly
+  }
+
+  It 'Pauses on the closing prompt' {
+    & $scriptPath
+
+    Should -Invoke Read-Host -Times 1 -Exactly
+  }
 }

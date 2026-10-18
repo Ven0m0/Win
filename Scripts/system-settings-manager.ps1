@@ -131,6 +131,10 @@ function Set-ExplorerPerformanceSetting {
   [CmdletBinding(SupportsShouldProcess)]
   param()
 
+  if (-not $PSCmdlet.ShouldProcess('Explorer and visual-effects settings', 'Apply')) {
+    return
+  }
+
   Clear-Host
   Write-Host "Applying Explorer / Visual Effects Settings..." -ForegroundColor Cyan
   Write-Host ""
@@ -167,6 +171,10 @@ function Restore-DefaultExplorerSetting {
   #>
   [CmdletBinding(SupportsShouldProcess)]
   param()
+
+  if (-not $PSCmdlet.ShouldProcess('Explorer and visual-effects settings', 'Restore defaults')) {
+    return
+  }
 
   Clear-Host
   Write-Host "Restoring Default Explorer Settings..." -ForegroundColor Cyan
@@ -207,6 +215,10 @@ function Set-SecurityHardening {
   param(
     [switch]$IncludeOptInExtra
   )
+
+  if (-not $PSCmdlet.ShouldProcess('Security hardening settings', 'Apply')) {
+    return
+  }
 
   Clear-Host
   Write-Host "Applying Security Hardening..." -ForegroundColor Cyan
@@ -266,6 +278,10 @@ function Restore-DefaultSecurityHardening {
   [CmdletBinding(SupportsShouldProcess)]
   param()
 
+  if (-not $PSCmdlet.ShouldProcess('Security hardening settings', 'Restore defaults')) {
+    return
+  }
+
   Clear-Host
   Write-Host "Restoring Default Security Settings..." -ForegroundColor Cyan
   Write-Host ""
@@ -307,6 +323,10 @@ function Set-SystemTweak {
   #>
   [CmdletBinding(SupportsShouldProcess)]
   param()
+
+  if (-not $PSCmdlet.ShouldProcess('System tweaks', 'Apply')) {
+    return
+  }
 
   Clear-Host
   Write-Host "Applying System Tweaks..." -ForegroundColor Cyan
@@ -359,6 +379,10 @@ function Restore-DefaultSystemTweak {
   #>
   [CmdletBinding(SupportsShouldProcess)]
   param()
+
+  if (-not $PSCmdlet.ShouldProcess('System tweaks', 'Restore defaults')) {
+    return
+  }
 
   Clear-Host
   Write-Host "Restoring Default System Tweaks..." -ForegroundColor Cyan

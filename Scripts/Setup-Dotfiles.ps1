@@ -397,10 +397,12 @@ function Invoke-ConfigManifestEntry {
   #>
     [CmdletBinding()]
     param(
-        [hashtable]$Entry
+        [hashtable]$Entry,
+
+        [string]$ConfigRoot
     )
 
-    $sourcePath = Join-Path $configRoot $Entry.Path
+    $sourcePath = Join-Path $ConfigRoot $Entry.Path
     if (-not (Test-Path $sourcePath)) {
         Write-Warning "  [SKIP] $($Entry.Label) - source not found: $sourcePath"
         return
@@ -960,7 +962,7 @@ function Start-Bootstrap {
     foreach ($entry in $configManifest) {
         if ($Target -and $Target -notcontains $entry.Label) { continue }
         try {
-            Invoke-ConfigManifestEntry -Entry $entry
+            Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $configRoot
         }
         catch {
             $err = $_

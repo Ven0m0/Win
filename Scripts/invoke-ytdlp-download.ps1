@@ -103,325 +103,332 @@ param (
     [switch]$PassThrough
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-# The script body has no process block, so pipeline binding leaves only the last item in
-# $Url; $input still holds every piped item.
-if ($MyInvocation.ExpectingInput) {
-    $Url = @(foreach ($pipedUrl in $input) { $pipedUrl })
+begin {
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+    $pipedUrls = [System.Collections.Generic.List[string]]::new()
 }
 
-. "$PSScriptRoot\Common.ps1"
-
-# Guard: verify required external tools (spotdl only required when a Spotify URL is present)
-$requiredDeps = @('yt-dlp', 'ffmpeg')
-if ($Url -match 'open\.spotify\.com') {
-    $requiredDeps += 'spotdl'
-}
-# winget can leave a tool installed but off PATH (no Links shim, stale versioned PATH entry
-# after an upgrade), so probe the package dirs and add the newest hit to this process's PATH.
-function Add-WingetToolToPath {
-    param ([Parameter(Mandatory)][string]$Name)
-    $roots = @(
-        (Join-Path -Path $env:ProgramFiles -ChildPath 'WinGet\Packages')
-        (Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Microsoft\WinGet\Packages')
-    ) | Where-Object { Test-Path -LiteralPath $_ }
-    $exe = foreach ($root in $roots) {
-        Get-ChildItem -LiteralPath $root -Directory -Filter "*$Name*" |
-            ForEach-Object {
-                Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter "$Name.exe" -ErrorAction SilentlyContinue
-            }
-    }
-    $best = $exe | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
-    if ($best) {
-        $env:Path = "$($best.DirectoryName);$env:Path"
-    }
+# Collect every piped item; the download loop runs once in end so the dependency checks and
+# cookie validation are not repeated per URL.
+process {
+    foreach ($pipedUrl in $Url) { $pipedUrls.Add($pipedUrl) }
 }
 
-$missingDeps = @()
-foreach ($cmd in $requiredDeps) {
-    if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
-        Add-WingetToolToPath -Name $cmd
-    }
-    if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
-        $missingDeps += $cmd
-    }
-}
-if ($missingDeps.Count -gt 0) {
-    Write-Warning "Missing required dependencies: $($missingDeps -join ', ') - installing"
+end {
+    $Url = $pipedUrls.ToArray()
 
-    if ($missingDeps -contains 'spotdl') {
-        if ($PSCmdlet.ShouldProcess('spotdl', 'Install via uv pip')) {
-            & uv pip install spotdl
+    . "$PSScriptRoot\Common.ps1"
+
+    # Guard: verify required external tools (spotdl only required when a Spotify URL is present)
+    $requiredDeps = @('yt-dlp', 'ffmpeg')
+    if ($Url -match 'open\.spotify\.com') {
+        $requiredDeps += 'spotdl'
+    }
+    # winget can leave a tool installed but off PATH (no Links shim, stale versioned PATH entry
+    # after an upgrade), so probe the package dirs and add the newest hit to this process's PATH.
+    function Add-WingetToolToPath {
+        param ([Parameter(Mandatory)][string]$Name)
+        $roots = @(
+            (Join-Path -Path $env:ProgramFiles -ChildPath 'WinGet\Packages')
+            (Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Microsoft\WinGet\Packages')
+        ) | Where-Object { Test-Path -LiteralPath $_ }
+        $exe = foreach ($root in $roots) {
+            Get-ChildItem -LiteralPath $root -Directory -Filter "*$Name*" |
+                ForEach-Object {
+                    Get-ChildItem -LiteralPath $_.FullName -Recurse -File -Filter "$Name.exe" -ErrorAction SilentlyContinue
+                }
+        }
+        $best = $exe | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1
+        if ($best) {
+            $env:Path = "$($best.DirectoryName);$env:Path"
         }
     }
 
-    $wingetPackages = @{
-        'yt-dlp' = @('yt-dlp.yt-dlp', 'yt-dlp.FFmpeg')
-        'ffmpeg' = @('Gyan.FFmpeg')
-    }
-    $wingetIds = $missingDeps | Where-Object { $wingetPackages.ContainsKey($_) } |
-        ForEach-Object { $wingetPackages[$_] } | Select-Object -Unique
-    foreach ($id in $wingetIds) {
-        if ($PSCmdlet.ShouldProcess($id, 'Install via winget')) {
-            & winget install --id $id -h --accept-package-agreements --accept-source-agreements `
-                --disable-interactivity --nowarn
-        }
-    }
-
-    Update-EnvironmentPath
-    $stillMissing = @()
+    $missingDeps = @()
     foreach ($cmd in $requiredDeps) {
         if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
             Add-WingetToolToPath -Name $cmd
         }
         if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
-            $stillMissing += $cmd
+            $missingDeps += $cmd
         }
     }
-    if ($stillMissing.Count -gt 0) {
-        Write-Warning ("Still missing after install attempt: $($stillMissing -join ', ')`n" +
-            'Ensure each is on PATH (may require restarting the shell).')
-        exit 1
-    }
-}
+    if ($missingDeps.Count -gt 0) {
+        Write-Warning "Missing required dependencies: $($missingDeps -join ', ') - installing"
 
-# Guard: install the bgutil PO token provider (plugin + generator script), unless skipped.
-# Without a PO token, YouTube Music playlists offer no audio-only formats and the
-# remaining android_vr format 403s on real downloads - see PlayerClient fallback below.
-$potPluginPath = Join-Path -Path $env:APPDATA -ChildPath 'yt-dlp\plugins\bgutil-ytdlp-pot-provider.zip'
-$potGeneratorPath = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider\server\build\main.js'
-if (-not $NoPotProvider -and -not ((Test-Path -LiteralPath $potPluginPath) -and (Test-Path -LiteralPath $potGeneratorPath))) {
-    $potDeps = @('git', 'node')
-    $potMissing = @($potDeps | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) })
-    if ($potMissing.Count -gt 0) {
-        Write-Warning "PO token provider needs $($potMissing -join ', ') on PATH - skipping install; YouTube Music playlists may 403"
-    } elseif ($PSCmdlet.ShouldProcess('bgutil-ytdlp-pot-provider', 'Install PO token provider')) {
-        try {
-            $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/Brainicism/bgutil-ytdlp-pot-provider/releases/latest'
-            $potTag = $release.tag_name
-
-            if (-not (Test-Path -LiteralPath $potPluginPath)) {
-                Ensure-Directory -Path (Split-Path -Path $potPluginPath -Parent)
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest -Uri "https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases/download/$potTag/bgutil-ytdlp-pot-provider.zip" `
-                    -OutFile $potPluginPath
+        if ($missingDeps -contains 'spotdl') {
+            if ($PSCmdlet.ShouldProcess('spotdl', 'Install via uv pip')) {
+                & uv pip install spotdl
             }
+        }
 
-            if (-not (Test-Path -LiteralPath $potGeneratorPath)) {
-                $potRepoDir = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider'
-                if (-not (Test-Path -LiteralPath $potRepoDir)) {
-                    & git clone --single-branch --branch $potTag `
-                        'https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git' $potRepoDir
+        $wingetPackages = @{
+            'yt-dlp' = @('yt-dlp.yt-dlp', 'yt-dlp.FFmpeg')
+            'ffmpeg' = @('Gyan.FFmpeg')
+        }
+        $wingetIds = $missingDeps | Where-Object { $wingetPackages.ContainsKey($_) } |
+            ForEach-Object { $wingetPackages[$_] } | Select-Object -Unique
+        foreach ($id in $wingetIds) {
+            if ($PSCmdlet.ShouldProcess($id, 'Install via winget')) {
+                & winget install --id $id -h --accept-package-agreements --accept-source-agreements `
+                    --disable-interactivity --nowarn
+            }
+        }
+
+        Update-EnvironmentPath
+        $stillMissing = @()
+        foreach ($cmd in $requiredDeps) {
+            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+                Add-WingetToolToPath -Name $cmd
+            }
+            if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+                $stillMissing += $cmd
+            }
+        }
+        if ($stillMissing.Count -gt 0) {
+            Write-Warning ("Still missing after install attempt: $($stillMissing -join ', ')`n" +
+                'Ensure each is on PATH (may require restarting the shell).')
+            exit 1
+        }
+    }
+
+    # Guard: install the bgutil PO token provider (plugin + generator script), unless skipped.
+    # Without a PO token, YouTube Music playlists offer no audio-only formats and the
+    # remaining android_vr format 403s on real downloads - see PlayerClient fallback below.
+    $potPluginPath = Join-Path -Path $env:APPDATA -ChildPath 'yt-dlp\plugins\bgutil-ytdlp-pot-provider.zip'
+    $potGeneratorPath = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider\server\build\main.js'
+    if (-not $NoPotProvider -and -not ((Test-Path -LiteralPath $potPluginPath) -and (Test-Path -LiteralPath $potGeneratorPath))) {
+        $potDeps = @('git', 'node')
+        $potMissing = @($potDeps | Where-Object { -not (Get-Command $_ -ErrorAction SilentlyContinue) })
+        if ($potMissing.Count -gt 0) {
+            Write-Warning "PO token provider needs $($potMissing -join ', ') on PATH - skipping install; YouTube Music playlists may 403"
+        } elseif ($PSCmdlet.ShouldProcess('bgutil-ytdlp-pot-provider', 'Install PO token provider')) {
+            try {
+                $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/Brainicism/bgutil-ytdlp-pot-provider/releases/latest'
+                $potTag = $release.tag_name
+
+                if (-not (Test-Path -LiteralPath $potPluginPath)) {
+                    Ensure-Directory -Path (Split-Path -Path $potPluginPath -Parent)
+                    $ProgressPreference = 'SilentlyContinue'
+                    Invoke-WebRequest -Uri "https://github.com/Brainicism/bgutil-ytdlp-pot-provider/releases/download/$potTag/bgutil-ytdlp-pot-provider.zip" `
+                        -OutFile $potPluginPath
                 }
-                Push-Location -LiteralPath (Join-Path -Path $potRepoDir -ChildPath 'server')
-                try {
-                    & npm ci
-                    & npx tsc
-                } finally {
-                    Pop-Location
+
+                if (-not (Test-Path -LiteralPath $potGeneratorPath)) {
+                    $potRepoDir = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider'
+                    if (-not (Test-Path -LiteralPath $potRepoDir)) {
+                        & git clone --single-branch --branch $potTag `
+                            'https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git' $potRepoDir
+                    }
+                    Push-Location -LiteralPath (Join-Path -Path $potRepoDir -ChildPath 'server')
+                    try {
+                        & npm ci
+                        & npx tsc
+                    } finally {
+                        Pop-Location
+                    }
                 }
+                Add-Log -Text "PO token provider installed: $potTag"
+            } catch {
+                $err = $_
+                Write-Warning "Failed to install PO token provider: $($err.Exception.Message) - YouTube Music playlists may 403"
+                Add-Log -Text "PO token provider install FAILED: $($err.Exception.Message)"
             }
-            Add-Log -Text "PO token provider installed: $potTag"
-        } catch {
-            $err = $_
-            Write-Warning "Failed to install PO token provider: $($err.Exception.Message) - YouTube Music playlists may 403"
-            Add-Log -Text "PO token provider install FAILED: $($err.Exception.Message)"
         }
     }
-}
 
-Add-Log -Text 'YouTube Music Downloader started'
+    Add-Log -Text 'YouTube Music Downloader started'
 
-# Resolve cookie args once and verify they actually authenticate before downloading.
-# A pre-exported cookies.txt takes precedence: it works even while the browser is
-# running, unlike live extraction from a locked browser profile DB. -CookiesFromBrowser
-# is only used as a fallback when no cookies.txt is found.
-$cookieArgs = @()
-$cookieSourceLabel = $CookiesFromBrowser
-if ($CookiesFile -and (Test-Path -LiteralPath $CookiesFile) `
-        -and (Get-Item -LiteralPath $CookiesFile).Length -gt 0) {
-    Add-Log -Text "Cookies from file: $CookiesFile"
-    $cookieArgs = @('--cookies', $CookiesFile)
-    $cookieSourceLabel = $CookiesFile
-} elseif ($CookiesFromBrowser) {
-    Add-Log -Text "Cookies from browser: $CookiesFromBrowser"
-    if ($CookiesFromBrowser -eq 'helium') {
-        # yt-dlp has no native "helium" extractor and Helium's live cookie DB requires the
-        # browser to be closed to read.
-        Write-Warning "No cookies.txt found at: $CookiesFile - falling back to live browser extraction (close Helium first)"
-        $heliumProfile = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'imput\Helium\User Data\Default'
-        $cookieArgs = @('--cookies-from-browser', "chrome:$heliumProfile")
-    } else {
-        $cookieArgs = @('--cookies-from-browser', $CookiesFromBrowser)
-    }
-}
-
-if ($cookieArgs.Count -gt 0) {
-    Write-Verbose "Validating cookies against: $($Url[0])"
-    # -playlist-items 1 bounds validation to the first entry: a full playlist -simulate
-    # would fail (and wipe good cookies) if any single unrelated entry errors out.
-    # Deliberately -skip-download, not -check-formats: a -check-formats range probe can
-    # succeed against a googlevideo URL that then 403s on the real sequential download
-    # (reproduced against android_vr-selected formats without a PO token), so it would
-    # just trade one false negative for a false positive.
-    $null = & yt-dlp @cookieArgs --simulate --skip-download --no-warnings --quiet --playlist-items 1 $Url[0] 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Cookies from '$cookieSourceLabel' failed validation (exit $LASTEXITCODE) - continuing without cookies"
-        Add-Log -Text "Cookie validation FAILED for: $cookieSourceLabel"
-        $cookieArgs = @()
-    } else {
-        Add-Log -Text 'Cookie validation succeeded'
-    }
-}
-
-$sponsorBlockArgs = @()
-if (-not $NoSponsorBlock) {
-    $sponsorBlockArgs = @('--sponsorblock-remove', ($SponsorBlockCategories -join ','))
-}
-
-$results = [System.Collections.Generic.List[PSObject]]::new()
-
-foreach ($u in $Url) {
-    $isSpotify = $u -match 'open\.spotify\.com'
-
-    # Resolve folder name from content title
-    Add-Log -Text "Resolving title for: $u"
-    if ($isSpotify) {
-        $metaFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "spotdl-$([guid]::NewGuid()).spotdl"
-        try {
-            $null = & spotdl save $u --save-file $metaFile 2>&1
-            $rawTitle = $null
-            if (Test-Path -LiteralPath $metaFile) {
-                $meta = Get-Content -LiteralPath $metaFile -Raw | ConvertFrom-Json
-                $first = if ($meta -is [array]) { $meta[0] } else { $meta }
-                $rawTitle = if ($first.list_name) { $first.list_name } else { $first.name }
-            }
-        } finally {
-            Remove-Item -LiteralPath $metaFile -ErrorAction SilentlyContinue
-        }
-    } else {
-        $rawTitle = & yt-dlp @cookieArgs --print playlist_title $u 2>$null | Select-Object -First 1
-        if (-not $rawTitle) {
-            $rawTitle = & yt-dlp @cookieArgs --print title $u 2>$null | Select-Object -First 1
+    # Resolve cookie args once and verify they actually authenticate before downloading.
+    # A pre-exported cookies.txt takes precedence: it works even while the browser is
+    # running, unlike live extraction from a locked browser profile DB. -CookiesFromBrowser
+    # is only used as a fallback when no cookies.txt is found.
+    $cookieArgs = @()
+    $cookieSourceLabel = $CookiesFromBrowser
+    if ($CookiesFile -and (Test-Path -LiteralPath $CookiesFile) `
+            -and (Get-Item -LiteralPath $CookiesFile).Length -gt 0) {
+        Add-Log -Text "Cookies from file: $CookiesFile"
+        $cookieArgs = @('--cookies', $CookiesFile)
+        $cookieSourceLabel = $CookiesFile
+    } elseif ($CookiesFromBrowser) {
+        Add-Log -Text "Cookies from browser: $CookiesFromBrowser"
+        if ($CookiesFromBrowser -eq 'helium') {
+            # yt-dlp has no native "helium" extractor and Helium's live cookie DB requires the
+            # browser to be closed to read.
+            Write-Warning "No cookies.txt found at: $CookiesFile - falling back to live browser extraction (close Helium first)"
+            $heliumProfile = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'imput\Helium\User Data\Default'
+            $cookieArgs = @('--cookies-from-browser', "chrome:$heliumProfile")
+        } else {
+            $cookieArgs = @('--cookies-from-browser', $CookiesFromBrowser)
         }
     }
-    if (-not $rawTitle) {
-        Write-Warning "Could not resolve title for: $u"
-        $rawTitle = 'Unknown'
-    }
 
-    # Sanitize to lowercase folder name: spaces -> underscores, strip specials
-    $folderName = ($rawTitle.ToLowerInvariant() -replace '\s+', '_' -replace '[^a-z0-9_-]', '' -replace '_+', '_').Trim('_')
-    if (-not $folderName) { $folderName = 'playlist' }
-
-    $outDir = Join-Path -Path $OutputDirectory -ChildPath $folderName
-    Ensure-Directory -Path $outDir
-
-    Add-Log -Text "Output folder: $outDir"
-
-    if ($isSpotify) {
-        $exeName = 'spotdl'
-        $downloadArgs = @(
-            'download', $u
-            '--format', $Format
-            '--output', (Join-Path -Path $outDir -ChildPath '{track-number} - {title}.{output-ext}')
-        )
-    } else {
-        $exeName = 'yt-dlp'
-        # Archive lives under $OutputDirectory, not $outDir, so the filename cleanup loop
-        # below (which rewrites every file in $outDir) never touches it.
-        $archivePath = Join-Path -Path $OutputDirectory -ChildPath "$folderName.archive.txt"
-        $downloadArgs = $cookieArgs + @(
-            '-x'
-            '--audio-format', $Format
-            '--audio-quality', '0'
-            '--embed-metadata'
-            '--embed-thumbnail'
-            '--parse-metadata', '%(playlist_index)s:%(track_number)s'
-            '-o', $OutputTemplate
-            '-P', $outDir
-            '--ignore-errors'
-            '--download-archive', $archivePath
-            '--retries', '10'
-            '--fragment-retries', '10'
-            '--extractor-retries', '3'
-            '--retry-sleep', 'http:exp=1:60'
-        )
-        if ($PlayerClient) {
-            $downloadArgs += @('--extractor-args', "youtube:player_client=$PlayerClient")
+    if ($cookieArgs.Count -gt 0) {
+        Write-Verbose "Validating cookies against: $($Url[0])"
+        # -playlist-items 1 bounds validation to the first entry: a full playlist -simulate
+        # would fail (and wipe good cookies) if any single unrelated entry errors out.
+        # Deliberately -skip-download, not -check-formats: a -check-formats range probe can
+        # succeed against a googlevideo URL that then 403s on the real sequential download
+        # (reproduced against android_vr-selected formats without a PO token), so it would
+        # just trade one false negative for a false positive.
+        $null = & yt-dlp @cookieArgs --simulate --skip-download --no-warnings --quiet --playlist-items 1 $Url[0] 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Cookies from '$cookieSourceLabel' failed validation (exit $LASTEXITCODE) - continuing without cookies"
+            Add-Log -Text "Cookie validation FAILED for: $cookieSourceLabel"
+            $cookieArgs = @()
+        } else {
+            Add-Log -Text 'Cookie validation succeeded'
         }
-        $downloadArgs += $sponsorBlockArgs + @($u)
     }
 
-    $label = $u
-    if ($label.Length -gt 70) {
-        $label = $label.Substring(0, 67) + '...'
+    $sponsorBlockArgs = @()
+    if (-not $NoSponsorBlock) {
+        $sponsorBlockArgs = @('--sponsorblock-remove', ($SponsorBlockCategories -join ','))
     }
 
-    if ($PSCmdlet.ShouldProcess($label, "Download $Format to $outDir")) {
-        Write-Verbose "Running: $exeName $($downloadArgs -join ' ')"
-        Add-Log -Text "Starting: $u"
+    $results = [System.Collections.Generic.List[PSObject]]::new()
 
-        & $exeName @downloadArgs 2>&1
-        $ec = $LASTEXITCODE
+    foreach ($u in $Url) {
+        $isSpotify = $u -match 'open\.spotify\.com'
 
-        # A cookie-free android_vr-selected format can 403 on the real download despite
-        # passing metadata/cookie validation (no PO token = no audio-only format). Retry
-        # once with a client verified to still hand out a downloadable format
-        # (web_safari -> format 96, AAC ~128k from a 1080p HLS stream) before giving up.
-        if ($ec -ne 0 -and -not $isSpotify -and -not $PlayerClient) {
-            Write-Warning "Retrying with -extractor-args youtube:player_client=web_safari for: $u"
-            Add-Log -Text "Retrying with player_client=web_safari: $u"
-            $retryArgs = $downloadArgs + @('--extractor-args', 'youtube:player_client=web_safari', '-f', '96/bestaudio/best')
-            & $exeName @retryArgs 2>&1
-            $ec = $LASTEXITCODE
-            if ($ec -eq 0) {
-                Add-Log -Text "Retry succeeded with player_client=web_safari: $u"
-                if ($Format -eq 'flac') {
-                    Write-Warning "Source for '$u' was AAC ~128k stripped from a 1080p HLS stream (no PO token available) - the FLAC is a lossless container around lossy audio"
+        # Resolve folder name from content title
+        Add-Log -Text "Resolving title for: $u"
+        if ($isSpotify) {
+            $metaFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "spotdl-$([guid]::NewGuid()).spotdl"
+            try {
+                $null = & spotdl save $u --save-file $metaFile 2>&1
+                $rawTitle = $null
+                if (Test-Path -LiteralPath $metaFile) {
+                    $meta = Get-Content -LiteralPath $metaFile -Raw | ConvertFrom-Json
+                    $first = if ($meta -is [array]) { $meta[0] } else { $meta }
+                    $rawTitle = if ($first.list_name) { $first.list_name } else { $first.name }
                 }
-            }
-        }
-
-        # Post-process: lowercase filenames, replace spaces with underscores, strip special chars
-        if ($ec -eq 0 -and (Test-Path -LiteralPath $outDir)) {
-            Get-ChildItem -LiteralPath $outDir -File | ForEach-Object {
-                $newBase = $_.BaseName.ToLowerInvariant() -replace '\s+', '_' -replace '[^a-z0-9_-]', '' -replace '_+', '_'
-                $newName = $newBase.TrimEnd('.') + $_.Extension.ToLowerInvariant()
-                if ($_.Name -ne $newName) {
-                    $null = Rename-Item -LiteralPath $_.FullName -NewName $newName -ErrorAction SilentlyContinue
-                }
-            }
-        }
-
-        if ($ec -eq 0) {
-            Add-Log -Text "Completed: $u"
-            if ($PassThrough) {
-                $results.Add([PSCustomObject]@{
-                    Url      = $u
-                    Folder   = $folderName
-                    OutDir   = $outDir
-                    Status   = 'Completed'
-                    ExitCode = $ec
-                })
+            } finally {
+                Remove-Item -LiteralPath $metaFile -ErrorAction SilentlyContinue
             }
         } else {
-            Write-Warning "yt-dlp exited with code $ec for: $u"
-            Add-Log -Text "FAILED (exit $ec): $u"
-            if ($PassThrough) {
-                $results.Add([PSCustomObject]@{
-                    Url      = $u
-                    Folder   = $folderName
-                    Status   = "Failed (exit $ec)"
-                    ExitCode = $ec
-                })
+            $rawTitle = & yt-dlp @cookieArgs --print playlist_title $u 2>$null | Select-Object -First 1
+            if (-not $rawTitle) {
+                $rawTitle = & yt-dlp @cookieArgs --print title $u 2>$null | Select-Object -First 1
+            }
+        }
+        if (-not $rawTitle) {
+            Write-Warning "Could not resolve title for: $u"
+            $rawTitle = 'Unknown'
+        }
+
+        # Sanitize to lowercase folder name: spaces -> underscores, strip specials
+        $folderName = ($rawTitle.ToLowerInvariant() -replace '\s+', '_' -replace '[^a-z0-9_-]', '' -replace '_+', '_').Trim('_')
+        if (-not $folderName) { $folderName = 'playlist' }
+
+        $outDir = Join-Path -Path $OutputDirectory -ChildPath $folderName
+        Ensure-Directory -Path $outDir
+
+        Add-Log -Text "Output folder: $outDir"
+
+        if ($isSpotify) {
+            $exeName = 'spotdl'
+            $downloadArgs = @(
+                'download', $u
+                '--format', $Format
+                '--output', (Join-Path -Path $outDir -ChildPath '{track-number} - {title}.{output-ext}')
+            )
+        } else {
+            $exeName = 'yt-dlp'
+            # Archive lives under $OutputDirectory, not $outDir, so the filename cleanup loop
+            # below (which rewrites every file in $outDir) never touches it.
+            $archivePath = Join-Path -Path $OutputDirectory -ChildPath "$folderName.archive.txt"
+            $downloadArgs = $cookieArgs + @(
+                '-x'
+                '--audio-format', $Format
+                '--audio-quality', '0'
+                '--embed-metadata'
+                '--embed-thumbnail'
+                '--parse-metadata', '%(playlist_index)s:%(track_number)s'
+                '-o', $OutputTemplate
+                '-P', $outDir
+                '--ignore-errors'
+                '--download-archive', $archivePath
+                '--retries', '10'
+                '--fragment-retries', '10'
+                '--extractor-retries', '3'
+                '--retry-sleep', 'http:exp=1:60'
+            )
+            if ($PlayerClient) {
+                $downloadArgs += @('--extractor-args', "youtube:player_client=$PlayerClient")
+            }
+            $downloadArgs += $sponsorBlockArgs + @($u)
+        }
+
+        $label = $u
+        if ($label.Length -gt 70) {
+            $label = $label.Substring(0, 67) + '...'
+        }
+
+        if ($PSCmdlet.ShouldProcess($label, "Download $Format to $outDir")) {
+            Write-Verbose "Running: $exeName $($downloadArgs -join ' ')"
+            Add-Log -Text "Starting: $u"
+
+            & $exeName @downloadArgs 2>&1
+            $ec = $LASTEXITCODE
+
+            # A cookie-free android_vr-selected format can 403 on the real download despite
+            # passing metadata/cookie validation (no PO token = no audio-only format). Retry
+            # once with a client verified to still hand out a downloadable format
+            # (web_safari -> format 96, AAC ~128k from a 1080p HLS stream) before giving up.
+            if ($ec -ne 0 -and -not $isSpotify -and -not $PlayerClient) {
+                Write-Warning "Retrying with -extractor-args youtube:player_client=web_safari for: $u"
+                Add-Log -Text "Retrying with player_client=web_safari: $u"
+                $retryArgs = $downloadArgs + @('--extractor-args', 'youtube:player_client=web_safari', '-f', '96/bestaudio/best')
+                & $exeName @retryArgs 2>&1
+                $ec = $LASTEXITCODE
+                if ($ec -eq 0) {
+                    Add-Log -Text "Retry succeeded with player_client=web_safari: $u"
+                    if ($Format -eq 'flac') {
+                        Write-Warning "Source for '$u' was AAC ~128k stripped from a 1080p HLS stream (no PO token available) - the FLAC is a lossless container around lossy audio"
+                    }
+                }
+            }
+
+            # Post-process: lowercase filenames, replace spaces with underscores, strip special chars
+            if ($ec -eq 0 -and (Test-Path -LiteralPath $outDir)) {
+                Get-ChildItem -LiteralPath $outDir -File | ForEach-Object {
+                    $newBase = $_.BaseName.ToLowerInvariant() -replace '\s+', '_' -replace '[^a-z0-9_-]', '' -replace '_+', '_'
+                    $newName = $newBase.TrimEnd('.') + $_.Extension.ToLowerInvariant()
+                    if ($_.Name -ne $newName) {
+                        $null = Rename-Item -LiteralPath $_.FullName -NewName $newName -ErrorAction SilentlyContinue
+                    }
+                }
+            }
+
+            if ($ec -eq 0) {
+                Add-Log -Text "Completed: $u"
+                if ($PassThrough) {
+                    $results.Add([PSCustomObject]@{
+                        Url      = $u
+                        Folder   = $folderName
+                        OutDir   = $outDir
+                        Status   = 'Completed'
+                        ExitCode = $ec
+                    })
+                }
+            } else {
+                Write-Warning "yt-dlp exited with code $ec for: $u"
+                Add-Log -Text "FAILED (exit $ec): $u"
+                if ($PassThrough) {
+                    $results.Add([PSCustomObject]@{
+                        Url      = $u
+                        Folder   = $folderName
+                        Status   = "Failed (exit $ec)"
+                        ExitCode = $ec
+                    })
+                }
             }
         }
     }
-}
 
-if ($PassThrough -and $results.Count -gt 0) {
-    $results
+    if ($PassThrough -and $results.Count -gt 0) {
+        $results
+    }
 }

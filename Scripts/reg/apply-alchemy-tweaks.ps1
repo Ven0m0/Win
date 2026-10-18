@@ -102,6 +102,9 @@ function Set-RegistryValueTable {
         [Parameter(Mandatory)][hashtable]$Values,
         [string]$Type = 'REG_DWORD'
     )
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Set registry values')) {
+        return
+    }
     foreach ($kv in $Values.GetEnumerator()) {
         Set-RegistryValue -Path $Path -Name $kv.Key -Type $Type -Data $kv.Value
     }
@@ -111,6 +114,9 @@ function Set-RegistryValueTable {
 function Set-OfficiallyVerifiedTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('Officially-Verified tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying Officially-Verified tweaks..." -ForegroundColor Cyan
 
     Set-RegistryValue -Path "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler" `
@@ -162,6 +168,9 @@ function Set-OfficiallyVerifiedTweak {
 function Set-DirectXTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('DirectX tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying DirectX tweaks..." -ForegroundColor Cyan
 
     $direct3dCommon = @{
@@ -372,6 +381,9 @@ function Set-KernelTweak {
 function Set-MmcssTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('MMCSS tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying MMCSS tweaks (SystemResponsiveness, task profiles, service enabled)..." -ForegroundColor Cyan
 
     Set-RegistryValueTable -Path "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Values @{
@@ -409,6 +421,9 @@ function Set-MmcssTweak {
 function Set-NvmeTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('NVMe tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying NVMe tweaks..." -ForegroundColor Cyan
 
     $nvmeValues = @{
@@ -439,6 +454,9 @@ function Set-NvmeTweak {
 function Set-NvidiaTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('NVIDIA tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying NVIDIA tweaks..." -ForegroundColor Cyan
 
     foreach ($base in "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers",
@@ -464,6 +482,9 @@ function Set-NvidiaTweak {
 function Set-PowerTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('Power tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying power tweaks..." -ForegroundColor Cyan
 
     $eventGuids = @(
@@ -507,6 +528,9 @@ function Set-PowerTweak {
 function Set-GameBarTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('Game Bar tweaks', 'Apply')) {
+        return
+    }
     Write-Host "Applying Game Bar / Game DVR tweaks..." -ForegroundColor Cyan
 
     Set-RegistryValueTable -Path "HKCU\SOFTWARE\Microsoft\GameBar" -Values @{
@@ -523,6 +547,9 @@ function Set-GameBarTweak {
 function Set-ExperimentalTweak {
     [CmdletBinding(SupportsShouldProcess)]
     param()
+    if (-not $PSCmdlet.ShouldProcess('Experimental tweaks', 'Apply')) {
+        return
+    }
 
     Write-Host "  [*] Experimental kernel tweaks..." -ForegroundColor Gray
     Set-RegistryValueTable -Path "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" -Values @{

@@ -318,6 +318,10 @@ function Invoke-CreateShortcut {
         return
     }
 
+    if (-not $PSCmdlet.ShouldProcess($shortcutPath, 'Create shortcut')) {
+        return
+    }
+
     New-Shortcut -ShortcutPath $shortcutPath -TargetPath $steamExe -Arguments $launchArgs `
         -Description 'Steam (Optimized) - performance-focused launch' -WorkingDirectory $SteamPath
 }

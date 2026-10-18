@@ -18,6 +18,12 @@ Describe "allow-scripts.ps1" {
         Mock -CommandName Remove-RegistryValue -MockWith { }
         Mock -CommandName Write-Host -MockWith { }
         Mock -CommandName Unblock-File -MockWith { }
+        # Defence in depth: the script only writes policy through Set-RegistryValue, but nothing here may ever
+        # reach the real execution policy or console output.
+        Mock -CommandName Set-ExecutionPolicy -MockWith { }
+        Mock -CommandName Write-Info -MockWith { }
+        Mock -CommandName Write-Success -MockWith { }
+        Mock -CommandName Write-Warn -MockWith { }
     }
 
     Context "Enable-ScriptExecution" {
@@ -93,6 +99,37 @@ Describe "allow-scripts.ps1" {
             Should -Invoke Set-RegistryValue -ParameterFilter {
                 $Path -like '*HKCU*' -and $Name -eq 'ExecutionPolicy' -and $Data -eq 'Restricted'
             }
+        }
+    }
+
+    Context "Machine state safety" {
+        BeforeAll {
+            . "$PSScriptRoot/../Scripts/allow-scripts.ps1"
+        }
+
+        It "Never calls Set-ExecutionPolicy when enabling or disabling" {
+            Enable-ScriptExecution
+            Disable-ScriptExecution
+            Should -Invoke Set-ExecutionPolicy -Times 0 -Exactly
+        }
+
+        It "Leaves the real execution policy of every scope unchanged" {
+            $before = Get-ExecutionPolicy -List | ForEach-Object { "$($_.Scope)=$($_.ExecutionPolicy)" }
+
+            Enable-ScriptExecution
+            Disable-ScriptExecution
+
+            $after = Get-ExecutionPolicy -List | ForEach-Object { "$($_.Scope)=$($_.ExecutionPolicy)" }
+            $after | Should -Be $before
+        }
+
+        It "Makes no changes under -WhatIf" {
+            Enable-ScriptExecution -WhatIf
+            Disable-ScriptExecution -WhatIf
+
+            Should -Invoke Set-RegistryValue -Times 0 -Exactly
+            Should -Invoke Remove-RegistryValue -Times 0 -Exactly
+            Should -Invoke Unblock-File -Times 0 -Exactly
         }
     }
 

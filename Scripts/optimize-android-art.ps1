@@ -141,6 +141,9 @@ function Invoke-TunedCompile {
 }
 
 function Start-AndroidArtOptimization {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
+
   Test-AdbDevice
   if (-not $SkipCleanup -and $PSCmdlet.ShouldProcess('device', 'Clean up caches and storage')) {
     Write-Phase 'Cleanup'

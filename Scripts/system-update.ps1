@@ -1436,7 +1436,6 @@ Invoke-Update -Name 'Flutter' -Title 'Flutter' -Disabled:$SkipFlutter -RequiresC
 
 Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Disabled:$SkipPowerShellModules -Action {
     $details = [System.Collections.Generic.List[string]]::new()
-    $changed = $false
 
     if ((Test-Command 'Get-InstalledPSResource') -and (Test-Command 'Update-PSResource')) {
         $psrCommand = Get-Command Update-PSResource -ErrorAction SilentlyContinue
@@ -1449,7 +1448,7 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         @(Get-InstalledPSResource -ErrorAction SilentlyContinue) | ForEach-Object {
             $prev = $beforeSnapshot[$_.Name]
             $curr = [string]$_.Version
-            if ($prev -and $curr -ne $prev) { $changed = $true; $details.Add("PSResource $($_.Name) $prev -> $curr") }
+            if ($prev -and $curr -ne $prev) { $details.Add("PSResource $($_.Name) $prev -> $curr") }
         }
     }
 
@@ -1464,13 +1463,13 @@ Invoke-Update -Name 'pwsh-resources' -Title 'PowerShell Modules / Resources' -Di
         @(Get-InstalledModule -ErrorAction SilentlyContinue) | ForEach-Object {
             $prev = $beforeSnapshot[$_.Name]
             $curr = [string]$_.Version
-            if ($prev -and $curr -ne $prev) { $changed = $true; $details.Add("Module $($_.Name) $prev -> $curr") }
+            if ($prev -and $curr -ne $prev) { $details.Add("Module $($_.Name) $prev -> $curr") }
         }
     }
 
-    if ($changed) {
+    if ($details.Count -gt 0) {
         $script:stepChanged = $true
-        $script:stepMessage = if ($details.Count -gt 0) { $details -join '; ' } else { 'PowerShell modules updated' }
+        $script:stepMessage = $details -join '; '
     }
     else {
         $script:stepMessage = 'PowerShell modules and help checked'
