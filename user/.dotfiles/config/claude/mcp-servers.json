@@ -30,5 +30,26 @@
     "command": "bunx",
     "args": ["--bun", "fast-filesystem-mcp@latest"],
     "env": {}
+  },
+  "caveman": {
+    "type": "stdio",
+    "command": "%USERPROFILE%\\.caveman\\bin\\caveman-mcp.exe",
+    "args": [],
+    "env": {}
+  },
+  "rea": {
+    "type": "stdio",
+    "command": "cmd.exe",
+    "args": ["/d", "/c", "bunx", "rea-agents@6.5.0", "mcp"],
+    "env": {}
+  },
+  "obsidian-hybrid-search": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["%LOCALAPPDATA%\\obsidian-hybrid-search\\app\\node_modules\\obsidian-hybrid-search\\dist\\src\\server.js"],
+    "env": {
+      "OBSIDIAN_VAULT_PATH": "%USERPROFILE%\\Nextcloud\\obsidian-vault",
+      "OBSIDIAN_IGNORE_PATTERNS": ".obsidian/**,.claude/**,.claudian/**,.remember/**,Templates/**,*.canvas"
+    }
   }
 }

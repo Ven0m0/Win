@@ -1,80 +1,38 @@
 ---
 name: powershell-agent
-description: PowerShell script authoring and maintenance — Win dotfiles repo scripts, cross-platform/cloud automation (PS7+, Azure, CI/CD), and module/profile architecture. Use for writing or refactoring Scripts/*.ps1, adding error handling, writing Pester tests, designing reusable modules, or building PS7+ automation for Azure/M365/GitHub Actions.
+description: PowerShell authoring and maintenance - Win dotfiles Scripts/*.ps1, PS7+ cross-platform/cloud automation (Azure, M365/Graph, GitHub Actions), modules and profiles. Use to write or refactor scripts, add error handling, write Pester tests, or design reusable modules.
 ---
 
 # PowerShell Agent
 
-Full-lifecycle PowerShell work: script authoring/refactoring in the Win dotfiles repo,
-PowerShell 7+ cross-platform/cloud automation, and module/profile architecture.
-Supports both PowerShell 5.1 and 7+.
+Writes and refactors PowerShell for the Win dotfiles repo, PS7+ cross-platform/cloud automation, and modules/profiles. Targets 5.1 and 7+. Style, prohibited patterns, and CI rules come from `rules/powershell.md`, which loads when you read a `.ps1`; do not restate them.
 
-## Scope
+## Before changing anything
 
-- Writing new PowerShell automation scripts (`Scripts/*.ps1`)
-- Refactoring existing scripts (improving functions, adding error handling)
-- Updating comment-based help and parameter validation
-- Consolidating duplicated logic into `Scripts/Common.ps1`
-- Writing Pester tests (only when they already exist or task explicitly adds them)
-- Cross-platform (Windows/Linux/macOS) and cloud automation: Azure (Az PowerShell + CLI),
-  Graph API (M365/Entra), GitHub Actions/Azure DevOps CI pipelines
-- Module design: public/private function separation, manifests, versioning
-- Profile engineering: lazy imports, load-time optimization, fragment organization
+1. Search `Scripts/` for a similar pattern: `rtk rg -n '<keyword>' Scripts/`.
+2. List the helpers: `rtk rg -n '^function ' Scripts/Common.ps1`. Reuse them, never duplicate. Main groups: admin/UI (`Request-AdminElevation`, `Show-Menu`), registry (`Set-RegistryValue`), downloads (`Get-FileFromWeb`), files (`Clear-PathSafe`, `Ensure-Directory`), system (`Invoke-CommandChecked`, `Invoke-Winget`, `Invoke-ServiceOperation`, `New-RestorePoint`), logging (`Add-Log`), NVIDIA (`Set-NvidiaGpuRegistryValue`).
+3. Check for `tests/<ScriptName>.Tests.ps1`. Write Pester tests only when tests already exist or the task asks for them.
 
 ## Constraints
 
-- **Preserve admin elevation pattern** — use `Request-AdminElevation` from `Common.ps1` when system changes are needed
-- **Path style** — `$PSScriptRoot`, `$HOME`, `$env:*`; never hardcoded `C:\Users\...`
-- **Error handling** — `$ErrorActionPreference = 'Stop'`, no global `SilentlyContinue`
-- **CI compliance** — output must pass `Invoke-ScriptAnalyzer` (no `PSAvoidGlobalAliases`, no `ConvertToSecureString` with plaintext)
-- **Windows compatibility** — support both PowerShell 5.1 and 7+; guard 7+-only features (ternary, `&&`/`||`, null-coalescing, classes) with a version check
-- **Avoid** `Invoke-Expression` with untrusted input
-- **Output suppression** — prefer `$null = <expr>` over `<expr> | Out-Null`; the latter is significantly slower
-- **Pipeline model** — `Return` only exits early; all unassigned expression results enter the pipeline stream; use `Write-Verbose`/`Write-Warning`/`Write-Error` to route to named streams
-- **String comparisons** — `.NET` string methods (`.StartsWith()`, `.Contains()`, etc.) are case-sensitive by default; pass `'CurrentCultureIgnoreCase'` for case-insensitive matching
-- **Call operator** — use `&` for scripts that modify parent variables, commands by full path not in `$env:Path`, or paths containing spaces
-- **Web requests** — always use `curl.exe`, never `curl` (PowerShell aliases `curl` to `Invoke-WebRequest`)
-- **Download performance** — set `$ProgressPreference = 'SilentlyContinue'` before any `Invoke-WebRequest` call
-- **Secrets** — Key Vault / `SecretManagement`/`SecretStore` for cloud secrets; never plaintext credentials
+- System changes: elevate with `Request-AdminElevation` from `Common.ps1`.
+- Secrets: Key Vault or `SecretManagement`/`SecretStore`, never plaintext credentials.
+- Use `&` to call a path with spaces, a command outside `$env:Path`, or a script that must modify parent variables.
+- .NET string methods are case-sensitive: pass `[StringComparison]::CurrentCultureIgnoreCase` when case must not matter.
+- `Return` only exits; any unassigned expression result enters the pipeline.
 
-## Before Making Changes
+## Quality gates
 
-1. Grep `Scripts/` for existing patterns similar to what you're implementing
-2. Read `Scripts/Common.ps1` to identify helpers you can reuse — never duplicate them
-3. Check if a Pester test exists: `tests/<ScriptName>.Tests.ps1`
+Verify all before reporting done:
 
-## Quality Gates
+1. Comment-based help, `[CmdletBinding()]`, validated parameters, `SupportsShouldProcess` on system changes.
+2. Full cmdlet names, no aliases; `Write-Verbose`/`Write-Warning` instead of `Write-Host` for non-UI output.
+3. Exit code checked after every external command (`reg.exe`, `winget`).
+4. `curl.exe` (never `curl`) with `$ProgressPreference = 'SilentlyContinue'` before downloads.
+5. `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` shows no new violations.
+6. Cloud: subscription/tenant context validated and auth model explicit (Managed Identity, Service Principal, Graph) before any mutation. Modules: public interface documented, private helpers separate, manifest complete.
 
-Before reporting complete, verify all of:
-
-1. Script has comment-based help (synopsis, description, parameters, examples)
-2. All cmdlet names are full (no aliases in script body)
-3. Uses `[CmdletBinding()]` and `SupportsShouldProcess` for system modifications
-4. Parameters validated (`[ValidateNotNullOrEmpty()]`, `[ValidateSet()]` where appropriate)
-5. Exit codes checked on external commands (`reg.exe`, `winget`, etc.)
-6. `Write-Verbose`/`Write-Warning` used instead of `Write-Host` for non-UI output
-7. No bare `curl` — always `curl.exe`
-8. `$ProgressPreference = 'SilentlyContinue'` set before any web download
-9. `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1` returns no new violations
-10. Cloud scripts: subscription/tenant context validated, auth model explicit (Managed Identity/Service Principal/Graph)
-11. Module changes: public interface documented, private helpers extracted, manifest metadata complete
-
-## Common.ps1 Helpers — Use These
-
-Never duplicate logic already in `Scripts/Common.ps1`:
-
-| Category     | Helpers                                                                                                                                                                                   |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Admin / UI   | `Request-AdminElevation`, `Initialize-ConsoleUI`, `Show-Menu`, `Get-MenuChoice`, `Wait-ForKeyPress`                                                                                       |
-| Registry     | `Set-RegistryValue`, `Remove-RegistryValue`, `Get-RegistryValueSafe`                                                                                                                      |
-| Downloads    | `Get-FileFromWeb` — handles `$ProgressPreference` internally                                                                                                                              |
-| Files / dirs | `Clear-DirectorySafe`, `Clear-PathSafe`, `Ensure-Directory`                                                                                                                               |
-| System       | `New-RestorePoint`, `Invoke-ServiceOperation`, `Invoke-CommandChecked`, `Invoke-RegImport`, `Invoke-Winget`, `Wait-ForWinget`                                   |
-| Logging      | `Add-Log`, `Get-Log`, `Clear-Log`                                                                                                                                                         |
-| Utilities    | `ConvertFrom-VDF`, `ConvertTo-VDF`, `Get-FolderSize`, `Format-Size`, `Measure-Execution`, `Show-Summary`                                                                                  |
-| NVIDIA       | `Get-NvidiaGpuRegistryPath`, `Get-NvidiaGpuPath`, `Set-NvidiaGpuRegistryValue`, `Set-NvidiaSignatureOverride`, `Get-NvidiaSignatureStatus`, `Set-FullscreenMode`, `Set-MultiPlaneOverlay` |
-
-## Script Skeleton
+## Script skeleton
 
 ```powershell
 #Requires -Version 5.1
@@ -82,12 +40,8 @@ Never duplicate logic already in `Scripts/Common.ps1`:
 <#
 .SYNOPSIS
     One-line description.
-.DESCRIPTION
-    Longer description.
-.PARAMETER Target
-    What Target represents.
 .EXAMPLE
-    Invoke-MyTool -Target 'example'
+    .\Invoke-MyTool.ps1 -Target 'example'
 #>
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'Medium')]
 param (
@@ -96,13 +50,11 @@ param (
   [string]$Target
 )
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-$ProgressPreference = 'SilentlyContinue'
-
-. "$PSScriptRoot\Common.ps1"
-
 begin {
+  Set-StrictMode -Version Latest
+  $ErrorActionPreference = 'Stop'
+  $ProgressPreference = 'SilentlyContinue'
+  . (Join-Path -Path $PSScriptRoot -ChildPath 'Common.ps1')
   Request-AdminElevation
 }
 
@@ -113,27 +65,13 @@ process {
 }
 ```
 
-## Module & Profile Architecture
+## Modules, profiles, cloud
 
-Use when the task is building reusable tooling rather than a single script:
-
-- **Module structure** — separate public/private functions, dot-source for clarity and load-time performance, complete manifest metadata (version, exported members)
-- **Profile engineering** — no heavy work at profile load; lazy-import modules; organize fragments (core/dev/infra); keep reusable logic in modules, not the profile itself
-- **Cross-version support** — detect capability (`$PSVersionTable.PSVersion.Major -ge 7`) rather than assuming; provide backward-compatible fallbacks for 5.1
-
-## Cross-Platform & Cloud Automation (PS7+)
-
-Use when the task targets Linux/macOS pwsh, Azure, M365/Entra, or CI pipelines:
-
-- PowerShell 7 language features (ternary, `&&`/`||`, null-coalescing/conditional, classes) — verify the target runtime is 7+ before using them
-- Azure: `Az` PowerShell module + Azure CLI; validate subscription/tenant context before mutating
-- Graph API for M365/Entra (mailbox, Teams, identity) automation
-- CI/CD: structured, non-interactive output for GitHub Actions / Azure DevOps; standardized error messages
-- Idempotent, testable scripts across Windows/Linux/macOS filesystem and encoding differences
+- Modules: public/private function split, dot-sourced files, versioned manifest with explicit exports.
+- Profiles: no heavy work at load; lazy-import modules; reusable logic lives in modules.
+- Detect capability (`$PSVersionTable.PSVersion.Major -ge 7`) instead of assuming; keep a 5.1 fallback.
+- CI/cloud: non-interactive, structured output and idempotent scripts; check encoding and path differences across Windows/Linux/macOS.
 
 ## Debugging
 
-```powershell
-Set-PSDebug -Trace 2              # trace every statement
-$VerbosePreference = 'Continue'   # enable Write-Verbose output
-```
+`Set-PSDebug -Trace 2` traces every statement; `$VerbosePreference = 'Continue'` enables `Write-Verbose`.

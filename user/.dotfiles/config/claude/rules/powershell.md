@@ -7,279 +7,84 @@ paths:
 
 # PowerShell Rules
 
-Based on the [PowerShell Practice and Style guide](https://github.com/PoshCode/PowerShellPracticeAndStyle). Repo convention wins where they disagree (see Indentation).
+Base: [PoshCode Practice and Style](https://github.com/PoshCode/PowerShellPracticeAndStyle). Repo convention wins on conflict (2-space indent).
 
----
+## 1. Naming and paths
 
-## 1. Naming Conventions
+- `Verb-Noun` with an approved verb (`Get-Verb`), singular noun, PascalCase for public identifiers.
+- No aliases and no positional shorthand in scripts: `Get-ChildItem`, `Get-Process -Name Explorer`.
+- Private script variables may be camelCase; scope shared state explicitly (`$Script:State`).
+- Language keywords and operators lowercase (`foreach`, `-eq`); help keywords UPPERCASE (`.SYNOPSIS`).
+- Script-relative paths: `$PSScriptRoot` with `Join-Path -Path ... -ChildPath ...`, never `.\` or `..\`.
+- User home: `$HOME` or `$env:USERPROFILE`. Never `C:\Users\...` and never `~` (provider-dependent).
+- .NET methods and native apps ignore `$PWD`: pass fully resolved paths.
 
-### Commands and Parameters
+## 2. Layout
 
-- Use `Verb-Noun` convention for all functions; run `Get-Verb` for the approved verb list
-- PascalCase for **all** public identifiers: module names, function names, class names, parameters, global variables
-- Nouns must be **singular** and may be compound-word PascalCase (`Get-DiskInfo`, not `Get-DiskInfos`)
-- Two-letter acronyms keep both letters uppercase in PascalCase: `Get-PSDrive`, `$PSBoundParameters` — this does not extend to "OK"/"ID" (common words, not acronyms) or to compound acronyms (`Start-AzureRmVM`, not `Start-AzureRMVM`)
-- Use full cmdlet names — no aliases (`Get-ChildItem`, not `gci`/`ls`/`dir`)
-- Use full parameter names — no positional shorthand (`Get-Process -Name Explorer`, not `Get-Process Explorer`)
-- Match standard PowerShell parameter names: `$ComputerName`, `$Path`, `$Credential`
+- 2-space indent. OTBS: opening brace ends the line, `} else {` on one line.
+- Max 115 columns. Use splatting, not backtick continuation. Split long strings with `+` inside parens.
+- Single space around operators, commas, and inside `{ }` and `$( )`. No trailing whitespace, no `;` line terminators.
+- Two blank lines between top-level functions. One blank line at end of file.
 
-### Variables
+## 3. Functions
 
-- Script-level private variables may use camelCase to distinguish from PascalCase parameters; a camelCase variable starting with a two-letter acronym lowercases both letters (`adComputer`, not `ADComputer`)
-- Scope shared variables explicitly: `$Script:State`, `$Global:DebugPreference`
-- PowerShell language keywords are **lowercase**: `foreach`, `if`, `switch`, `-eq`, `-match`
-- Comment-based help keywords are **UPPERCASE**: `.SYNOPSIS`, `.DESCRIPTION`, `.EXAMPLE`
+- Advanced functions start with `[CmdletBinding()]`; order is `param`, `begin`, `process`, `end`.
+- Declare `[OutputType()]` (one per parameter set) and `DefaultParameterSetName` when several sets exist.
+- State-changing functions add `SupportsShouldProcess` and wrap the change in `$PSCmdlet.ShouldProcess($Target, 'Action')`. `ConfirmImpact`: `Low` create/set, `Medium` restart/reconfigure, `High` delete.
+- Validate in `param` (`ValidateNotNullOrEmpty`, `ValidateSet`, `ValidateRange`, `ValidatePattern`, `ValidateScript`). Type every parameter. Avoid `[string]`/`[object]` on `ValueFromPipeline` or set-disambiguating parameters. Switches take no default.
+- No `return` to emit objects: put the object alone on a line in `process {}`.
+- Simple functions: space before the parameter list, `function Test-Code ($A, $B) {`.
 
-### Paths
+## 4. Documentation
 
-- Always use `$PSScriptRoot` for script-relative paths; never unanchored `.\` or `..\`
-- Use `$HOME` or `$env:USERPROFILE` for user home — never hardcode `C:\Users\...`
-- Never use `~`: its meaning depends on the current provider
-- Prefer `Join-Path -Path $PSScriptRoot -ChildPath ...` over string concatenation for multi-segment paths; pass fully-resolved paths to .NET methods and native apps, which don't see PowerShell's `$PWD`
+- Comment-based help inside the function, above `param()`: `.SYNOPSIS` required, plus `.DESCRIPTION`, `.EXAMPLE` (code first), `.OUTPUTS`.
+- Document a parameter with a one-line comment directly above it, not a `.PARAMETER` block.
+- Comments explain why, not what. Inline `#` has two spaces before it.
 
-```powershell
-# Wrong
-Get-Content .\README.md
+## 5. Errors
 
-# Right
-Get-Content -Path (Join-Path -Path $PSScriptRoot -ChildPath 'README.md')
-```
+- `$ErrorActionPreference = 'Stop'` at the top of every script. Never set it to `SilentlyContinue` globally.
+- `try/catch` with `-ErrorAction Stop` on trapped cmdlets. For native commands check `$LASTEXITCODE`. Avoid `$?`.
+- Put the whole transaction in `try {}`, not a flag set in `catch`.
+- Copy `$_` first in `catch` (`$err = $_`): later commands overwrite it.
 
----
+## 6. Prohibited
 
-## 2. Code Layout and Formatting
+- Global `$ErrorActionPreference = 'SilentlyContinue'`.
+- `Invoke-Expression` on variable or user input.
+- Plain-string `-Password`/`-Username` parameters: take `[PSCredential]` with `[System.Management.Automation.Credential()]`, and never call `Get-Credential` inside the function.
+- `ConvertTo-SecureString -AsPlainText`, or hand-rolled `-Key` material. Persist secrets with `Export-Clixml`/`Import-Clixml` (DPAPI: readable only by the same user on the same machine).
+- Global aliases in script or module scope.
+- Bare `curl` (aliased to `Invoke-WebRequest`): use `curl.exe`.
+- Touching `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`.
 
-### Braces — One True Brace Style (OTBS)
+## 7. Output
 
-Opening brace at the **end** of the line; closing brace at the **beginning** of a line. This is required, not just preferred, once a scriptblock parameter like `Where-Object {}` is involved — apply it everywhere for consistency.
-
-```powershell
-if ($condition) {
-  Do-Something
-} else {
-  Do-Other
-}
-```
-
-### Indentation
-
-**2-space** indentation (matches existing codebase style). The community default is 4-space, but the style guide itself says project convention wins — consistency with existing code takes priority.
-
-### Line Length
-
-Keep lines to **115 characters** max. Use **splatting** instead of backtick continuation:
-
-```powershell
-# Wrong — backtick is fragile
-Get-WmiObject -Class Win32_LogicalDisk `
-              -Filter "DriveType=3"
-
-# Right — splatting
-$params = @{
-  Class  = 'Win32_LogicalDisk'
-  Filter = 'DriveType=3'
-}
-Get-WmiObject @params
-```
-
-String concatenation across parens also avoids backticks:
-
-```powershell
-Write-Verbose -Message ("First part of a long message. " +
-  "Second part, still readable, still one string.")
-```
-
-### Whitespace
-
-- Single space around operators, parameter names, commas, and semicolons
-- Single space inside `$( ... )` subexpression and `{ ... }` scriptblock delimiters; no space inside `( ... )` parens or `[ ... ]` brackets otherwise
-- No space around unary operators: `(Get-Date).AddDays(-1)`, `$i++` — not `AddDays( - 1)` / `$i ++`
-- No trailing whitespace on any line
-- No semicolons as line terminators
-- Two blank lines between top-level function/class definitions; one blank line between methods inside a class
-- One blank line at the end of each file
-
----
-
-## 3. Function Structure
-
-### Always Start With CmdletBinding
-
-```powershell
-[CmdletBinding()]
-param ()
-process {
-}
-end {
-}
-```
-
-Keep `param()`, `begin`, `process`, `end` in that order — it matches execution order and keeps intent clear.
-
-### Simple (non-advanced) Functions
-
-Leave a space between the function name and the parameter list: `function Test-Code ($ParamOne, $ParamTwo) {`.
-
-### No `return` in Advanced Functions
-
-Do not use `return` to emit objects — place the object on its own line inside `process {}`, not `begin {}`/`end {}` (defeats the pipeline).
-
-### OutputType
-
-Declare `[OutputType()]` on every advanced function that returns objects. If output differs by parameter set, declare one `[OutputType()]` per `ParameterSetName`, and set `DefaultParameterSetName` in `[CmdletBinding()]` whenever more than one parameter set exists.
-
-### SupportsShouldProcess
-
-Add `SupportsShouldProcess` to any function that modifies system state:
-
-```powershell
-[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
-param (...)
-process {
-  if ($PSCmdlet.ShouldProcess($Target, 'Delete')) {
-    Remove-Item -Path $Target
-  }
-}
-```
-
-`ConfirmImpact` levels: `Low` (create/set), `Medium` (restart/reconfigure), `High` (delete/irreversible).
-
-### Parameter Validation
-
-Validate in the parameter block, not the function body:
-
-| Attribute | Purpose |
-| --- | --- |
-| `[AllowNull()]` / `[AllowEmptyString()]` / `[AllowEmptyCollection()]` | Permit null/empty on an otherwise-mandatory parameter |
-| `[ValidateNotNull()]` / `[ValidateNotNullOrEmpty()]` | Reject null/empty values |
-| `[ValidateSet('A','B')]` | Restrict to an explicit list |
-| `[ValidateRange(0,10)]` | Numeric bounds |
-| `[ValidateCount(1,5)]` / `[ValidateLength(1,10)]` | Collection size / string length bounds |
-| `[ValidatePattern('regex')]` | Regex match |
-| `[ValidateScript({ ... })]` | Arbitrary validation logic against `$_` |
-
-Strongly type every parameter; avoid `[string]`/`[object]`/`[PSObject]` on parameters used for parameter-set disambiguation or `ValueFromPipeline` — PowerShell coerces everything to them, defeating the purpose. Switch parameters never take a default value (always false) and are never treated as three-state.
-
----
-
-## 4. Documentation and Comments
-
-- Every function gets comment-based help: `.SYNOPSIS` (required), `.DESCRIPTION`, `.EXAMPLE` (at least one, code first, explanation after), `.PARAMETER` per parameter, `.OUTPUTS`, `.NOTES` as needed
-- Place the help block **inside** the function, at the top, above `param()` — easiest to keep in sync
-- Prefer a one-line comment directly above each parameter over `.PARAMETER` blocks — harder to forget to update when the parameter changes
-- Comments explain **why**, not what — well-written PowerShell is self-explanatory
-- Inline comments: at least two spaces before the `#`, aligned with sibling comments in the same block
-- Block comments: one `#` + one space per line; use `<# ... #>` only for long blocks (e.g. comment-based help), with the delimiters on their own lines
-
-```powershell
-function Get-Example {
-  <#
-  .SYNOPSIS
-    One-line description.
-  .PARAMETER Name
-    Description of Name.
-  .EXAMPLE
-    Get-Example -Name Test
-    Explains what this does.
-  #>
-  [CmdletBinding()]
-  param (
-    # Description of Name, right above the parameter it documents
-    [string]$Name
-  )
-}
-```
-
----
-
-## 5. Error Handling
-
-- `$ErrorActionPreference = 'Stop'` at the top of every script
-- Use `try/catch` with `-ErrorAction Stop` on cmdlets you want to trap; for non-cmdlets, set `$ErrorActionPreference` around the call and restore it after
-- Put the whole transaction inside `try {}` rather than setting a `$continue`-style flag in `catch` and branching on it afterward
-- Never use global `$ErrorActionPreference = 'SilentlyContinue'`
-- Avoid `$?` as an error check — it only reflects whether the last command considered itself successful, with no detail
-- Avoid testing a null variable as your only error condition; prefer a trappable terminating exception when the command supports one
-- Copy `$_` (or `$Error[0]`) immediately inside `catch` before any subsequent command overwrites it
-
-```powershell
-catch {
-  $err = $_
-  Write-Warning "Failed: $($err.Exception.Message)"
-}
-```
-
----
-
-## 6. Security — Prohibited Patterns
-
-- `$ErrorActionPreference = 'SilentlyContinue'` globally — hides failures
-- `Invoke-Expression` with variable or user-derived input — code injection risk
-- Plain-string passwords in variables or parameters — accept `[PSCredential]` and decorate with `[System.Management.Automation.Credential()]`; never call `Get-Credential` inside the function itself
-- `ConvertTo-SecureString -AsPlainText` with literal key material
-- Global aliases in script/module scope
-- `-Password` / `-Username` plain-string parameters — use `[PSCredential]`
-- Hardcoded user paths `C:\Users\...` — use `$HOME`, `$env:USERPROFILE`, `$PSScriptRoot`
-- Bare `curl` in PowerShell — use `curl.exe`
-- Touching `HKLM\SECURITY`, `HKLM\SAM`, `HKLM\SYSTEM\...\Lsa`
-
-Persisted credentials/secrets: `Export-Clixml`/`Import-Clixml` (DPAPI-protected, current user + machine only), not a hand-rolled `ConvertTo-SecureString -Key`.
-
----
-
-## 7. Output and Streams
-
-| Stream   | Cmdlet               | When to use                                                            |
-| -------- | --------------------- | ----------------------------------------------------------------------- |
-| Success  | pipeline (implicit)  | Results consumed by callers                                            |
-| Verbose  | `Write-Verbose`      | Execution status; enabled by `-Verbose`                                |
-| Debug    | `Write-Debug`        | Maintainer-facing detail; enabled by `-Debug`                           |
-| Warning  | `Write-Warning`      | Non-fatal conditions                                                    |
-| Error    | `Write-Error`        | Recoverable errors                                                      |
-| Progress | `Write-Progress`     | Ephemeral status only — never the only place a needed result is shown  |
-| Host     | `Write-Host`         | Interactive UI only                                                     |
-
-- Do not use `Write-Host` for general output. Use `Write-Verbose`/`Write-Warning`/`Write-Error`
-- Output one object type per function (or types sharing a common base/format); mixing types breaks table formatting. Internal-only helper functions may return mixed types since nothing formats them for a user
-
----
+- Results go to the pipeline, one object type per function (internal helpers may mix).
+- Diagnostics use `Write-Verbose`/`Write-Debug`/`Write-Warning`/`Write-Error`. `Write-Host` only for interactive UI. `Write-Progress` is never the only place a needed result appears.
 
 ## 8. Performance
 
-- `$null = <expr>` preferred over `<expr> | Out-Null` (pipeline form is significantly slower)
-- `$ProgressPreference = 'SilentlyContinue'` before any `Invoke-WebRequest`
-- `foreach` language construct is faster than `ForEach-Object` for in-memory collections
-- Rough ordering when it matters: language features > compiled .NET methods > script > cmdlet/pipeline calls
-- Measure before optimizing (`Measure-Command`); don't trade readability for a gain that won't matter at this repo's data sizes
+- `$null = <expr>`, not `| Out-Null` (much slower).
+- `$ProgressPreference = 'SilentlyContinue'` before `Invoke-WebRequest`.
+- `foreach` statement over `ForEach-Object` for in-memory collections.
+- Build collections with `[System.Collections.Generic.List[T]]` or by assigning the loop output, not `+=` in loops.
+- `Measure-Command` before optimizing; do not trade readability for gains that do not matter at this repo's data sizes.
 
----
+## 9. Compatibility
 
-## 9. Version Compatibility
+- Every standalone script declares `#Requires -Version 5.1`. The repo targets 5.1 and 7+.
+- Guard 7+ features (ternary, `&&`/`||`, `??`) with `if ($PSVersionTable.PSVersion.Major -ge 7) { ... } else { ... }`.
 
-Every standalone script must declare the minimum PowerShell version:
+## 10. Pitfalls
 
-```powershell
-#Requires -Version 5.1
-```
+- Parenthesize each cmdlet call around `-and`/`-or`: `if ((Test-Path $a) -or (Test-Path $b))`. Unparenthesized, `-or` binds as a parameter.
+- ASCII only in script files (`[OK]`, `[!]`, not emoji or check marks): 5.1 reads BOM-less UTF-8 as ANSI and mangles the file.
+- Counts: `$null.Count` throws under strict mode. Wrap commands, `@(Get-Thing).Count` (0 when nothing is emitted); for a variable that may be `$null`, test `if ($x)` first, because `@($null).Count` is 1.
+- `ConvertTo-Json -Depth N` for nested objects: the default depth 2 silently truncates.
 
-This repo targets both Windows PowerShell 5.1 and PowerShell 7+. Guard 7+-only features:
+## 11. CI
 
-```powershell
-if ($PSVersionTable.PSVersion.Major -ge 7) {
-  # PS7+ path
-} else {
-  # PS5.1 fallback
-}
-```
-
----
-
-## 10. CI Reminders
-
-- Lint before committing: `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1`
-- Run tests when the changed area has coverage: `Invoke-Pester -Path tests/ -Output Minimal`
-- CI-enforced (pipeline fails): `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
-
----
-
-Source: [PowerShell Practice and Style](https://github.com/PoshCode/PowerShellPracticeAndStyle)
+- Lint: `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1`.
+- Test when the area has coverage: `Invoke-Pester -Path tests/ -Output Minimal`.
+- CI fails on `PSAvoidGlobalAliases` and `PSAvoidUsingConvertToSecureStringWithPlainText`.

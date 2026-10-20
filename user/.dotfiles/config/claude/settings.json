@@ -5,34 +5,21 @@
 		"CLAUDE_CODE_USE_POWERSHELL_TOOL": "1",
 		"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
 		"CLAUDE_CODE_ATTRIBUTION_HEADER": "0",
+		"DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
 		"CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY": "3",
 		"CLAUDE_CODE_AUTOCOMPACT_PCT_OVERRIDE": "50",
+		"ENABLE_TOOL_SEARCH": "true",
+		"ENABLE_LSP_TOOL": "1",
+		"USE_BUILTIN_RIPGREP": "1",
+		"PYTHONOPTIMIZE": "1",
+		"BUN_OPTIONS": "--bun --prefer-offline --prefer-latest --silent",
+		"CONTEXT_MODE_NO_BUN": "1",
 		"CLAUDE_CODE_NO_FLICKER": "1",
-		"CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "1",
-		"CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
-		"CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
-		"CLAUDE_CODE_SKIP_BEDROCK_AUTH": "1",
-		"CLAUDE_CODE_SKIP_FOUNDRY_AUTH": "1",
-		"CLAUDE_CODE_SKIP_VERTEX_AUTH": "1",
-		"CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-		"DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-		"DISABLE_INSTALLATION_CHECKS": "true",
-		"DISABLE_COST_WARNINGS": "1",
+		"ENABLE_PROMPT_CACHING_1H": "1",
 		"DISABLE_TELEMETRY": "1",
 		"DISABLE_ERROR_REPORTING": "1",
 		"DISABLE_AUTOUPDATER": "1",
 		"DISABLE_BUG_COMMAND": "1",
-		"FORCE_AUTOUPDATE_PLUGINS": "true",
-		"ENABLE_TOOL_SEARCH": "true",
-		"ENABLE_LSP_TOOL": "1",
-		"ENABLE_PROMPT_CACHING_1H": "1",
-		"USE_BUILTIN_RIPGREP": "1",
-		"PYTHONOPTIMIZE": "1",
-		"PYTHONUNBUFFERED": "1",
-		"PYTHONDONTWRITEBYTECODE": "1",
-		"BUN_OPTIONS": "--bun --prefer-offline --prefer-latest --parallel --silent",
-		"CONTEXT_MODE_NO_BUN": "1",
-		"RTK_TELEMETRY_DISABLED": "1",
 		"MAX_THINKING_TOKENS": "10000",
 		"BASH_DEFAULT_TIMEOUT_MS": "120000",
 		"BASH_MAX_TIMEOUT_MS": "600000",
@@ -40,7 +27,8 @@
 		"MCP_TIMEOUT": "60000",
 		"MCP_TOOL_TIMEOUT": "120000",
 		"MAX_MCP_OUTPUT_TOKENS": "15000",
-		"CLAUDE_CODE_MAX_OUTPUT_TOKENS": "8000"
+		"CLAUDE_CODE_MAX_OUTPUT_TOKENS": "8000",
+		"RTK_TELEMETRY_DISABLED": "1"
 	},
 	"attribution": {
 		"commit": "",
@@ -48,48 +36,7 @@
 	},
 	"includeCoAuthoredBy": false,
 	"permissions": {
-		"defaultMode": "acceptEdits",
 		"allow": [
-			"Grep",
-			"Glob",
-			"Bash",
-			"Edit",
-			"Write",
-			"LSP",
-			"Task",
-			"TaskList",
-			"TaskUpdate",
-			"Skill",
-			"Skill(update-config)",
-			"WebSearch",
-			"WebFetch",
-			"WebFetch(domain:*)",
-			"PowerShell",
-			"PowerShell(*)",
-			"PowerShell($PROFILE)",
-			"Bash(git:*)",
-			"Bash(gh:*)",
-			"Bash(rtk:*)",
-			"Bash(rg:*)",
-			"Bash(fd:*)",
-			"Bash(find:*)",
-			"Bash(cat:*)",
-			"Bash(ls:*)",
-			"Bash(ast-grep:*)",
-			"Bash(uv:*)",
-			"Bash(npm:*)",
-			"Bash(python:*)",
-			"Bash(python3:*)",
-			"Bash(pwsh:*)",
-			"Bash(pwsh.exe:*)",
-			"Bash(powershell:*)",
-			"Bash(powershell.exe:*)",
-			"Bash(java -version)",
-			"Bash(where java *)",
-			"Bash(where python *)",
-			"Bash(ssh *)",
-			"Bash(ssh-keygen -F *)",
-			"Bash(ssh-add -l)",
 			"mcp__codegraph__codegraph_explore",
 			"mcp__codegraph__codegraph_search",
 			"mcp__codegraph__codegraph_node",
@@ -98,44 +45,46 @@
 			"mcp__codegraph__codegraph_impact",
 			"mcp__codegraph__codegraph_files",
 			"mcp__codegraph__codegraph_status",
-			"mcp__context-mode__ctx_search",
-			"mcp__context-mode__ctx_execute",
-			"mcp__context-mode__ctx_execute_file",
-			"mcp__context-mode__ctx_batch_execute",
-			"mcp__context-mode__ctx_index",
-			"mcp__context-mode__ctx_fetch_and_index",
-			"mcp__plugin_context-mode_context-mode__ctx_execute",
-			"mcp__plugin_context-mode_context-mode__ctx_batch_execute",
-			"mcp__plugin_oh-my-claudecode_t__state_list_active",
-			"mcp__plugin_oh-my-claudecode_t__state_clear"
+			"mcp__obsidian-hybrid-search__search",
+			"mcp__obsidian-hybrid-search__read",
+			"mcp__obsidian-hybrid-search__status",
+			"mcp__obsidian-hybrid-search__reindex",
+			"PowerShell",
+			"WebSearch",
+			"WebFetch(domain:*)",
+			"Bash(ssh *)",
+			"Bash(ssh-keygen -F *)",
+			"Bash(ssh-add -l)",
+			"Bash(rtk:*)",
+			"Bash(gh:*)"
 		],
 		"deny": [
-			"Read(./.env)",
-			"Read(./.env.*)",
-			"Read(./secrets/**)",
-			"Read(**/*.pem)",
-			"Read(**/*.key)",
-			"Read(**/credentials.json)",
 			"Edit(./.env)",
 			"Edit(./.env.*)",
 			"Edit(./secrets/**)",
 			"NotebookEdit",
+			"Read(**/*.key)",
+			"Read(**/*.pem)",
+			"Read(**/credentials.json)",
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Read(./secrets/**)",
 			"mcp__plugin_playwright_playwright__browser_install",
 			"mcp__plugin_playwright_playwright__browser_navigate"
 		],
 		"ask": [
-			"Bash(sudo:*)",
 			"Bash(chmod:*)",
-			"Bash(rm -rf:*)",
+			"Bash(git clean -fd:*)",
 			"Bash(git push --force:*)",
 			"Bash(git push -f:*)",
 			"Bash(git reset --hard:*)",
-			"Bash(git clean -fd:*)",
-			"Bash(npm publish:*)"
-		]
+			"Bash(npm publish:*)",
+			"Bash(rm -rf:*)",
+			"Bash(sudo:*)"
+		],
+		"defaultMode": "auto"
 	},
 	"model": "opusplan",
-	"effortLevel": "high",
 	"enableAllProjectMcpServers": true,
 	"skillOverrides": {
 		"merge-to-main": "user-invocable-only",
@@ -144,28 +93,43 @@
 		"find-skills": "user-invocable-only",
 		"strategic-planning": "user-invocable-only",
 		"bedrock-world-backup": "user-invocable-only",
-		"ssh-lan": "user-invocable-only",
-		"todo-scan": "user-invocable-only",
 		"agent-browser": "name-only",
 		"playwright-cli": "name-only",
+		"todo-scan": "user-invocable-only",
 		"win-patterns": "name-only",
 		"ps-script-validator": "name-only",
 		"ps-dedupe-cleanup": "name-only",
-		"powershell-windows": "name-only",
 		"new-ps-script": "name-only",
-		"bedrock-db-query": "name-only"
+		"bedrock-db-query": "name-only",
+		"mc-repack-optimize": "user-invocable-only",
+		"adb": "user-invocable-only"
 	},
 	"hooks": {
 		"PreToolUse": [
 			{
-				"matcher": "Edit|Write|Bash",
+				"matcher": "Edit|Write|Bash|PowerShell",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "& \"$env:USERPROFILE/.claude/hooks/guard-bedrock-db.ps1\"",
-						"shell": "powershell",
+						"command": "pwsh -nop -nol -f \"$HOME/.claude/hooks/guard-bedrock-db.ps1\"",
 						"timeout": 10,
 						"statusMessage": "Checking Bedrock world file safety..."
+					}
+				]
+			},
+			{
+				"matcher": "Bash|PowerShell",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "if (Get-Command rtk -ErrorAction SilentlyContinue) { & rtk hook claude --ultra-compact }",
+						"shell": "powershell"
+					},
+					{
+						"type": "command",
+						"command": "pwsh -nop -nol -f \"$HOME/.claude/hooks/rtk-advisor.ps1\"",
+						"timeout": 10,
+						"statusMessage": "Checking rtk coverage..."
 					}
 				]
 			},
@@ -175,8 +139,27 @@
 					{
 						"type": "command",
 						"command": "if (Get-Command rtk -ErrorAction SilentlyContinue) { & rtk hook claude }",
+						"shell": "powershell"
+					}
+				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
 						"shell": "powershell",
-						"timeout": 15
+						"timeout": 30
+					}
+				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$c = Join-Path $env:APPDATA 'npm/caveman.CMD'; if (Test-Path $c) { & $c shrink-hook }",
+						"shell": "powershell",
+						"timeout": 30
 					}
 				]
 			},
@@ -206,6 +189,16 @@
 						"statusMessage": "Validating edited file..."
 					}
 				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
 			}
 		],
 		"SessionStart": [
@@ -213,8 +206,11 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "[ -f \"$HOME/.claude/hooks/context-mode-cache-heal.mjs\" ] && node \"$HOME/.claude/hooks/context-mode-cache-heal.mjs\" || true",
-						"timeout": 20
+						"command": "[ -f \"$HOME/.claude/hooks/context-mode-cache-heal.mjs\" ] && node \"$HOME/.claude/hooks/context-mode-cache-heal.mjs\" || true"
+					},
+					{
+						"type": "command",
+						"command": "[ -f \"$HOME/.claude/hooks/context-mode-no-webfetch.mjs\" ] && node \"$HOME/.claude/hooks/context-mode-no-webfetch.mjs\" || true"
 					}
 				]
 			},
@@ -228,6 +224,16 @@
 						"statusMessage": "Checking second-brain vault"
 					}
 				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
 			}
 		],
 		"UserPromptSubmit": [
@@ -238,6 +244,88 @@
 						"command": "if (Get-Command codegraph -ErrorAction SilentlyContinue) { & codegraph prompt-hook }",
 						"shell": "powershell",
 						"timeout": 20
+					}
+				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"PostToolUseFailure": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"PreCompact": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"SubagentStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"SubagentStop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"SessionEnd": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$p = Join-Path $env:USERPROFILE '.caveman/bin/caveman-proxy.exe'; $a = Join-Path $env:APPDATA 'npm/node_modules/@caveman-ai/cli/dist/native-hook-fast.js'; if ((Test-Path $p) -and (Test-Path $a)) { & $p native-hook claude --adapter $a }",
+						"shell": "powershell",
+						"timeout": 30
 					}
 				]
 			}
@@ -255,26 +343,29 @@
 		"github@claude-plugins-official": false,
 		"claude-md-management@claude-plugins-official": true,
 		"claude-code-setup@claude-plugins-official": true,
-		"remember@claude-plugins-official": true,
-		"desktop-commander@claude-plugins-official": true,
-		"clangd-lsp@claude-plugins-official": true,
 		"rust-analyzer-lsp@claude-plugins-official": true,
-		"chrome-devtools-mcp@claude-plugins-official": false,
-		"browser-use@claude-plugins-official": false,
-		"serena@claude-plugins-official": true,
 		"basedpyright@claude-code-lsps": true,
-		"powershell-editor-services@claude-code-lsps": true,
 		"vscode-langservers@claude-code-lsps": true,
 		"vtsls@claude-code-lsps": true,
-		"bash-language-server@claude-code-lsps": true,
-		"mdbase-lsp@claude-code-lsps": true,
-		"jdtls@claude-code-lsps": true,
-		"ty@claude-code-lsps": false,
 		"ponytail@ponytail": true,
-		"caveman@caveman": true,
 		"context-mode@context-mode": true,
+		"ty@claude-code-lsps": false,
 		"oh-my-claudecode@omc": true,
-		"cli-anything@cli-anything": true
+		"caveman@caveman": true,
+		"remember@claude-plugins-official": false,
+		"bash-language-server@claude-code-lsps": false,
+		"chrome-devtools-mcp@claude-plugins-official": false,
+		"clangd-lsp@claude-plugins-official": false,
+		"browser-use@claude-plugins-official": false,
+		"mdbase-lsp@claude-code-lsps": false,
+		"jdtls@claude-code-lsps": false,
+		"cli-anything@cli-anything": true,
+		"desktop-commander@claude-plugins-official": true,
+		"playwright@claude-plugins-official": true,
+		"powershell-editor-services@claude-config-marketplace": true,
+		"conserve@claude-night-market": true,
+		"jdtls-lsp@claude-plugins-official": true,
+		"exa-deep-research@anthropic-plugin-directory": true
 	},
 	"extraKnownMarketplaces": {
 		"context-mode": {
@@ -312,23 +403,46 @@
 				"source": "github",
 				"repo": "HKUDS/CLI-Anything"
 			}
+		},
+		"claude-config-marketplace": {
+			"source": {
+				"source": "github",
+				"repo": "Ven0m0/claude-config"
+			}
+		},
+		"claude-night-market": {
+			"source": {
+				"source": "github",
+				"repo": "athola/claude-night-market"
+			}
 		}
 	},
 	"alwaysThinkingEnabled": false,
+	"modelSettings": {
+		"claude-opus-5-5": {
+			"effortLevel": "high"
+		},
+		"claude-sonnet-5": {
+			"effortLevel": "high"
+		},
+		"claude-sonnet-5-5": {
+			"effortLevel": "high"
+		}
+	},
 	"askUserQuestionTimeout": "never",
-	"autoUpdates": false,
 	"autoUpdatesChannel": "latest",
-	"autoCompactEnabled": true,
-	"autoMemoryEnabled": true,
-	"prefersReducedMotion": true,
-	"skipDangerousModePermissionPrompt": true,
-	"skipWorkflowUsageWarning": true,
-	"teammateMode": "auto",
-	"theme": "dark",
 	"tui": "fullscreen",
 	"voice": {
 		"enabled": false,
 		"mode": "hold"
 	},
-	"voiceEnabled": false
+	"prefersReducedMotion": true,
+	"autoMemoryEnabled": true,
+	"skipDangerousModePermissionPrompt": true,
+	"skipWorkflowUsageWarning": true,
+	"theme": "dark",
+	"autoCompactEnabled": true,
+	"teammateMode": "auto",
+	"voiceEnabled": false,
+	"autoUpdates": false
 }
