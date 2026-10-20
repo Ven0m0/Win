@@ -87,6 +87,36 @@ Describe 'Setup-ClaudeCode.ps1' {
         }
     }
 
+    Context 'Expand-McpDefinition' {
+        It 'Expands %VAR% tokens in command, args, and env values without mutating the input' {
+            $env:SCC_TEST_ROOT = 'C:\Root'
+            try {
+                $definition = [pscustomobject]@{
+                    type    = 'stdio'
+                    command = '%SCC_TEST_ROOT%\bin\x.exe'
+                    args    = @('%SCC_TEST_ROOT%\a.js', 'plain')
+                    env     = [pscustomobject]@{ VAULT = '%SCC_TEST_ROOT%\vault' }
+                }
+
+                $expanded = Expand-McpDefinition -Definition $definition
+
+                $expanded.command | Should -Be 'C:\Root\bin\x.exe'
+                $expanded.args | Should -Be @('C:\Root\a.js', 'plain')
+                $expanded.env.VAULT | Should -Be 'C:\Root\vault'
+                $expanded.type | Should -Be 'stdio'
+                $definition.command | Should -Be '%SCC_TEST_ROOT%\bin\x.exe'
+            }
+            finally {
+                Remove-Item Env:\SCC_TEST_ROOT
+            }
+        }
+
+        It 'Leaves a definition without args or env intact' {
+            $expanded = Expand-McpDefinition -Definition ([pscustomobject]@{ type = 'stdio'; command = 'codegraph' })
+
+            ($expanded | ConvertTo-Json -Compress) | Should -Be '{"type":"stdio","command":"codegraph"}'
+        }
+    }
     Context 'Start-ClaudeCodeSetup' {
         BeforeEach {
             $settingsPath = Join-Path $TestDrive 'settings.json'

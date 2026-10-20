@@ -8,7 +8,8 @@
     Defrag  - optimize/retrim volumes (defrag.exe) and clean MSI Afterburner skins/docs (default)
     Disk    - interactive WinForms disk-cleanup GUI (cleanmgr categories + cache/log purge)
     Shader  - clear Steam/GPU shader, log, and crash caches
-    Extra   - DISM component/Wim/mountpoint cleanup, cache rebuilds, BITS/DNS/temp/recycle-bin/event-log cleanup,
+    Extra   - DISM component/Wim/mountpoint cleanup, cleanmgr (all handlers except Downloads, File History
+              versions, Windows.old, ESD files), cache rebuilds, BITS/DNS/temp/recycle-bin/event-log cleanup,
               Windows Update download cache purge, optional restore point
     DriverCleanup - remove orphaned/unused driver packages from the driver store
     All     - run Defrag, Shader, then Extra (Disk is interactive and must be selected explicitly)
@@ -184,6 +185,49 @@ function Invoke-MsiCleanup {
 
 
 # ---------------------------------------------------------------------------
+# cleanmgr helpers (shared by the Disk GUI and the Extra action)
+# ---------------------------------------------------------------------------
+# Handlers skipped when cleanmgr runs unattended: each deletes user data or removes a rollback path.
+$script:CleanmgrUnattendedExclude = @(
+  'DownloadsFolder',
+  'User file versions',
+  'Previous Installations',
+  'Windows ESD installation files'
+)
+
+function Set-CleanmgrSelection {
+  <#
+  .SYNOPSIS
+    Writes StateFlags<Id> for the cleanmgr handlers that /sagerun:<Id> should run.
+  .DESCRIPTION
+    Enumerates the handlers actually present under VolumeCaches and clears any stale flag first, so
+    categories selected in an earlier run do not stay active. Returns the selected handler names.
+  #>
+  [CmdletBinding(SupportsShouldProcess)]
+  param(
+    [Parameter(Mandatory)][ValidateRange(0, 9999)][int]$Id,
+    # $null selects every handler present
+    [string[]]$Include,
+    [string[]]$Exclude = @()
+  )
+
+  $flag = 'StateFlags{0:0000}' -f $Id
+  $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
+  $names = @(Get-ChildItem -Path "Registry::$key" -ErrorAction Stop | ForEach-Object { $_.PSChildName })
+
+  $selected = [System.Collections.Generic.List[string]]::new()
+  foreach ($name in $names) {
+    Remove-RegistryValue -Path "$key\$name" -Name $flag
+    if ($Include -and ($name -notin $Include)) { continue }
+    if ($name -in $Exclude) { continue }
+    Set-RegistryValue -Path "$key\$name" -Name $flag -Type 'REG_DWORD' -Data '2'
+    $selected.Add($name)
+  }
+  $selected.ToArray()
+}
+
+
+# ---------------------------------------------------------------------------
 # Extra action: DISM component cleanup, cache rebuilds, BITS/DNS/temp cleanup
 # ---------------------------------------------------------------------------
 function Start-AdditionalMaintenance {
@@ -228,6 +272,18 @@ function Start-AdditionalMaintenance {
   Write-Info "=== DISM Component Cleanup ==="
   Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
+
+  # Disk Cleanup handlers (Update Cleanup, WER, Delivery Optimization, setup logs, ...). Sageset id 70 keeps
+  # this separate from the Disk GUI's id 69.
+  Write-Info "=== Disk Cleanup (cleanmgr) ==="
+  Invoke-Operation -Name 'Cleanmgr' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -Action {
+    $null = Set-CleanmgrSelection -Id 70 -Exclude $script:CleanmgrUnattendedExclude
+    $proc = Start-Process -FilePath 'cleanmgr.exe' -ArgumentList '/sagerun:70' -PassThru
+    if (-not $proc.WaitForExit(1800 * 1000)) {
+      Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+      throw 'cleanmgr timed out after 1800s'
+    }
+  }
 
   # 2d. Windows Update download cache
   Invoke-Operation -Name 'WindowsUpdateCache' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
@@ -361,30 +417,11 @@ function Start-UltimateDiskCleanup {
   $checkedListBox.BackColor = 'Black'
   $checkedListBox.ForeColor = 'White'
 
+  # Real handlers on this machine; a hardcoded list drifts across builds and creates junk VolumeCaches keys.
   $options = @(
-    'Active Setup Temp Folders'
-    'Thumbnail Cache'
-    'Delivery Optimization Files'
-    'D3D Shader Cache'
-    'Downloaded Program Files'
-    'Internet Cache Files'
-    'Setup Log Files'
-    'Temporary Files'
-    'Windows Error Reporting Files'
-    'Offline Pages Files'
-    'Recycle Bin'
-    'Temporary Setup Files'
-    'Update Cleanup'
-    'Upgrade Discarded Files'
-    'Windows Defender'
-    'Windows ESD installation files'
-    'Windows Reset Log Files'
-    'Windows Upgrade Log Files'
-    'Previous Installations'
-    'Old ChkDsk Files'
-    'Feedback Hub Archive log files'
-    'Diagnostic Data Viewer database files'
-    'Device Driver Packages'
+    Get-ChildItem -Path 'Registry::HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches' |
+      ForEach-Object { $_.PSChildName } |
+      Sort-Object
   )
 
   foreach ($option in $options) {
@@ -450,23 +487,12 @@ function Start-UltimateDiskCleanup {
   $driveLetter = $env:SystemDrive -replace ':', ''
   $drive       = Get-PSDrive -Name $driveLetter
   $usedBefore  = [math]::Round($drive.Used / 1GB, 4)
-  Write-Verbose "BEFORE CLEANING - Used space on $($drive.Name):\ $usedBefore GB"
+  Write-Info "Used space on ${driveLetter}: before cleaning: $usedBefore GB"
 
-  # Clear common cache directories
-  Write-Verbose 'Clearing cache...'
-  Write-Verbose 'Clearing Windows Prefetch...'
-  Clear-PathSafe -Path "$env:SystemRoot\Prefetch\*"
-
-  Write-Verbose 'Clearing Windows Temp...'
-  Clear-DirectorySafe -Path "$env:SystemRoot\Temp"
-
-  Write-Verbose 'Clearing User Temp...'
-  Clear-DirectorySafe -Path $env:TEMP
-
-  Write-Verbose 'Clearing Internet Explorer Cache...'
+  # Prefetch is not cleared: it only slows the next launches and frees almost nothing.
+  # TEMP is handled by the 'Clear TEMP Cache' checkbox.
+  Write-Verbose 'Clearing INetCache...'
   Clear-PathSafe -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*"
-
-  Write-Verbose 'Cache clearing completed.'
 
   if ($checkBox1.Checked) {
     Write-Verbose 'Clearing Event Viewer Logs...'
@@ -523,17 +549,15 @@ function Start-UltimateDiskCleanup {
   }
 
   if ($checkedListBox.CheckedItems.Count -gt 0) {
-    $key = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
-    foreach ($item in $checkedListBox.CheckedItems) {
-      Set-RegistryValue -Path "$key\$item" -Name 'StateFlags0069' -Type 'REG_DWORD' -Data '2'
-    }
+    $null = Set-CleanmgrSelection -Id 69 -Include @($checkedListBox.CheckedItems)
     Write-Verbose 'Running Disk Cleanup...'
-    Start-Process -FilePath 'cleanmgr.exe' -ArgumentList '/sagerun:69 /autoclean' -Wait
+    # No /autoclean: that switch is for the Setup-upgrade cleanup, not for running the saved profile.
+    Start-Process -FilePath 'cleanmgr.exe' -ArgumentList '/sagerun:69' -Wait
   }
 
-  $drive    = Get-PSDrive -Name $driveLetter
+  $drive     = Get-PSDrive -Name $driveLetter
   $usedAfter = [math]::Round($drive.Used / 1GB, 4)
-  Write-Verbose "AFTER CLEANING - Used space on $($drive.Name):\ $usedAfter GB"
+  Write-Info "Used space on ${driveLetter}: after cleaning: $usedAfter GB (freed $([math]::Round($usedBefore - $usedAfter, 4)) GB)"
 }
 
 

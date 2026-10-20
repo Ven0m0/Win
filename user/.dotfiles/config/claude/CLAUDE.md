@@ -1,5 +1,5 @@
 <!-- OMC:START -->
-<!-- OMC:VERSION:4.15.10 -->
+<!-- OMC:VERSION:5.7.0 -->
 
 # oh-my-claudecode - Intelligent Multi-Agent Orchestration
 
@@ -20,15 +20,18 @@ Route code to `executor` (use `model=opus` for complex work). Uncertain SDK usag
 </delegation_rules>
 
 <model_routing>
-`haiku` (quick lookups), `sonnet` (standard), `opus` (architecture, deep analysis).
+`haiku` (quick lookups), `sonnet` (standard), `opus` (architecture, deep analysis), `fable` (Claude Fable 5, above Opus).
+The session model set via `/model` governs the main loop only; delegated agents run on their pinned tier unless you pass `model` explicitly or set a per-agent `agents.<name>.model` override.
+Direct writes OK for: `~/.claude/**`, `.omc/**`, `.claude/**`, `CLAUDE.md`, `AGENTS.md`.
 </model_routing>
 
 <skills>
 Invoke via `/oh-my-claudecode:<name>`. Trigger patterns auto-detect keywords.
-Tier-0 workflows include `autopilot`, `ultrawork`, `ralph`, `team`, and `ralplan`.
-Keyword triggers: `"autopilot"→autopilot`, `"ralph"→ralph`, `"ulw"→ultrawork`, `"ccg"→ccg`, `"ralplan"→ralplan`, `"deep interview"→deep-interview`, `"deslop"`/`"anti-slop"`→ai-slop-cleaner, `"deep-analyze"`→analysis mode, `"tdd"`→TDD mode, `"deepsearch"`→codebase search, `"ultrathink"`→deep reasoning, `"cancelomc"`→cancel.
-Team orchestration is explicit via `/team`.
-Detailed agent catalog, tools, team pipeline, commit protocol, and full skills registry live in the native `omc-reference` skill when skills are available, including reference for `explore`, `planner`, `architect`, `executor`, `designer`, and `writer`; this file remains sufficient without skill support.
+**Canonical workflows (Tier-0):** `plan` → `execute` → `review` → `verify`. Roles: `planner` → `executor` → `reviewer` → `verifier`. `deep-interview` and `ralplan` are independent Tier-0 planning workflows. `research` and `team` are internal lanes; `autopilot`, `autoresearch`, `ralph`, and `ultragoal` remain directly invocable.
+**Retired in 5.0.0 (removed, not aliased):** `ultrawork`, `ultraqa`, `ultrapilot`, `swarm`, `pipeline`, `merge-readiness`, `deep-dive`, `sciomc`, `ccg`, `omc-teams`, `setup`, `mcp-setup`, `omc-reference`, `learner`, `writer-memory`, `local-build-reminder`. Use `execute`, `verify`, `review`, `research`, `omc-setup`, `wiki`, `remember`, or `team` instead.
+Keyword triggers: `"autopilot"→autopilot`, `"ralplan"→ralplan`, `"deep interview"→deep-interview`, `"deslop"`/`"anti-slop"`→ai-slop-cleaner (→`review`, opt-in), `"deep-analyze"`→analysis mode, `"tdd"`→TDD mode, `"deepsearch"`→codebase search, `"ultrathink"`→deep reasoning, `"cancelomc"`→cancel. Team orchestration is explicit via `/team`.
+Release is maintainer-only `omc release` (see Migration Guide); `/release` remains a compatibility alias and never bypasses the release boundary.
+Detailed agent catalog, tools, team pipeline, commit protocol, and full skill registry live in the `wiki` skill when skills are available, including reference for `explore`, `planner`, `architect`, `executor`, `designer`, and `writer`; this file remains sufficient without skill support. Specialists remain internal/routable modules (document-specialist, test-engineer, designer, etc.) — not Tier-0 workflows.
 </skills>
 
 <verification>
@@ -45,11 +48,12 @@ No fake completion: TODO-style placeholder notes, `test.skip`/`.only`, stub test
 <execution_protocols>
 Broad requests: explore first, then plan. 2+ independent tasks in parallel. `run_in_background` for builds/tests.
 Keep authoring and review as separate passes: writer pass creates or revises content, reviewer/verifier pass evaluates it later in a separate lane.
+Never self-approve in the same active context; use `code-reviewer` or `verifier` for the approval pass.
 Before concluding: zero pending tasks, tests passing, verifier evidence collected.
 </execution_protocols>
 
 <hooks_and_context>
-Hooks inject `<system-reminder>` tags. Key patterns: `hook success: Success` (proceed), `[MAGIC KEYWORD: ...]` (invoke skill), `The boulder never stops` (ralph/ultrawork active).
+Hooks inject `<system-reminder>` tags. Key patterns: `hook success: Success` (proceed), `[MAGIC KEYWORD: ...]` (invoke skill), `The boulder never stops` (continuation mode active).
 Persistence: `<remember>` (7 days), `<remember priority>` (permanent).
 Kill switches: `DISABLE_OMC`, `OMC_SKIP_HOOKS` (comma-separated).
 </hooks_and_context>
@@ -65,28 +69,23 @@ State root: `.omc/` by default, or `$OMC_STATE_DIR/{project-id}/` when `OMC_STAT
 ## Setup
 
 Say "setup omc" or run `/oh-my-claudecode:omc-setup`.
+
 <!-- OMC:END -->
 
 <!-- User customizations -->
 
 ## Tool Preferences
-See `tool-preferences` skill (fd/rg/jq/yq/eza/bat/sed/awk/uv/bun/7z/coreutils/markitdown/rtk).
+Prefer `fd`, `rg`, `jq`/`yq`, `uv` (python), `bun` (js/ts), `7z`, `markitdown` (doc conversion). Shell commands go through `rtk` (see RTK Usage); `eza`/`bat` only when rtk has no rule.
+For structural (AST) code search/rewrite, use `@ast-grep/cli` (`ast-grep` / `sg`) instead of regex `rg`.
 
 ## Code Standards
-- **KISS**: simple, maintainable over clever.
-- **YAGNI**: don't build for hypothetical future needs.
-- **DRY**: extract repeated logic into utilities.
-- **Naming**: descriptive, self-documenting (getUserById, not getUsr).
-- **Function size**: small, single-purpose; split if doing multiple things.
-- **Fail fast**: validate inputs early, fail immediately with clear errors.
-- **Security**: never log/commit secrets, validate all inputs, redact sensitive data in logs.
-- **Imports**: group stdlib → third-party → local, alphabetical within groups.
-- **Error handling**: meaningful, actionable messages.
-- **Comments**: explain "why", not "what".
-- **Testing**: follow existing project patterns before marking work complete.
-- **Changes**: minimal, focused, one problem at a time.
-- **Immutability**: new objects, never mutate existing ones.
-- **File size**: 200-400 lines typical, 800 max; extract utilities from large files.
+- Immutability: new objects, never mutate existing ones.
+- Files 200-400 lines typical, 800 max; extract utilities from large files.
+- Imports: stdlib, third-party, local; alphabetical within groups.
+- Never log or commit secrets; redact sensitive data in logs.
+- Comments explain "why", not "what".
+- Follow existing project test patterns before marking work complete.
+- Minimal, focused changes; one problem at a time.
 
 ## Communication Style
 - No emojis in code, comments, commits, or docs.
@@ -95,40 +94,29 @@ See `tool-preferences` skill (fd/rg/jq/yq/eza/bat/sed/awk/uv/bun/7z/coreutils/ma
 - Review first: when asked to review/analyze, do that and report findings before changing anything.
 - Humble language: don't claim "success" without verification. "Successfully" only when tests prove it.
 
-## Progressive Disclosure
-Keep this file short, high-frequency rules only. Detailed workflows go in SKILL.md files. Prefer pointers over long code blocks.
-
 ## Memory (Mandatory)
 Obsidian vault at `$env:USERPROFILE\Nextcloud\obsidian-vault` is the **canonical durable brain** - it outranks project-scoped memory, the OMC notepad, and harness auto-memory for anything that should survive this session. Those are scratch; the vault is where it actually lives. This applies in every project, not only when the vault itself is the working directory.
 **Write the moment one of these happens, don't wait to be asked:** a preference stated, a decision made (+ why), a bug root-caused, a correction/feedback given, a workflow worked out, or a tool/credential/external-resource fact learned.
-1. Check first: does `Index.md` -> the relevant `_about.md` already cover this? Update, don't duplicate.
-2. Write an atomic note: `Memory/` (fact/decision/preference), `Knowledge/` (synthesized topic), or `Projects/` (active work) - use the vault's templates. Full protocol: `$env:USERPROFILE\Nextcloud\obsidian-vault\CLAUDE.md`.
+1. Check first: does `index.md` -> the relevant `_about.md` already cover this? Update, don't duplicate. Search the vault with the `obsidian-hybrid-search` MCP `search` tool (hybrid mode) before `rg`.
+2. Write an atomic note in `Memory/` (fact/decision/preference), `Knowledge/` (synthesized topic), or `Projects/` (active work) via the vault's `new-note` skill. Full protocol: `$env:USERPROFILE\Nextcloud\obsidian-vault\CLAUDE.md`.
 3. Wikilink it and add a pointer under the folder's `_about.md`.
 **Before ending any task, check whether it produced a durable learning - if so, write it before you report completion.**
 
-# Agent Instructions
-
-Apply on every coding task:
-
-- **Principles** — think, simplify, edit surgically, verify.
-- **Response Style (caveman)** — terse prose, full technical accuracy.
-- **Build Discipline (ponytail)** — reuse first, write only what must exist.
-- **Context Tools (context-mode)** — keep raw bytes out, derive answers in-sandbox.
-- **CodeGraph** — one call for structure, flows, dependencies.
-
-## Principles
-See `karpathy-guidelines` skill (think before coding, simplicity first, surgical changes, goal-driven execution).
-
-## Response Style (caveman)
-
-Full ruleset auto-injected every session via SessionStart hook (`caveman:caveman`, default level full) — terse fragments, technical substance intact, normal prose for security/irreversible actions. Switch level: `/caveman lite|full|ultra|wenyan`. Off: "stop caveman".
-
-## Build Discipline (ponytail)
-
-Full ruleset auto-injected every session via SessionStart hook (`ponytail:ponytail`, default level full) — climb the reuse-first ladder (needed at all? already in codebase? stdlib? native platform? installed dep? one line?) before writing new code; root-cause fixes, not symptom patches; deliberate corner-cuts get a `ponytail:` comment naming the ceiling. Switch level: `/ponytail lite|full|ultra`. Off: "stop ponytail".
-
 ## Context Tools (context-mode)
-See `context-tools` skill (ctx_execute, ctx_execute_file, ctx_batch_execute, ctx_index, ctx_search, ctx_fetch_and_index).
+Use ctx_execute, ctx_execute_file, ctx_batch_execute, ctx_index, ctx_search, ctx_fetch_and_index to keep raw bytes out of context; derive answers in-sandbox.
+**Exception**: use native `WebSearch`/`WebFetch` directly, not `ctx_fetch_and_index`, when the task is a lookup/research question, not raw-byte processing.
+
+## RTK Usage (Max)
+- Prefix every shell command with `rtk` when a rule exists (`rtk git`, `rtk gh`, `rtk ls`, `rtk read`, `rtk diff`, `rtk json`, `rtk curl`, `rtk bun`, `rtk uv`, `rtk wc`, `rtk find`). Hook auto-rewrites safe shapes; write `rtk ...` explicitly when unsure.
+- Search: use `rtk rg` over `rtk grep`. `grep` only when `rg` cannot do it.
+- No pipelines for truncation (`| head`, `| tail`), no `$(...)`/backticks, no `timeout` prefix: use native flags (`rtk read f --max-lines N`) and the tool's timeout param.
+- PowerShell: use `rtk ls`/`rtk read`/`rtk rg`/`rtk wc -l`, never `Get-ChildItem`/`Get-Content`/`Select-String`.
+- Never add `2>&1 | tail`; rtk already truncates and filters output.
+- Use `rtk proxy <cmd>` only when raw unfiltered output is needed for debugging.
+- Periodically run `rtk discover` and `rtk gain` to find missed rewrites; fix habits it reports.
+- Always write `rtk` explicitly for: `git commit`, `cargo build`, `uv run`, `ls -1`, `cat` (use `rtk read`), `du`, `shellcheck`, `bunx`.
+- Hook does NOT rewrite user TOML-filter commands (`~/AppData/Roaming/rtk/filters.toml`). Type `rtk` yourself for: `ssh`, `adb` (incl. `adb logcat`), `tasklist`, `wsl.exe`, `unzip`, `sqlite3`, `yt-dlp`, `javap`, `tombi`, `uv lock`.
+- Commit messages: `git commit -m "one line"` or `-F file`. Never `$(cat <<EOF ...)`; hook refuses it and the whole command loses rtk.
 
 @RTK.md
 

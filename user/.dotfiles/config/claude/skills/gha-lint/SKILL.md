@@ -2,10 +2,9 @@
 name: gha-lint
 description: >
   Lint, validate, and fix GitHub Actions workflows and composite actions with actionlint, ghalint, and
-  action-validator, installed through mise. Use whenever the user wants to lint, validate, audit, harden, or
-  fix files under .github/workflows or .github/actions, mentions actionlint, ghalint, action-validator,
-  "workflow warnings", "persist-credentials", "job permissions", "timeout-minutes", or "stale path filters",
-  or asks to clean up CI workflow errors, even if they do not name a tool.
+  action-validator via mise. Use to lint, audit, harden, or fix files under .github/workflows or
+  .github/actions, when the user names those tools or mentions "workflow warnings", "persist-credentials",
+  "job permissions", "timeout-minutes", or "stale path filters", or asks to clean up CI workflow errors.
 metadata:
   category: "ci"
   version: "1.0.0"

@@ -93,6 +93,7 @@ Describe "Start-AdditionalMaintenance" {
                 -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } `
                 -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'Cleanmgr' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'StoreCacheClear' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'BITSClear' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'FontCache' -and $DryRun -eq $true } -Times 1
@@ -124,6 +125,35 @@ Describe "Start-AdditionalMaintenance" {
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' } -Times 0
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' } -Times 1
         }
+    }
+}
+
+Describe "Set-CleanmgrSelection" {
+    BeforeEach {
+        Mock Get-ChildItem {
+            'Update Cleanup', 'DownloadsFolder', 'Temporary Files' | ForEach-Object {
+                [pscustomobject]@{ PSChildName = $_ }
+            }
+        }
+        Mock Remove-RegistryValue {}
+        Mock Set-RegistryValue {}
+    }
+
+    It "Should reset the flag on every handler and select all but the excluded ones" {
+        $selected = Set-CleanmgrSelection -Id 70 -Exclude 'DownloadsFolder'
+
+        $selected | Should -Be @('Update Cleanup', 'Temporary Files')
+        Should -Invoke Remove-RegistryValue -Times 3 -Exactly -ParameterFilter { $Name -eq 'StateFlags0070' }
+        Should -Invoke Set-RegistryValue -Times 2 -Exactly
+        Should -Invoke Set-RegistryValue -Times 0 -Exactly -ParameterFilter { $Path -like '*DownloadsFolder' }
+    }
+
+    It "Should select only the included handlers" {
+        $selected = Set-CleanmgrSelection -Id 69 -Include 'Temporary Files'
+
+        $selected | Should -Be @('Temporary Files')
+        Should -Invoke Remove-RegistryValue -Times 3 -Exactly -ParameterFilter { $Name -eq 'StateFlags0069' }
+        Should -Invoke Set-RegistryValue -Times 1 -Exactly
     }
 }
 

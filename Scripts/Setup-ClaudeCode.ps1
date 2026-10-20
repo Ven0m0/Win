@@ -104,6 +104,46 @@ function Install-ClaudePlugin {
     }
 }
 
+function Expand-McpDefinition {
+    <#
+    .SYNOPSIS
+        Returns a copy of an MCP server definition with %VAR% tokens expanded in command, args, and env values.
+    .DESCRIPTION
+        Expanding at install time keeps machine-specific paths (%USERPROFILE%, %LOCALAPPDATA%) out of the
+        tracked manifest. Expansion happens on the object, not the serialized JSON, because expanded
+        paths contain backslashes that would be invalid JSON escapes.
+    .PARAMETER Definition
+        Server definition object (type/command/args/env) from mcp-servers.json.
+    #>
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param(
+        [Parameter(Mandatory)]
+        [pscustomobject]$Definition
+    )
+
+    $copy = [ordered]@{}
+    foreach ($prop in $Definition.PSObject.Properties) {
+        if ($prop.Name -eq 'command') {
+            $copy.command = [Environment]::ExpandEnvironmentVariables($prop.Value)
+        }
+        elseif ($prop.Name -eq 'args') {
+            $copy.args = @($prop.Value | ForEach-Object { [Environment]::ExpandEnvironmentVariables($_) })
+        }
+        elseif ($prop.Name -eq 'env') {
+            $envCopy = [ordered]@{}
+            foreach ($entry in $prop.Value.PSObject.Properties) {
+                $envCopy[$entry.Name] = [Environment]::ExpandEnvironmentVariables($entry.Value)
+            }
+            $copy.env = [pscustomobject]$envCopy
+        }
+        else {
+            $copy[$prop.Name] = $prop.Value
+        }
+    }
+    [pscustomobject]$copy
+}
+
 function Install-ClaudeMcpServer {
     <#
     .SYNOPSIS
@@ -129,7 +169,7 @@ function Install-ClaudeMcpServer {
     }
 
     if ($PSCmdlet.ShouldProcess($Name, 'Register MCP server')) {
-        $json = $Definition | ConvertTo-Json -Depth 6 -Compress
+        $json = Expand-McpDefinition -Definition $Definition | ConvertTo-Json -Depth 6 -Compress
         & claude mcp add-json $Name $json --scope user 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Success "MCP server $Name registered"

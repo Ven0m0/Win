@@ -12,10 +12,19 @@ installed separately by `Scripts/Setup-ClaudeCode.ps1`, which reads `settings.js
 | `settings.json` | Global Claude Code settings: env, permissions, hooks, plugins, marketplaces |
 | `CLAUDE.md` | Global instructions (OMC orchestration, code standards, memory protocol) |
 | `RTK.md` | `@RTK.md` import target referenced from `CLAUDE.md` |
-| `mcp-servers.json` | MCP server manifest consumed by `Setup-ClaudeCode.ps1` |
+| `mcp-servers.json` | MCP server manifest consumed by `Setup-ClaudeCode.ps1`; `%VAR%` tokens in `command`/`args`/`env` are expanded at install time |
 | `hooks/validate-edit.ps1` | PostToolUse validator: PSScriptAnalyzer, ruff, biome, XML, YAML |
 | `hooks/guard-bedrock-db.ps1` | PreToolUse guard against editing Bedrock LevelDB binaries |
+| `hooks/rtk-advisor.ps1` | PreToolUse advisor for command shapes `rtk` cannot rewrite |
+| `hooks/context-mode-no-webfetch.mjs` | SessionStart: removes context-mode's WebFetch matcher so native WebFetch works |
 | `agents/` `commands/` `rules/` `skills/` | User-level agent, command, rule, and skill definitions |
+
+LSP servers ship as plugins (`*@claude-code-lsps`, `rust-analyzer-lsp`, `jdtls-lsp`), so they are
+covered by `enabledPlugins`; there is no separate user-level LSP file. The repo-root `.lsp.json` is
+project-scoped.
+
+Skills installed by plugins are not copied here (`caveman`, `megacave`, `ultracave` come from the
+`caveman` plugin; `cli-hub-meta-skill` is a symlink managed by `cli-anything`).
 
 ## Deliberately not tracked
 
@@ -29,8 +38,14 @@ fresh one.
 | `.omc-config.json` | `/oh-my-claudecode:omc-setup` |
 | `plugins/`, `projects/`, `sessions/`, `history.jsonl`, `.credentials.json`, `settings.local.json` | runtime state and credentials |
 
-`settings.json` guards the two generated entry points, so the status line and the context-mode
-SessionStart hook no-op on a fresh system instead of erroring on every render.
+`settings.json` guards every machine-dependent entry point (status line, context-mode hooks, the
+`caveman-proxy`/`caveman` hooks, `rtk`, `codegraph`), so each no-ops on a fresh system instead of
+erroring.
+
+Machine-local overrides stay out of `settings.json`. In particular `ANTHROPIC_BASE_URL`
+(`http://127.0.0.1:8787/w/claude`, the local caveman proxy) and its companion
+`_CLAUDE_CODE_ASSUME_FIRST_PARTY_BASE_URL=1` belong in `~/.claude/settings.local.json`; a tracked
+copy would break every machine without the proxy running. The deploy never touches that file.
 
 ## Fresh-system order
 

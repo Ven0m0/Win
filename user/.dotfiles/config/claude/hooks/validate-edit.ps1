@@ -52,6 +52,11 @@ switch -Regex ($ext) {
 
   '^\.(ps1|psm1|psd1)$' {
     if (-not (Get-Command -Name Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue)) { break }
+    # A repo that wires PSScriptAnalyzer/Pester in its own settings already runs them; a second pass doubles edit latency.
+    $repoSettings = Find-AncestorPath -StartFile $filePath -Relative '.claude/settings.json'
+    $userSettings = Join-Path -Path $HOME -ChildPath '.claude/settings.json'
+    if ($repoSettings -and $repoSettings -ne $userSettings -and
+      (Select-String -LiteralPath $repoSettings -Pattern 'PSScriptAnalyzer' -Quiet)) { break }
     $analyzer = @{ Path = $filePath }
     $settingsPath = Find-AncestorPath -StartFile $filePath -Relative 'PSScriptAnalyzerSettings.psd1'
     if ($settingsPath) { $analyzer.Settings = $settingsPath }
