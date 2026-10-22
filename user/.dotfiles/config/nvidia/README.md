@@ -13,10 +13,7 @@ nvidia/
 ├── nvidia-cleanup.cmd                 # Unified shader-cache + telemetry/bloat cleanup
 ├── xtremeg-installer.ps1              # XtremeG custom driver installer
 ├── profiles/                          # NVIDIA Profile Inspector profiles
-│   ├── Base.nip                       # Base profile (general settings)
-│   ├── BlackOps6.nip                  # Black Ops 6 optimized
-│   ├── Fortnite.nip                   # Fortnite optimized
-│   └── Java.nip                       # Java/Minecraft optimized
+│   └── new.nip                        # Main export: Base, Arc Raiders, BO6, Fortnite, Java, Minecraft, etc.
 ├── nvcpl/                             # NVIDIA Control Panel utilities
 └── archive/                           # Old/deprecated files (for reference)
 ```
@@ -158,11 +155,7 @@ Uncomment the relevant block manually and re-import if you need either of these.
 
 1. Launch NVIDIA Profile Inspector
 2. Click the import icon
-3. Select a profile from `profiles/` directory:
-   - `Base.nip` — Base profile with general settings
-   - `BlackOps6.nip` — Black Ops 6 specific
-   - `Fortnite.nip` — Fortnite specific
-   - `Java.nip` — Java/Minecraft specific
+3. Select `profiles/new.nip` (Base profile plus per-game profiles; DLSS overrides are per-game only)
 4. Click "Apply changes"
 
 ### Key Settings to Check

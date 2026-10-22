@@ -48,7 +48,6 @@
   "npm": {
     "enabled": false
   },
-  "postUpdateOptions": ["uvLockUpdate"],
   "packageRules": [
     {
       "description": "Disable GitHub Actions digest pinning",
