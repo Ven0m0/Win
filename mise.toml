@@ -21,9 +21,7 @@ cli_telemetry_optout = true
 
 [tools]
 # "pipx:py-psscriptanalyzer" = "0.3.1"
-"pipx:dotbot" = "latest"
-#"pipx:dotbot-firefox" = "latest"
-#"pipx:dotbot-windows" = "latest"
+"pipx:dotbot" = "1.24.1"
 
 [env]
 # PROJECT_ROOT = "{{config_root}}"
@@ -39,12 +37,9 @@ BINSTALL_DISABLE_TELEMETRY = "true"
 #[hooks]
 #enter = "mise i -yq"
 
-[tasks.bootstrap]
-description = "deploy dotfiles"
-run = ["dotbot -c install.conf.yaml"]
-
 [tasks.deploy]
 description = "Deploy dotfiles (dotbot must be installed)"
+alias = "bootstrap"
 run = "dotbot -c install.conf.yaml"
 
 [tasks.dev]

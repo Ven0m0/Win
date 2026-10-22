@@ -165,6 +165,13 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Parse install.conf.yaml with dotbot --dry-run
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check dotbot==1.24.1
+          dotbot -c install.conf.yaml --dry-run
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: Run Setup-Dotfiles.ps1 with -WhatIf for all targets
         shell: pwsh
         run: |

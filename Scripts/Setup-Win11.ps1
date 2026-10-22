@@ -182,11 +182,18 @@ function Start-SetupWin11 {
 
     Push-Location -Path $repoRoot
     try {
-        mise install
-        if ($LASTEXITCODE -ne 0) { throw "mise install failed with exit code $LASTEXITCODE" }
-        mise run bootstrap
-        if ($LASTEXITCODE -ne 0) { throw "mise run bootstrap failed with exit code $LASTEXITCODE" }
-        Write-Status 'Bootstrap completed' -Status 'OK'
+        if ($WhatIfPreference) {
+            # dotbot's shell steps are static and cannot forward -WhatIf, so preview the scripts directly.
+            & (Join-Path $repoRoot 'Scripts\Setup-Dotfiles.ps1') -SkipWingetTools -WhatIf
+            & (Join-Path $repoRoot 'Scripts\Setup-ClaudeCode.ps1') -WhatIf
+            Write-Status 'Bootstrap previewed (WhatIf)' -Status 'OK'
+        } else {
+            mise install
+            if ($LASTEXITCODE -ne 0) { throw "mise install failed with exit code $LASTEXITCODE" }
+            mise run bootstrap
+            if ($LASTEXITCODE -ne 0) { throw "mise run bootstrap failed with exit code $LASTEXITCODE" }
+            Write-Status 'Bootstrap completed' -Status 'OK'
+        }
     } catch {
         Write-Status "Bootstrap failed: $_" -Status 'FAIL'
         Pop-Location

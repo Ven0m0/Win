@@ -2,7 +2,8 @@
 
 <#
 .SYNOPSIS
-  Unified Windows maintenance: volume defrag/MSI cleanup, disk cleanup GUI, shader-cache purge, and safe component maintenance.
+  Unified Windows maintenance: volume defrag/MSI cleanup, disk cleanup GUI, shader-cache purge,
+  and safe component maintenance.
 .DESCRIPTION
   Consolidates four maintenance tools behind a single -Action switch:
     Defrag  - optimize/retrim volumes (defrag.exe) and clean MSI Afterburner skins/docs (default)
@@ -203,7 +204,7 @@ function Set-CleanmgrSelection {
     Enumerates the handlers actually present under VolumeCaches and clears any stale flag first, so
     categories selected in an earlier run do not stay active. Returns the selected handler names.
   #>
-  [CmdletBinding(SupportsShouldProcess)]
+  [CmdletBinding()]
   param(
     [Parameter(Mandatory)][ValidateRange(0, 9999)][int]$Id,
     # $null selects every handler present
@@ -231,7 +232,7 @@ function Set-CleanmgrSelection {
 # Extra action: DISM component cleanup, cache rebuilds, BITS/DNS/temp cleanup
 # ---------------------------------------------------------------------------
 function Start-AdditionalMaintenance {
-  [CmdletBinding(SupportsShouldProcess)]
+  [CmdletBinding()]
   param(
     [switch]$DryRun,
     [switch]$NoRestorePoint
@@ -260,17 +261,20 @@ function Start-AdditionalMaintenance {
   # WARNING: DISM /RestoreHealth can take 30+ minutes and may require a reboot.
   Write-Info "=== DISM RestoreHealth ==="
   Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
-  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun `
+    -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
 
   Write-Info "=== System File Check (sfc /scannow) ==="
-  Invoke-Operation -Name 'SFC_ScanNow' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+  Invoke-Operation -Name 'SFC_ScanNow' -Results $Results -DryRun:$DryRun `
+    -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'sfc.exe' -ArgumentList '/scannow'
 
   # /Cleanup-Image accepts one operation per invocation, so RestoreHealth and
   # StartComponentCleanup must run as separate DISM calls.
   Write-Info "=== DISM Component Cleanup ==="
-  Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -TimeoutSeconds 1800 `
+  Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun `
+    -Result 'COMPLETE' -TimeoutSeconds 1800 `
     -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
 
   # Disk Cleanup handlers (Update Cleanup, WER, Delivery Optimization, setup logs, ...). Sageset id 70 keeps
@@ -345,6 +349,35 @@ function Start-AdditionalMaintenance {
       }
     }
     Write-Success "Temp files cleaned from $cleared locations"
+  }
+
+  # 9b. Developer tool caches (uv, bun, npm, gradle); tools that are not installed are skipped
+  Invoke-Operation -Name 'DevToolCaches' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    $cacheCommands = @(
+      @{ Tool = 'uv';  Arguments = @('cache', 'clean') }
+      @{ Tool = 'bun'; Arguments = @('pm', 'cache', 'rm') }
+      @{ Tool = 'npm'; Arguments = @('cache', 'clean', '--force') }
+    )
+    foreach ($entry in $cacheCommands) {
+      if (-not (Get-Command -Name $entry.Tool -CommandType Application -ErrorAction SilentlyContinue)) {
+        Write-Verbose "Skipping $($entry.Tool) cache: not installed"
+        continue
+      }
+      Write-Info "$($entry.Tool) $($entry.Arguments -join ' ')"
+      $null = & $entry.Tool @($entry.Arguments)
+      if ($LASTEXITCODE -ne 0) {
+        Write-Warn "$($entry.Tool) cache clean failed (exit $LASTEXITCODE)"
+      }
+    }
+    # Gradle has no cache-clean command; stop daemons so they release locks, then purge the dir.
+    $gradleHome = $env:GRADLE_USER_HOME
+    if (-not $gradleHome) { $gradleHome = Join-Path -Path $HOME -ChildPath '.gradle' }
+    if (Test-Path -LiteralPath "$gradleHome\caches") {
+      if (Get-Command -Name 'gradle' -CommandType Application -ErrorAction SilentlyContinue) {
+        $null = & gradle --stop
+      }
+      Clear-DirectorySafe -Path "$gradleHome\caches"
+    }
   }
 
   # 10. Empty Recycle Bin
@@ -557,7 +590,8 @@ function Start-UltimateDiskCleanup {
 
   $drive     = Get-PSDrive -Name $driveLetter
   $usedAfter = [math]::Round($drive.Used / 1GB, 4)
-  Write-Info "Used space on ${driveLetter}: after cleaning: $usedAfter GB (freed $([math]::Round($usedBefore - $usedAfter, 4)) GB)"
+  $freed = [math]::Round($usedBefore - $usedAfter, 4)
+  Write-Info "Used space on ${driveLetter}: after cleaning: $usedAfter GB (freed $freed GB)"
 }
 
 
@@ -580,7 +614,9 @@ function Invoke-ShaderCacheCleanup {
   #--- Detect Steam
   try {
     $STEAM = (Get-ItemProperty -Path 'HKCU:\SOFTWARE\Valve\Steam').SteamPath
-    if (-not (Test-Path -Path "$STEAM\steam.exe") -or -not (Test-Path -Path "$STEAM\steamapps\libraryfolders.vdf")) {
+    $steamExe = Test-Path -Path "$STEAM\steam.exe"
+    $steamLibs = Test-Path -Path "$STEAM\steamapps\libraryfolders.vdf"
+    if (-not $steamExe -or -not $steamLibs) {
       Write-Warning 'Steam not found!'
       Start-Sleep -Seconds 5
       return

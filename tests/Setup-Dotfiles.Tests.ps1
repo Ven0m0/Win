@@ -130,6 +130,28 @@ Describe "Setup-Dotfiles.ps1 deployment helpers" {
             Get-Content -LiteralPath $dest | Should -Be 'new content'
         }
 
+        It "With -SeedOnly copies when the destination is missing" {
+            $src = Join-Path $TestDrive 'seed-src.txt'
+            $dest = Join-Path $TestDrive 'seed-dir\seed-dst.txt'
+            Set-Content -LiteralPath $src -Value 'seed'
+
+            Deploy-Config -Source $src -Destination $dest -Label 'Seed' -SeedOnly
+
+            Get-Content -LiteralPath $dest | Should -Be 'seed'
+        }
+
+        It "With -SeedOnly leaves an existing, different destination untouched" {
+            $src = Join-Path $TestDrive 'seedkeep-src.txt'
+            $dest = Join-Path $TestDrive 'seedkeep-dst.txt'
+            Set-Content -LiteralPath $src -Value 'tracked'
+            Set-Content -LiteralPath $dest -Value 'live with token'
+
+            Deploy-Config -Source $src -Destination $dest -Label 'SeedKeep' -SeedOnly
+
+            Get-Content -LiteralPath $dest | Should -Be 'live with token'
+            Should -Invoke Write-Host -ParameterFilter { "$Object" -like '*SEED-SKIP*SeedKeep*' }
+        }
+
         It "Changes nothing under -WhatIf" {
             $src = Join-Path $TestDrive 'wi-src.txt'
             $dest = Join-Path $TestDrive 'wi-dir\wi-dst.txt'

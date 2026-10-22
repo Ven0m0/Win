@@ -40,16 +40,25 @@ function Deploy-Config {
       Full path to the destination file.
   .PARAMETER Label
       Human-readable label for output messages.
+  .PARAMETER SeedOnly
+      Copy only when the destination is missing. For configs the app rewrites with machine-local
+      state (tokens, library paths) that a hash-based overwrite would wipe.
   #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [string]$Source,
         [string]$Destination,
-        [string]$Label
+        [string]$Label,
+        [switch]$SeedOnly
     )
 
     if (-not (Test-Path $Source)) {
         Write-Warning "  [SKIP] $Label - source not found: $Source"
+        return
+    }
+
+    if ($SeedOnly -and (Test-Path $Destination)) {
+        Write-Host "  [SEED-SKIP] $Label - exists, not overwritten" -ForegroundColor Gray
         return
     }
 
@@ -87,6 +96,8 @@ function Deploy-ConfigDirectory {
       Human-readable label for output messages.
   .PARAMETER Recurse
       When set, walks subdirectories and preserves relative path structure in destination.
+  .PARAMETER SeedOnly
+      Passed to Deploy-Config: copy each file only when its destination is missing.
   #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -94,7 +105,8 @@ function Deploy-ConfigDirectory {
         [string]$DestDir,
         [string]$Filter = '*',
         [string]$Label,
-        [switch]$Recurse
+        [switch]$Recurse,
+        [switch]$SeedOnly
     )
 
     if (-not (Test-Path $SourceDir)) {
@@ -119,7 +131,7 @@ function Deploy-ConfigDirectory {
         else {
             $dest = Join-Path $DestDir $file.Name
         }
-        Deploy-Config -Source $file.FullName -Destination $dest -Label "$Label/$($file.Name)"
+        Deploy-Config -Source $file.FullName -Destination $dest -Label "$Label/$($file.Name)" -SeedOnly:$SeedOnly
     }
 }
 
@@ -388,6 +400,33 @@ function Deploy-StarWarsBattlefrontIIConfig {
     }
 }
 
+function Resolve-QtEmulatorConfigPath {
+    <#
+  .SYNOPSIS
+      Resolves the qt-config.ini path for a Qt-based emulator, or $null when it is not installed.
+  .DESCRIPTION
+      Scoop installs these emulators portable: config lives in persist\<app>\user\config.
+      Otherwise falls back to %APPDATA%\<AppDataDir>\config when that directory exists.
+  #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)][string]$ScoopApp,
+        [Parameter(Mandatory)][string]$AppDataDir
+    )
+
+    $scoopRoot = if ($env:SCOOP) { $env:SCOOP } else { Join-Path $HOME 'scoop' }
+    $persist = Join-Path $scoopRoot "persist\$ScoopApp"
+    if (Test-Path $persist) {
+        return Join-Path $persist 'user\config\qt-config.ini'
+    }
+    $appData = Join-Path $env:APPDATA $AppDataDir
+    if (Test-Path $appData) {
+        return Join-Path $appData 'config\qt-config.ini'
+    }
+}
+
+
 function Invoke-ConfigManifestEntry {
     <#
   .SYNOPSIS
@@ -408,11 +447,13 @@ function Invoke-ConfigManifestEntry {
         return
     }
 
+    $seedOnly = $Entry.ContainsKey('SeedOnly') -and $Entry.SeedOnly
+
     switch ($Entry.Mode) {
         'file' {
             $destination = & $Entry.ResolveDestination
             if ($destination) {
-                Deploy-Config -Source $sourcePath -Destination $destination -Label $Entry.Label
+                Deploy-Config -Source $sourcePath -Destination $destination -Label $Entry.Label -SeedOnly:$seedOnly
             }
             else {
                 Write-Warning "  [SKIP] $($Entry.Label) - $(& $Entry.GetSkipReason)"
@@ -428,6 +469,7 @@ function Invoke-ConfigManifestEntry {
                     Label     = $Entry.Label
                 }
                 if ($Entry.ContainsKey('Recurse') -and $Entry.Recurse) { $dirArgs['Recurse'] = $true }
+                if ($seedOnly) { $dirArgs['SeedOnly'] = $true }
                 Deploy-ConfigDirectory @dirArgs
             }
             else {
@@ -802,6 +844,73 @@ function Start-Bootstrap {
             Label              = 'psmux config'
             ResolveDestination = { Join-Path $HOME '.psmux.conf' }
             GetSkipReason      = { 'psmux not installed' }
+        },
+        @{
+            Path               = 'bat\config'
+            Mode               = 'file'
+            Label              = 'bat config'
+            ResolveDestination = { Join-Path $env:APPDATA 'bat\config' }
+            GetSkipReason      = { 'APPDATA not set' }
+        },
+        @{
+            Path               = 'cargo\config.toml'
+            Mode               = 'file'
+            Label              = 'Cargo config'
+            ResolveDestination = { Join-Path $HOME '.cargo\config.toml' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'cargo\binstall.toml'
+            Mode               = 'file'
+            Label              = 'cargo-binstall config'
+            ResolveDestination = { Join-Path $HOME '.cargo\binstall.toml' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\opencode.json'
+            Mode               = 'file'
+            Label              = 'opencode config'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\opencode.json' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\AGENTS.md'
+            Mode               = 'file'
+            Label              = 'opencode AGENTS.md'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\AGENTS.md' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'emulators\dolphin\Config'
+            Mode               = 'directory'
+            Filter             = '*.ini'
+            SeedOnly           = $true
+            Label              = 'Dolphin config'
+            ResolveDestination = {
+                $legacy = Join-Path $HOME 'Documents\Dolphin Emulator'
+                $appData = Join-Path $env:APPDATA 'Dolphin Emulator'
+                if (Test-Path $legacy) { Join-Path $legacy 'Config' }
+                elseif ((Test-Path $appData) -or (Get-Command -Name 'Dolphin.exe' -ErrorAction SilentlyContinue)) {
+                    Join-Path $appData 'Config'
+                }
+            }
+            GetSkipReason      = { 'Dolphin not installed' }
+        },
+        @{
+            Path               = 'emulators\azaharplus\qt-config.ini'
+            Mode               = 'file'
+            SeedOnly           = $true
+            Label              = 'AzaharPlus config'
+            ResolveDestination = { Resolve-QtEmulatorConfigPath -ScoopApp 'azaharplus' -AppDataDir 'AzaharPlus' }
+            GetSkipReason      = { 'AzaharPlus not installed' }
+        },
+        @{
+            Path               = 'emulators\eden\qt-config.ini'
+            Mode               = 'file'
+            SeedOnly           = $true
+            Label              = 'Eden config'
+            ResolveDestination = { Resolve-QtEmulatorConfigPath -ScoopApp 'eden' -AppDataDir 'eden' }
+            GetSkipReason      = { 'Eden not installed' }
         },
         @{
             Path               = 'topgrade\topgrade.toml'

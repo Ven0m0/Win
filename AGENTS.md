@@ -101,7 +101,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`
 
 ## Gotchas
 
@@ -132,7 +132,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | Workflow               | Trigger                      | Checks                                        |
 | ---------------------- | ---------------------------- | --------------------------------------------- |
 | `ci.yml`               | push to/PR on `main`         | PSScriptAnalyzer + full Pester suite, posts check annotations/inline comments |
-| `lint-format-test.yml` | push/PR on `*.ps1`           | Format check + dotbot `-WhatIf` dry-run       |
+| `lint-format-test.yml` | push/PR on `*.ps1`           | Format check + `dotbot --dry-run` + Setup-Dotfiles `-WhatIf` |
 | `powershell.yml`       | push/PR on `*.ps1`           | SARIF-based PSScriptAnalyzer (Security tab)   |
 | `ps-format.yml`        | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
