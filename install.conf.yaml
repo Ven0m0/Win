@@ -53,6 +53,9 @@
       stdin: false
       stdout: true
       stderr: true
+    link:
+      create: true
+      relink: true
 - shell:
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -SkipWingetTools
       description: "Deploy all tracked dotfiles configs (see source->target map above)"
