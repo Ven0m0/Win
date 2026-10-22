@@ -23,7 +23,7 @@
 #   browser\firefox\user.js                        → %APPDATA%\Mozilla\Firefox\<default-release-profile>\user.js
 #   cmd\alias.cmd                                  → %USERPROFILE%\alias.cmd + HKCU\Software\Microsoft\Command Processor\AutoRun
 #   games\bf2\                                     → ~/Documents/Star Wars Battlefront II/Profiles/<active-profile>/
-#   games\bo6\                                      → ~/Documents/Call of Duty BO6/players/
+#   games\bo6\s.1.0.cod24.txt0                     → ~/Documents/Call of Duty BO6/players/ (Steam and Battle.net), as both txt0 and txt1; games\bo6\keybinds.cod24.kb → the numeric account-ID subfolder that already has one
 #   games\arc-raiders\                             → %LOCALAPPDATA%\PioneerGame\Saved\Config\WindowsClient\
 #   games\fortnite\GameUserSettings.ini            → %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient\
 #   games\fortnite\Engine.ini                      → %LOCALAPPDATA%\EpicGamesLauncher\Saved\Config\WindowsEditor\Engine.ini

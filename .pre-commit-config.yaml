@@ -26,9 +26,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # BO6 settings must stay byte-identical to what the game writes
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: ^user/\.dotfiles/config/games/bo6/
       - id: end-of-file-fixer
+        exclude: ^user/\.dotfiles/config/games/bo6/
       - id: check-yaml
         args: [--allow-multiple-documents]
       - id: check-json
@@ -37,6 +40,7 @@ repos:
       - id: fix-byte-order-marker
         exclude: \.(ps1|psm1|psd1)$
       - id: mixed-line-ending
+        exclude: ^user/\.dotfiles/config/games/bo6/
       - id: detect-private-key
       - id: check-case-conflict
       - id: check-executables-have-shebangs

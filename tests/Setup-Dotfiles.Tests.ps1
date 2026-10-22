@@ -31,6 +31,8 @@ Describe "Setup-Dotfiles.ps1" {
             Get-Command Set-CmdAliasAutoRun -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Deploy-StarWarsBattlefrontIIConfig -ErrorAction SilentlyContinue | `
                 Should -Not -BeNullOrEmpty
+            Get-Command Deploy-CallOfDutyBlackOps6Config -ErrorAction SilentlyContinue | `
+                Should -Not -BeNullOrEmpty
             Get-Command Invoke-ConfigManifestEntry -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
             Get-Command Install-WingetTool -ErrorAction SilentlyContinue | Should -Not -BeNullOrEmpty
         }
@@ -319,14 +321,65 @@ Describe "Setup-Dotfiles.ps1 deployment helpers" {
             }
         }
 
-        It "Get-CallOfDutyPlayersPath returns null when the folder is absent" {
+        It "Get-CallOfDutyPlayersPath returns nothing when no folder exists" {
             Mock Test-Path { $false }
             Get-CallOfDutyPlayersPath | Should -BeNullOrEmpty
         }
 
         It "Get-CallOfDutyPlayersPath returns the players folder when present" {
             Mock Test-Path { $true }
-            Get-CallOfDutyPlayersPath | Should -BeLike '*Call of Duty BO6\players'
+            $paths = @(Get-CallOfDutyPlayersPath)
+            $paths.Count | Should -Be 1
+            $paths[0] | Should -BeLike '*Call of Duty BO6\players'
+        }
+
+        Context "Deploy-CallOfDutyBlackOps6Config" {
+            BeforeEach {
+                $bo6Source = Join-Path $TestDrive 'bo6-src'
+                $steamPlayers = Join-Path $TestDrive 'Call of Duty BO6\players'
+                $bnetPlayers = Join-Path $TestDrive 'Call of Duty\players'
+                Remove-Item -LiteralPath $steamPlayers, $bnetPlayers -Recurse -Force -ErrorAction SilentlyContinue
+                $null = New-Item -ItemType Directory -Path $bo6Source, $steamPlayers, $bnetPlayers -Force
+                Set-Content -Path (Join-Path $bo6Source 's.1.0.cod24.txt0') -Value 'TextureQuality = 0'
+                Mock Get-CallOfDutyPlayersPath { $steamPlayers, $bnetPlayers }
+            }
+
+            It "Writes txt0 and txt1 with the source hash into every players folder, leaving .m alone" {
+                Deploy-CallOfDutyBlackOps6Config -SourceDir $bo6Source -Label 'BO6' 6>$null
+                $srcHash = (Get-FileHash (Join-Path $bo6Source 's.1.0.cod24.txt0')).Hash
+                foreach ($players in $steamPlayers, $bnetPlayers) {
+                    foreach ($slot in 's.1.0.cod24.txt0', 's.1.0.cod24.txt1') {
+                        (Get-FileHash (Join-Path $players $slot)).Hash | Should -Be $srcHash
+                    }
+                    Test-Path (Join-Path $players 's.1.0.cod24.m') | Should -BeFalse
+                }
+            }
+
+            It "Deploys keybinds only into numeric profile folders that already have a keybinds file" {
+                Set-Content -Path (Join-Path $bo6Source 'keybinds.cod24.kb') -Value 'new-binds'
+                $withBinds = Join-Path $steamPlayers '486616463'
+                $withoutBinds = Join-Path $steamPlayers '111'
+                $notNumeric = Join-Path $steamPlayers 'other'
+                $null = New-Item -ItemType Directory -Path $withBinds, $withoutBinds, $notNumeric -Force
+                Set-Content -Path (Join-Path $withBinds 'keybinds.cod24.kb') -Value 'old-binds'
+                Set-Content -Path (Join-Path $notNumeric 'keybinds.cod24.kb') -Value 'old-binds'
+                Mock Get-CallOfDutyPlayersPath { $steamPlayers }
+                Deploy-CallOfDutyBlackOps6Config -SourceDir $bo6Source -Label 'BO6' 6>$null
+                $srcHash = (Get-FileHash (Join-Path $bo6Source 'keybinds.cod24.kb')).Hash
+                (Get-FileHash (Join-Path $withBinds 'keybinds.cod24.kb')).Hash | Should -Be $srcHash
+                Test-Path (Join-Path $withoutBinds 'keybinds.cod24.kb') | Should -BeFalse
+                (Get-Content (Join-Path $notNumeric 'keybinds.cod24.kb')) | Should -Be 'old-binds'
+            }
+
+            It "Warns and writes nothing when no players folder exists" {
+                Mock Get-CallOfDutyPlayersPath { @() }
+                Mock Write-Warning { }
+                Deploy-CallOfDutyBlackOps6Config -SourceDir $bo6Source -Label 'BO6'
+                Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter {
+                    $Message -like '*players directory not found*'
+                }
+                Test-Path (Join-Path $steamPlayers 's.1.0.cod24.txt0') | Should -BeFalse
+            }
         }
 
         It "Get-StarWarsBattlefrontIIRootPath points into Documents" {

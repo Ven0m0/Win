@@ -218,5 +218,8 @@ AGENTS.md text eol=lf
 # Scripts auto-extracted from XML
 *.ps1 text eol=crlf
 
+# BO6 settings are byte-compared against what the game writes (LF, trailing spaces after '=')
+user/.dotfiles/config/games/bo6/** -text
+
 # UTF-16LE .reg: eol conversion on checkout corrupts it (CI header check fails)
 Scripts/reg/Disable_Game_Bar_Integration.reg -text

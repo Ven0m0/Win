@@ -197,12 +197,18 @@ function Get-FirefoxDefaultProfilePath {
 }
 
 function Get-CallOfDutyPlayersPath {
+    <#
+  .SYNOPSIS
+      Returns the BO6 players folder when it exists. Steam and Battle.net installs share it.
+  #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param()
+
     $playersPath = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Call of Duty BO6\players'
     if (Test-Path $playersPath) {
-        return $playersPath
+        $playersPath
     }
-
-    return $null
 }
 
 function Get-StarWarsBattlefrontIIRootPath {
@@ -397,6 +403,57 @@ function Deploy-StarWarsBattlefrontIIConfig {
             Label       = "$Label/ProfileOptions_profile"
         }
         Deploy-Config @deployParams
+    }
+}
+
+function Deploy-CallOfDutyBlackOps6Config {
+    <#
+  .SYNOPSIS
+      Deploys the tracked BO6 settings file into every existing players folder (Steam and Battle.net).
+  .PARAMETER SourceDir
+      Full path to the tracked BO6 config directory.
+  .PARAMETER Label
+      Human-readable label for output messages.
+  #>
+    [CmdletBinding()]
+    param(
+        [string]$SourceDir,
+        [string]$Label
+    )
+
+    $source = Join-Path $SourceDir 's.1.0.cod24.txt0'
+    $playersPaths = @(Get-CallOfDutyPlayersPath)
+    if ($playersPaths.Count -eq 0) {
+        Write-Warning "  [SKIP] $Label - Call of Duty players directory not found"
+        return
+    }
+
+    # The game alternates between txt0 and txt1 (s.1.0.cod24.m marks the active one), so both get
+    # the same content. The .m marker is left alone.
+    foreach ($playersPath in $playersPaths) {
+        $folderName = Split-Path (Split-Path $playersPath -Parent) -Leaf
+        foreach ($slot in 's.1.0.cod24.txt0', 's.1.0.cod24.txt1') {
+            $deployParams = @{
+                Source      = $source
+                Destination = Join-Path $playersPath $slot
+                Label       = "$Label/$folderName/$slot"
+            }
+            Deploy-Config @deployParams
+        }
+
+        # Keybinds live in the per-account profile folder (named by account ID, so it differs per install),
+        # and only exist once the game has created the profile; skip folders without one.
+        $keybindsSource = Join-Path $SourceDir 'keybinds.cod24.kb'
+        $profileDirs = @(Get-ChildItem -Path $playersPath -Directory |
+                Where-Object { ($_.Name -match '^\d+$') -and (Test-Path (Join-Path $_.FullName 'keybinds.cod24.kb')) })
+        foreach ($profileDir in $profileDirs) {
+            $deployParams = @{
+                Source      = $keybindsSource
+                Destination = Join-Path $profileDir.FullName 'keybinds.cod24.kb'
+                Label       = "$Label/$($profileDir.Name)/keybinds.cod24.kb"
+            }
+            Deploy-Config @deployParams
+        }
     }
 }
 
@@ -775,13 +832,13 @@ function Start-Bootstrap {
             }
         },
         @{
-            Path               = 'games\bo6'
-            Mode               = 'directory'
-            Label              = 'Call of Duty Black Ops 6 configs'
-            Filter             = '*'
-            Recurse            = $true
-            ResolveDestination = { Get-CallOfDutyPlayersPath }
-            GetSkipReason      = { 'Call of Duty players directory not found' }
+            Path   = 'games\bo6'
+            Mode   = 'script'
+            Label  = 'Call of Duty Black Ops 6 configs'
+            Invoke = {
+                param($sourceDir, $label)
+                Deploy-CallOfDutyBlackOps6Config -SourceDir $sourceDir -Label $label
+            }
         },
         @{
             Path               = 'games\arc-raiders'
