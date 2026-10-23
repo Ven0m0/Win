@@ -26,7 +26,6 @@
 
 1. **Internet** (`bootstrap.ps1`) — one-command entry; self-elevates, installs Git/Python/mise/uv via winget, shallow-clones to `$env:USERPROFILE\project\Win`, then chains into `Scripts/Setup-Win11.ps1` for the full setup (debloat, packages, dotbot deploy, WSL)
 2. **Repo** (`install.conf.yaml` → `Scripts/Setup-Dotfiles.ps1`) — single deploy-all dotbot call (not per-target), hash-based config deployment, PATH setup. Works without admin; a failing manifest entry is caught and reported in a "STEPS THAT FAILED" summary at the end instead of aborting the run. Deploy itself runs via mise (`mise install` + `mise run bootstrap`), not bare `dotbot`
-3. **Unattended USB** (`Scripts/auto/autounattend-windows10.xml`) — fully self-contained; no companion flat files
 
 `Scripts/Setup-Win11.ps1` no longer clones the repo itself — it operates on `Split-Path -Parent $PSScriptRoot`, assuming layer 1 already put it somewhere.
 
@@ -40,13 +39,13 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `Scripts/Common.ps1`                      | Shared helper library — always import, never duplicate  |
 | `Scripts/arc-raiders/`                    | Arc Raiders game-specific scripts                       |
 | `Scripts/reg/`                            | Registry `.reg` files and priority tweaks               |
-| `Scripts/auto/autounattend-windows10.xml` | Unattended Windows 10 USB installer                     |
 | `tests/`                                  | Pester test files (`*.Tests.ps1`)                       |
 | `user/.dotfiles/config/`                  | Tracked dotfile content (deploy targets)                |
 | `install.conf.yaml`                       | Dotbot configuration                                    |
 | `mise.toml`                                | Tool manifest — Python/uv, pipx-managed dotbot, `mise run bootstrap`/`deploy`/`lint`/`format`/`validate`/`ci` tasks |
 | `Scripts/packages.psd1`                    | Canonical package catalog — winget/scoop/choco/Bun/npm/Cargo/PS-modules/DISM-features/Appx-removal |
-| `.kilo/`                                  | Kilo AI configuration (skills, agents, rules, commands) |
+| `docs/`                                   | Per-script documentation (`docs/<script>.md`)           |
+| `.claude/`                                | Claude Code agents, commands, rules, skills             |
 | `.github/workflows/`                      | CI pipeline definitions                                 |
 
 **Notable scripts:**
@@ -58,10 +57,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `system-maintenance.ps1`      | Maintenance hub (`-Action Defrag\|Disk\|Shader\|Extra\|All`) |
 | `system-update.ps1`           | Winget + scoop update runner                                 |
 | `Network-Tweaker.ps1`         | TCP/IP and adapter optimizations                             |
-| `shell-setup.ps1`             | Shell environment configuration                              |
 | `fix-system.ps1`              | Repair hub (`-Action System\|WindowsUpdate\|All`)            |
-| `DLSS-force-latest.ps1`       | Force latest DLSS version across games                       |
-| `New-SteamShortcut.ps1`       | Steam shortcut creator                                       |
 | `Get-BedrockPackUpdate.ps1`   | Report of outdated Bedrock packs/mods in LeviLauncher (read-only by default). `-Update` auto-maps new packs into `bedrock-packs.psd1` (manifest URL, sibling re-release, CurseForge search with `$env:CURSEFORGE_API_KEY` or Bitwarden `api-keys`/`curseforge`), downloads updates, backs up old packs, repoints world pack lists; supports `-WhatIf` |
 | `dedupe-media.ps1`            | Remove duplicate media: fclones exact pass, czkawka fuzzy image/video passes. Run **before** `optimize-media.ps1`. Preview by default (`-Apply` to act); czkawka's redundant dup pass is opt-in via `-IncludeDup` |
 | `optimize-media.ps1`          | Compress images (oxipng/jpegoptim/cwebp/gifsicle) + re-encode video to H.265/Opus (SSIM-tuned x265, CRF 28, web-optimized MP4) via ffzap (`-ThreadCount` concurrent encodes), replacing validated sources so the folder shrinks. Originals go to `-BackupPath` (default `$env:USERPROFILE\Pictures\optimize-media-bak`, must be outside the scanned tree); `-Encoder Auto\|NVENC\|x265`; `-Denoise`/`-MaxVideoDimension` are opt-in lossy filters for clips that won't otherwise shrink; `-ConvertToWebp` converts JPEG/PNG to WebP (cwebp, metadata kept) instead of in-place compression |
@@ -73,11 +69,11 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 - **Windows compatibility** → preserve PowerShell 5.1+/7+ support; use `$PSScriptRoot`, `$HOME`, `$env:*`
 - **Reversible changes** → prefer `-Restore` / `-Undo` parameters for system modifications
 - **New script names** → lowercase-with-dashes (e.g., `debloat-windows.ps1`); legacy PascalCase remains as-is
-- **Guidance splits**: `AGENTS.md` canonical; `.kilo/rules/` + `.claude/rules/` narrow constraints; `.claude/skills/` workflows; `.kilo/agents/` agent identity; `.kilo/commands/` documented workflows
+- **Guidance splits**: `AGENTS.md` canonical; `.claude/rules/` narrow constraints; `.claude/skills/` workflows; `.claude/agents/` agent identity; `.claude/commands/` documented workflows
 
 ## PowerShell Standards
 
-Full rules in `.kilo/rules/powershell.md`. Key constraints:
+Full rules in `.claude/rules/powershell.md`. Key constraints:
 
 - `[CmdletBinding(SupportsShouldProcess)]` for any function modifying system state
 - No global `$ErrorActionPreference = 'SilentlyContinue'`; no `Invoke-Expression` with variable input
@@ -88,7 +84,7 @@ Full rules in `.kilo/rules/powershell.md`. Key constraints:
 
 ## Registry & System Tweaks
 
-Full rules in `.kilo/rules/registry-security.md`. Key constraints:
+Key constraints:
 
 - `New-RestorePoint` before any HKLM changes (unless `-NoRestorePoint`)
 - Use `Set-RegistryValue` / `Remove-RegistryValue` from Common.ps1, not raw `Set-ItemProperty`
@@ -101,11 +97,10 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`, `claude/`, `git/`, `ssh/`, `psmux/`, `obs/`
 
 ## Gotchas
 
-- **`packages.psd1` `BunPackages`/`NpmPackages`/`CargoPackages` are catalog-only** — `Scripts/Install-Packages.ps1` does not yet read or install them (only `WingetCore`/`ScoopPackages`/`ChocoPackages`/`PsModules` are wired up). Adding an entry tracks it; it does not install it until that gap is closed.
 - **Pester mocks on `Test-Path` do not stop `& $scriptPath` from running real files.** `Setup-Win11.Tests.ps1` invokes `debloat-windows.ps1`/`Install-Packages.ps1` by computed path; mocking `Test-Path` to return `$true` only fakes the existence check, not the invocation. Always call `Start-SetupWin11` with `-SkipDebloat -SkipPackages` in tests — omitting them can execute live debloat/package-install operations on the test machine.
 
 ## Cochange Rules
@@ -123,8 +118,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `install.conf.yaml`                       | Path resolution, hash logic integrity                                        | `README.md` consistency                                        |
 | `Scripts/Setup-Dotfiles.ps1`              | ScriptAnalyzer + manifest review                                             | Config paths verification                                      |
 | `user/.dotfiles/config/*`                 | Format preservation (no cosmetic re-serialization)                           | Manifest correctness                                           |
-| `Scripts/auto/autounattend-windows10.xml` | `$xml = [xml]::new(); $xml.Load(path)`                                       | `ExtractScript` entity encoding                                |
-| `.kilo/` config changes                   | JSON/YAML syntax; correct paths                                              | `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes` |
+| `.claude/` guidance changes               | JSON/YAML syntax; correct paths                                              | `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes` |
 | `.github/workflows/*`                     | YAML syntax, tool availability                                               | —                                                              |
 
 ## CI Pipelines
@@ -137,7 +131,7 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `ps-format.yml`        | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
 
-**Pester:** 40 test files in `tests/`. Run `Invoke-Pester -Path tests/ -Output Minimal`.
+**Pester:** 39 test files in `tests/`. Run `Invoke-Pester -Path tests/ -Output Minimal`.
 
 ## Agent Delegation
 
@@ -149,22 +143,22 @@ Full rules in `.kilo/rules/registry-security.md`. Key constraints:
 | `code-reviewer`        | Read-only review, best-practice verification         | Before merging PS changes, after refactoring                   |
 | `security-auditor`     | Credential detection, unsafe pattern flagging        | Before committing scripts touching credentials or elevation    |
 | `documentation-writer` | Markdown docs, README, AGENTS.md maintenance         | New commands/agents, README sync after features                |
-| `explore-codebase`     | Read-only exploration, symbol location               | Finding where a function lives, mapping dependencies           |
+| `winget-package-curator` | Read-only audit of `packages.psd1` / `install.conf.yaml` package IDs | Packages added/removed, before a release          |
+| `bedrock-data-analyst` | Read-only Minecraft Bedrock world (LevelDB) inspection | "What's in this world", entity/inventory lookups             |
+| `Explore`              | Read-only exploration, symbol location               | Finding where a function lives, mapping dependencies           |
 
 Load relevant skills first: `win-patterns`, `validation`.
 
 ## Skills & Rules
 
 **Skills** (`.claude/skills/`):
-`win-patterns`, `validation`, `code-cleanup`, `karpathy-guidelines`, `windows-dotfiles`, `new-ps-script`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `session-complete`, `todo-scan`
+`win-patterns`, `validation`, `powershell-windows`, `ps-script-validator`, `ps-dedupe-cleanup`, `dotbot-manifest-check`, `winget-audit`
 
-**Rules** (`.kilo/rules/`):
-`powershell.md`, `registry-security.md`, `windows-os.md`
-(`.claude/rules/`: `bootstrap-deployment.md`, `powershell.md`, `registry-security.md`, `windows-os.md`)
-(`shell-strategy` guidance is provided by the `kilo-tools` git plugin — see `.kilo/kilo.json` `plugin` array)
+**Rules** (`.claude/rules/`):
+`bootstrap-deployment.md`, `powershell.md`, `skills.md`, `windows-os.md`
 
-**Commands** (`.kilo/commands/`):
-`Backup-CurrentConfigs`, `Invoke-ScriptAnalyzer`, `Optimize-Repository`, `Sync-Configs`, `Test-Environment`, `Validate-Changes`
+**Commands** (`.claude/commands/`):
+`audit-security`, `backup-configs`, `debloat-windows`, `deploy-configs`, `invoke-scriptanalyzer`, `lint-guidance`, `migrate-config`, `optimize-repository`, `review-code`, `sync-configs`, `test-environment`, `update-changelog`, `validate-changes`
 
 ## Git & Commits
 
@@ -176,8 +170,8 @@ Examples: `feat: add GPU monitoring script`, `fix: harden bootstrap path handlin
 
 ## AI Guidance Changes
 
-- Keep `.github/copilot-instructions.md` minimal (startup only); broader rules → `AGENTS.md`; narrow rules → `.kilo/rules/`
-- After editing `.kilo/` guidance or `.github/copilot-instructions.md`: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
+- Broader rules → `AGENTS.md`; narrow rules → `.claude/rules/`
+- After editing `.claude/` guidance: run `npx -y @yawlabs/ctxlint --depth 5 --mcp --strict --fix --yes`
 
 ## Implementation Plans
 

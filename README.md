@@ -30,6 +30,9 @@ The following package managers are recommended for Windows:
 - **Optimization Scripts**: Collection of Windows optimization and gaming tweaks
 - **Git Configuration**: Sensible git defaults and aliases
 - **Dotbot Bootstrap**: Automated setup on new machines
+- **Claude Code Setup**: Global settings, hooks, plugins and MCP servers via `Scripts/Setup-ClaudeCode.ps1`
+- **Game Configs**: Arc Raiders, BF2, BO6, Fortnite, Minecraft, plus emulator (Dolphin, AzaharPlus, Eden) seeds
+- **Media Tools**: Dedupe and optimize image/video libraries
 
 ## Fresh Windows 11 Install (One-Command)
 
@@ -87,7 +90,7 @@ The full chain, in the order each layer actually runs:
 
 1. **`bootstrap.ps1`** (internet entry point) — self-elevates, installs winget/Git/Python/mise/uv if missing, shallow-clones the repo, then invokes `Setup-Win11.ps1`.
 2. **`Scripts/Setup-Win11.ps1`** (`#Requires -RunAsAdministrator`) — orchestrates the local machine setup in 6 phases:
-   1. **Prerequisites** — verifies winget, Git, PowerShell 7+, and mise are available (falls back to `shell-setup.ps1` for winget, installs Git/pwsh via winget if missing, fails if mise is absent)
+   1. **Prerequisites** — verifies winget, Git, PowerShell 7+, and mise are available (registers winget via App Installer if absent, configures OpenSSH/git credential helper/TERM, installs Git/pwsh via winget if missing, fails if mise is absent)
    2. **Debloat** — runs `Scripts/debloat-windows.ps1 -NoRestorePoint -Unattended` (skip with `-SkipDebloat`)
    3. **Install software catalog** — runs `Scripts/Install-Packages.ps1`, which reads `Scripts/packages.psd1` (skip with `-SkipPackages`)
    4. **Deploy configs** — `mise install` then `mise run bootstrap`, which invokes `Scripts/Setup-Dotfiles.ps1`
@@ -147,7 +150,7 @@ If you prefer explicit control or the one-command script fails, install prerequi
 
 6. **Git Config**:
    ```pwsh
-   Copy-Item "$HOME\.gitconfig##template" "$HOME\.gitconfig"
+   Copy-Item "$HOME\user\.dotfiles\config\git\.gitconfig" "$HOME\.gitconfig"
    notepad $HOME\.gitconfig
    ```
 
@@ -178,7 +181,8 @@ pwsh -File "$env:USERPROFILE\project\Win\Scripts\Install-Packages.ps1" -ApplyPos
 | `-SkipNotepadReplacer` | Skip Notepad Replacer setup |
 | `-SkipPeripherals` | Skip peripheral driver/tool installs |
 | `-SkipManualInstalls` | Skip manual (no winget package) app installs |
-| `-ApplyPostInstall` | Apply post-install Windows configuration from `autounattend.xml` |
+| `-SkipLanguagePackages` | Skip Bun/npm/Cargo global package installs |
+| `-ApplyPostInstall` | Apply post-install Windows configuration (timezone, input locale, geo ID) |
 
 `packages.psd1` is the single source of truth for every package list — edit it directly to add or remove software; no script changes needed.
 
@@ -207,7 +211,7 @@ To also stop USB peripherals from suspending mid-session:
 pwsh -File "$env:USERPROFILE\project\Win\Scripts\DisableUSBPowerManagement.ps1"
 ```
 
-Both scripts require administrator elevation and only touch `HKLM` power-related keys — see [`.claude/rules/registry-security.md`](.claude/rules/registry-security.md) for the restore-point and rollback conventions they follow.
+Both scripts require administrator elevation and only touch `HKLM` power-related keys and follow the repo's restore-point and rollback conventions (`New-RestorePoint`, `-Restore`).
 
 ## Repository Structure
 
@@ -215,9 +219,11 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 .
 ├── Scripts/
 │   ├── Setup-Win11.ps1           # Fresh Windows 11 one-command setup (local)
-│   ├── Setup-Dotfiles.ps1        # Core bootstrap logic (called by dotbot)
+│   ├── Setup-Dotfiles.ps1        # Config deployment (called by dotbot / mise)
+│   ├── Setup-ClaudeCode.ps1      # Claude Code marketplaces, plugins, MCP servers
+│   ├── Install-Packages.ps1      # Software install driven by packages.psd1
+│   ├── packages.psd1             # Canonical package catalog
 │   ├── Common.ps1                # Shared utility functions
-│   ├── shell-setup.ps1           # Full toolchain install (Scoop, Choco, apps)
 │   ├── allow-scripts.ps1         # Enable/disable PowerShell script execution
 │   ├── debloat-windows.ps1       # System debloating suite
 │   ├── system-settings-manager.ps1
@@ -225,43 +231,37 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 │   ├── system-maintenance.ps1    # Maintenance hub (-Action Defrag|Disk|Shader|Extra|All)
 │   ├── fix-system.ps1            # Repair hub (-Action System|WindowsUpdate|All)
 │   ├── Network-Tweaker.ps1       # Network adapter optimization
-│   ├── Optimize-Steam.ps1        # Steam optimization
-│   ├── DLSS-force-latest.ps1     # DLSS configuration
+│   ├── optimize-steam.ps1        # Steam optimization
+│   ├── dedupe-media.ps1, optimize-media.ps1, sanitize-filenames.ps1
+│   ├── Get-BedrockPackUpdate.ps1, mc-freeze.ps1   # Minecraft Bedrock helpers
 │   ├── arc-raiders/              # Arc Raiders utilities
-│   └── Hostbuilder/
-│       └── BuildHosts.ps1        # Hosts file builder
-├── tests/                        # Pester tests (one *.Tests.ps1 per Scripts/*.ps1)
-├── user/.dotfiles/config/
-│   ├── powershell/Microsoft.PowerShell_profile.ps1    # PowerShell profile
-│   ├── windows-terminal/settings.json
-│   ├── browser/firefox/user.js
-│   ├── cmd/alias.cmd
-│   ├── bleachbit/cleaners/
-│   ├── games/(arc-raiders, bf2, bo6, fortnite, minecraft)/
-│   ├── nvidia/                   # NVIDIA assets
-│   ├── obs/                      # OBS Studio profiles, scenes, plugin_config
-│   ├── scoop/                    # Scoop bucket configs
-│   └── winget-configs/
+│   ├── reg/                      # Registry tweaks and context-menu .reg files
+│   ├── snapmem/                  # Memory snapshot tool (Python)
+│   └── third-party/              # Vendored third-party tools
+├── docs/                         # Per-script documentation
+├── tests/                        # Pester tests (*.Tests.ps1)
+├── user/.dotfiles/config/        # Tracked configs (deploy targets)
+│   ├── powershell/               # PowerShell profile
+│   ├── windows-terminal/, cmd/, git/, ssh/, psmux/, ohmyposh/, vscode/
+│   ├── browser/                  # Firefox user.js, Brave policies
+│   ├── games/                    # arc-raiders, bf2, bo6, fortnite, minecraft
+│   ├── emulators/                # dolphin, azaharplus, eden (seed-only)
+│   ├── nvidia/, obs/, bleachbit/, DDU/, cursors/, handbrake/, legcord/
+│   ├── claude/, kilo/, opencode/ # AI tool configs
+│   └── mise/, scoop/, winget-configs/, cargo/, bat/, topgrade/, wsl/
 ├── install.conf.yaml             # dotbot configuration entry point
+├── mise.toml                     # Tool manifest and tasks (deploy, validate, ci, ...)
 ├── bootstrap.ps1                 # One-command internet bootstrap
-├── .github/
-│   ├── instructions/
-│   │   ├── windows-11-setup.instructions.md
-│   │   ├── powershell.instructions.md
-│   │   └── ...
-│   ├── skills/
-│   │   ├── win-patterns/SKILL.md
-│   │   └── ...
-│   └── copilot-instructions.md
+├── .github/workflows/            # CI (ci, lint-format-test, ps-format, reg-validate)
+├── .claude/                      # Claude Code agents, rules, skills
 ├── AGENTS.md                     # AI assistant guide
 ├── CLAUDE.md                     # Symlink to AGENTS.md
-├── .gitignore
-└── README.md                    # This file
+└── README.md                     # This file
 ```
 
 ## Available Scripts
 
-All scripts are located in `~/Scripts/` and can be run directly:
+Scripts live in `Scripts/` (added to `PATH` by `Setup-Dotfiles.ps1`) and can be run directly. Per-script details are in [`docs/`](docs/):
 
 ### Setup & Bootstrap
 
@@ -270,7 +270,7 @@ All scripts are located in `~/Scripts/` and can be run directly:
 - **`packages.psd1`** — Canonical package catalog (winget/scoop/choco/modules/features/appx-remove lists)
 - **`Setup-Dotfiles.ps1`** — Deploy tracked configs (called by dotbot / `mise run deploy`)
 - **`debloat-windows.ps1`** — Remove bloatware using `packages.psd1` `AppxToRemove` list
-- **`shell-setup.ps1`** — Legacy full toolchain install (superseded by `Install-Packages.ps1` + `packages.psd1`)
+- **`Setup-ClaudeCode.ps1`** — Install Claude Code marketplaces, plugins and MCP servers from `user/.dotfiles/config/claude/`
 - **`allow-scripts.ps1`** — Enable/disable PowerShell script execution policy
 
 ### System Optimization
@@ -282,9 +282,11 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 ### Gaming Utilities
 
-- **`Optimize-Steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
+- **`optimize-steam.ps1`** — Optimize Steam for minimal RAM/CPU usage
 - **`system-maintenance.ps1 -Action Shader`** — Clear Steam/game/GPU shader caches
-- **`DLSS-force-latest.ps1`** — Force latest DLSS version
+- **`Get-BedrockPackUpdate.ps1`** — Report (and with `-Update`, apply) outdated Minecraft Bedrock packs/mods in LeviLauncher
+- **`mc-freeze.ps1`** — Minecraft helper; see [`docs/mc-freeze.md`](docs/mc-freeze.md)
+- **`arc-raiders/`** — Arc Raiders cleanup and intro-video skip mod
 
 ### Power & Performance
 
@@ -295,14 +297,19 @@ All scripts are located in `~/Scripts/` and can be run directly:
 
 - **`system-maintenance.ps1 -Action Disk`** — Comprehensive disk cleanup tool (GUI)
 
+### Media
+
+- **`dedupe-media.ps1`** — Remove duplicate media (fclones exact, czkawka fuzzy); preview by default, `-Apply` to act. Run before `optimize-media.ps1`
+- **`optimize-media.ps1`** — Compress images and re-encode video to H.265/Opus, backing up originals
+- **`sanitize-filenames.ps1`** — Normalize problematic filenames
+
 ### Networking
 
 - **`Network-Tweaker.ps1`** — Advanced network adapter configuration GUI
-- **`Hostbuilder/BuildHosts.ps1`** — Build custom hosts file with ad/malware blocking
 
 ### Other
 
-- **`PowerShell-Context-Menus.reg`** — Adds PowerShell to context menus
+- **`reg/`** — Registry tweaks and context-menu `.reg` files
 - **`Common.ps1`** — Shared utility functions (imported by many scripts)
 
 ## Dotbot Usage
@@ -318,13 +325,8 @@ dotbot -c install.conf.yaml
 # Full bootstrap (install dotbot + deploy)
 mise run bootstrap
 
-# Check git status
-git status --long
-
-# Commit changes
-git commit -m "Update configuration"
-
-# Push to remote
+# Commit and push changes
+git commit -m "chore: update configuration"
 git push
 ```
 
@@ -337,7 +339,7 @@ To track a new configuration file:
 git add $HOME\.my-new-config
 
 # Commit
-git commit -m "Add my new config"
+git commit -m "feat: add my new config"
 
 # Push
 git push
@@ -359,7 +361,7 @@ dotbot -c install.conf.yaml
 
 Dotbot configuration supports templates in [`install.conf.yaml`](install.conf.yaml). Configuration files can specify conditions and variable substitution.
 
-Example: `.gitconfig##template` should be copied to `.gitconfig` and customized.
+Files with a `##template` suffix are substituted by dotbot at deploy time.
 
 ### Validating Scripts
 
@@ -378,25 +380,24 @@ Invoke-Pester tests/*.Tests.ps1 -Output Detailed
 
 ## PowerShell Profile Features
 
-The PowerShell profile (`~/.config/powershell/Microsoft.PowerShell_profile.ps1`) includes:
+The PowerShell profile (`user/.dotfiles/config/powershell/Microsoft.PowerShell_profile.ps1`, deployed to `~/Documents/PowerShell/`) includes:
 
 ### Aliases
 
-- **Navigation**: `~` (go home)
-- **Git**: `gs`, `ga`, `gc`, `gp`, `gl`, `gd`
-- **Docker**: `d`, `dc`, `dps`, `dimg` (if docker installed)
-- **Unix-like**: `which`, `grep`, `df`, `du`, `touch`, `myip`
+- **Navigation**: `~`, `..` through `.....`
+- **Git**: `gs`, `ga`, `gc`, `gpush`, `gpull`, `gl`, `gd`, `gcl`, `gcom`, `lazyg`
+- **Unix-like**: `which`, `grep`, `sed`, `head`, `tail`, `unzip`, `pkill`, `pgrep`, `export`, `df`, `du`, `touch`, `ln`, `sudo`/`su` (elevate)
+- **Misc**: `ll`, `la`, `uptime`, `sysinfo`, `flushdns`, `cpy`, `pst`, `myip`
 
 ### Functions
 
 - `Get-DiskUsage` / `df` - Show disk usage
 - `Get-FileSize` / `du` - Calculate directory size
-- `Update-Profile` - Reload profile
-- `Edit-Profile` - Edit profile in default editor
+- `winutil` / `winutildev` - Run Chris Titus Tech's WinUtil
+- `Show-Help` - List profile commands
 - `Get-PublicIP` / `myip` - Get public IP address
 - `touch <file>` - Create/update file
 - `mkcd <dir>` - Create directory and cd into it
-- `Clear-TempFile` - Clean temporary files
 
 ### PSReadLine Configuration
 
@@ -409,10 +410,10 @@ The PowerShell profile (`~/.config/powershell/Microsoft.PowerShell_profile.ps1`)
 
 ### Local Customizations
 
-Create `~/.config/powershell/local.ps1` for machine-specific configuration that won't be tracked by git:
+Create `$HOME\.dotfiles\config\powershell\local.ps1` for machine-specific configuration that won't be tracked by git:
 
 ```pwsh
-# ~/.config/powershell/local.ps1
+# $HOME\.dotfiles\config\powershell\local.ps1
 # This file is ignored by git
 
 # Machine-specific aliases
@@ -461,51 +462,6 @@ dotbot -c install.conf.yaml
 ### Windows Terminal Settings Not Applied
 
 Manually copy the settings file — see step 5 under [Option 2: Manual Setup](#option-2-manual-setup).
-
-### Automated Windows 11 Installation (autounattend.xml)
-
-The [`Scripts/auto/autounattend.xml`](Scripts/auto/autounattend.xml) file enables fully automated Windows 11 installation.
-
-#### Prerequisites
-
-- **Windows 11 ISO** - Download from [UUP dump](https://uupdump.net) or Microsoft
-- **8GB+ USB drive** - For installation media
-- **Internet connection** - Required for winget app installations
-- **Disable BitLocker** - Before installation, disable BitLocker in Windows or BIOS
-- **Disable Secure Boot** - Some systems require disabling in BIOS/UEFI
-- **Backup data** - Installation will format the target disk
-
-#### Usage
-
-1. Copy `Scripts/auto/autounattend.xml` to the root of your Windows 11 installation USB
-2. Boot from the USB and follow the prompts
-3. Installation proceeds automatically (~45-60 minutes)
-4. System will restart and install apps automatically
-
-#### Installation Flow
-
-1. Windows PE loads → bypasses TPM/SecureBoot/RAM checks
-2. Disk is partitioned (GPT: EFI 550MB, Windows, Recovery 1000MB)
-3. Windows image is applied
-4. System specialized with bloatware removal and registry tweaks
-5. User "Ven0m0" created with auto-logon
-6. First login → runs install.ps1 (100+ apps via winget)
-7. Final reboot → stage2.ps1 installs WSL2
-
-#### Troubleshooting
-
-- **Installation hangs at disk partitioning**: Ensure disk 0 is available and not in use
-- **winget packages fail to install**: Check internet connectivity, packages may be retried automatically
-- **No internet after install**: Run `C:\Windows\Setup\Scripts\install.ps1` manually
-- **WSL2 install fails**: Run `wsl --install -d Ubuntu --web-download` manually
-
-#### Log Files
-
-Check these locations for debugging:
-
-- `C:\Windows\Setup\Scripts\install.log` - App installation logs
-- `C:\Windows\Setup\Scripts\stage2.log` - WSL installation logs
-- `C:\Windows\Setup\Scripts\Specialize.log` - System customization logs
 
 ### Dotbot Commands Not Working
 

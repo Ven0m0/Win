@@ -43,6 +43,37 @@ $ErrorActionPreference = 'Stop'
 
 . "$PSScriptRoot\Common.ps1"
 
+function Initialize-ShellEnvironment {
+    <#
+    .SYNOPSIS
+        Enables the Windows OpenSSH client, sets a git credential helper and a user TERM.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param()
+
+    $ssh = Get-WindowsCapability -Online -Name 'OpenSSH.Client*' | Select-Object -First 1
+    if ($ssh -and $ssh.State -ne 'Installed' -and $PSCmdlet.ShouldProcess($ssh.Name, 'Add Windows capability')) {
+        $null = Add-WindowsCapability -Online -Name $ssh.Name
+    }
+
+    # Windows ships ssh-agent disabled; Manual lets `ssh-add` start it on demand.
+    $agent = Get-Service -Name 'ssh-agent' -ErrorAction SilentlyContinue
+    if ($agent -and $agent.StartType -eq 'Disabled' -and $PSCmdlet.ShouldProcess('ssh-agent', 'Set startup Manual')) {
+        Set-Service -Name 'ssh-agent' -StartupType Manual
+    }
+
+    if ((Get-Command git -ErrorAction SilentlyContinue) -and -not (& git config --global credential.helper) -and
+        $PSCmdlet.ShouldProcess('git config --global', 'Set credential.helper manager')) {
+        & git config --global credential.helper manager
+    }
+
+    if (-not [Environment]::GetEnvironmentVariable('TERM', 'User') -and
+        $PSCmdlet.ShouldProcess('TERM', 'Set user environment variable xterm-256color')) {
+        [Environment]::SetEnvironmentVariable('TERM', 'xterm-256color', 'User')
+    }
+}
+
+
 function Start-SetupWin11 {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -104,12 +135,12 @@ function Start-SetupWin11 {
     Write-Host '[1/6] Checking prerequisites...' -ForegroundColor Cyan
 
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        if (Test-Path "$PSScriptRoot\shell-setup.ps1") {
-            Write-Status 'Installing prerequisites via shell-setup.ps1' -Status 'RUNNING'
-            & "$PSScriptRoot\shell-setup.ps1"
-            Write-Status 'Prerequisites installed' -Status 'OK'
-        } else {
-            Write-Host '  [FAIL] winget not found and shell-setup.ps1 unavailable.' -ForegroundColor Red
+        # Re-registers the App Installer package that ships winget (present but unregistered on fresh images).
+        $null = Invoke-Operation -Name 'Registering winget (App Installer)' -Action {
+            Add-AppxPackage -RegisterByFamilyName -MainPackage 'Microsoft.DesktopAppInstaller_8wekyb3d8bbwe'
+        }
+        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Write-Host '  [FAIL] winget not found and could not be registered.' -ForegroundColor Red
             Write-Host '  Install winget from https://aka.ms/getwinget then re-run.' `
                 -ForegroundColor Yellow
             return $false
@@ -137,6 +168,10 @@ function Start-SetupWin11 {
         Write-Status 'mise not found - run bootstrap.ps1 first (installs git/python/mise/uv and clones the repo)' -Status 'FAIL'
         return $false
     } else { Write-Status 'mise is available' -Status 'OK' }
+
+    $null = Invoke-Operation -Name 'Shell environment (OpenSSH, git credential helper, TERM)' -Action {
+        Initialize-ShellEnvironment -WhatIf:$WhatIfPreference
+    }
 
     # ---------------------------------------------------------------------------
     # Phase 2: Debloat Windows

@@ -7,15 +7,16 @@ NVIDIA driver tweaks, telemetry removal, and configuration files.
 ```
 nvidia/
 ├── README.md                          # This file
-├── XTREMEG.md                         # XtremeG custom drivers guide
-├── SCRIPTS-REFERENCE.md               # PowerShell scripts integration guide
-├── nvidia-performance-tweaks.reg      # All performance tweaks, fully consolidated (see below)
+├── nvidia-performance-tweaks.reg      # Consolidated performance tweaks (see below)
 ├── nvidia-cleanup.cmd                 # Unified shader-cache + telemetry/bloat cleanup
-├── xtremeg-installer.ps1              # XtremeG custom driver installer
+├── nvidia-settings.ps1                # Applies profiles/*.nip + legacy sharpening (-Mode Apply|Restore)
+├── NVProfileInspectorPerf.txt         # Profile Inspector setting notes
 ├── profiles/                          # NVIDIA Profile Inspector profiles
 │   └── new.nip                        # Main export: Base, Arc Raiders, BO6, Fortnite, Java, Minecraft, etc.
-├── nvcpl/                             # NVIDIA Control Panel utilities
-└── archive/                           # Old/deprecated files (for reference)
+├── toggles/                           # Standalone enable/disable .reg pairs (HDCP, MPO, NIS, HW scheduling, P-State lock, DLSS indicator)
+├── optional-tweaks/                   # Standalone opt-in .reg files (ECC, preemption, signature override, CUDA, OpenGL/Vulkan, ...)
+├── nvcpl/                             # NVIDIA Control Panel context-menu utilities
+└── msi-afterburner/                   # MSI Afterburner skin
 ```
 
 ## Quick Start
@@ -126,23 +127,18 @@ For clean driver installs:
 
 ## Optional Tweaks & Quick Toggles
 
-Formerly split across `optional-tweaks/` and `toggles/`, everything is now folded directly into
-`nvidia-performance-tweaks.reg` — shader cache, CUDA, OpenGL/Vulkan, VRR/display scaling, DirectFlip,
-Windows Game Mode, DLSS indicator, MPO, and hardware GPU scheduling all apply with the single
-`regedit /s nvidia-performance-tweaks.reg` command above.
+`nvidia-performance-tweaks.reg` is the consolidated baseline. Two folders hold standalone files you
+apply individually with `regedit /s <file>`:
 
-For enable/disable pairs (HDCP, MPO, NIS, HW scheduling, P-State lock, DLSS indicator, preemption),
-the file keeps the performance-oriented side active. To flip one back to its default/off state, edit
-the corresponding value directly in `nvidia-performance-tweaks.reg` (each section is labeled with a
-comment noting its origin).
+- `toggles/` - enable/disable pairs: HDCP, MPO, NIS, hardware GPU scheduling, P-State 0 lock,
+  DLSS indicator.
+- `optional-tweaks/` - opt-in extras: shader memory, CUDA, OpenGL/Vulkan, display scaling/VRR,
+  Windows Game Mode, preemption on/off.
 
-Two risky, non-performance tweaks are present but **commented out** near the end of the file so a
-bulk import never applies them:
-- **Disable ECC** — only relevant for workstation GPUs (Quadro/Tesla); may cause instability.
-- **Enable Signature Override** — enables Windows test-signing and disables driver integrity checks.
-  Do not use unless modding drivers. Use `Scripts/gpu-display-manager.ps1` to toggle this safely instead.
-
-Uncomment the relevant block manually and re-import if you need either of these.
+Two risky, non-performance files are in `optional-tweaks/` and should not be bulk-imported:
+- `disable-ecc.reg` - only relevant for workstation GPUs (Quadro/Tesla); may cause instability.
+- `enable-signature-override.reg` - enables Windows test-signing and disables driver integrity
+  checks. Do not use unless modding drivers.
 
 ## NVIDIA Profile Inspector
 
@@ -205,73 +201,19 @@ cd ~/Scripts
 .\system-maintenance.ps1 -Action Shader
 ```
 
-See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for detailed comparison.
+## PowerShell Scripts
 
-## PowerShell Scripts Integration
+| Script | What It Does |
+|--------|--------------|
+| `nvidia-settings.ps1` | Imports `profiles/*.nip` via Profile Inspector and toggles legacy sharpening; `-Mode Restore` reverts, `-Unattended` skips the GUI import |
+| `Scripts/system-maintenance.ps1 -Action Shader` | Shader cache cleanup including Steam; the NVIDIA-only equivalent is `nvidia-cleanup.cmd shader` |
+| `Scripts/system-settings-manager.ps1` | Interactive GPU/display and performance menu |
 
-This directory contains static registry files extracted from interactive PowerShell scripts:
-
-| PowerShell Script | What It Does | Equivalent Registry Files |
-|-------------------|--------------|---------------------------|
-| `Scripts/gpu-display-manager.ps1` | Interactive menu for GPU/display settings | P-State, HDCP, MPO toggles |
-| `Scripts/DLSS-force-latest.ps1` | Force latest DLSS, overlay toggle | DLSS indicator toggles |
-| `Scripts/system-maintenance.ps1 -Action Shader` | Cache cleanup with Steam integration | `nvidia-cleanup.cmd shader` |
-
-- Use scripts for interactive menus and advanced features (MSI Mode, EDID Override)
-- Use registry files for quick toggles, automation, or when PowerShell is unavailable
-
-See [SCRIPTS-REFERENCE.md](SCRIPTS-REFERENCE.md) for the complete integration guide.
-
-## XtremeG Custom Drivers (Advanced Users Only)
-
-**WARNING: XtremeG drivers are UNOFFICIAL, MODIFIED drivers — not from NVIDIA.**
-
-- Use at your own risk
-- May void warranty
-- No official support
-- May cause instability
-
-Only for advanced users who understand the risks.
-
-XtremeG = Community-modified NVIDIA drivers with telemetry removed, bloatware stripped, and performance tweaks pre-applied. Source: [r/XtremeG](https://www.reddit.com/r/XtremeG)
-
-### Quick Install
-
-```powershell
-# Run as Administrator
-.\xtremeg-installer.ps1
-```
-
-The script guides through downloading from MEGA.nz, optionally running DDU, and installing the driver.
-
-### Manual Install
-
-1. Visit [r/XtremeG](https://www.reddit.com/r/XtremeG)
-2. Download latest driver from MEGA.nz link
-3. Extract ZIP/7z file
-4. Run `setup.exe` as Administrator
-5. Reboot
-
-### Comparison
-
-| Feature | Official NVIDIA | XtremeG | Official + Our Tweaks |
-|---------|----------------|---------|----------------------|
-| Source | NVIDIA | Modified | NVIDIA |
-| Safety | Official | Unofficial | Official |
-| Size | ~700MB | ~400MB | ~700MB |
-| Telemetry | Yes | Removed | You remove |
-| Bloat | Yes (GFE) | Removed | You remove |
-| Tweaks | Default | Pre-applied | You apply |
-| Updates | Auto (GFE) | Manual | Manual |
-| Support | Official | Community | Official |
-
-For most users, official drivers + our tweaks is the better balance of safety and performance.
+Use the registry files for quick toggles, automation, or when PowerShell is unavailable.
 
 ### Alternative: NVCleanstall
 
 Customize official NVIDIA drivers during install without using modified drivers: [NVCleanstall](https://www.techpowerup.com/nvcleanstall/)
-
-See [XTREMEG.md](XTREMEG.md) for the complete installation guide and troubleshooting.
 
 ## Notes
 
@@ -283,8 +225,6 @@ The `nvidia-performance-tweaks.reg` file consolidates these previously separate 
 - ~~Experimental Tweaks.reg~~ Merged
 - ~~HDCP.reg~~ Merged
 - ~~New NIS [Default].reg~~ Merged
-- ~~toggles/ (12 files)~~ Merged — performance side kept active per pair
-- ~~optional-tweaks/ (10 files)~~ Merged — risky ECC/signature-override entries kept but commented out
 - Preemption disabled by default (edit the file directly to restore it)
 
 ### What's Included in Telemetry Cleanup

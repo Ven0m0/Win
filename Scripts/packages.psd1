@@ -3,7 +3,7 @@
 # This is the single source of truth for all package lists. Scripts that install
 # or remove software load this file via Import-PowerShellDataFile.
 #
-# Reconciled from: setup.ps1, Scripts/Install-Packages.ps1, Scripts/shell-setup.ps1,
+# Reconciled from: setup.ps1, Scripts/Install-Packages.ps1,
 # Scripts/debloat-windows.ps1, and Scripts/auto/autounattend.xml.
 # setup.ps1 retains its own inline lists for historical reasons; this file is canonical.
 

@@ -15,9 +15,20 @@ Images are compressed in place, per format:
 | WEBP | cwebp `-q<ImageQuality>` | Lossy | Yes; result kept only when smaller (unless `-Force`) |
 | GIF | gifsicle `-O3 -b` | Lossless | None; skipped with a warning if gifsicle is unavailable |
 | BMP/TIFF | ffmpeg → PNG, then oxipng batch | Format conversion | Original moved to `-BackupPath` (extension changes) |
+| AVIF | none | Resized only if oversized (`-MaxDimension`), otherwise untouched | Yes, when resized |
 | HEIC/HEIF | none | Untouched, reported | — already HEVC-compressed; a re-encode costs quality for almost no bytes |
 
 JPEG metadata (EXIF date, GPS, orientation) is preserved unless `-StripMetadata` is passed.
+
+### `-MaxDimension`
+
+Before the per-format passes, JPEG/WEBP/PNG/AVIF images whose longer side exceeds
+`-MaxDimension` pixels are downscaled in place with ImageMagick (`magick mogrify -resize
+WxH>`): aspect ratio kept, never upscaled. The compression passes then run on the smaller
+result. Resizing is lossy for every format (PNG included), so originals are copied to
+`-BackupPath` first. Default `0` disables it. GIF (animation risk) and HEIC/HEIF are
+excluded. ImageMagick is installed via winget (`ImageMagick.ImageMagick`) on first use; if
+unavailable the resize pass is skipped with a warning.
 
 ### `-ConvertToWebp`
 
@@ -45,9 +56,9 @@ stereo Opus audio, using NVENC when the GPU/ffmpeg offers `hevc_nvenc` and libx2
 otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slow` (`-X265Preset`), with a
 closed 2-5s GOP (`-g 120`) so the output stays seekable and HTTP-range-streamable at any
 framerate up to 60fps. NVENC has no SSIM tune and uses `-cq` at the same value, which reads
-visibly softer than x265's `-crf` for the same number. Sources already encoded as HEVC,
-AV1, or VP9 are skipped, as are files already named `*.h265.<ext>` (or a future `*.av1.mkv`
-/ `*.vp9.mkv`).
+visibly softer than x265's `-crf` for the same number. Sources already encoded as HEVC
+or AV1 are skipped (unless `-Force`), as are files already named `*.h265.<ext>` (or a future
+`*.av1.<ext>` / `*.vp9.<ext>`).
 
 `-Denoise` (adds `hqdn3d`) and `-MaxVideoDimension <px>` (caps the longer side, same
 contract as the image `-MaxDimension`) are optional and off by default. They are the actual
@@ -104,6 +115,19 @@ Compress images and re-encode videos, mirroring originals into
 .\Scripts\optimize-media.ps1 -Path "$env:USERPROFILE\Pictures"
 ```
 
+Process a single file (its folder is the backup-mirror root; `-BackupPath` must still sit
+outside that folder):
+
+```powershell
+.\Scripts\optimize-media.ps1 -Path "$env:USERPROFILE\Pictures\holiday.jpg"
+```
+
+Downscale oversized stills to 1920px on the longer side, then compress:
+
+```powershell
+.\Scripts\optimize-media.ps1 -Path "$env:USERPROFILE\Pictures" -SkipVideo -MaxDimension 1920
+```
+
 Force CPU encoding and keep the backups off the synced volume entirely:
 
 ```powershell
@@ -120,13 +144,14 @@ Show full help and exit:
 
 | Parameter | Default | Notes |
 | --- | --- | --- |
-| `-Path` | folder picker dialog | Folder to scan recursively |
+| `-Path` | folder picker dialog | Folder to scan recursively, or a single image/video file |
 | `-Help` / `-h` | off | Show help and exit; also recognizes literal `-h`, `--help`, `/?` as the first positional arg |
 | `-BackupPath` | `$env:USERPROFILE\Pictures\optimize-media-bak` | Must not sit inside `-Path` |
 | `-SkipImages` | off | Skip the image compression pass |
 | `-SkipVideo` | off | Skip the video re-encode pass |
 | `-ImageQuality` | `90` | JPEG/WEBP quality factor, 0 (worst) to 100 (best); PNG/GIF are always lossless |
 | `-OxipngLevel` | `6` | oxipng optimization level, 0 (fastest) to 6 (slowest); lossless either way, higher just spends more time |
+| `-MaxDimension` | `0` (disabled) | Cap the longer side of JPEG/WEBP/PNG/AVIF images to this many pixels before compressing; aspect ratio kept, never upscaled; lossy, originals backed up; see "MaxDimension" above |
 | `-StripMetadata` | off | Passes `-s` to jpegoptim, discarding EXIF/GPS/orientation — off by default (silent data loss on a photo library) |
 | `-ConvertToWebp` | off | Convert JPEG/PNG to WebP instead of compressing in place; see "ConvertToWebp" above |
 | `-VideoQuality` | `28` | libx265 crf, or the NVENC constant-quality value; 0 (best/largest) to 51 (worst/smallest); NVENC's `-cq` reads softer than x265's `-crf` at the same number |

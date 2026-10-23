@@ -48,7 +48,8 @@
     winget on first use and degrade to a warning when unavailable; ffmpeg and
     ffprobe are required.
 .PARAMETER Path
-    Folder to scan recursively. If omitted, a folder picker dialog opens.
+    Folder to scan recursively, or a single image/video file to process on its
+    own. If omitted, a folder picker dialog opens.
 .PARAMETER Help
     Show this help and exit. Aliased to -h; a literal "-h", "--help", or "/?"
     typed as the first argument is also recognized.
@@ -232,8 +233,13 @@ function Get-MediaFile {
         foreach ($ext in $Extension) {
             $null = $wanted.Add('.' + $ext.TrimStart('.'))
         }
-        $enumerated = [System.IO.Directory]::EnumerateFiles($TargetPath, '*',
-            [System.IO.SearchOption]::AllDirectories)
+        # $onlyFile is set at script scope when -Path names a single file.
+        $enumerated = if ($onlyFile) {
+            @($onlyFile)
+        }
+        else {
+            [System.IO.Directory]::EnumerateFiles($TargetPath, '*', [System.IO.SearchOption]::AllDirectories)
+        }
         foreach ($file in $enumerated) {
             if (-not $wanted.Contains([System.IO.Path]::GetExtension($file))) { continue }
             if ($file -match $excludeRegex) { continue }
@@ -1071,8 +1077,15 @@ if (-not $PSBoundParameters.ContainsKey('Path')) {
 }
 
 $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
-if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
-    throw "Path is not a folder: $resolvedPath"
+$onlyFile = $null
+if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
+    # Single file: scan its folder as the root (backup mirror layout stays the same) but
+    # only that file is processed; see Get-MediaFile.
+    $onlyFile = $resolvedPath
+    $resolvedPath = Split-Path -Parent $resolvedPath
+}
+elseif (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
+    throw "Path is not a file or folder: $resolvedPath"
 }
 
 # Resolved without requiring existence: the mirror is created lazily, per file, so that

@@ -9,6 +9,7 @@ BeforeAll {
   function git { }
   function winget { param([Parameter(ValueFromRemainingArguments)]$Rest) }
   function mise { param([Parameter(ValueFromRemainingArguments)]$Rest) }
+  function Add-AppxPackage { param([switch]$RegisterByFamilyName, $MainPackage) }
 }
 
 # AGENTS.md gotcha: mocking Test-Path does NOT stop `& $debloatScript` / `& $installScript` from running the
@@ -27,11 +28,11 @@ Describe "Start-SetupWin11" {
     }
 
     Mock Test-IsAdmin { $true }
+    Mock Add-AppxPackage { }
+    Mock Initialize-ShellEnvironment { }
     Mock Get-Command {
       if ($setup.Present[$Name]) { [pscustomobject]@{ Name = $Name; Source = "$Name.exe" } }
     } -ParameterFilter { $Name -in @('winget', 'git', 'pwsh', 'mise') }
-    # Keep the shell-setup.ps1 fallback unreachable: it would run the real script
-    Mock Test-Path { $false } -ParameterFilter { $Path -match 'shell-setup\.ps1' }
     Mock mise { $global:LASTEXITCODE = $setup.MiseExit[$Rest[0]] }
     Mock winget { $global:LASTEXITCODE = $setup.WingetExit }
     Mock wsl.exe {
@@ -61,7 +62,7 @@ Describe "Start-SetupWin11" {
   }
 
   Context "When prerequisite is missing" {
-    It "Should fail when winget is not found and shell-setup.ps1 is missing" {
+    It "Should fail when winget is not found and cannot be registered" {
       $setup.Present['winget'] = $false
 
       $result = Start-SetupWin11
