@@ -92,7 +92,7 @@ instead of shrinking it.
 
 ## Prerequisites
 
-- `ffmpeg`/`ffprobe` — required, installed via winget (`Gyan.FFmpeg.Shared`) if missing.
+- `ffmpeg`/`ffprobe` — required, installed via winget (`Gyan.FFmpeg`) if missing.
 - `ffzap` — used for the video pass, installed via winget (`CodeF0x.ffzap`) if missing. If it
   cannot be installed, or exits non-zero, the script falls back to plain `ffmpeg`, one file at a time.
 - `oxipng`, `jpegoptim`, `cwebp`, `gifsicle` — optional; installed via winget/scoop on
@@ -102,7 +102,7 @@ instead of shrinking it.
   keeps only the ICC profile.
 
 ```powershell
-winget install Gyan.FFmpeg.Shared
+winget install Gyan.FFmpeg
 winget install CodeF0x.ffzap
 ```
 

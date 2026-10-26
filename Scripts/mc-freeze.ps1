@@ -69,13 +69,31 @@ function Invoke-Freeze {
     return
   }
 
+  # Process.Handle throws and NtSuspendProcess returns an NTSTATUS (non-zero = failure) when access is denied
+  $handle = $null
+  $suspendStatus = -1
+  try {
+    $handle = $target.Handle
+    $suspendStatus = [McFreeze]::NtSuspendProcess($handle)
+  } catch {
+    $err = $_
+    Write-Warning "Cannot open PID $($target.Id): $($err.Exception.Message)"
+  }
+  if ($suspendStatus -ne 0) {
+    Write-Warning ('Could not suspend PID {0} (NTSTATUS 0x{1:X8}); try an elevated shell.' -f $target.Id, $suspendStatus)
+    exit 1
+  }
+
   Write-Host "Freezing PID $($target.Id) for $Seconds s"
-  $null = [McFreeze]::NtSuspendProcess($target.Handle)
   try {
     Start-Sleep -Seconds $Seconds
   } finally {
-    $null = [McFreeze]::NtResumeProcess($target.Handle)
-    Write-Host 'Resumed'
+    $resumeStatus = [McFreeze]::NtResumeProcess($handle)
+    if ($resumeStatus -ne 0) {
+      Write-Warning ('NtResumeProcess failed for PID {0} (NTSTATUS 0x{1:X8}); resume it manually.' -f $target.Id, $resumeStatus)
+    } else {
+      Write-Host 'Resumed'
+    }
   }
 }
 

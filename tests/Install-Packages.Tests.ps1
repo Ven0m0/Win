@@ -47,6 +47,8 @@ Describe "Install-Packages" {
             Mock Set-Culture {}
             # Post-install writes HKLM (LabConfig, WPBT, DeviceRegion) through this helper.
             Mock Set-RegistryValue {}
+            # Post-install must never create a real restore point.
+            Mock New-RestorePoint {}
             Mock Install-Module {}
             Mock Start-Process {}
             Mock Get-FileFromWeb {}
@@ -119,6 +121,39 @@ Describe "Install-Packages" {
             Should -Invoke Set-TimeZone -Times 1
             Should -Invoke Set-Culture -Times 1
             Should -Invoke fsutil.exe -Times 2
+        }
+
+        It "Should write HKLM values reg.exe style with a type and take a restore point first" {
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall @safeSkips
+            Should -Invoke New-RestorePoint -Times 1
+            Should -Invoke Set-RegistryValue -Times 5 -ParameterFilter {
+                $Path -like 'HKLM\*' -and $Type -eq 'REG_DWORD' -and $Path -notlike '*:*'
+            }
+        }
+
+        It "Should not force 8.3 stripping" {
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall @safeSkips
+            Should -Invoke fsutil.exe -Times 0 -ParameterFilter { $args -contains '/f' }
+        }
+
+        It "Should skip fsutil under -WhatIf" {
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -SkipSystemFeatures -ApplyPostInstall -WhatIf @safeSkips
+            Should -Invoke fsutil.exe -Times 0
+        }
+
+        It "Should report a failing native exit code as FAIL and set a non-zero script exit code" {
+            Mock Get-Command { [pscustomobject]@{ Source = 'choco' } } -ParameterFilter { $Name -eq 'choco' }
+            Mock choco { $global:LASTEXITCODE = 1 }
+            $script:InstallExitCode = 0
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipSystemFeatures -ApplyPostInstall:$false @safeSkips
+            $script:InstallExitCode | Should -Be 1
+        }
+
+        It "Should treat DISM 3010 as success" {
+            Mock DISM { $global:LASTEXITCODE = 3010 }
+            $script:InstallExitCode = 0
+            Start-InstallPackage -SkipWinget -SkipScoop -SkipChoco -ApplyPostInstall:$false @safeSkips
+            $script:InstallExitCode | Should -Be 0
         }
     }
 }

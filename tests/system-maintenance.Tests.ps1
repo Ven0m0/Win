@@ -128,6 +128,54 @@ Describe "Start-AdditionalMaintenance" {
     }
 }
 
+Describe "-WhatIf handling" {
+    It "Treats -WhatIf as -DryRun so no destructive step runs" {
+        # Dot-sourcing with -WhatIf loads the functions and applies the top-level WhatIf -> DryRun mapping
+        . "$PSScriptRoot/../Scripts/system-maintenance.ps1" -WhatIf
+        $DryRun | Should -BeTrue
+
+        Mock Initialize-ConsoleUI {}
+        Mock Write-Header {}
+        Mock Write-Info {}
+        Mock Write-Warn {}
+        Mock Clear-Log {}
+        Mock Show-Summary {}
+        Mock Get-Log { 'log' }
+        Mock Out-File {}
+        Mock Invoke-Operation {}
+        Mock wevtutil.exe { $global:LASTEXITCODE = 0 }
+        Mock DISM.exe { $global:LASTEXITCODE = 0 }
+
+        Start-AdditionalMaintenance -DryRun:$DryRun -NoRestorePoint
+
+        Should -Invoke Invoke-Operation -Times 0 -ParameterFilter { -not $DryRun }
+        Should -Invoke Invoke-Operation -Times 1 -ParameterFilter { $Name -eq 'EventLogs' -and $DryRun }
+        Should -Invoke Out-File -Times 0 -Exactly
+        Should -Invoke wevtutil.exe -Times 0 -Exactly
+        Should -Invoke DISM.exe -Times 0 -Exactly
+    }
+}
+
+Describe "Extra EventLogs step" {
+    It "Fails the step when wevtutil exits non-zero" {
+        Mock Initialize-ConsoleUI {}
+        Mock Write-Header {}
+        Mock Write-Info {}
+        Mock Write-Warn {}
+        Mock Clear-Log {}
+        Mock Show-Summary {}
+        Mock Get-Log { 'log' }
+        Mock Out-File {}
+        $script:eventLogAction = $null
+        Mock Invoke-Operation { if ($Name -eq 'EventLogs') { $script:eventLogAction = $Action } }
+        Mock wevtutil.exe { $global:LASTEXITCODE = 5 }
+
+        Start-AdditionalMaintenance -DryRun -NoRestorePoint
+
+        { & $script:eventLogAction } | Should -Throw '*wevtutil could not clear*'
+    }
+}
+
 Describe "Set-CleanmgrSelection" {
     BeforeEach {
         Mock Get-ChildItem {

@@ -1,0 +1,106 @@
+# User-global RTK filters — apply to all your projects.
+# Project-local .rtk/filters.toml takes precedence over these.
+# Docs: https://github.com/rtk-ai/rtk#custom-filters
+schema_version = 1
+
+# Example: suppress noise from a tool you use everywhere
+# [filters.my-global-tool]
+# description = "Compact my-global-tool output"
+# match_command = "^my-global-tool\\b"
+# strip_ansi = true
+# strip_lines_matching = ["^\\s*$"]
+# max_lines = 40
+
+[filters.ssh]
+description = "Compact ssh output"
+match_command = "^ssh\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^Warning: Permanently added"]
+max_lines = 60
+
+[filters.adb]
+description = "Compact adb output (shell, pm, dumpsys, install)"
+match_command = "^adb\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^\\* daemon", "^Performing (Streamed|Push) Install"]
+max_lines = 80
+
+[filters.adb-logcat]
+description = "Compact adb logcat output"
+match_command = "^adb\\b.*\\blogcat\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^-+ beginning of"]
+max_lines = 60
+
+[filters.tasklist]
+description = "Compact tasklist output"
+match_command = "^tasklist\\b"
+strip_lines_matching = ["^\\s*$", "^=+"]
+max_lines = 50
+
+[filters.wsl]
+description = "Compact wsl.exe output"
+match_command = "^wsl(\\.exe)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 60
+
+[filters.unzip]
+description = "Compact unzip output"
+match_command = "^unzip\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.sqlite3]
+description = "Compact sqlite3 output"
+match_command = "^sqlite3\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.yt-dlp]
+description = "Compact yt-dlp output"
+match_command = "^yt-dlp\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.javap]
+description = "Compact javap output"
+match_command = "^javap\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.tombi]
+description = "Compact tombi output"
+match_command = "^tombi\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.uv-lock]
+description = "Compact uv lock output"
+match_command = "^uv lock\\b"
+strip_ansi = true
+max_lines = 60
+
+[filters.fd]
+description = "Compact fd output"
+match_command = "^fd\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 100
+
+[[tests.fd]]
+name = "drops blank lines"
+input = "a.txt\n\nb/c.txt\n"
+expected = "a.txt\nb/c.txt"
+
+[filters.dust]
+description = "Compact dust output"
+match_command = "^dust\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 60
+
+[[tests.dust]]
+name = "drops blank lines"
+input = "1.0G ┌── a\n\n2.0G ├── b\n"
+expected = "1.0G ┌── a\n2.0G ├── b"

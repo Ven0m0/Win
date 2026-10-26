@@ -220,6 +220,7 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 ├── Scripts/
 │   ├── Setup-Win11.ps1           # Fresh Windows 11 one-command setup (local)
 │   ├── Setup-Dotfiles.ps1        # Config deployment (called by dotbot / mise)
+│   ├── Setup-Dotfiles.Apps.ps1   # Per-app/game resolvers and deploys (dot-sourced)
 │   ├── Setup-ClaudeCode.ps1      # Claude Code marketplaces, plugins, MCP servers
 │   ├── Install-Packages.ps1      # Software install driven by packages.psd1
 │   ├── packages.psd1             # Canonical package catalog
@@ -248,7 +249,7 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 │   ├── emulators/                # dolphin, azaharplus, eden (seed-only)
 │   ├── nvidia/, obs/, bleachbit/, DDU/, cursors/, handbrake/, legcord/
 │   ├── claude/, kilo/, opencode/ # AI tool configs
-│   └── mise/, scoop/, winget-configs/, cargo/, bat/, topgrade/, wsl/
+│   └── mise/, scoop/, winget-configs/, cargo/, bat/, rtk/, topgrade/, wsl/
 ├── install.conf.yaml             # dotbot configuration entry point
 ├── mise.toml                     # Tool manifest and tasks (deploy, validate, ci, ...)
 ├── bootstrap.ps1                 # One-command internet bootstrap

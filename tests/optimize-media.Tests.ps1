@@ -3,6 +3,101 @@
 BeforeAll {
     Import-Module Pester -MinimumVersion 5.0
     $script:ScriptPath = "$PSScriptRoot/../Scripts/optimize-media.ps1"
+    # Dot-sourcing loads the functions without running the pipeline (InvocationName guard).
+    . $script:ScriptPath
+
+    # Writes a .cmd stand-in for an external tool. Every call is appended to <name>.log next to it.
+    function New-StubTool {
+        param([string]$Name, [string[]]$Body = @())
+        $stub = Join-Path $TestDrive "$Name.cmd"
+        $lines = @('@echo off', 'echo %* >> "%~dpn0.log"') + $Body + @('exit /b 0')
+        [System.IO.File]::WriteAllText($stub, ($lines -join "`r`n") + "`r`n")
+        $stub
+    }
+
+    function Get-StubCall {
+        param([string]$Name)
+        $log = Join-Path $TestDrive "$Name.log"
+        if (Test-Path -LiteralPath $log) { @(Get-Content -LiteralPath $log | ForEach-Object { $_.Trim() }) } else { @() }
+    }
+}
+
+Describe 'Invoke-ImagePass / Invoke-VideoPass with stub tools' {
+    BeforeEach {
+        Get-ChildItem -Path $TestDrive -Filter '*.log' | Remove-Item
+        $script:Root = Join-Path $TestDrive ([guid]::NewGuid())
+        $script:Bak = Join-Path $TestDrive ([guid]::NewGuid())
+        New-Item -ItemType Directory -Path $Root -Force | Out-Null
+        Mock Write-Host { }
+        Mock Resolve-OrInstallTool { Join-Path $TestDrive "$($Name[0]).cmd" }
+    }
+
+    Context 'Invoke-ImagePass' {
+        BeforeEach {
+            $null = New-StubTool -Name 'oxipng'
+            $null = New-StubTool -Name 'jpegoptim'
+            Set-Content -LiteralPath (Join-Path $Root 'photo.jpg') -Value ('x' * 200)
+            Set-Content -LiteralPath (Join-Path $Root 'pic.png') -Value ('x' * 200)
+        }
+
+        It 'Backs up lossy JPEG originals, then runs jpegoptim and oxipng' {
+            $null = Invoke-ImagePass -TargetPath $Root -Quality 80 -OxipngLevel 2 -MaxDimension 0 -BackupPath $Bak
+
+            Test-Path -LiteralPath (Join-Path $Bak 'photo.jpg') | Should -BeTrue
+            Test-Path -LiteralPath (Join-Path $Bak 'pic.png') | Should -BeFalse
+            @(Get-StubCall 'jpegoptim')[0] | Should -BeLike '-m80 *photo.jpg'
+            @(Get-StubCall 'oxipng')[0] | Should -BeLike '-o 2 --strip safe *pic.png'
+        }
+
+        It 'Performs no writes under -WhatIf: no backup, no tool runs, sources untouched' {
+            $null = Invoke-ImagePass -TargetPath $Root -Quality 80 -OxipngLevel 2 -MaxDimension 0 `
+                -BackupPath $Bak -WhatIf
+
+            Test-Path -LiteralPath $Bak | Should -BeFalse
+            Get-StubCall 'jpegoptim' | Should -BeNullOrEmpty
+            Get-StubCall 'oxipng' | Should -BeNullOrEmpty
+            Test-Path -LiteralPath (Join-Path $Root 'photo.jpg') | Should -BeTrue
+        }
+    }
+
+    Context 'Invoke-VideoPass' {
+        BeforeEach {
+            $null = New-StubTool -Name 'ffprobe' -Body @('echo h264')
+            # Writes a tiny file to the last argument, which is the output path.
+            $null = New-StubTool -Name 'ffmpeg' -Body @('for %%a in (%*) do set "last=%%~a"', 'echo x> "%last%"')
+            Set-Content -LiteralPath (Join-Path $Root 'clip.mp4') -Value ('x' * 500)
+            $script:VideoArgs = @{
+                TargetPath      = $Root
+                Ffmpeg          = Join-Path $TestDrive 'ffmpeg.cmd'
+                Ffprobe         = Join-Path $TestDrive 'ffprobe.cmd'
+                Ffzap           = ''
+                EncoderArgs     = @('-c:v', 'libx265')
+                VideoFilterArgs = @()
+                VideoProfile    = [PSCustomObject]@{ Suffix = '.h265.mp4'; MuxArgs = @('-movflags', '+faststart') }
+                AudioBitrate    = '96k'
+                ThreadCount     = 1
+                BackupPath      = $Bak
+            }
+        }
+
+        It 'Encodes, validates, and moves the source into the backup mirror' {
+            $result = Invoke-VideoPass @VideoArgs
+
+            $result.Encoded | Should -Be 1
+            Test-Path -LiteralPath (Join-Path $Root 'clip.h265.mp4') | Should -BeTrue
+            Test-Path -LiteralPath (Join-Path $Root 'clip.mp4') | Should -BeFalse
+            Test-Path -LiteralPath (Join-Path $Bak 'clip.mp4') | Should -BeTrue
+        }
+
+        It 'Performs no writes under -WhatIf: no encode, no backup, source untouched' {
+            $null = Invoke-VideoPass @VideoArgs -WhatIf
+
+            Get-StubCall 'ffmpeg' | Should -BeNullOrEmpty
+            Test-Path -LiteralPath $Bak | Should -BeFalse
+            Test-Path -LiteralPath (Join-Path $Root 'clip.mp4') | Should -BeTrue
+            Test-Path -LiteralPath (Join-Path $Root 'clip.h265.mp4') | Should -BeFalse
+        }
+    }
 }
 
 Describe 'optimize-media.ps1' {

@@ -190,3 +190,79 @@ Describe "Start-SetupWin11" {
     }
   }
 }
+
+# bootstrap.ps1 forwards its switches to Setup-Win11.ps1, which forwards them to Start-SetupWin11;
+# PowerShell needs each param block declared, so guard against drift here.
+Describe "Setup switch surface" {
+  BeforeAll {
+    function Get-SwitchName {
+      param([System.Management.Automation.Language.ParamBlockAst]$ParamBlock)
+      @($ParamBlock.Parameters | Where-Object { $_.StaticType -eq [switch] } |
+          ForEach-Object { $_.Name.VariablePath.UserPath } | Sort-Object)
+    }
+    function Get-ScriptAst {
+      param([string]$Path)
+      [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path -Path $Path).Path, [ref]$null, [ref]$null)
+    }
+    $scripts = Join-Path -Path $PSScriptRoot -ChildPath '..'
+    $bootstrapAst = Get-ScriptAst -Path (Join-Path $scripts 'bootstrap.ps1')
+    $setupAst = Get-ScriptAst -Path (Join-Path $scripts 'Scripts\Setup-Win11.ps1')
+    $script:bootstrapAst = $bootstrapAst
+    $script:setupAst = $setupAst
+    $script:bootstrapSwitches = Get-SwitchName -ParamBlock $bootstrapAst.ParamBlock
+    $script:setupSwitches = Get-SwitchName -ParamBlock $setupAst.ParamBlock
+    $fn = $setupAst.Find({
+        param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Start-SetupWin11'
+      }, $true)
+    $script:functionSwitches = Get-SwitchName -ParamBlock $fn.Body.ParamBlock
+  }
+
+  It "bootstrap.ps1 declares the switches it forwards" {
+    $script:bootstrapSwitches | Should -Not -BeNullOrEmpty
+  }
+
+  It "Setup-Win11.ps1 script params match bootstrap.ps1" {
+    $script:setupSwitches | Should -Be $script:bootstrapSwitches
+  }
+
+  It "Start-SetupWin11 params match Setup-Win11.ps1 script params" {
+    $script:functionSwitches | Should -Be $script:setupSwitches
+  }
+
+  # The relaunch and forwarding code must derive from $PSBoundParameters, not a hard-coded name list
+  # that silently drifts from the param block.
+  It "bootstrap.ps1 never hard-codes switch names outside its param block" {
+    $names = $script:bootstrapSwitches
+    $hits = $script:bootstrapAst.FindAll({
+        param($n)
+        $n -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $n.Value -in $names
+      }, $true)
+    @($hits).Count | Should -Be 0
+  }
+
+  It "bootstrap.ps1 builds relaunch and forward args from PSBoundParameters" {
+    $uses = $script:bootstrapAst.FindAll({
+        param($n)
+        $n -is [System.Management.Automation.Language.VariableExpressionAst] -and
+        $n.VariablePath.UserPath -eq 'PSBoundParameters'
+      }, $true)
+    @($uses).Count | Should -BeGreaterOrEqual 2
+  }
+
+  It "Setup-Win11.ps1 never hard-codes switch names outside its param blocks" {
+    $names = $script:setupSwitches
+    $hits = $script:setupAst.FindAll({
+        param($n)
+        $n -is [System.Management.Automation.Language.StringConstantExpressionAst] -and $n.Value -in $names
+      }, $true)
+    @($hits).Count | Should -Be 0
+  }
+
+  It "bootstrap.ps1 handles an empty PSCommandPath and does not exit on the relaunch path" {
+    $text = Get-Content -Raw -Path (Join-Path $PSScriptRoot '..\bootstrap.ps1')
+    $text | Should -Match 'runFromFile'
+    $text | Should -Match 'Invoke-WebRequest -Uri \$rawUrl'
+    $relaunch = [regex]::Match($text, '(?s)if \(-not \$isAdmin -or -not \$runFromFile\).*?\n\}\n').Value
+    $relaunch | Should -Not -Match '\bexit\b'
+  }
+}

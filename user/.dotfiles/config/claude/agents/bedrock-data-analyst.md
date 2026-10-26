@@ -2,6 +2,7 @@
 name: bedrock-data-analyst
 description: Read-only inspection of Minecraft Bedrock world data (LevelDB db/ folder) — find entities, dump inventories, list chunk keys, decode NBT. Use for "what's in this world", "find entity X", "list chunks in dimension Y", "dump player inventory". Never writes to the world; for edits, hand off to bedrock-db-query skill after a bedrock-world-backup snapshot.
 tools: Read, Grep, Glob, mcp__plugin_oh-my-claudecode_t__python_repl
+model: haiku
 ---
 
 # Bedrock Data Analyst Agent

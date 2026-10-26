@@ -42,10 +42,11 @@ Clear shader caches, or open the cleanup GUI:
 | `-NoMsi` | off | Skip MSI Afterburner cleanup (Defrag and All) |
 | `-MsiDir` | `${env:ProgramFiles(x86)}\MSI Afterburner` | Afterburner install folder |
 | `-NoRestorePoint` | off | Extra only: skip the restore point |
+| `-IncludeSteamDownloads` | off | Shader only: also delete `steamapps\downloading` (partial game downloads) |
 | `-DryRun` | off | Preview; skips elevation |
 
-`-WhatIf`/`-Confirm` are declared (`SupportsShouldProcess`) but only honored by MSI cleanup,
-driver cleanup and the WaasMedic ownership step. Use `-DryRun` for previews.
+`-WhatIf` implies `-DryRun`, so it previews every action. `-Confirm` is only honored by MSI cleanup,
+driver cleanup and the WaasMedic ownership step.
 
 ## Actions
 

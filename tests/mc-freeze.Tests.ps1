@@ -129,11 +129,26 @@ Describe 'mc-freeze.ps1 (static)' {
     }
 
     It 'Sleeps for -Seconds between suspend and resume' {
-      $tryStatements[0].Body.Extent.Text | Should -Match 'Start-Sleep -Seconds \$Seconds'
+      ($tryStatements | Where-Object { $_.Finally } | Select-Object -First 1).Body.Extent.Text | Should -Match 'Start-Sleep -Seconds \$Seconds'
     }
 
     It 'Warns instead of freezing when no matching window is found' {
       $invokeFreeze.Extent.Text | Should -Match 'Write-Warning'
+    }
+
+    It 'Checks the suspend NTSTATUS and exits non-zero before announcing the freeze' {
+      $body = $invokeFreeze.Extent.Text
+      $statusPos = $body.IndexOf('$suspendStatus -ne 0')
+      $exitPos = $body.IndexOf('exit 1')
+      $announcePos = $body.IndexOf('Write-Host "Freezing')
+      $statusPos | Should -BeGreaterThan -1
+      $exitPos | Should -BeGreaterThan $statusPos
+      $announcePos | Should -BeGreaterThan $exitPos
+    }
+
+    It 'Checks the resume NTSTATUS' {
+      $finallyText = ($tryStatements | Where-Object { $_.Finally } | ForEach-Object { $_.Finally.Extent.Text }) -join ''
+      $finallyText | Should -Match '\$resumeStatus -ne 0'
     }
 
     It 'Unregisters the hotkey in a finally block around the main loop' {

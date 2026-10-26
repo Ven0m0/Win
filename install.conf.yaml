@@ -35,6 +35,7 @@
 #   ohmyposh\cobalt2.omp.json                      → ~/.config/ohmyposh/cobalt2.omp.json (active theme, from ChrisTitusTech's profile)
 #   winget-configs\settings.json                   → %LOCALAPPDATA%\Packages\Microsoft.DesktopAppInstaller_*\LocalState\settings.json
 #   bat\config                                     → %APPDATA%\bat\config
+#   rtk\filters.toml                               → %APPDATA%\rtk\filters.toml, then `rtk trust -y` (trust is per file hash)
 #   cargo\config.toml, binstall.toml               → ~/.cargo/
 #   opencode\opencode.json, AGENTS.md              → ~/.config/opencode/
 #   emulators\dolphin\Config\*.ini                 → %APPDATA%\Dolphin Emulator\Config\ (seed only: copied when absent)

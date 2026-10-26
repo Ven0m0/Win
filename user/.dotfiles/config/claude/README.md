@@ -13,9 +13,9 @@ installed separately by `Scripts/Setup-ClaudeCode.ps1`, which reads `settings.js
 | `CLAUDE.md` | Global instructions (OMC orchestration, code standards, memory protocol) |
 | `RTK.md` | `@RTK.md` import target referenced from `CLAUDE.md` |
 | `mcp-servers.json` | MCP server manifest consumed by `Setup-ClaudeCode.ps1`; `%VAR%` tokens in `command`/`args`/`env` are expanded at install time |
-| `hooks/validate-edit.ps1` | PostToolUse validator: PSScriptAnalyzer, ruff, biome, XML, YAML |
+| `hooks/validate-edit.ps1` | PostToolUse validator: PSScriptAnalyzer, ruff, rustfmt, biome, XML, YAML |
 | `hooks/guard-bedrock-db.ps1` | PreToolUse guard against editing Bedrock LevelDB binaries |
-| `hooks/rtk-advisor.ps1` | PreToolUse advisor for command shapes `rtk` cannot rewrite |
+| `hooks/rtk-advisor.ps1` | PreToolUse: rewrites `cmd \| head/tail -N` to `rtk cmd \| ...`, advises on other shapes `rtk` cannot rewrite (tests: `rtk-advisor.Tests.ps1`) |
 | `hooks/context-mode-no-webfetch.mjs` | SessionStart: removes context-mode's WebFetch matcher so native WebFetch works |
 | `agents/` `commands/` `rules/` `skills/` | User-level agent, command, rule, and skill definitions |
 
@@ -62,6 +62,7 @@ partial toolchain degrades quietly rather than failing edits.
 | --- | --- | --- |
 | `.ps1` `.psm1` `.psd1` | PSScriptAnalyzer, Pester | `Install-Module` (see `Scripts/packages.psd1` `PsModules`) |
 | `.py` `.pyi` | `ruff` | `uv tool install ruff` |
+| `.rs` | `rustfmt` | `rustup component add rustfmt` |
 | `.json` `.jsonc` | `biome` | `winget install BiomeJS.Biome` |
 | `.yaml` `.yml` | `yq` | `winget install MikeFarah.yq` |
 | `.xml` and XML dialects | none (.NET `XmlReader`) | - |

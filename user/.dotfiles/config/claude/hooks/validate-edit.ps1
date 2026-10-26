@@ -6,6 +6,7 @@
   Routes the edited file to the right tool by extension:
     .ps1/.psm1/.psd1        PSScriptAnalyzer, then the matching Pester test if one exists
     .py/.pyi                ruff format, then ruff check --fix
+    .rs                     rustfmt on the file (never cargo fmt)
     .json/.jsonc            biome check --write
     .yaml/.yml              yq eval parse
     .xml and XML dialects   well-formedness parse
@@ -93,6 +94,24 @@ switch -Regex ($ext) {
     $output = & ruff check --fix --output-format concise -- $filePath 2>&1
     if ($LASTEXITCODE -ne 0) {
       Exit-Hook -Message ('ruff:' + [Environment]::NewLine + ($output -join [Environment]::NewLine))
+    }
+    break
+  }
+
+  '^\.rs$' {
+    if (-not (Get-Command -Name rustfmt -ErrorAction SilentlyContinue)) { break }
+    # rustfmt on the file itself, never `cargo fmt`: it would reformat the whole workspace on every edit.
+    # Bare rustfmt assumes edition 2015 unless told otherwise, so read it from the nearest Cargo.toml.
+    # shortcut: `edition.workspace = true` is not resolved and falls back to 2021, upgrade if a workspace needs it.
+    $edition = '2021'
+    $cargoToml = Find-AncestorPath -StartFile $filePath -Relative 'Cargo.toml'
+    if ($cargoToml) {
+      $match = Select-String -LiteralPath $cargoToml -Pattern '^\s*edition\s*=\s*"(\d{4})"' | Select-Object -First 1
+      if ($match) { $edition = $match.Matches[0].Groups[1].Value }
+    }
+    $output = & rustfmt --edition $edition -- $filePath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      Exit-Hook -Message ('rustfmt:' + [Environment]::NewLine + ($output -join [Environment]::NewLine))
     }
     break
   }

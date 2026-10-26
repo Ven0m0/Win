@@ -60,6 +60,8 @@ function Update-SessionPath {
     $env:PATH = ($machine, $user, $env:PATH -join ';')
 }
 
+# Duplicated on purpose: this script is the internet entry point and can run before the repo is cloned,
+# so it cannot dot-source Scripts/Common.ps1 (see Install-WingetTool there for the repo-side policy).
 function Install-WingetPackage {
     <#
     .SYNOPSIS
@@ -94,20 +96,37 @@ function Install-WingetPackage {
     return $true
 }
 
-# Self-elevate if not admin
+# Self-elevate if not admin. Under `iwr | iex` there is no script file ($PSCommandPath is empty),
+# so fetch the same script to a temp file first; relaunching `-File ""` would do nothing useful.
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
   [Security.Principal.WindowsBuiltInRole]::Administrator
 )
-if (-not $isAdmin) {
-    Write-Info "Administrator privileges required. Relaunching..."
+$runFromFile = [bool]$PSCommandPath
+if (-not $isAdmin -or -not $runFromFile) {
+    $scriptFile = $PSCommandPath
+    if (-not $runFromFile) {
+        Write-Info 'Running from a pipe (iex): saving bootstrap.ps1 to a temp file to relaunch...'
+        $tempName = 'bootstrap-' + [guid]::NewGuid().ToString('N') + '.ps1'
+        $scriptFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $tempName"
+        $ProgressPreference = 'SilentlyContinue'
+        $rawUrl = 'https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1'
+        Invoke-WebRequest -Uri $rawUrl -OutFile $scriptFile -UseBasicParsing
+    }
     $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
     $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
-    $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-    foreach ($p in 'Unattended', 'Force', 'SkipWingetTools', 'SkipWSL', 'SkipPackages', 'SkipDebloat') {
-        if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
+    $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptFile`""
+    foreach ($key in $PSBoundParameters.Keys) {
+        if ($PSBoundParameters[$key]) { $argList += " -$key" }
     }
-    Start-Process $shell -ArgumentList $argList -Verb RunAs
-    exit 0
+    if ($isAdmin) {
+        Write-Info 'Relaunching from file...'
+        Start-Process $shell -ArgumentList $argList -NoNewWindow -Wait
+    } else {
+        Write-Info 'Administrator privileges required. Relaunching...'
+        Start-Process $shell -ArgumentList $argList -Verb RunAs
+    }
+    # `exit` would close the user's shell when this text was piped into iex; `return` only ends the script.
+    return
 }
 
 Write-Host ''
@@ -226,9 +245,7 @@ if (-not (Test-Path $setupScript)) {
 
 Write-Info 'Running full Windows 11 setup...'
 $setupParams = @{}
-foreach ($p in 'Unattended', 'Force', 'SkipWingetTools', 'SkipWSL', 'SkipPackages', 'SkipDebloat') {
-    if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $setupParams[$p] = $true }
-}
+foreach ($key in $PSBoundParameters.Keys) { $setupParams[$key] = $PSBoundParameters[$key] }
 if ($WhatIfPreference) { $setupParams['WhatIf'] = $true }
 
 $setupResult = & $setupScript @setupParams

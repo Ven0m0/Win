@@ -163,109 +163,6 @@ function Get-ReclaimedByteCount {
 }
 
 
-function Invoke-ToolAboveNormal {
-    <#
-    .SYNOPSIS
-        Runs a console tool at Above Normal priority, streaming its output live.
-    .PARAMETER FilePath
-        Executable to run.
-    .PARAMETER ArgumentList
-        Arguments passed to the executable.
-    .PARAMETER StandardInputPath
-        File piped to the process's stdin.
-    .PARAMETER WatchFfmpeg
-        Also raise the priority of ffmpeg processes the tool spawns while it runs.
-        Only meaningful for czkawka's video pass; leave off elsewhere so unrelated
-        encodes (for example a concurrent optimize-media.ps1) are never touched.
-    #>
-    [CmdletBinding()]
-    [OutputType([PSCustomObject])]
-    param(
-        [Parameter(Mandatory)][string]$FilePath,
-        [Parameter(Mandatory)][string[]]$ArgumentList,
-        [string]$StandardInputPath,
-        [switch]$WatchFfmpeg
-    )
-    process {
-        $stdOutFile = [System.IO.Path]::GetTempFileName()
-        $stdErrFile = [System.IO.Path]::GetTempFileName()
-        $readers = @()
-        $collected = [System.Collections.Generic.List[string]]::new()
-        try {
-            $startArgs = @{
-                FilePath               = $FilePath
-                ArgumentList           = $ArgumentList
-                NoNewWindow            = $true
-                PassThru               = $true
-                RedirectStandardOutput = $stdOutFile
-                RedirectStandardError  = $stdErrFile
-            }
-            if ($StandardInputPath) {
-                $startArgs.RedirectStandardInput = $StandardInputPath
-            }
-            $proc = Start-Process @startArgs
-            try {
-                $proc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
-            }
-            catch {
-                Write-Verbose "Could not raise priority for $FilePath (PID $($proc.Id)): $($_.Exception.Message)"
-            }
-
-            # Read the redirect files as the process writes them (FileShare.ReadWrite so
-            # the child keeps its own handle) instead of dumping everything after exit -
-            # a multi-hour video pass otherwise shows nothing at all until it finishes.
-            $readers = @($stdOutFile, $stdErrFile) | ForEach-Object {
-                [System.IO.StreamReader]::new(
-                    [System.IO.File]::Open($_, [System.IO.FileMode]::Open,
-                        [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite))
-            }
-
-            $drain = {
-                foreach ($reader in $readers) {
-                    while ($null -ne ($line = $reader.ReadLine())) {
-                        $collected.Add($line)
-                        Write-Host $line
-                    }
-                }
-            }
-
-            while (-not $proc.HasExited) {
-                & $drain
-                if ($WatchFfmpeg) {
-                    # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
-                    # child process and does not inherit our priority bump. Only touch ffmpeg
-                    # processes that started after this tool did, so a concurrent encode
-                    # started by something else is left alone.
-                    foreach ($ffmpegProc in @(Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue)) {
-                        try {
-                            if ($ffmpegProc.StartTime -ge $proc.StartTime -and
-                                $ffmpegProc.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal) {
-                                $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
-                            }
-                        }
-                        catch {
-                            Write-Verbose ("Could not raise priority for ffmpeg " +
-                                "(PID $($ffmpegProc.Id)): $($_.Exception.Message)")
-                        }
-                    }
-                }
-                Start-Sleep -Milliseconds 250
-            }
-            & $drain
-
-            [PSCustomObject]@{
-                Output   = $collected.ToArray()
-                ExitCode = $proc.ExitCode
-            }
-        }
-        finally {
-            foreach ($reader in $readers) { $reader.Dispose() }
-            Remove-Item -LiteralPath $stdOutFile, $stdErrFile -ErrorAction SilentlyContinue
-        }
-    }
-}
-
-
 function Invoke-FclonesPass {
     [CmdletBinding()]
     [OutputType([double])]
@@ -417,98 +314,97 @@ function Invoke-CzkawkaPass {
 }
 
 
-if (-not $PSBoundParameters.ContainsKey('Path')) {
-    $Path = Select-FolderDialog -Description 'Select the folder to deduplicate'
-}
-
-$resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
-if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
-    throw "Path is not a folder: $resolvedPath"
-}
-
-$fclones = Resolve-OrInstallTool -Name 'fclones' -ScoopPackage 'fclones'
-
-# Resolved lazily: with every czkawka pass skipped (or only the fclones pass wanted)
-# there is no reason to install czkawka first.
-$czkawka = $null
-if ($IncludeDup -or -not ($SkipImages -and $SkipVideos -and $SkipEmptyFiles)) {
-    $czkawka = Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
-}
-
-$dryRun = -not $Apply
-if ($WhatIfPreference) {
-    $dryRun = $true
-}
-
-if (-not $dryRun -and -not $Force) {
-    $target = "Delete duplicate media under '$resolvedPath'"
-    $caption = 'Confirm deletion'
-    $warning = "Exact duplicates are removed permanently; fuzzy matches go to the Recycle Bin.`nContinue?"
-    if (-not $PSCmdlet.ShouldProcess($target, $caption) -or
-        -not $PSCmdlet.ShouldContinue($warning, $caption)) {
-        Write-Warning 'Aborted by user.'
-        return
+if ($MyInvocation.InvocationName -ne '.') {
+    if (-not $PSBoundParameters.ContainsKey('Path')) {
+        $Path = Select-FolderDialog -Description 'Select the folder to deduplicate'
     }
-}
 
-if ($dryRun) {
-    Write-Host 'PREVIEW MODE - no files will be deleted. Re-run with -Apply to act.' -ForegroundColor Yellow
-}
-Write-Host ('Note: the Recycle Bin has a per-volume size cap. A large czkawka pass can push ' +
-    'older recycled items out permanently, so "recoverable" only holds up to that cap.') -ForegroundColor DarkYellow
-
-$reportDir = Join-Path -Path $env:TEMP -ChildPath 'dedupe-media'
-$null = New-Item -Path $reportDir -ItemType Directory -Force
-$stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$reclaimedBytes = 0.0
-
-if (-not $SkipExact) {
-    $mediaGlob = [System.Collections.Generic.List[string]]::new()
-    foreach ($ext in $mediaExtensions) {
-        $mediaGlob.Add("*.$ext")
+    $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
+    if (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
+        throw "Path is not a folder: $resolvedPath"
     }
-    $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
-        -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
-}
 
-if ($IncludeDup) {
-    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-        -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
-}
+    $fclones = Resolve-OrInstallTool -Name 'fclones' -ScoopPackage 'fclones'
 
-if (-not $SkipImages) {
-    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
-        -Threshold $ImageDifference -MatchRotated:$MatchRotated `
-        -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
-}
+    # Resolved lazily: with every czkawka pass skipped (or only the fclones pass wanted)
+    # there is no reason to install czkawka first.
+    $czkawka = $null
+    if ($IncludeDup -or -not ($SkipImages -and $SkipVideos -and $SkipEmptyFiles)) {
+        $czkawka = Resolve-OrInstallTool -Name 'czkawka_cli', 'windows_czkawka_cli' -WingetId 'qarmin.czkawka.cli'
+    }
 
-if (-not $SkipVideos) {
-    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
-        -Threshold $VideoTolerance -WindowCount $VideoWindowCount -CheckAudio:$CheckAudio `
-        -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
-}
+    $dryRun = (Resolve-WritePolicy -OptIn -Apply:$Apply -WhatIfActive:$WhatIfPreference).DryRun
 
-if (-not $SkipEmptyFiles) {
-    $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'empty-files' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-        -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
-}
+    if (-not $dryRun -and -not $Force) {
+        $target = "Delete duplicate media under '$resolvedPath'"
+        $caption = 'Confirm deletion'
+        $warning = "Exact duplicates are removed permanently; fuzzy matches go to the Recycle Bin.`nContinue?"
+        if (-not $PSCmdlet.ShouldProcess($target, $caption) -or
+            -not $PSCmdlet.ShouldContinue($warning, $caption)) {
+            Write-Warning 'Aborted by user.'
+            return
+        }
+    }
 
-Write-Host ''
-if ($dryRun) {
-    Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
+    if ($dryRun) {
+        Write-Host 'PREVIEW MODE - no files will be deleted. Re-run with -Apply to act.' -ForegroundColor Yellow
+    }
+    Write-Host ('Note: the Recycle Bin has a per-volume size cap. A large czkawka pass can push ' +
+        'older recycled items out permanently, so "recoverable" only holds up to that cap.') -ForegroundColor DarkYellow
+
+    $reportDir = Join-Path -Path $env:TEMP -ChildPath 'dedupe-media'
+    $null = New-Item -Path $reportDir -ItemType Directory -Force -WhatIf:$false
+    $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+    $reclaimedBytes = 0.0
+
+    if (-not $SkipExact) {
+        $mediaGlob = [System.Collections.Generic.List[string]]::new()
+        foreach ($ext in $mediaExtensions) {
+            $mediaGlob.Add("*.$ext")
+        }
+        $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
+            -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
+    }
+
     if ($IncludeDup) {
-        Write-Host ('(Preview totals may double-count exact duplicates: fclones only simulates removal in a ' +
-            'dry run, so the -IncludeDup czkawka dup pass still sees and reports the same files.)') -ForegroundColor DarkGray
+        $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
+            -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
     }
-}
-else {
-    Write-Host "Space freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
-}
 
-Write-Host ''
-if ($dryRun) {
-    Write-Host 'Preview complete. Review the reports above, then re-run with -Apply.' -ForegroundColor Green
-}
-else {
-    Write-Host 'Deduplication complete.' -ForegroundColor Green
+    if (-not $SkipImages) {
+        $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
+            -Threshold $ImageDifference -MatchRotated:$MatchRotated `
+            -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
+    }
+
+    if (-not $SkipVideos) {
+        $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
+            -Threshold $VideoTolerance -WindowCount $VideoWindowCount -CheckAudio:$CheckAudio `
+            -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
+    }
+
+    if (-not $SkipEmptyFiles) {
+        $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'empty-files' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
+            -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
+    }
+
+    Write-Host ''
+    if ($dryRun) {
+        Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
+        if ($IncludeDup) {
+            Write-Host ('(Preview totals may double-count exact duplicates: fclones only simulates removal in a ' +
+                'dry run, so the -IncludeDup czkawka dup pass still sees and reports the same files.)') -ForegroundColor DarkGray
+        }
+    }
+    else {
+        Write-Host "Space freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
+    }
+
+    Write-Host ''
+    if ($dryRun) {
+        Write-Host 'Preview complete. Review the reports above, then re-run with -Apply.' -ForegroundColor Green
+    }
+    else {
+        Write-Host 'Deduplication complete.' -ForegroundColor Green
+    }
 }

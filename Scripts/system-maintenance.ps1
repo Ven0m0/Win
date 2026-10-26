@@ -28,9 +28,13 @@
   Override MSI Afterburner install path (default: C:\Program Files (x86)\MSI Afterburner).
 .PARAMETER NoRestorePoint
   For the Extra action, skip creating a system restore point.
+.PARAMETER IncludeSteamDownloads
+  For the Shader action, also delete steamapps\downloading, which holds partial game downloads.
+  Off by default because removing it forces those downloads to restart.
 .PARAMETER DryRun
   Show what would run without executing. Defrag and Extra list each step; Shader, DriverCleanup,
   and Disk are skipped entirely. Suppresses the maintenance log file write for Extra.
+  -WhatIf implies -DryRun, so no destructive step runs under it.
 .EXAMPLE
   .\system-maintenance.ps1 -Action Defrag -AllVolumes
 .EXAMPLE
@@ -53,11 +57,15 @@ param(
   [switch]$NoMsi,
   [string]$MsiDir = "${env:ProgramFiles(x86)}\MSI Afterburner",
   [switch]$NoRestorePoint,
+  [switch]$IncludeSteamDownloads,
   [switch]$DryRun
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
+
+# -WhatIf must never reach robocopy/wevtutil/DISM, which do not honor ShouldProcess themselves.
+if ($WhatIfPreference) { $DryRun = [switch]$true }
 
 # Import common functions
 . "$PSScriptRoot\Common.ps1"
@@ -392,8 +400,13 @@ function Start-AdditionalMaintenance {
 
   # 12. Clear Application/System event logs
   Invoke-Operation -Name 'EventLogs' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    $failedLogs = [System.Collections.Generic.List[string]]::new()
     foreach ($log in @('Application', 'System')) {
-      & wevtutil.exe cl $log
+      $null = & wevtutil.exe cl $log
+      if ($LASTEXITCODE -ne 0) { $failedLogs.Add($log) }
+    }
+    if ($failedLogs.Count -gt 0) {
+      throw "wevtutil could not clear: $($failedLogs -join ', ')"
     }
   }
 
@@ -529,7 +542,13 @@ function Start-UltimateDiskCleanup {
 
   if ($checkBox1.Checked) {
     Write-Verbose 'Clearing Event Viewer Logs...'
-    & wevtutil.exe el | ForEach-Object { $null = & wevtutil.exe cl "$_" 2>&1 }
+    # Some channels (e.g. analytic/debug logs) cannot be cleared; report the count instead of aborting
+    $skippedLogs = 0
+    foreach ($logName in @(& wevtutil.exe el)) {
+      $null = & wevtutil.exe cl $logName
+      if ($LASTEXITCODE -ne 0) { $skippedLogs++ }
+    }
+    if ($skippedLogs -gt 0) { Write-Warn "$skippedLogs event logs could not be cleared" }
   }
 
   if ($checkBox2.Checked) {
@@ -568,8 +587,16 @@ function Start-UltimateDiskCleanup {
     $waasPath = "$env:SystemRoot\Logs\waasmedic"
     if (Test-Path -Path $waasPath) {
       if ($PSCmdlet.ShouldProcess($waasPath, 'Grant administrators full control')) {
-        $null = & takeown.exe /f $waasPath /r /d y 2>&1
-        $null = & icacls.exe $waasPath /grant 'administrators:F' /t 2>&1
+        # 5.1 turns redirected native stderr into a terminating error under 'Stop'
+        $ErrorActionPreference = 'Continue'
+        try {
+          $null = & takeown.exe /f $waasPath /r /d y 2>&1
+          if ($LASTEXITCODE -ne 0) { Write-Warn "takeown failed on $waasPath (exit $LASTEXITCODE)" }
+          $null = & icacls.exe $waasPath /grant 'administrators:F' /t 2>&1
+          if ($LASTEXITCODE -ne 0) { Write-Warn "icacls failed on $waasPath (exit $LASTEXITCODE)" }
+        } finally {
+          $ErrorActionPreference = 'Stop'
+        }
       }
       Clear-DirectorySafe -Path $waasPath
     }
@@ -678,8 +705,10 @@ function Invoke-ShaderCacheCleanup {
   Clear-DirectorySafe -Path "$STEAM\appcache\httpcache"
   Clear-DirectorySafe -Path "$STEAM\config\htmlcache"
   Clear-DirectorySafe -Path "$env:LOCALAPPDATA\Steam\htmlcache"
-  Get-ChildItem -Path "$STEAM\steamapps\downloading\*" -Force -ErrorAction SilentlyContinue |
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+  if ($IncludeSteamDownloads) {
+    Get-ChildItem -Path "$STEAM\steamapps\downloading\*" -Force -ErrorAction SilentlyContinue |
+      Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+  }
 
   Write-Info 'Clearing Epic Games Launcher cache...'
   foreach ($webCacheDir in @('webcache', 'webcache_4147', 'webcache_4430')) {

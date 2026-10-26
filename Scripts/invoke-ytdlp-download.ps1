@@ -145,6 +145,20 @@ end {
         }
     }
 
+    # Windows PowerShell 5.1 turns the first stderr line of a redirected (2>&1) native command into a
+    # terminating NativeCommandError under 'Stop'. Run with 'Continue' and let callers read
+    # $LASTEXITCODE; stderr lines come back as ErrorRecords in the output.
+    function Invoke-NativeQuiet {
+        param ([Parameter(Mandatory)][string]$Name, [string[]]$ArgumentList = @())
+        $savedPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            & $Name @ArgumentList 2>&1
+        } finally {
+            $ErrorActionPreference = $savedPreference
+        }
+    }
+
     $missingDeps = @()
     foreach ($cmd in $requiredDeps) {
         if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
@@ -158,8 +172,12 @@ end {
         Write-Warning "Missing required dependencies: $($missingDeps -join ', ') - installing"
 
         if ($missingDeps -contains 'spotdl') {
-            if ($PSCmdlet.ShouldProcess('spotdl', 'Install via uv pip')) {
-                & uv pip install spotdl
+            # 'uv pip install' needs a venv; 'uv tool install' works from anywhere
+            if ($PSCmdlet.ShouldProcess('spotdl', 'Install via uv tool')) {
+                $null = Invoke-NativeQuiet -Name 'uv' -ArgumentList @('tool', 'install', 'spotdl')
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Warning "uv tool install spotdl failed (exit $LASTEXITCODE)"
+                }
             }
         }
 
@@ -218,13 +236,17 @@ end {
                 if (-not (Test-Path -LiteralPath $potGeneratorPath)) {
                     $potRepoDir = Join-Path -Path $env:USERPROFILE -ChildPath 'bgutil-ytdlp-pot-provider'
                     if (-not (Test-Path -LiteralPath $potRepoDir)) {
-                        & git clone --single-branch --branch $potTag `
-                            'https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git' $potRepoDir
+                        $null = Invoke-NativeQuiet -Name 'git' -ArgumentList @(
+                            'clone', '--single-branch', '--branch', $potTag,
+                            'https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git', $potRepoDir)
+                        if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
                     }
                     Push-Location -LiteralPath (Join-Path -Path $potRepoDir -ChildPath 'server')
                     try {
-                        & npm ci
-                        & npx tsc
+                        $null = Invoke-NativeQuiet -Name 'npm' -ArgumentList @('ci')
+                        if ($LASTEXITCODE -ne 0) { throw "npm ci failed (exit $LASTEXITCODE)" }
+                        $null = Invoke-NativeQuiet -Name 'npx' -ArgumentList @('tsc')
+                        if ($LASTEXITCODE -ne 0) { throw "npx tsc failed (exit $LASTEXITCODE)" }
                     } finally {
                         Pop-Location
                     }
@@ -272,7 +294,9 @@ end {
         # succeed against a googlevideo URL that then 403s on the real sequential download
         # (reproduced against android_vr-selected formats without a PO token), so it would
         # just trade one false negative for a false positive.
-        $null = & yt-dlp @cookieArgs --simulate --skip-download --no-warnings --quiet --playlist-items 1 $Url[0] 2>&1
+        $validateArgs = $cookieArgs + @('--simulate', '--skip-download', '--no-warnings', '--quiet',
+            '--playlist-items', '1', $Url[0])
+        $null = Invoke-NativeQuiet -Name 'yt-dlp' -ArgumentList $validateArgs
         if ($LASTEXITCODE -ne 0) {
             Write-Warning "Cookies from '$cookieSourceLabel' failed validation (exit $LASTEXITCODE) - continuing without cookies"
             Add-Log -Text "Cookie validation FAILED for: $cookieSourceLabel"
@@ -297,7 +321,7 @@ end {
         if ($isSpotify) {
             $metaFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "spotdl-$([guid]::NewGuid()).spotdl"
             try {
-                $null = & spotdl save $u --save-file $metaFile 2>&1
+                $null = Invoke-NativeQuiet -Name 'spotdl' -ArgumentList @('save', $u, '--save-file', $metaFile)
                 $rawTitle = $null
                 if (Test-Path -LiteralPath $metaFile) {
                     $meta = Get-Content -LiteralPath $metaFile -Raw | ConvertFrom-Json
@@ -308,9 +332,11 @@ end {
                 Remove-Item -LiteralPath $metaFile -ErrorAction SilentlyContinue
             }
         } else {
-            $rawTitle = & yt-dlp @cookieArgs --print playlist_title $u 2>$null | Select-Object -First 1
+            $rawTitle = Invoke-NativeQuiet -Name 'yt-dlp' -ArgumentList ($cookieArgs + @('--print', 'playlist_title', $u)) |
+                Where-Object { $_ -is [string] } | Select-Object -First 1
             if (-not $rawTitle) {
-                $rawTitle = & yt-dlp @cookieArgs --print title $u 2>$null | Select-Object -First 1
+                $rawTitle = Invoke-NativeQuiet -Name 'yt-dlp' -ArgumentList ($cookieArgs + @('--print', 'title', $u)) |
+                    Where-Object { $_ -is [string] } | Select-Object -First 1
             }
         }
         if (-not $rawTitle) {
@@ -370,7 +396,7 @@ end {
             Write-Verbose "Running: $exeName $($downloadArgs -join ' ')"
             Add-Log -Text "Starting: $u"
 
-            & $exeName @downloadArgs 2>&1
+            Invoke-NativeQuiet -Name $exeName -ArgumentList $downloadArgs
             $ec = $LASTEXITCODE
 
             # A cookie-free android_vr-selected format can 403 on the real download despite
@@ -381,7 +407,7 @@ end {
                 Write-Warning "Retrying with -extractor-args youtube:player_client=web_safari for: $u"
                 Add-Log -Text "Retrying with player_client=web_safari: $u"
                 $retryArgs = $downloadArgs + @('--extractor-args', 'youtube:player_client=web_safari', '-f', '96/bestaudio/best')
-                & $exeName @retryArgs 2>&1
+                Invoke-NativeQuiet -Name $exeName -ArgumentList $retryArgs
                 $ec = $LASTEXITCODE
                 if ($ec -eq 0) {
                     Add-Log -Text "Retry succeeded with player_client=web_safari: $u"

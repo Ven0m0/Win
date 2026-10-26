@@ -109,13 +109,13 @@ Use ctx_execute, ctx_execute_file, ctx_batch_execute, ctx_index, ctx_search, ctx
 ## RTK Usage (Max)
 - Prefix every shell command with `rtk` when a rule exists (`rtk git`, `rtk gh`, `rtk ls`, `rtk read`, `rtk diff`, `rtk json`, `rtk curl`, `rtk bun`, `rtk uv`, `rtk wc`, `rtk find`). Hook auto-rewrites safe shapes; write `rtk ...` explicitly when unsure.
 - Search: use `rtk rg` over `rtk grep`. `grep` only when `rg` cannot do it.
-- No pipelines for truncation (`| head`, `| tail`), no `$(...)`/backticks, no `timeout` prefix: use native flags (`rtk read f --max-lines N`) and the tool's timeout param.
+- Pipes disable rtk for the whole command (top leak in `rtk discover`). Exception: in Bash, `cmd | head/tail -N` is auto-rewritten to `rtk cmd | head/tail -N` by `hooks/rtk-advisor.ps1`; any other tail stage (`wc`, `grep`, `sort`, `;` after head) is not. No `$(...)`/backticks, no `timeout` prefix: use native flags (`rtk read f --max-lines N`) and the tool's timeout param.
 - PowerShell: use `rtk ls`/`rtk read`/`rtk rg`/`rtk wc -l`, never `Get-ChildItem`/`Get-Content`/`Select-String`.
 - Never add `2>&1 | tail`; rtk already truncates and filters output.
 - Use `rtk proxy <cmd>` only when raw unfiltered output is needed for debugging.
 - Periodically run `rtk discover` and `rtk gain` to find missed rewrites; fix habits it reports.
 - Always write `rtk` explicitly for: `git commit`, `cargo build`, `uv run`, `ls -1`, `cat` (use `rtk read`), `du`, `shellcheck`, `bunx`.
-- Hook does NOT rewrite user TOML-filter commands (`~/AppData/Roaming/rtk/filters.toml`). Type `rtk` yourself for: `ssh`, `adb` (incl. `adb logcat`), `tasklist`, `wsl.exe`, `unzip`, `sqlite3`, `yt-dlp`, `javap`, `tombi`, `uv lock`.
+- User TOML filters (`~/AppData/Roaming/rtk/filters.toml`: ssh, adb, tasklist, wsl, unzip, sqlite3, yt-dlp, javap, tombi, uv lock, fd, dust) are auto-rewritten by the hook, but only while trusted: trust is a SHA-256 of the file, so after ANY edit run `rtk trust -y` from that directory or every filter silently turns off. Use `"\\b"` escapes (TOML basic strings). Filters under a builtin prefix (`git ls-files`, `cargo tree`) are shadowed and never apply.
 - Commit messages: `git commit -m "one line"` or `-F file`. Never `$(cat <<EOF ...)`; hook refuses it and the whole command loses rtk.
 
 @RTK.md

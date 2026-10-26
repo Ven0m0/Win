@@ -97,7 +97,7 @@ Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`, `claude/`, `git/`, `ssh/`, `psmux/`, `obs/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `rtk/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`, `claude/`, `git/`, `ssh/`, `psmux/`, `obs/`
 
 ## Gotchas
 
@@ -108,7 +108,7 @@ Key constraints:
 **Arc Raiders** — remaining scripts and config change together:
 `Scripts/arc-raiders/ArcRaidersCommon.ps1`, `cleanup-arc-raiders.ps1`, `SkipVideosMod.ps1`, `user/.dotfiles/config/games/arc-raiders/`
 
-**Bootstrap** — always change together: `bootstrap.ps1`, `Scripts/Setup-Win11.ps1`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections). `bootstrap.ps1` and `Setup-Win11.ps1` share a parameter surface (`-Unattended -Force -SkipWingetTools -SkipWSL -SkipPackages -SkipDebloat`) that must stay in sync since one forwards to the other.
+**Bootstrap** — always change together: `bootstrap.ps1`, `Scripts/Setup-Win11.ps1`, `install.conf.yaml`, `Scripts/Setup-Dotfiles.ps1`, `README.md` (setup sections). `bootstrap.ps1` and `Setup-Win11.ps1` share a parameter surface (`-Unattended -Force -SkipWingetTools -SkipWSL -SkipPackages -SkipDebloat`) that must stay in sync since one forwards to the other (`tests/Setup-Win11.Tests.ps1` asserts it by AST). `Install-WingetTool` (Common.ps1) is the single winget install policy; `bootstrap.ps1` keeps its own copy because it cannot dot-source Common.ps1 before the repo is cloned. Per-app/game resolvers and deploys live in `Scripts/Setup-Dotfiles.Apps.ps1`, dot-sourced by `Setup-Dotfiles.ps1`.
 
 ## Validation Matrix
 

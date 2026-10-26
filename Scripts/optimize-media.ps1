@@ -192,6 +192,10 @@ $imageExtensions = @('png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 
 $excludeRegex = '(?i)[\\/](files_versions|files_trashbin|\.nextcloud|\.stfolder|\.stversions|' +
     '\.thumbnails|thumbnails|\.cache)[\\/]|[\\/]\.sync_[^\\/]*\.db$|[\\/]Thumbs\.db$|\.(part|partial)$'
 
+# Set in the main body when -Path names a single file; declared here so dot-sourcing
+# the script (tests) leaves it defined under strict mode.
+$onlyFile = $null
+
 # How many paths to hand a single oxipng/jpegoptim invocation. Both accept many files
 # per run; ~200 keeps the command line well under the Windows 32k limit.
 $batchSize = 200
@@ -1072,122 +1076,121 @@ function Invoke-VideoPass {
 }
 
 
-if (-not $PSBoundParameters.ContainsKey('Path')) {
-    $Path = Select-FolderDialog -Description 'Select the folder to optimize'
-}
-
-$resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
-$onlyFile = $null
-if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
-    # Single file: scan its folder as the root (backup mirror layout stays the same) but
-    # only that file is processed; see Get-MediaFile.
-    $onlyFile = $resolvedPath
-    $resolvedPath = Split-Path -Parent $resolvedPath
-}
-elseif (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
-    throw "Path is not a file or folder: $resolvedPath"
-}
-
-# Resolved without requiring existence: the mirror is created lazily, per file, so that
-# a -WhatIf run and a run that touches nothing both leave no empty folder behind.
-if ([System.IO.Path]::IsPathRooted($BackupPath)) {
-    $resolvedBackupPath = [System.IO.Path]::GetFullPath($BackupPath)
-}
-else {
-    $resolvedBackupPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PWD.Path -ChildPath $BackupPath))
-}
-$scanRoot = $resolvedPath.TrimEnd('\', '/')
-if ($resolvedBackupPath.TrimEnd('\', '/') -eq $scanRoot -or
-    $resolvedBackupPath.StartsWith($scanRoot + [System.IO.Path]::DirectorySeparatorChar,
-        [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw ("BackupPath '$resolvedBackupPath' is inside the scanned folder '$resolvedPath'. " +
-        'In a synced folder (Nextcloud, OneDrive) the backups would be uploaded too, doubling ' +
-        'server storage instead of shrinking it. Pass -BackupPath outside the scanned tree.')
-}
-
-$ffmpeg = Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg.Shared' -Optional:$SkipVideo
-
-$bytesSaved = 0L
-$videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; NoGain = 0; Reclaimed = 0L }
-
-if (-not $SkipImages) {
-    $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -OxipngLevel $OxipngLevel `
-        -MaxDimension $MaxDimension -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg `
-        -StripMetadata:$StripMetadata -ConvertToWebp:$ConvertToWebp -Force:$Force
-}
-
-if (-not $SkipVideo) {
-    $ffprobe = Resolve-OrInstallTool -Name 'ffprobe' -WingetId 'Gyan.FFmpeg.Shared'
-    $ffzap = Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap' -Optional
-    if (-not $ffzap) {
-        Write-Warning 'ffzap not found and could not be installed; encoding with ffmpeg one file at a time.'
+if ($MyInvocation.InvocationName -ne '.') {
+    if (-not $PSBoundParameters.ContainsKey('Path')) {
+        $Path = Select-FolderDialog -Description 'Select the folder to optimize'
     }
-    $selectedEncoder = Resolve-HevcEncoder -Ffmpeg $ffmpeg -Preference $Encoder
-    Write-Info "Video encoder: $selectedEncoder"
-    # hevc -> mp4 today; an av1/vp9 encoder path would add entries here (.av1.mkv / .vp9.mkv,
-    # mkv takes no -movflags) rather than touching Invoke-VideoPass's naming/mux logic.
-    $videoProfile = [PSCustomObject]@{
-        Suffix  = '.h265.mp4'
-        MuxArgs = @('-movflags', '+faststart')
+
+    $resolvedPath = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
+    $onlyFile = $null
+    if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
+        # Single file: scan its folder as the root (backup mirror layout stays the same) but
+        # only that file is processed; see Get-MediaFile.
+        $onlyFile = $resolvedPath
+        $resolvedPath = Split-Path -Parent $resolvedPath
     }
-    # -g 120 (both encoders): a GOP short enough to stay seekable/streamable at any
-    # framerate up to 60fps (2.0s @60fps, 4.0s @30fps, 5.0s @24fps) from one shared value.
-    if ($selectedEncoder -eq 'NVENC') {
-        # hevc_nvenc has no ssim tune (only hq/ll/ull/lossless) and rejects -x265-params.
-        $encoderArgs = @(
-            '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr',
-            '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120'
-        )
+    elseif (-not (Test-Path -LiteralPath $resolvedPath -PathType Container)) {
+        throw "Path is not a file or folder: $resolvedPath"
+    }
+
+    # Resolved without requiring existence: the mirror is created lazily, per file, so that
+    # a -WhatIf run and a run that touches nothing both leave no empty folder behind.
+    if ([System.IO.Path]::IsPathRooted($BackupPath)) {
+        $resolvedBackupPath = [System.IO.Path]::GetFullPath($BackupPath)
     }
     else {
-        $encoderArgs = @(
-            '-c:v', 'libx265', '-preset', $X265Preset, '-tune', 'ssim', '-crf', "$VideoQuality",
-            '-pix_fmt', 'yuv420p10le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120',
-            '-x265-params', $x265Params
-        )
+        $resolvedBackupPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PWD.Path -ChildPath $BackupPath))
+    }
+    if ((Resolve-WritePolicy -ScanRoot $resolvedPath -DestinationPath $resolvedBackupPath).DestinationInsideScanRoot) {
+        throw ("BackupPath '$resolvedBackupPath' is inside the scanned folder '$resolvedPath'. " +
+            'In a synced folder (Nextcloud, OneDrive) the backups would be uploaded too, doubling ' +
+            'server storage instead of shrinking it. Pass -BackupPath outside the scanned tree.')
     }
 
-    # Lossy and off by default: the actual lever for shrinking already-compressed mobile
-    # clips, but not something to apply to a photo archive without asking.
-    $videoFilters = [System.Collections.Generic.List[string]]::new()
-    if ($Denoise) { $videoFilters.Add('hqdn3d=1.5:1.5:6:6') }
-    if ($MaxVideoDimension -gt 0) {
-        $m = $MaxVideoDimension
-        $videoFilters.Add("scale=w='if(gte(iw,ih),min($m,iw),-2)':h='if(gte(iw,ih),-2,min($m,ih))'")
-    }
-    # @() as the sole output of an if/else branch unravels to $null, not an empty array -
-    # start from @() and only append, so the "no filters" case stays a real empty array.
-    $videoFilterArgs = @()
-    if ($videoFilters.Count -gt 0) { $videoFilterArgs = @('-vf', ($videoFilters -join ',')) }
+    $ffmpeg = Resolve-OrInstallTool -Name 'ffmpeg' -WingetId 'Gyan.FFmpeg' -Optional:$SkipVideo
 
-    $videoResult = Invoke-VideoPass -TargetPath $resolvedPath -Ffmpeg $ffmpeg -Ffprobe $ffprobe -Ffzap $ffzap `
-        -EncoderArgs $encoderArgs -VideoFilterArgs $videoFilterArgs -VideoProfile $videoProfile `
-        -AudioBitrate $AudioBitrate -ThreadCount $ThreadCount `
-        -BackupPath $resolvedBackupPath -KeepOriginals:$KeepOriginals -Force:$Force
-}
+    $bytesSaved = 0L
+    $videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; NoGain = 0; Reclaimed = 0L }
 
-Write-Host ''
-if (-not $SkipImages) {
-    Write-Host "Image space saved: $(Format-Size $bytesSaved)" -ForegroundColor Green
-}
-if (-not $SkipVideo) {
-    Write-Host ("Videos: $($videoResult.Encoded) encoded, $($videoResult.Skipped) skipped, " +
-        "$($videoResult.NoGain) no gain (kept original), $($videoResult.Errors) failed.") -ForegroundColor Green
-    if ($KeepOriginals) {
-        Write-Host 'Originals kept in place (-KeepOriginals); no video space reclaimed.' -ForegroundColor DarkGray
+    if (-not $SkipImages) {
+        $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -OxipngLevel $OxipngLevel `
+            -MaxDimension $MaxDimension -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg `
+            -StripMetadata:$StripMetadata -ConvertToWebp:$ConvertToWebp -Force:$Force
     }
-    else {
-        Write-Host "Video space reclaimed: $(Format-Size $videoResult.Reclaimed)" -ForegroundColor Green
+
+    if (-not $SkipVideo) {
+        $ffprobe = Resolve-OrInstallTool -Name 'ffprobe' -WingetId 'Gyan.FFmpeg'
+        $ffzap = Resolve-OrInstallTool -Name 'ffzap' -WingetId 'CodeF0x.ffzap' -Optional
+        if (-not $ffzap) {
+            Write-Warning 'ffzap not found and could not be installed; encoding with ffmpeg one file at a time.'
+        }
+        $selectedEncoder = Resolve-HevcEncoder -Ffmpeg $ffmpeg -Preference $Encoder
+        Write-Info "Video encoder: $selectedEncoder"
+        # hevc -> mp4 today; an av1/vp9 encoder path would add entries here (.av1.mkv / .vp9.mkv,
+        # mkv takes no -movflags) rather than touching Invoke-VideoPass's naming/mux logic.
+        $videoProfile = [PSCustomObject]@{
+            Suffix  = '.h265.mp4'
+            MuxArgs = @('-movflags', '+faststart')
+        }
+        # -g 120 (both encoders): a GOP short enough to stay seekable/streamable at any
+        # framerate up to 60fps (2.0s @60fps, 4.0s @30fps, 5.0s @24fps) from one shared value.
+        if ($selectedEncoder -eq 'NVENC') {
+            # hevc_nvenc has no ssim tune (only hq/ll/ull/lossless) and rejects -x265-params.
+            $encoderArgs = @(
+                '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr',
+                '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120'
+            )
+        }
+        else {
+            $encoderArgs = @(
+                '-c:v', 'libx265', '-preset', $X265Preset, '-tune', 'ssim', '-crf', "$VideoQuality",
+                '-pix_fmt', 'yuv420p10le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120',
+                '-x265-params', $x265Params
+            )
+        }
+
+        # Lossy and off by default: the actual lever for shrinking already-compressed mobile
+        # clips, but not something to apply to a photo archive without asking.
+        $videoFilters = [System.Collections.Generic.List[string]]::new()
+        if ($Denoise) { $videoFilters.Add('hqdn3d=1.5:1.5:6:6') }
+        if ($MaxVideoDimension -gt 0) {
+            $m = $MaxVideoDimension
+            $videoFilters.Add("scale=w='if(gte(iw,ih),min($m,iw),-2)':h='if(gte(iw,ih),-2,min($m,ih))'")
+        }
+        # @() as the sole output of an if/else branch unravels to $null, not an empty array -
+        # start from @() and only append, so the "no filters" case stays a real empty array.
+        $videoFilterArgs = @()
+        if ($videoFilters.Count -gt 0) { $videoFilterArgs = @('-vf', ($videoFilters -join ',')) }
+
+        $videoResult = Invoke-VideoPass -TargetPath $resolvedPath -Ffmpeg $ffmpeg -Ffprobe $ffprobe -Ffzap $ffzap `
+            -EncoderArgs $encoderArgs -VideoFilterArgs $videoFilterArgs -VideoProfile $videoProfile `
+            -AudioBitrate $AudioBitrate -ThreadCount $ThreadCount `
+            -BackupPath $resolvedBackupPath -KeepOriginals:$KeepOriginals -Force:$Force
     }
+
+    Write-Host ''
+    if (-not $SkipImages) {
+        Write-Host "Image space saved: $(Format-Size $bytesSaved)" -ForegroundColor Green
+    }
+    if (-not $SkipVideo) {
+        Write-Host ("Videos: $($videoResult.Encoded) encoded, $($videoResult.Skipped) skipped, " +
+            "$($videoResult.NoGain) no gain (kept original), $($videoResult.Errors) failed.") -ForegroundColor Green
+        if ($KeepOriginals) {
+            Write-Host 'Originals kept in place (-KeepOriginals); no video space reclaimed.' -ForegroundColor DarkGray
+        }
+        else {
+            Write-Host "Video space reclaimed: $(Format-Size $videoResult.Reclaimed)" -ForegroundColor Green
+        }
+        if ($videoResult.Errors -gt 0) {
+            Write-Host "$($videoResult.Errors) video file(s) failed to encode." -ForegroundColor Red
+        }
+    }
+    Write-Host "Originals are in: $resolvedBackupPath" -ForegroundColor DarkGray
+
+    Write-Host ''
+    Write-Host 'Optimization complete.' -ForegroundColor Green
+
     if ($videoResult.Errors -gt 0) {
-        Write-Host "$($videoResult.Errors) video file(s) failed to encode." -ForegroundColor Red
+        exit 1
     }
-}
-Write-Host "Originals are in: $resolvedBackupPath" -ForegroundColor DarkGray
-
-Write-Host ''
-Write-Host 'Optimization complete.' -ForegroundColor Green
-
-if ($videoResult.Errors -gt 0) {
-    exit 1
 }

@@ -85,6 +85,7 @@ function Start-InstallPackage {
 
     $script:StartTime = Get-Date
     $script:Results = @{}
+    $script:InstallExitCode = 0
 
     function Write-Status {
         param([string]$Message, [string]$Status = 'INFO')
@@ -99,30 +100,14 @@ function Start-InstallPackage {
         $script:Results[$Message] = $Status
     }
 
-    function Install-WingetTool {
-        [CmdletBinding(SupportsShouldProcess)]
-        param([string]$Id, [string]$Name)
-        if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
-            $winget = Wait-ForWinget
-            Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
-            try {
-                & $winget install --id $Id --accept-package-agreements --accept-source-agreements `
-                    --disable-interactivity --nowarn --no-proxy --ignore-local-archive-malware-scan `
-                    -h --force *>$null
-                $ec = $LASTEXITCODE
-                # 0 = success; -1978335189 = already installed; -1978335230 = no applicable installer for scope
-                if ($ec -eq 0 -or $ec -eq -1978335189 -or $ec -eq -1978335230) {
-                    Write-Host ' [OK]' -ForegroundColor Green
-                } else {
-                    Write-Host ''
-                    Write-Warning "  [WARN] $Name - winget exit code: $ec"
-                }
-            } catch {
-                Write-Host ''
-                Write-Warning "  [WARN] $Name - $_"
-                Write-Verbose "winget install failed for $Id : $_"
-            }
-        }
+    # Runs a native command and throws on an unexpected exit code. Output is discarded; the
+    # exit code is the only signal we trust. Resetting LASTEXITCODE keeps mocked natives at 0.
+    function Invoke-NativeStep {
+        param([scriptblock]$Command, [int[]]$OkCode = @(0))
+        Set-Variable -Name LASTEXITCODE -Scope Global -Value 0 -WhatIf:$false
+        & $Command *>$null
+        $ec = (Get-Variable -Name LASTEXITCODE -Scope Global).Value
+        if ($ec -notin $OkCode) { throw "exit code $ec" }
     }
 
     # ============================================================================
@@ -185,7 +170,7 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[2/11] Installing core tools via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetCore) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
     }
 
@@ -196,7 +181,7 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[3/11] Installing runtimes via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetRuntimes) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
     }
 
@@ -207,7 +192,7 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[4/11] Installing build toolchains via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetToolchains) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
     }
 
@@ -218,7 +203,7 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[5/11] Installing development tools via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetDevTools) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
     }
 
@@ -229,7 +214,7 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[6/11] Installing CLI tools via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetCliTools) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
     }
 
@@ -240,15 +225,10 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[7/11] Installing applications via winget...' -ForegroundColor Cyan
         foreach ($id in $catalog.WingetApplications) {
-            Install-WingetTool -Id $id -Name $id
+            Install-WingetTool -Id $id -Name $id -NoPathRefresh
         }
-        # Name-based installs (no stable ID)
-        if ($PSCmdlet.ShouldProcess('FFmpeg (Shared Build)', 'Install via winget')) {
-            $winget = Wait-ForWinget
-            & $winget install 'FFmpeg (Shared Build)' --accept-package-agreements --accept-source-agreements `
-                --disable-interactivity --nowarn --no-proxy --ignore-local-archive-malware-scan `
-                -h --force *>$null
-        }
+        # Installs above skip the per-package PATH refresh; do it once for the whole batch.
+        Update-EnvironmentPath
     }
 
     # ============================================================================
@@ -353,14 +333,13 @@ function Start-InstallPackage {
         Write-Host '[7.8/11] Installing bun/npm/cargo global packages...' -ForegroundColor Cyan
 
         # Winget installs earlier in this run (bun, node, rustup) may not be on PATH yet.
-        $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
-            [System.Environment]::GetEnvironmentVariable('Path', 'User')
+        Update-EnvironmentPath
 
         if (Get-Command bun -ErrorAction SilentlyContinue) {
             foreach ($pkg in $catalog.BunPackages) {
                 try {
                     if ($PSCmdlet.ShouldProcess($pkg, 'bun add -g')) {
-                        bun add -g $pkg *>$null
+                        Invoke-NativeStep { bun add -g $pkg }
                         Write-Status "Bun package '$pkg' installed" -Status 'OK'
                     }
                 } catch {
@@ -375,7 +354,7 @@ function Start-InstallPackage {
             foreach ($pkg in $catalog.NpmPackages) {
                 try {
                     if ($PSCmdlet.ShouldProcess($pkg, 'npm install -g')) {
-                        npm install -g $pkg *>$null
+                        Invoke-NativeStep { npm install -g $pkg }
                         Write-Status "npm package '$pkg' installed" -Status 'OK'
                     }
                 } catch {
@@ -390,7 +369,7 @@ function Start-InstallPackage {
             if (-not (Get-Command cargo-binstall -ErrorAction SilentlyContinue)) {
                 try {
                     if ($PSCmdlet.ShouldProcess('cargo-binstall', 'cargo install')) {
-                        cargo install cargo-binstall *>$null
+                        Invoke-NativeStep { cargo install cargo-binstall }
                     }
                 } catch {
                     Write-Verbose "cargo-binstall bootstrap failed: $_"
@@ -401,9 +380,9 @@ function Start-InstallPackage {
                 try {
                     if ($PSCmdlet.ShouldProcess($pkgName, 'cargo install')) {
                         if ($pkg -is [hashtable]) {
-                            cargo install --git $pkg.Git *>$null
+                            Invoke-NativeStep { cargo install --git $pkg.Git }
                         } else {
-                            cargo binstall -y $pkg *>$null
+                            Invoke-NativeStep { cargo binstall -y $pkg }
                         }
                         Write-Status "Cargo package '$pkgName' installed" -Status 'OK'
                     }
@@ -429,8 +408,10 @@ function Start-InstallPackage {
                 $guid = [System.Guid]::NewGuid().ToString('N')
                 $scoopInstaller = Join-Path -Path $env:TEMP -ChildPath "install-scoop-$guid.ps1"
                 Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
-                & $scoopInstaller
+                # This script is elevated and Scoop's installer refuses admin without -RunAsAdmin.
+                & $scoopInstaller -RunAsAdmin
                 Remove-Item -Path $scoopInstaller -Force -ErrorAction SilentlyContinue
+                Update-EnvironmentPath
                 Write-Status 'Scoop installed' -Status 'OK'
             } catch {
                 Write-Status "Scoop installation failed: $_" -Status 'FAIL'
@@ -444,22 +425,26 @@ function Start-InstallPackage {
                 $bucketName = if ($bucket -is [hashtable]) { $bucket.Name } else { $bucket }
                 $bucketArgs = if ($bucket -is [hashtable]) { @($bucket.Name, $bucket.Url) } else { @($bucket) }
                 try {
-                    scoop bucket add @bucketArgs 2>$null
+                    Invoke-NativeStep { scoop bucket add @bucketArgs }
                     Write-Status "Scoop bucket '$bucketName' added" -Status 'OK'
                 } catch {
-                    Write-Status "Scoop bucket '$bucketName' (may already exist)" -Status 'SKIP'
+                    Write-Status "Scoop bucket '$bucketName' - $($_.Exception.Message)" -Status 'FAIL'
                 }
             }
 
-            scoop config aria2-enabled true 2>$null
-            scoop config aria2-warning-enabled false 2>$null
+            try {
+                Invoke-NativeStep { scoop config aria2-enabled true }
+                Invoke-NativeStep { scoop config aria2-warning-enabled false }
+            } catch {
+                Write-Warning "  Could not configure scoop aria2: $_"
+            }
 
             foreach ($pkg in $catalog.ScoopPackages) {
                 try {
-                    scoop install $pkg 2>$null
+                    Invoke-NativeStep { scoop install $pkg }
                     Write-Status "Scoop package '$pkg' installed" -Status 'OK'
                 } catch {
-                    Write-Status "Scoop package '$pkg'" -Status 'SKIP'
+                    Write-Status "Scoop package '$pkg' - $($_.Exception.Message)" -Status 'FAIL'
                 }
             }
         }
@@ -485,6 +470,7 @@ function Start-InstallPackage {
                     -OutFile $chocoInstaller -ErrorAction Stop
                 & $chocoInstaller
                 Remove-Item -Path $chocoInstaller -Force -ErrorAction SilentlyContinue
+                Update-EnvironmentPath
                 Write-Status 'Chocolatey installed' -Status 'OK'
             } catch {
                 Write-Status "Chocolatey installation failed: $_" -Status 'FAIL'
@@ -497,11 +483,12 @@ function Start-InstallPackage {
             foreach ($pkg in $catalog.ChocoPackages) {
                 try {
                     if ($PSCmdlet.ShouldProcess($pkg, 'choco install')) {
-                        choco install $pkg -y --no-progress *>$null
+                        # 1641/3010 = success, reboot pending
+                        Invoke-NativeStep { choco install $pkg -y --no-progress } -OkCode 0, 1641, 3010
                         Write-Status "Choco package '$pkg' installed" -Status 'OK'
                     }
                 } catch {
-                    Write-Status "Choco package '$pkg'" -Status 'SKIP'
+                    Write-Status "Choco package '$pkg' - $($_.Exception.Message)" -Status 'FAIL'
                 }
             }
         }
@@ -516,10 +503,16 @@ function Start-InstallPackage {
 
         foreach ($feature in $catalog.WindowsFeatures) {
             try {
-                DISM /Online /Enable-Feature /FeatureName:$feature /All /NoRestart /Quiet *>$null
-                Write-Status "Feature '$feature' enabled" -Status 'OK'
+                if ($PSCmdlet.ShouldProcess($feature, 'Enable Windows feature')) {
+                    # 3010 = success, reboot required
+                    $dismArgs = @(
+                        '/Online', '/Enable-Feature', "/FeatureName:$feature", '/All', '/NoRestart', '/Quiet'
+                    )
+                    Invoke-NativeStep { DISM @dismArgs } -OkCode 0, 3010
+                    Write-Status "Feature '$feature' enabled" -Status 'OK'
+                }
             } catch {
-                Write-Status "Feature '$feature' (may already be enabled)" -Status 'SKIP'
+                Write-Status "Feature '$feature' - $($_.Exception.Message)" -Status 'FAIL'
             }
         }
     }
@@ -552,13 +545,15 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[12/12] Applying post-install Windows configuration...' -ForegroundColor Cyan
 
+        New-RestorePoint -Description 'Before Install-Packages post-install'
+
         # Set timezone
         try {
             Set-TimeZone -Name $PostInstallTimeZone -ErrorAction Stop
             Write-Status "Timezone set to '$PostInstallTimeZone'" -Status 'OK'
         } catch {
             try {
-                tzutil.exe /s $PostInstallTimeZone *>$null
+                Invoke-NativeStep { tzutil.exe /s $PostInstallTimeZone }
                 Write-Status "Timezone set to '$PostInstallTimeZone' (tzutil)" -Status 'OK'
             } catch {
                 Write-Status "Timezone '$PostInstallTimeZone' - $($_.Exception.Message)" -Status 'SKIP'
@@ -567,11 +562,10 @@ function Start-InstallPackage {
 
         # Disable WPBT (Windows Platform Binary Table) - prevents malicious firmware attacks
         try {
-            $sysHive = 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager'
-            if (-not (Test-Path -Path $sysHive)) {
-                $null = New-Item -Path $sysHive -Force
+            $sysHive = 'HKLM\SYSTEM\CurrentControlSet\Control\Session Manager'
+            Invoke-NativeStep {
+                Set-RegistryValue -Path $sysHive -Name 'DisableWpbtExecution' -Type REG_DWORD -Data 1
             }
-            Set-RegistryValue -Path $sysHive -Name 'DisableWpbtExecution' -Value 1
             Write-Status 'WPBT execution disabled' -Status 'OK'
         } catch {
             Write-Status "WPBT disable failed: $($_.Exception.Message)" -Status 'SKIP'
@@ -579,25 +573,21 @@ function Start-InstallPackage {
 
         # Set geographic region (GeoId)
         try {
-            $regionKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion'
-            if (-not (Test-Path -Path $regionKey)) {
-                $null = New-Item -Path $regionKey -Force
+            $regionKey = 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Control Panel\DeviceRegion'
+            Invoke-NativeStep {
+                Set-RegistryValue -Path $regionKey -Name 'DeviceRegion' -Type REG_DWORD -Data $PostInstallGeoId
             }
-            Set-RegistryValue -Path $regionKey -Name 'DeviceRegion' -Value $PostInstallGeoId
             Write-Status "Geographic region set to GeoId $PostInstallGeoId" -Status 'OK'
         } catch {
             Write-Status "GeoId set failed: $($_.Exception.Message)" -Status 'SKIP'
         }
 
         # BypassSetup LabConfig (for future reinstallation/repair)
-        $labConfig = 'HKLM:\SYSTEM\Setup\LabConfig'
+        $labConfig = 'HKLM\SYSTEM\Setup\LabConfig'
         try {
-            if (-not (Test-Path -Path $labConfig)) {
-                $null = New-Item -Path $labConfig -Force
+            foreach ($flag in 'BypassTPMCheck', 'BypassSecureBootCheck', 'BypassRAMCheck') {
+                Invoke-NativeStep { Set-RegistryValue -Path $labConfig -Name $flag -Type REG_DWORD -Data 1 }
             }
-            Set-RegistryValue -Path $labConfig -Name 'BypassTPMCheck' -Value 1
-            Set-RegistryValue -Path $labConfig -Name 'BypassSecureBootCheck' -Value 1
-            Set-RegistryValue -Path $labConfig -Name 'BypassRAMCheck' -Value 1
             Write-Status 'Setup bypass flags configured' -Status 'OK'
         } catch {
             Write-Status "LabConfig setup failed: $($_.Exception.Message)" -Status 'SKIP'
@@ -614,9 +604,12 @@ function Start-InstallPackage {
         # Strip 8.3 names (reduces disk usage, improves performance)
         try {
             $systemDrive = $env:SystemDrive.TrimEnd('\')
-            fsutil.exe 8dot3name set $systemDrive 1 *>$null
-            fsutil.exe 8dot3name strip /s /f $systemDrive *>$null
-            Write-Status '8.3 file name stripping scheduled' -Status 'OK'
+            if ($PSCmdlet.ShouldProcess("$systemDrive 8.3 names", 'Disable and strip')) {
+                Invoke-NativeStep { fsutil.exe 8dot3name set $systemDrive 1 }
+                # No /f: let fsutil refuse when registry entries still reference short names.
+                Invoke-NativeStep { fsutil.exe 8dot3name strip /s $systemDrive }
+                Write-Status '8.3 file name stripping done' -Status 'OK'
+            }
         } catch {
             Write-Status "8.3 stripping: $($_.Exception.Message)" -Status 'SKIP'
         }
@@ -645,6 +638,12 @@ function Start-InstallPackage {
         Write-Host "$status" -ForegroundColor $color
     }
 
+    $failed = @($script:Results.Keys | Where-Object { $script:Results[$_] -eq 'FAIL' })
+    if ($failed.Count -gt 0) {
+        $script:InstallExitCode = 1
+        Write-Host "  $($failed.Count) step(s) failed." -ForegroundColor Red
+    }
+
     $duration = (Get-Date) - $script:StartTime
     Write-Host ''
     Write-Host "  Total time: $($duration.ToString('hh\:mm\:ss'))" -ForegroundColor Cyan
@@ -654,7 +653,7 @@ function Start-InstallPackage {
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
+    $script:InstallExitCode = 0
     Start-InstallPackage @PSBoundParameters
-    $exitCode = $LASTEXITCODE
-    if ($null -ne $exitCode) { exit $exitCode }
+    exit $script:InstallExitCode
 }

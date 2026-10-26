@@ -120,10 +120,10 @@ function Start-SetupWin11 {
         $pwshCmd = Get-Command pwsh -ErrorAction SilentlyContinue
         $shell = if ($pwshCmd) { $pwshCmd.Source } else { 'PowerShell.exe' }
         $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
-        foreach ($p in 'Force','SkipWingetTools','SkipWSL','Unattended','SkipPackages','SkipDebloat') {
-            if ((Get-Variable $p -ErrorAction SilentlyContinue).Value) { $argList += " -$p" }
+        foreach ($key in $PSBoundParameters.Keys) {
+            if ($PSBoundParameters[$key]) { $argList += " -$key" }
         }
-        if ($WhatIfPreference) { $argList += ' -WhatIf' }
+        if ($WhatIfPreference -and -not $PSBoundParameters.ContainsKey('WhatIf')) { $argList += ' -WhatIf' }
         Start-Process $shell -ArgumentList $argList -Verb RunAs
         return $true
     }
@@ -302,6 +302,7 @@ function Start-SetupWin11 {
 
 if ($MyInvocation.InvocationName -ne '.') {
     $result = Start-SetupWin11 @PSBoundParameters
+    # Not $LASTEXITCODE: it holds whatever native command ran last, not this script's outcome.
     if (-not $result) { exit 1 }
-    exit $LASTEXITCODE
+    exit 0
 }

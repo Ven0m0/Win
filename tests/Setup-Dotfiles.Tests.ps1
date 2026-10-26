@@ -72,6 +72,10 @@ Describe "Setup-Dotfiles.ps1" {
             $manifestContent | Should -Match "Label\s*=\s*'OBS Studio config'"
             $manifestContent | Should -Match "obs-studio"
         }
+
+        It "Should track the rtk global filters source" {
+            Test-Path -Path "$PSScriptRoot/../user/.dotfiles/config/rtk/filters.toml" | Should -BeTrue
+        }
     }
 }
 
@@ -419,5 +423,312 @@ Describe "Setup-Dotfiles.ps1 deployment helpers" {
                 Get-StarWarsBattlefrontIIActiveProfilePath | Should -BeNullOrEmpty
             }
         }
+    }
+}
+
+# App/game resolvers live in Setup-Dotfiles.Apps.ps1; they are exercised against fake trees under $TestDrive.
+Describe "Setup-Dotfiles.Apps.ps1 resolvers" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/Setup-Dotfiles.ps1"
+    }
+
+    BeforeEach {
+        Mock Write-Host { }
+        Mock Write-Warning { }
+    }
+
+    Context "Get-StarWarsBattlefrontIIActiveProfilePath" {
+        BeforeEach {
+            $bf2Root = Join-Path $TestDrive 'bf2'
+            Remove-Item -LiteralPath $bf2Root -Recurse -Force -ErrorAction SilentlyContinue
+            Mock Get-StarWarsBattlefrontIIRootPath { $bf2Root }
+        }
+
+        It "Returns null when there is no Profiles directory" {
+            $null = New-Item -ItemType Directory -Path $bf2Root -Force
+
+            Get-StarWarsBattlefrontIIActiveProfilePath | Should -BeNullOrEmpty
+        }
+
+        It "Honors the default user named in Global.con" {
+            $profiles = Join-Path $bf2Root 'Profiles'
+            $null = New-Item -ItemType Directory -Path (Join-Path $profiles '0001'), (Join-Path $profiles '0002') -Force
+            Set-Content -LiteralPath (Join-Path $profiles 'Global.con') -Value 'GlobalSettings.setDefaultUser "0002"'
+
+            Get-StarWarsBattlefrontIIActiveProfilePath | Should -Be (Join-Path $profiles '0002')
+        }
+
+        It "Falls back to the first non-Default profile when Global.con is absent" {
+            $profiles = Join-Path $bf2Root 'Profiles'
+            $null = New-Item -ItemType Directory -Path (Join-Path $profiles 'Default'), (Join-Path $profiles '0007') -Force
+
+            Get-StarWarsBattlefrontIIActiveProfilePath | Should -Be (Join-Path $profiles '0007')
+        }
+    }
+
+    # PSIni is stubbed (Import-Ini, Get-Module, Import-Module mocked) so the tests are deterministic
+    # and never touch the network or the installed module set.
+    Context "Get-FirefoxDefaultProfilePath" {
+        BeforeAll {
+            function Import-Ini { param($Path) }
+        }
+
+        BeforeEach {
+            $script:savedAppData = $env:APPDATA
+            $env:APPDATA = Join-Path $TestDrive 'appdata'
+            $ffDir = Join-Path $env:APPDATA 'Mozilla\Firefox'
+            Remove-Item -LiteralPath $env:APPDATA -Recurse -Force -ErrorAction SilentlyContinue
+            $null = New-Item -ItemType Directory -Path $ffDir -Force
+            # Existence check only; the parsed content comes from the Import-Ini mock.
+            Set-Content -LiteralPath (Join-Path $ffDir 'profiles.ini') -Value ''
+            Mock Get-Module { [pscustomobject]@{ Name = 'PsIni' } }
+            Mock Import-Module { }
+        }
+
+        AfterEach {
+            $env:APPDATA = $script:savedAppData
+        }
+
+        It "Returns the Default=1 profile as an absolute path for relative entries" {
+            Mock Import-Ini {
+                [ordered]@{
+                    Profile0 = [ordered]@{ Name = 'other'; IsRelative = '1'; Path = 'Profiles/other.x' }
+                    Profile1 = [ordered]@{
+                        Name = 'main'; IsRelative = '1'; Path = 'Profiles/main.default'; Default = '1'
+                    }
+                }
+            }
+
+            Get-FirefoxDefaultProfilePath | Should -Be (Join-Path $ffDir 'Profiles/main.default')
+        }
+
+        It "Falls back to the first profile when none is marked Default" {
+            Mock Import-Ini {
+                [ordered]@{ Profile0 = [ordered]@{ Name = 'first'; IsRelative = '1'; Path = 'Profiles/first.x' } }
+            }
+
+            Get-FirefoxDefaultProfilePath | Should -Be (Join-Path $ffDir 'Profiles/first.x')
+        }
+
+        It "Returns an absolute Path unchanged" {
+            $abs = Join-Path $TestDrive 'abs-profile'
+            Mock Import-Ini -MockWith ([scriptblock]::Create(
+                    "[ordered]@{ Profile0 = [ordered]@{ Name = 'abs'; IsRelative = '0'; Path = '$abs'; Default = '1' } }"))
+
+            Get-FirefoxDefaultProfilePath | Should -Be $abs
+        }
+
+        It "Treats a profile without IsRelative as absolute instead of throwing" {
+            $abs = Join-Path $TestDrive 'no-isrelative'
+            Mock Import-Ini -MockWith ([scriptblock]::Create(
+                    "[ordered]@{ Profile0 = [ordered]@{ Name = 'x'; Path = '$abs'; Default = '1' } }"))
+
+            Get-FirefoxDefaultProfilePath | Should -Be $abs
+        }
+
+        It "Returns null when profiles.ini has no Profile sections" {
+            Mock Import-Ini { [ordered]@{ General = [ordered]@{ StartWithLastProfile = '1' } } }
+
+            Get-FirefoxDefaultProfilePath | Should -BeNullOrEmpty
+        }
+
+        It "Returns null without PSIni installed" {
+            Mock Get-Module { }
+
+            Get-FirefoxDefaultProfilePath | Should -BeNullOrEmpty
+        }
+    }
+
+    Context "Resolve-QtEmulatorConfigPath" {
+        BeforeEach {
+            $script:savedScoop = $env:SCOOP
+            $script:savedAppData = $env:APPDATA
+            $env:SCOOP = Join-Path $TestDrive 'scoop'
+            $env:APPDATA = Join-Path $TestDrive 'appdata'
+            Remove-Item -LiteralPath $env:SCOOP, $env:APPDATA -Recurse -Force -ErrorAction SilentlyContinue
+        }
+
+        AfterEach {
+            $env:SCOOP = $script:savedScoop
+            $env:APPDATA = $script:savedAppData
+        }
+
+        It "Prefers the scoop persist directory" {
+            $null = New-Item -ItemType Directory -Path (Join-Path $env:SCOOP 'persist\eden') -Force
+            $null = New-Item -ItemType Directory -Path (Join-Path $env:APPDATA 'eden') -Force
+
+            Resolve-QtEmulatorConfigPath -ScoopApp 'eden' -AppDataDir 'eden' |
+                Should -Be (Join-Path $env:SCOOP 'persist\eden\user\config\qt-config.ini')
+        }
+
+        It "Falls back to the AppData directory" {
+            $null = New-Item -ItemType Directory -Path (Join-Path $env:APPDATA 'eden') -Force
+
+            Resolve-QtEmulatorConfigPath -ScoopApp 'eden' -AppDataDir 'eden' |
+                Should -Be (Join-Path $env:APPDATA 'eden\config\qt-config.ini')
+        }
+
+        It "Returns nothing when the emulator is not installed" {
+            Resolve-QtEmulatorConfigPath -ScoopApp 'eden' -AppDataDir 'eden' | Should -BeNullOrEmpty
+        }
+    }
+}
+
+Describe "Invoke-ConfigManifestEntry dispatch" {
+    BeforeAll {
+        . "$PSScriptRoot/../Scripts/Setup-Dotfiles.ps1"
+        $script:cfgRoot = Join-Path $TestDrive 'cfg'
+        $null = New-Item -ItemType Directory -Path (Join-Path $script:cfgRoot 'app') -Force
+        Set-Content -LiteralPath (Join-Path $script:cfgRoot 'app\f.txt') -Value 'x'
+    }
+
+    BeforeEach {
+        Mock Write-Host { }
+        Mock Write-Warning { }
+        Mock Deploy-Config { }
+        Mock Deploy-ConfigDirectory { }
+        Mock Import-RegistryConfig { }
+    }
+
+    It "Skips with a warning when the source is missing" {
+        $entry = @{ Label = 'L'; Path = 'nope'; Mode = 'file' }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like '*source not found*' }
+        Should -Invoke Deploy-Config -Times 0 -Exactly
+    }
+
+    It "'file' deploys to the resolved destination, passing SeedOnly" {
+        $entry = @{
+            Label = 'L'; Path = 'app\f.txt'; Mode = 'file'; SeedOnly = $true
+            ResolveDestination = { 'D:\dest.txt' }
+        }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Deploy-Config -Times 1 -Exactly -ParameterFilter {
+            $Destination -eq 'D:\dest.txt' -and $SeedOnly -and $Label -eq 'L'
+        }
+    }
+
+    It "'file' warns with the skip reason when no destination resolves" {
+        $entry = @{
+            Label = 'L'; Path = 'app\f.txt'; Mode = 'file'
+            ResolveDestination = { $null }; GetSkipReason = { 'app not installed' }
+        }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Deploy-Config -Times 0 -Exactly
+        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like '*app not installed*' }
+    }
+
+    It "'directory' forwards filter and recurse to Deploy-ConfigDirectory" {
+        $entry = @{
+            Label = 'L'; Path = 'app'; Mode = 'directory'; Filter = '*.txt'; Recurse = $true
+            ResolveDestination = { 'D:\dir' }
+        }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Deploy-ConfigDirectory -Times 1 -Exactly -ParameterFilter {
+            $DestDir -eq 'D:\dir' -and $Filter -eq '*.txt' -and $Recurse
+        }
+    }
+
+    It "'registry' imports the source file" {
+        $entry = @{ Label = 'L'; Path = 'app\f.txt'; Mode = 'registry' }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Import-RegistryConfig -Times 1 -Exactly -ParameterFilter { $Label -eq 'L' }
+    }
+
+    It "'manual' only warns with the note" {
+        $entry = @{ Label = 'L'; Path = 'app\f.txt'; Mode = 'manual'; Note = 'do it by hand' }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like '*do it by hand*' }
+        Should -Invoke Deploy-Config -Times 0 -Exactly
+    }
+
+    It "'script' invokes the scriptblock with source path and label" {
+        $script:seen = $null
+        $entry = @{
+            Label = 'L'; Path = 'app\f.txt'; Mode = 'script'
+            Invoke = { param($s, $l) $script:seen = "$s|$l" }
+        }
+
+        Invoke-ConfigManifestEntry -Entry $entry -ConfigRoot $script:cfgRoot
+
+        $script:seen | Should -Be ((Join-Path $script:cfgRoot 'app\f.txt') + '|L')
+    }
+}
+
+# Runs the real manifest entry for the rtk filters with rtk stubbed, so exit-code handling,
+# Push/Pop-Location and the -WhatIf skip are exercised without a real rtk or APPDATA write.
+Describe "Setup-Dotfiles.ps1 rtk trust entry" {
+    BeforeAll {
+        $scriptPath = "$PSScriptRoot/../Scripts/Setup-Dotfiles.ps1"
+        . $scriptPath
+        # The manifest is built inside Start-Bootstrap; pull the entry's Invoke block out of its AST.
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$null)
+        $hashes = $ast.FindAll({
+                param($n)
+                $n -is [System.Management.Automation.Language.HashtableAst] -and
+                $n.Extent.Text -match "Path\s*=\s*'rtk\\filters\.toml'"
+            }, $true)
+        $invokePair = $hashes[-1].KeyValuePairs | Where-Object { $_.Item1.Value -eq 'Invoke' }
+        $inner = $invokePair.Item2.Extent.Text.Trim()
+        $inner = $inner.Substring(1, $inner.Length - 2)
+        # Wrapped as a cmdlet so $PSCmdlet.ShouldProcess works as it does inside Start-Bootstrap.
+        $script:rtkInvoke = "function Invoke-RtkEntry { [CmdletBinding(SupportsShouldProcess)]$inner }"
+    }
+
+    BeforeEach {
+        $script:rtkApp = Join-Path $TestDrive 'appdata'
+        $script:savedAppData = $env:APPDATA
+        $env:APPDATA = $script:rtkApp
+        $null = New-Item -ItemType Directory -Path (Join-Path $script:rtkApp 'rtk') -Force
+        $script:rtkCalls = 0
+        $script:rtkExit = 0
+        function rtk { $script:rtkCalls++; $global:LASTEXITCODE = $script:rtkExit }
+        Mock Deploy-Config { }
+        Mock Write-Host { }
+        Mock Write-Warning { }
+        Mock Push-Location { }
+        Mock Pop-Location { }
+    }
+
+    AfterEach {
+        $env:APPDATA = $script:savedAppData
+    }
+
+    It "Locates the entry" {
+        $script:rtkInvoke | Should -Not -BeNullOrEmpty
+    }
+
+    It "Pushes into the rtk dir, runs rtk trust, and pops" {
+        . ([scriptblock]::Create($script:rtkInvoke))
+        $null = Invoke-RtkEntry 'src' 'rtk global filters'
+        $script:rtkCalls | Should -Be 1
+        Should -Invoke Push-Location -Times 1
+        Should -Invoke Pop-Location -Times 1
+    }
+
+    It "Throws on a non-zero rtk exit code but still pops the location" {
+        $script:rtkExit = 3
+        . ([scriptblock]::Create($script:rtkInvoke))
+        { Invoke-RtkEntry 'src' 'rtk global filters' } | Should -Throw '*exited with 3*'
+        Should -Invoke Pop-Location -Times 1
+    }
+
+    It "Skips trust under -WhatIf" {
+        . ([scriptblock]::Create($script:rtkInvoke))
+        $null = Invoke-RtkEntry 'src' 'rtk global filters' -WhatIf
+        $script:rtkCalls | Should -Be 0
+        Should -Invoke Push-Location -Times 0
     }
 }

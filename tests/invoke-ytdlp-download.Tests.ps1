@@ -119,7 +119,9 @@ Describe 'invoke-ytdlp-download.ps1' {
             Set-Content -LiteralPath $cookies -Value '# Netscape HTTP Cookie File'
             Mock yt-dlp { $global:LASTEXITCODE = 1 } -ParameterFilter { $args -contains '--simulate' }
 
-            & $ScriptPath -Url $YtUrl @Common -CookiesFile $cookies
+            $withCookies = $Common.Clone()
+            $withCookies.CookiesFile = $cookies
+            & $ScriptPath -Url $YtUrl @withCookies
 
             Should -Invoke yt-dlp -Times 1 -Exactly -ParameterFilter {
                 $args -contains '--simulate' -and (Get-ArgValue $args '--cookies') -eq $cookies -and
@@ -201,6 +203,47 @@ Describe 'invoke-ytdlp-download.ps1' {
                 ($args -join ' ') -like 'install --id Gyan.FFmpeg -h*'
             }
             Should -Invoke yt-dlp -Times 0 -Exactly
+        }
+    }
+
+    Context 'Native stderr and installs' {
+        It 'Installs spotdl with uv tool install, not uv pip' {
+            Mock Get-Command { & $RealGetCommand @PesterBoundParameters }
+            Mock Get-Command { $null } -ParameterFilter { $Name -eq 'spotdl' }
+            Mock uv { $global:LASTEXITCODE = 0 }
+
+            & $ScriptPath -Url 'https://open.spotify.com/track/abc' @Common
+
+            Should -Invoke uv -Times 1 -Exactly -ParameterFilter {
+                ($args -join ' ') -eq 'tool install spotdl'
+            }
+        }
+
+        It 'Does not abort when a real native command writes to stderr and exits 0' {
+            $stubDir = Join-Path $TestDrive 'stubs'
+            $null = New-Item -ItemType Directory -Path $stubDir
+            $stub = "@echo off`r`necho stub warning 1>&2`r`n" +
+                "echo %* | findstr /c:`"--print`" >nul && echo Stub Title`r`nexit /b 0`r`n"
+            foreach ($tool in 'yt-dlp', 'ffmpeg') {
+                [System.IO.File]::WriteAllText((Join-Path $stubDir "$tool.cmd"), $stub)
+            }
+            $host_ = (Get-Process -Id $PID).Path
+            $outDir = Join-Path $TestDrive 'stub-out'
+            $old = $env:Path
+            $env:Path = "$stubDir;$env:Path"
+            try {
+                # -File skips the end block on 5.1 for this script, so go through -Command
+                $command = "& '$ScriptPath' -Url '$YtUrl' -OutputDirectory '$outDir' " +
+                    "-CookiesFile '$NoCookies' -NoPotProvider; exit `$LASTEXITCODE"
+                $ErrorActionPreference = 'Continue'
+                & $host_ -NoProfile -Command $command *> (Join-Path $TestDrive 'child.log')
+                $code = $LASTEXITCODE
+            } finally {
+                $env:Path = $old
+            }
+            $code | Should -Be 0
+            $childLog = Get-Content -LiteralPath (Join-Path $TestDrive 'child.log') -Raw
+            Test-Path -LiteralPath (Join-Path $outDir 'stub_title') | Should -BeTrue -Because $childLog
         }
     }
 }

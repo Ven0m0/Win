@@ -122,7 +122,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "if (Get-Command rtk -ErrorAction SilentlyContinue) { & rtk hook claude --ultra-compact }",
+						"command": "if (Get-Command rtk -ErrorAction SilentlyContinue) { & rtk hook claude }",
 						"shell": "powershell"
 					},
 					{
@@ -130,16 +130,6 @@
 						"command": "pwsh -nop -nol -f \"$HOME/.claude/hooks/rtk-advisor.ps1\"",
 						"timeout": 10,
 						"statusMessage": "Checking rtk coverage..."
-					}
-				]
-			},
-			{
-				"matcher": "Bash",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "if (Get-Command rtk -ErrorAction SilentlyContinue) { & rtk hook claude }",
-						"shell": "powershell"
 					}
 				]
 			},

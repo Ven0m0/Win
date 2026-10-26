@@ -477,8 +477,13 @@ function Set-NvidiaSignatureOverride {
         Enables or disables NVIDIA driver signature override
     .PARAMETER Enabled
         $true to enable, $false to disable
+    .PARAMETER NoRestorePoint
+        Skip the restore point normally created before changing boot configuration.
     #>
-    param([Parameter(Mandatory)][bool]$Enabled)
+    param(
+        [Parameter(Mandatory)][bool]$Enabled,
+        [switch]$NoRestorePoint
+    )
 
     $value = if ($Enabled) { "on" } else { "off" }
     $regData = if ($Enabled) { "01" } else { "00" }
@@ -486,7 +491,13 @@ function Set-NvidiaSignatureOverride {
     $status = if ($Enabled) { 'Enabling' } else { 'Disabling' }
     Write-ColorOutput "$status Driver Signature Override..." -ForegroundColor Cyan
 
-    # BCDEDIT settings
+    if (-not $PSCmdlet.ShouldProcess('bcdedit nointegritychecks/testsigning and NVIDIA signature keys', "Set to $value")) {
+        return
+    }
+
+    if (-not $NoRestorePoint) { New-RestorePoint -Description 'Before NVIDIA signature override' }
+
+    # BCDEDIT settings - each exit code is read immediately after its own call
     $bcdNoIntegrityOutput = & bcdedit.exe /set nointegritychecks $value 2>&1
     $bcdNoIntegrityExitCode = $LASTEXITCODE
 
@@ -602,12 +613,12 @@ function Get-FileFromWeb {
     }
 
     try {
+        # 5.1 defaults to TLS 1.0/1.1 on some hosts; GitHub and most CDNs require 1.2. GetResponse
+        # throws WebException on 401/403/404, so no status check is needed.
+        [System.Net.ServicePointManager]::SecurityProtocol =
+            [System.Net.ServicePointManager]::SecurityProtocol -bor [System.Net.SecurityProtocolType]::Tls12
         $request = [System.Net.HttpWebRequest]::Create($URL)
         $response = $request.GetResponse()
-
-        if ($response.StatusCode -eq 401 -or $response.StatusCode -eq 403 -or $response.StatusCode -eq 404) {
-            throw "Remote file either doesn't exist, is unauthorized, or is forbidden for '$URL'."
-        }
 
         if ($File -match '^\.\\') {
             $File = Join-Path (Get-Location -PSProvider 'FileSystem') ($File -split '^\.')[1]
@@ -643,6 +654,7 @@ function Get-FileFromWeb {
     finally {
         if ($reader) { $reader.Close() }
         if ($writer) { $writer.Close() }
+        if ($response) { $response.Dispose() }
     }
 }
 
@@ -667,7 +679,8 @@ function Get-SilentInstallSwitches {
 
     # Byte-preserving read (Latin1 maps each byte to one char 1:1) so ASCII signature
     # strings embedded in the binary still match regardless of surrounding binary noise.
-    $content = Get-Content -Path $Path -Raw -Encoding Latin1
+    # Get-Content -Encoding Latin1 does not exist on 5.1, hence the explicit codepage (28591).
+    $content = [System.Text.Encoding]::GetEncoding(28591).GetString([System.IO.File]::ReadAllBytes($Path))
 
     $signatures = [ordered]@{
         'Inno Setup'    = @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-')
@@ -765,6 +778,7 @@ function Get-GitHubReleaseAsset {
         return [pscustomobject]@{
             Name               = $asset.name
             BrowserDownloadUrl = $downloadUrl
+            Digest             = $asset.digest
             ReleaseTag         = $release.tag_name
             ReleaseDate        = [datetime]$release.published_at
         }
@@ -799,6 +813,8 @@ function Install-GitHubRelease {
         For Exe: silent install switches (auto-detected if not provided).
     .PARAMETER NoShortcuts
         For Zip: skip creating shortcuts.
+    .PARAMETER StartWithWindows
+        For Zip: also create a Startup-folder shortcut so the tool launches at logon (off by default).
     .EXAMPLE
         Install-GitHubRelease -Repository 'PowerShell/PowerShell' -AssetPattern '*win-x64.zip' -Name 'PowerShell' -InstallType Zip -DestinationPath "$env:USERPROFILE\Documents\PowerShell" -ExecutableName 'pwsh.exe' -ShortcutName 'PowerShell'
     .EXAMPLE
@@ -838,7 +854,10 @@ function Install-GitHubRelease {
         [string[]]$Switches,
 
         [Parameter(ParameterSetName = 'Zip')]
-        [switch]$NoShortcuts
+        [switch]$NoShortcuts,
+
+        [Parameter(ParameterSetName = 'Zip')]
+        [switch]$StartWithWindows
     )
 
     if ($PSCmdlet.ShouldProcess($Name, "Install from GitHub release ($InstallType)")) {
@@ -851,18 +870,39 @@ function Install-GitHubRelease {
             Write-Info "Downloading $($asset.Name)..."
             Get-FileFromWeb -URL $asset.BrowserDownloadUrl -File $tempFile
 
+            if ($asset.Digest -match '^sha256:(?<hash>[0-9a-fA-F]{64})$') {
+                $actual = (Get-FileHash -LiteralPath $tempFile -Algorithm SHA256).Hash
+                if ($actual -ne $Matches.hash) {
+                    Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+                    throw "SHA256 mismatch for $($asset.Name): expected $($Matches.hash), got $actual"
+                }
+                Write-Info 'SHA256 verified against release digest.'
+            }
+            else {
+                Write-Warning "No sha256 digest published for $($asset.Name); download integrity is unverified."
+            }
+
             switch ($InstallType) {
                 'Zip' {
                     if (-not $DestinationPath) {
                         throw 'DestinationPath is required for Zip install type.'
                     }
-                    if (Test-Path -LiteralPath $DestinationPath) {
-                        Write-Info "Removing previous install at $DestinationPath..."
-                        Remove-Item -LiteralPath $DestinationPath -Recurse -Force
+                    # Extract to a temp dir first so a failed extraction never destroys the old install.
+                    $staging = Join-Path -Path $env:TEMP -ChildPath ("ghrel-" + [guid]::NewGuid().ToString('N'))
+                    try {
+                        Write-Info "Extracting to $staging..."
+                        Expand-Archive -LiteralPath $tempFile -DestinationPath $staging -Force
+                        if (Test-Path -LiteralPath $DestinationPath) {
+                            Write-Info "Removing previous install at $DestinationPath..."
+                            Remove-Item -LiteralPath $DestinationPath -Recurse -Force
+                        }
+                        Ensure-Directory -Path $DestinationPath
+                        Copy-Item -Path (Join-Path -Path $staging -ChildPath '*') -Destination $DestinationPath `
+                            -Recurse -Force
                     }
-                    Ensure-Directory -Path $DestinationPath
-                    Write-Info "Extracting to $DestinationPath..."
-                    Expand-Archive -LiteralPath $tempFile -DestinationPath $DestinationPath -Force
+                    finally {
+                        Remove-Item -LiteralPath $staging -Recurse -Force -ErrorAction SilentlyContinue
+                    }
 
                     if ($ExecutableName -and -not $NoShortcuts) {
                         $exePath = Join-Path $DestinationPath $ExecutableName
@@ -870,11 +910,13 @@ function Install-GitHubRelease {
                             $shortcutName = if ($ShortcutName) { $ShortcutName } else { $Name }
                             $desktopShortcut = Join-Path ([Environment]::GetFolderPath('Desktop')) "$shortcutName.lnk"
                             $startMenuShortcut = Join-Path ([Environment]::GetFolderPath('Programs')) "$shortcutName.lnk"
-                            $startupShortcut = Join-Path ([Environment]::GetFolderPath('Startup')) "$shortcutName.lnk"
 
                             New-Shortcut -ShortcutPath $desktopShortcut -TargetPath $exePath
                             New-Shortcut -ShortcutPath $startMenuShortcut -TargetPath $exePath
-                            New-Shortcut -ShortcutPath $startupShortcut -TargetPath $exePath
+                            if ($StartWithWindows) {
+                                $startupShortcut = Join-Path ([Environment]::GetFolderPath('Startup')) "$shortcutName.lnk"
+                                New-Shortcut -ShortcutPath $startupShortcut -TargetPath $exePath
+                            }
                             Write-Info "Created shortcuts for $shortcutName"
                         }
                         else {
@@ -884,7 +926,9 @@ function Install-GitHubRelease {
                 }
                 'Msi' {
                     Write-Info 'Installing MSI...'
-                    Start-Process -FilePath 'msiexec.exe' -ArgumentList "/i `"$tempFile`" /quiet /norestart" -Wait
+                    $proc = Start-Process -FilePath 'msiexec.exe' -PassThru -Wait `
+                        -ArgumentList "/i `"$tempFile`" /quiet /norestart"
+                    if ($proc.ExitCode -notin 0, 3010) { throw "msiexec exited with code $($proc.ExitCode)" }
                 }
                 'Exe' {
                     $installSwitches = if ($Switches) { $Switches } else { Get-SilentInstallSwitches -Path $tempFile }
@@ -892,7 +936,8 @@ function Install-GitHubRelease {
                         throw "Could not detect silent-install switches for $Name; pass -Switches explicitly."
                     }
                     Write-Info "Installing with switches: $($installSwitches -join ' ')"
-                    Start-Process -FilePath $tempFile -ArgumentList $installSwitches -Wait
+                    $proc = Start-Process -FilePath $tempFile -ArgumentList $installSwitches -PassThru -Wait
+                    if ($proc.ExitCode -notin 0, 3010) { throw "$Name installer exited with code $($proc.ExitCode)" }
                 }
             }
 
@@ -1174,13 +1219,17 @@ function Clear-DirectorySafe {
 
     if (!(Test-Path $Path)) { return }
 
-    $empty = "$Path\-EMPTY-"
-    New-Item $empty -ItemType Directory -Force | Out-Null
+    # Empty source lives outside the target: inside it, /MIR would purge the source mid-run.
+    $empty = Join-Path -Path $env:TEMP -ChildPath ("empty-" + [guid]::NewGuid().ToString('N'))
+    $null = New-Item -Path $empty -ItemType Directory -Force
 
-    # Use robocopy for performance
-    $null = robocopy "$empty" "$Path" /MIR /R:1 /W:0 /ZB /NFL /NDL /NJH /NJS 2>&1
-
-    Remove-Item $empty -Force -ErrorAction SilentlyContinue
+    try {
+        # Use robocopy for performance
+        $null = robocopy "$empty" "$Path" /MIR /R:1 /W:0 /ZB /NFL /NDL /NJH /NJS 2>&1
+    }
+    finally {
+        Remove-Item -LiteralPath $empty -Force -Recurse -ErrorAction SilentlyContinue
+    }
 
     # Fallback
     Get-ChildItem "$Path" -Recurse -File -Force `
@@ -1193,7 +1242,7 @@ function Remove-Glob {
     .SYNOPSIS
         Remove files matching a glob pattern and track total size/count.
     .DESCRIPTION
-        Tallies size/count only for what was actually deleted — a locked file (open
+        Tallies size/count only for what was actually deleted - a locked file (open
         handle from a running process) is left in place and reported via -FailedCount
         instead of being counted as freed.
     #>
@@ -1721,6 +1770,9 @@ function Invoke-Operation {
         External command to execute (alternative to Action)
     .PARAMETER ArgumentList
         Arguments for external command
+    .PARAMETER TimeoutSeconds
+        Kill the external command after this many seconds (both capture and non-capture paths).
+        A non-zero exit code is reported with Write-Warning and recorded as "FAILED: Exit Code: N".
     .EXAMPLE
         Invoke-Operation -Name 'ClearTemp' -Action { Remove-Item -Path $temp -Recurse -Force }
     #>
@@ -1760,20 +1812,37 @@ function Invoke-Operation {
                 $process.StartInfo = $psi
                 $process.Start() | Out-Null
 
-                $stdout = $process.StandardOutput.ReadToEnd()
-                $stderr = $process.StandardError.ReadToEnd()
-                $process.WaitForExit()
+                # Async stderr read: sequential ReadToEnd on both pipes deadlocks once stderr fills its buffer.
+                $stderrTask = $process.StandardError.ReadToEndAsync()
+                $stdoutTask = $process.StandardOutput.ReadToEndAsync()
 
-                $exitCode = $process.ExitCode
+                if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+                    Write-Fail "$Name timed out after ${TimeoutSeconds}s - killing process"
+                    Add-Log "TIMEOUT: $Name after ${TimeoutSeconds}s"
+                    try { $process.Kill() } catch { Write-Verbose "Could not kill timed-out process: $_" }
+                    if ($Results) { $Results[$Name] = "TIMEOUT (${TimeoutSeconds}s)" }
+                }
+                else {
+                    $process.WaitForExit()  # flush async stream readers
+                    $stdout = $stdoutTask.Result
+                    $stderr = $stderrTask.Result
+                    $exitCode = $process.ExitCode
 
-                if ($stdout) { Add-Log "STDOUT: $stdout" }
-                if ($stderr) { Add-Log "STDERR: $stderr" }
+                    if ($stdout) { Add-Log "STDOUT: $stdout" }
+                    if ($stderr) { Add-Log "STDERR: $stderr" }
 
-                Write-Info "Exit code: $exitCode"
-                if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+                    Write-Info "Exit code: $exitCode"
+                    if ($exitCode -ne 0) {
+                        Write-Warning "$Name exited with code $exitCode"
+                        if ($Results) { $Results[$Name] = "FAILED: Exit Code: $exitCode" }
+                    }
+                    elseif ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+                }
             }
             else {
                 $process = Start-Process -FilePath $Command -ArgumentList $ArgumentList -NoNewWindow -PassThru
+                # Touching Handle caches it so ExitCode is readable after WaitForExit(ms) on 5.1.
+                $null = $process.Handle
                 # ponytail: fixed timeout rather than a per-command tuned value; raise via -TimeoutSeconds if a slower command needs it.
                 if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
                     Write-Fail "$Name timed out after ${TimeoutSeconds}s - killing process"
@@ -1784,7 +1853,11 @@ function Invoke-Operation {
                 else {
                     $exitCode = $process.ExitCode
                     Write-Info "Exit code: $exitCode"
-                    if ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
+                    if ($exitCode -ne 0) {
+                        Write-Warning "$Name exited with code $exitCode"
+                        if ($Results) { $Results[$Name] = "FAILED: Exit Code: $exitCode" }
+                    }
+                    elseif ($Results) { $Results[$Name] = "Exit Code: $exitCode" }
                 }
             }
         }
@@ -1886,7 +1959,13 @@ function Invoke-ServiceOperation {
     }
     finally {
         if ($Restart -and $wasRunning) {
-            Start-Service -Name $Name -ErrorAction SilentlyContinue
+            try {
+                Start-Service -Name $Name -ErrorAction Stop
+            }
+            catch {
+                $err = $_
+                Write-Warning "Failed to restart service '$Name': $($err.Exception.Message)"
+            }
         }
     }
 }
@@ -2147,7 +2226,8 @@ function Invoke-Winget {
     .PARAMETER Name
         Human-readable name for output.
     .PARAMETER Arguments
-        Additional arguments to winget.
+        Additional arguments to winget, one array element per argument so quoted values with
+        spaces survive. A single string is still accepted and split on whitespace.
     #>
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -2156,7 +2236,7 @@ function Invoke-Winget {
 
         [string]$Name,
 
-        [string]$Arguments = ''
+        [string[]]$Arguments = @()
     )
 
     if (-not $Name) { $Name = $Id }
@@ -2173,7 +2253,9 @@ function Invoke-Winget {
             # COM error for packages that only ship a user-scope installer (e.g. ViGEmBus), instead
             # of the documented -1978335230 "no applicable installer for scope" exit code.
             $wingetArgs = @('install', '--id', $Id, '--silent', '--accept-source-agreements', '--accept-package-agreements')
-            if ($Arguments) { $wingetArgs += ($Arguments -split '\s+') }
+            # A lone string element is the legacy form: split it. Multi-element arrays are used as-is.
+            if ($Arguments.Count -eq 1) { $Arguments = @($Arguments[0] -split '\s+' | Where-Object { $_ }) }
+            $wingetArgs += $Arguments
             & $winget @wingetArgs *>$null
             $ec = $LASTEXITCODE
             if ($ec -eq 0 -or $ec -eq -1978335189) {
@@ -2187,6 +2269,56 @@ function Invoke-Winget {
         catch {
             Write-ColorOutput ""
             throw "Failed to install $Name`: $($_.Exception.Message)"
+        }
+    }
+}
+
+function Install-WingetTool {
+    <#
+    .SYNOPSIS
+        Best-effort winget install: warns instead of throwing, then refreshes PATH.
+    .DESCRIPTION
+        Owns the exit-code policy shared by the setup scripts: 0 = installed,
+        -1978335189 = already installed, -1978335230 = no applicable installer for scope.
+        --scope machine is deliberately omitted (packages stay per-user scope): winget throws a
+        COM error for user-scope-only packages instead of returning -1978335230 (see Invoke-Winget).
+    .PARAMETER Id
+        Winget package identifier.
+    .PARAMETER Name
+        Human-readable tool name for output messages.
+    .PARAMETER NoPathRefresh
+        Skip the PATH refresh after a successful install; batch callers run Update-EnvironmentPath once.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Id,
+
+        [string]$Name,
+
+        [switch]$NoPathRefresh
+    )
+
+    if (-not $Name) { $Name = $Id }
+    if ($PSCmdlet.ShouldProcess($Name, 'Install via winget')) {
+        $winget = Wait-ForWinget
+        Write-Host "  Installing $Name..." -ForegroundColor Gray -NoNewline
+        try {
+            & $winget install --id $Id --accept-package-agreements --accept-source-agreements `
+                --disable-interactivity --nowarn --no-proxy --ignore-local-archive-malware-scan `
+                -h --force *>$null
+            $ec = $LASTEXITCODE
+            if ($ec -in 0, -1978335189, -1978335230) {
+                Write-Host ' [OK]' -ForegroundColor Green
+                if (-not $NoPathRefresh) { Update-EnvironmentPath }
+            } else {
+                Write-Host ''
+                Write-Warning "  [WARN] $Name - winget exit code: $ec"
+            }
+        } catch {
+            $err = $_
+            Write-Host ''
+            Write-Warning "  [WARN] $Name - $err"
         }
     }
 }
@@ -2296,15 +2428,25 @@ function Resolve-Tool {
 function Update-EnvironmentPath {
     <#
     .SYNOPSIS
-        Refreshes $env:Path from the machine and user registry values.
+        Merges the machine and user registry PATH entries into $env:Path.
     .DESCRIPTION
         A package installed in this session (via scoop or winget) does not update the
         running process's PATH; call this after an install before re-checking Get-Command.
+        Registry entries come first (so fresh installs win), then entries that exist only in
+        the current process (mise shims, activated venvs) are kept rather than dropped.
+        Duplicates are removed case-insensitively.
     #>
     [CmdletBinding()]
     param()
-    $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
-        [System.Environment]::GetEnvironmentVariable('Path', 'User')
+    $registry = foreach ($scope in 'Machine', 'User') {
+        [System.Environment]::GetEnvironmentVariable('Path', $scope) -split ';'
+    }
+    $merged = [System.Collections.Generic.List[string]]::new()
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in @($registry) + @($env:Path -split ';')) {
+        if ($entry -and $seen.Add($entry.TrimEnd('\'))) { $merged.Add($entry) }
+    }
+    $env:Path = $merged -join ';'
 }
 
 function Resolve-OrInstallTool {
@@ -2343,6 +2485,9 @@ function Resolve-OrInstallTool {
             if ($PSCmdlet.ShouldProcess($ScoopPackage, 'Install via scoop')) {
                 Write-Info "Installing $ScoopPackage via scoop..."
                 scoop install $ScoopPackage 2>&1 | ForEach-Object { Write-Verbose $_ }
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Warning "scoop install $ScoopPackage failed (exit code $LASTEXITCODE)"
+                }
                 Update-EnvironmentPath
                 $found = Resolve-Tool -Name $Name -Optional
                 if ($found) { return $found }
@@ -2350,7 +2495,15 @@ function Resolve-OrInstallTool {
         }
 
         if ($WingetId) {
-            Invoke-Winget -Id $WingetId -Name $Name[0]
+            try {
+                Invoke-Winget -Id $WingetId -Name $Name[0]
+            }
+            catch {
+                if (-not $Optional) { throw }
+                $err = $_
+                Write-Warning "Optional tool '$($Name[0])' not installed: $($err.Exception.Message)"
+                return $null
+            }
             Update-EnvironmentPath
             $found = Resolve-Tool -Name $Name -Optional
             if ($found) { return $found }
@@ -2418,7 +2571,7 @@ function ConvertTo-SafeFileName {
     .PARAMETER Name
         Filename component to sanitize.
     .EXAMPLE
-        ConvertTo-SafeFileName -Name 'Café Photo (1)'
+        ConvertTo-SafeFileName -Name "Caf$([char]0xE9) Photo (1)"
         Returns 'Cafe_Photo_1'.
     #>
     [CmdletBinding()]
@@ -2453,6 +2606,168 @@ function New-VdfPath {
     $recurse = if ($s.Count -gt 1) { $s[1] } else { $null }
     if ($key -and $Vdf.Keys -notcontains $key) { $Vdf[$key] = [ordered]@{} }
     if ($recurse) { New-VdfPath -Vdf $Vdf[$key] -Path $recurse }
+}
+
+function Resolve-WritePolicy {
+    <#
+    .SYNOPSIS
+        Decides whether a media script may write, and whether a destination sits inside the scan root.
+    .DESCRIPTION
+        DryRun is true when the caller is previewing: -WhatIfActive, or -OptIn without -Apply.
+        Scripts that apply by default omit -OptIn, so only WhatIf previews. DestinationInsideScanRoot
+        is true when DestinationPath equals or is under ScanRoot (compared without requiring either
+        to exist), which would sync backups back into the scanned tree.
+    .PARAMETER OptIn
+        Writes require explicit opt-in (preview by default).
+    .PARAMETER Apply
+        The caller's explicit opt-in.
+    .PARAMETER WhatIfActive
+        The caller's $WhatIfPreference.
+    .PARAMETER ScanRoot
+        Folder being scanned.
+    .PARAMETER DestinationPath
+        Folder the script writes into (for example a backup mirror).
+    .EXAMPLE
+        Resolve-WritePolicy -OptIn -Apply:$Apply -WhatIfActive:$WhatIfPreference
+    #>
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [switch]$OptIn,
+        [switch]$Apply,
+        [switch]$WhatIfActive,
+        [string]$ScanRoot,
+        [string]$DestinationPath
+    )
+    process {
+        $inside = $false
+        if ($ScanRoot -and $DestinationPath) {
+            $root = [System.IO.Path]::GetFullPath($ScanRoot).TrimEnd('\', '/')
+            $destination = [System.IO.Path]::GetFullPath($DestinationPath).TrimEnd('\', '/')
+            $inside = $destination -eq $root -or
+                $destination.StartsWith($root + [System.IO.Path]::DirectorySeparatorChar,
+                    [System.StringComparison]::OrdinalIgnoreCase)
+        }
+        [PSCustomObject]@{
+            DryRun                    = [bool]($WhatIfActive -or ($OptIn -and -not $Apply))
+            DestinationInsideScanRoot = $inside
+        }
+    }
+}
+
+function Invoke-ToolAboveNormal {
+    <#
+    .SYNOPSIS
+        Runs a console tool at Above Normal priority, streaming its output live.
+    .PARAMETER FilePath
+        Executable to run.
+    .PARAMETER ArgumentList
+        Arguments passed to the executable.
+    .PARAMETER StandardInputPath
+        File piped to the process's stdin.
+    .PARAMETER WatchFfmpeg
+        Also raise the priority of ffmpeg processes the tool spawns while it runs.
+        Only meaningful for czkawka's video pass; leave off elsewhere so unrelated
+        encodes (for example a concurrent optimize-media.ps1) are never touched.
+    #>
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [Parameter(Mandatory)][string[]]$ArgumentList,
+        [string]$StandardInputPath,
+        [switch]$WatchFfmpeg
+    )
+    process {
+        $stdOutFile = [System.IO.Path]::GetTempFileName()
+        $stdErrFile = [System.IO.Path]::GetTempFileName()
+        $readers = @()
+        $collected = [System.Collections.Generic.List[string]]::new()
+        try {
+            $startArgs = @{
+                FilePath               = $FilePath
+                ArgumentList           = $ArgumentList
+                NoNewWindow            = $true
+                PassThru               = $true
+                RedirectStandardOutput = $stdOutFile
+                RedirectStandardError  = $stdErrFile
+            }
+            if ($StandardInputPath) {
+                $startArgs.RedirectStandardInput = $StandardInputPath
+            }
+            # The tool itself previews (--dry-run); a caller -WhatIf must not skip Start-Process (leaves
+            # $proc null). Start-Process has no -WhatIf parameter on 5.1, so clear the preference instead.
+            $WhatIfPreference = $false
+            $proc = Start-Process @startArgs
+            $null = $proc.Handle  # 5.1: ExitCode reads null without a cached handle
+            try {
+                $proc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+            }
+            catch {
+                Write-Verbose "Could not raise priority for $FilePath (PID $($proc.Id)): $($_.Exception.Message)"
+            }
+
+            # Read the redirect files as the process writes them (FileShare.ReadWrite so
+            # the child keeps its own handle) instead of dumping everything after exit -
+            # a multi-hour video pass otherwise shows nothing at all until it finishes.
+            $readers = @($stdOutFile, $stdErrFile) | ForEach-Object {
+                [System.IO.StreamReader]::new(
+                    [System.IO.File]::Open($_, [System.IO.FileMode]::Open,
+                        [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite))
+            }
+
+            # Only whole lines are emitted while the tool runs; a trailing partial line is held back
+            # until its newline arrives (or the final drain) so a summary line is never split mid-write.
+            $pending = @('', '')
+            $drain = {
+                param([bool]$Final)
+                for ($i = 0; $i -lt $readers.Count; $i++) {
+                    $parts = @(($pending[$i] + $readers[$i].ReadToEnd()) -split "\r?\n")
+                    $last = $parts[$parts.Count - 1]
+                    $pending[$i] = if ($Final) { '' } else { $last }
+                    $emit = if ($Final -and $last) { $parts } else { @($parts | Select-Object -SkipLast 1) }
+                    foreach ($line in $emit) {
+                        $collected.Add($line)
+                        Write-Host $line
+                    }
+                }
+            }
+
+            while (-not $proc.HasExited) {
+                & $drain $false
+                if ($WatchFfmpeg) {
+                    # czkawka's video pass shells out to ffmpeg per file; ffmpeg is a fresh
+                    # child process and does not inherit our priority bump. Only touch ffmpeg
+                    # processes that started after this tool did, so a concurrent encode
+                    # started by something else is left alone.
+                    foreach ($ffmpegProc in @(Get-Process -Name 'ffmpeg' -ErrorAction SilentlyContinue)) {
+                        try {
+                            if ($ffmpegProc.StartTime -ge $proc.StartTime -and
+                                $ffmpegProc.PriorityClass -ne [System.Diagnostics.ProcessPriorityClass]::AboveNormal) {
+                                $ffmpegProc.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::AboveNormal
+                            }
+                        }
+                        catch {
+                            Write-Verbose ("Could not raise priority for ffmpeg " +
+                                "(PID $($ffmpegProc.Id)): $($_.Exception.Message)")
+                        }
+                    }
+                }
+                Start-Sleep -Milliseconds 250
+            }
+            $proc.WaitForExit()
+            & $drain $true
+
+            [PSCustomObject]@{
+                Output   = $collected.ToArray()
+                ExitCode = $proc.ExitCode
+            }
+        }
+        finally {
+            foreach ($reader in $readers) { $reader.Dispose() }
+            Remove-Item -LiteralPath $stdOutFile, $stdErrFile -ErrorAction SilentlyContinue -WhatIf:$false
+        }
+    }
 }
 
 # Export functions
