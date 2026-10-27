@@ -1,0 +1,40 @@
+{
+  "skill_name": "mc-jvm-tune",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "low-1pct-full-diagnosis",
+      "prompt": "my minecraft 1.21.11 prismlauncher instance has bad 1% and 5% lows (stutter every few seconds). the instance folder is C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11 - look at the logs in minecraft\\logs and tell me which jvm flags in instance.cfg to change. dont edit anything yet, just give me the report and the exact flag diff.",
+      "expected_output": "Ranked findings with numbers (GC pause stats, latest.log facts), exact JvmArgs before/after diff, inferences labelled, no ZGC, graal flags kept.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "eval_name": "audit-jvmargs-obsolete-flags",
+      "prompt": "is the JvmArgs line in C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11\\instance.cfg actually optimal? i want to know which flags are useless, inert, or hiding errors. dont edit the file, just report.",
+      "expected_output": "Config audit: IgnoreUnrecognizedVMOptions and Forge-only -Dfml flags called out, strict JVM validation performed, jdk.graal flags not proposed for removal.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "eval_name": "gc-vs-jfr-stutter-cause",
+      "prompt": "i recorded a JFR file (C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11\\minecraft\\logs\\stutter-2026_10_12_15_16_33.jfr) plus gc logs in the same folder, instance is C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11. is the garbage collector causing my stutters or something else? dont change any files.",
+      "expected_output": "Uses JFR gc-pauses (P99 ~12 ms) to say GC is not the steady-state cause, identifies Sodium occlusion culling as the hot spot (not a JVM problem), notes JFR is itself a cost.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "eval_name": "whole-instance-log-triage",
+      "prompt": "my 1.21.11 prism instance lags and it crashed yesterday. instance folder: C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11-newlog. read all the logs there and tell me what is causing the performance problems. just report, dont edit anything.",
+      "expected_output": "Runs the analyzer script instead of reading raw logs. Reports the OutOfMemoryError crash first, can't-keep-up (worst 5200 ms behind), the 6.5 s resource reload and 2.4 s shader compile, GC as healthy (all pauses under 10 ms), the LWJGL stderr line as informational. Does not propose JvmArgs changes without a JVM finding.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "eval_name": "fixed-name-gc-log-recognized",
+      "prompt": "i switched my jvm logging to -Xlog:gc,safepoint:file=logs/jvm-gc.log. instance is C:\\Users\\Ven0m0\\.claude\\skill-workspaces\\mc-jvm-tune-workspace\\fixtures\\1.21.11-newlog . are my gc pauses ok for 144 fps? dont change files.",
+      "expected_output": "Finds jvm-gc.log (not 'No GC log found'), reports steady-state pause stats (p99 about 6 ms, none over 10 ms) and safepoint ops, concludes GC is not a stutter source, and labels the synthetic allocation workload caveat if it notices it.",
+      "files": []
+    }
+  ]
+}
