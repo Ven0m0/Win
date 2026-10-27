@@ -19,7 +19,9 @@
 $ErrorActionPreference = 'Stop'
 
 try {
-  $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
+  # Strip a leading BOM: Windows PowerShell encodes piped stdin as UTF-8-with-BOM,
+  # and ConvertFrom-Json rejects it ("Unexpected character ... position 0").
+  $payload = ([Console]::In.ReadToEnd()).TrimStart([char]0xFEFF) | ConvertFrom-Json
 } catch {
   exit 0
 }
