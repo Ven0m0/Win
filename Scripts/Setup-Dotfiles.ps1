@@ -699,6 +699,32 @@ function Start-Bootstrap {
             GetSkipReason      = { 'HOME not set' }
         },
         @{
+            Path   = 'claude\skills'
+            Mode   = 'script'
+            Label  = 'opencode skills'
+            Invoke = {
+                param($sourceDir, $label)
+                # Only the locally authored skills; the rest of ~/.claude/skills are links into ~/.agents/skills
+                # that the skills CLI manages, and opencode already reads ~/.claude/skills itself.
+                $skills = @(
+                    'adb', 'gha-lint', 'mc-jvm-tune', 'mc-repack-optimize', 'merge-to-main',
+                    'nextcloud-remote', 'prism-instance-edit', 'ps-release-check',
+                    'reverse-engineer-anything', 'ssh-lan'
+                )
+                $destRoot = Join-Path $HOME '.config\opencode\skills'
+                foreach ($skill in $skills) {
+                    $dirArgs = @{
+                        SourceDir = Join-Path $sourceDir $skill
+                        DestDir   = Join-Path $destRoot $skill
+                        Filter    = '*'
+                        Label     = "$label/$skill"
+                        Recurse   = $true
+                    }
+                    Deploy-ConfigDirectory @dirArgs
+                }
+            }
+        },
+        @{
             Path               = 'emulators\dolphin\Config'
             Mode               = 'directory'
             Filter             = '*.ini'

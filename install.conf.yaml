@@ -40,6 +40,7 @@
 #   cargo\config.toml, binstall.toml              → ~/.cargo/
 #   opencode\opencode.jsonc, dcp.jsonc, cli.json, AGENTS.md → ~/.config/opencode/
 #   opencode\agents\*.md, commands\*.md            → ~/.config/opencode/agents/, commands/
+#   claude\skills\<10 local skills>                → ~/.config/opencode/skills/ (same source as the ~/.claude copy)
 #   emulators\dolphin\Config\*.ini                 → %APPDATA%\Dolphin Emulator\Config\ (seed only: copied when absent)
 #   emulators\azaharplus\qt-config.ini             → scoop persist\azaharplus\user\config\ or %APPDATA%\AzaharPlus\config\ (seed only)
 #   emulators\eden\qt-config.ini                   → scoop persist\eden\user\config\ or %APPDATA%\eden\config\ (seed only)

@@ -83,7 +83,7 @@ packages.
 | `pm art cleanup` | Deletes ART artifacts of removed apps/dex files. Fine. |
 | `pm trim-caches 999G` | Clears all internal app caches. Apps rebuild them; first launches are slower. |
 | `rm -rf /sdcard/Android/data/*/cache/* .../code_cache/*` | External caches. Safe. |
-| `am broadcast -a com.android.systemui.action.CLEAR_MEMORY` / `android.intent.action.ACTION_OPTIMIZE_DEVICE` | Not documented AOSP actions. `result=0` only means "sent". Probably no effect. |
+| `am broadcast -a com.android.systemui.action.CLEAR_MEMORY` / `android.intent.action.ACTION_OPTIMIZE_DEVICE` | Not documented AOSP actions, but the user confirms they work, so the script keeps sending them. `result=0` only means "sent". |
 | `rm /data/anr/* /data/tombstones/* /data/system/dropbox/*` | Needs root. Fails without root. |
 
 On the user's phone the whole cleanup freed almost nothing (51 KB, then 0 bytes), so don't
@@ -92,7 +92,8 @@ promise gains from it.
 ## Reusable script
 
 `~/project/Win/Scripts/optimize-android-art.ps1` (Win repo, Pester test in
-`tests/optimize-android-art.Tests.ps1`) does cleanup → per-package `speed-profile` →
+`tests/optimize-android-art.Tests.ps1`) does cleanup → per-package `speed-profile` (every package except the
+tuned lists, which the next step recompiles anyway) →
 `everything-profile` with `speed` fallback for the tuned list → GMS `speed-profile` →
 status table, exit 1 on unexpected status.
 
