@@ -255,3 +255,5 @@ github_conf
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 .idea/
+
+**/.claude/settings.local.json

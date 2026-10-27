@@ -13,7 +13,8 @@
     "resume": true,
     "fonts": true,
     "experimentalARG": true,
-    "experimentalCMD": true
+    "experimentalCMD": true,
+	"sourcePriority": true
   },
   "installBehavior": {
     "skipDependencies": false,
@@ -22,7 +23,7 @@
     "maxResumes": 3,
     "preferences": {
       "scope": "machine",
-      "locale": ["en-US", "de-DE"],
+      "locale": ["en-US"],
       "architectures": ["x64"],
       "installerTypes": ["msix", "msi"]
     }

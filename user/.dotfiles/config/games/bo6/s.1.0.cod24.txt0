@@ -66,7 +66,7 @@ SoundOutputDevice@0;2059;35888 =
 AmdAntilag2@0;57752;48403 = false
 
 // Force specific aspect ratio independent of window aspect ratio
-AspectRatio@0;19775;7764 = auto // one of auto, standard, 5:4, wide 16:10, wide 16:9, wide 18:9, wide 19.5:9, wide 21:9, wide 32:9
+AspectRatio@0;19775;7764 = wide 16:9 // one of auto, standard, 5:4, wide 16:10, wide 16:9, wide 18:9, wide 19.5:9, wide 21:9, wide 32:9
 
 // Percentage of window resolution that the 3D scene renders at. value set by the user. can be smaller than the actual.
 ResolutionMultiplier@0;64786;30730 = 83 // 0 to 200
@@ -75,7 +75,7 @@ ResolutionMultiplier@0;64786;30730 = 83 // 0 to 200
 VSyncInMenu@0;55075;11445 = disabled // one of disabled, 100%, 50%, 33%, 25%
 
 // Enable Nvidia low latency mode. Boost mode request maximum GPU clock frequency regardless of workload
-NvidiaReflex@0;33761;11445 = Enabled + boost // one of Disabled, Enabled, Enabled + boost
+NvidiaReflex@0;33761;11445 = Enabled // one of Disabled, Enabled, Enabled + boost
 
 // Enable focused mode
 FocusedMode@0;57752;48403 = false
@@ -148,7 +148,7 @@ MapLocationSelectionCursorSpeed@0;39230;65063 = 0.600000 // 0.001000 to 1.000000
 MarksEntsPlayerOnly@0;57752;48403 = false
 
 // Show blood effects
-ShowBlood@0;57752;20945 = false
+ShowBlood@0;57752;20945 = true
 
 // Weapons eject brass
 ShowBrass@0;57752;20945 = false

@@ -2,6 +2,9 @@
 "ubi:spddl/GoInterruptPolicy" = "latest"
 #"npm:@kilocode/cli" = "latest"
 "github:Kilo-Org/kilocode" = "7.8.17"
+"github:ComunidadAylas/PackSquash" = "latest"
+shellcheck = "latest"
+shfmt = "latest"
 actionlint = "latest"
 ghalint = "latest"
 # aqua build of action-validator has no Windows binary; cargo backend compiles it

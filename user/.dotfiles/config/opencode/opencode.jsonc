@@ -9,7 +9,10 @@
     "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
   ],
   "skills": { "paths": [".kilo/skills"] },
-  "plugins": ["kilo-tools@git+https://github.com/Ven0m0/claude-config.git", "@tarquinen/opencode-dcp@3.2.0"],
+  "plugins": [
+    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git#bb69605ce950800675eb7a27a4e40554b9732348",
+    "@tarquinen/opencode-dcp@3.2.0"
+  ],
   "permissions": [
     {
       "action": "read",

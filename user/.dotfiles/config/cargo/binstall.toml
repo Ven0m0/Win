@@ -5,4 +5,4 @@ strategies = []
 
 [telemetry]
 enabled = false
-consent_asked = false
+consent_asked = true

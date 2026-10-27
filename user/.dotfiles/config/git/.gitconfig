@@ -216,7 +216,7 @@
   clean = git-lfs clean -- %f
   smudge = git-lfs smudge -- %f
 [tag]
-  sort = version: refname
+	sort = version:refname
   gpgSign = false
 [protocol]
   version = 2
@@ -244,10 +244,12 @@
 [maintenance "worktree-prune"]
   enabled = true
 [maintenance "geometric-repack"]
-  enabled = true
+	enabled = false
 [gpg]
   program = gpg
 [safe]
   directory = *
 [remote "origin"]
   prune = true
+[windows]
+	appendAtomically = false
