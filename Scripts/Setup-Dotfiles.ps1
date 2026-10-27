@@ -655,10 +655,40 @@ function Start-Bootstrap {
             GetSkipReason      = { 'HOME not set' }
         },
         @{
-            Path               = 'opencode\opencode.json'
+            Path               = 'opencode\opencode.jsonc'
             Mode               = 'file'
             Label              = 'opencode config'
-            ResolveDestination = { Join-Path $HOME '.config\opencode\opencode.json' }
+            ResolveDestination = { Join-Path $HOME '.config\opencode\opencode.jsonc' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\dcp.jsonc'
+            Mode               = 'file'
+            Label              = 'opencode dcp config'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\dcp.jsonc' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\cli.json'
+            Mode               = 'file'
+            Label              = 'opencode cli config'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\cli.json' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\agents'
+            Mode               = 'directory'
+            Label              = 'opencode agents'
+            Filter             = '*.md'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\agents' }
+            GetSkipReason      = { 'HOME not set' }
+        },
+        @{
+            Path               = 'opencode\commands'
+            Mode               = 'directory'
+            Label              = 'opencode commands'
+            Filter             = '*.md'
+            ResolveDestination = { Join-Path $HOME '.config\opencode\commands' }
             GetSkipReason      = { 'HOME not set' }
         },
         @{

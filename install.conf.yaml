@@ -38,7 +38,8 @@
 #   rtk\filters.toml                               → %APPDATA%\rtk\filters.toml, then `rtk trust -y` (trust is per file hash)
 #   rtk\config.toml                                → %APPDATA%\rtk\config.toml
 #   cargo\config.toml, binstall.toml              → ~/.cargo/
-#   opencode\opencode.json, AGENTS.md              → ~/.config/opencode/
+#   opencode\opencode.jsonc, dcp.jsonc, cli.json, AGENTS.md → ~/.config/opencode/
+#   opencode\agents\*.md, commands\*.md            → ~/.config/opencode/agents/, commands/
 #   emulators\dolphin\Config\*.ini                 → %APPDATA%\Dolphin Emulator\Config\ (seed only: copied when absent)
 #   emulators\azaharplus\qt-config.ini             → scoop persist\azaharplus\user\config\ or %APPDATA%\AzaharPlus\config\ (seed only)
 #   emulators\eden\qt-config.ini                   → scoop persist\eden\user\config\ or %APPDATA%\eden\config\ (seed only)

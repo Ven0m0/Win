@@ -147,6 +147,17 @@ Describe 'Invoke-DeviceCleanup' {
     }
   }
 
+  It 'sends the undocumented CLEAR_MEMORY and ACTION_OPTIMIZE_DEVICE broadcasts' {
+    Mock Invoke-Adb { }
+
+    Invoke-DeviceCleanup
+
+    Should -Invoke Invoke-Adb -Times 1 -Exactly -ParameterFilter {
+      $args[1] -like '*am broadcast -a com.android.systemui.action.CLEAR_MEMORY*' -and
+      $args[1] -like '*am broadcast -a android.intent.action.ACTION_OPTIMIZE_DEVICE*'
+    }
+  }
+
   It 'never deletes app data outside cache folders' {
     Mock Invoke-Adb { }
 
@@ -187,6 +198,20 @@ Describe 'Invoke-BaseCompile' {
 
     Should -Invoke Invoke-Adb -Times 1 -Exactly -ParameterFilter {
       $args[0] -eq 'shell' -and $args[1] -like '*pm list packages --user 0*-m speed-profile*'
+    }
+  }
+}
+
+Describe 'Invoke-BaseCompile (exclusions)' {
+  It 'leaves the tuned lists to Invoke-TunedCompile' {
+    Mock Write-Info { }
+    Mock Write-Warn { }
+    Mock Invoke-Adb { 'com.a Success' }
+
+    Invoke-BaseCompile
+
+    Should -Invoke Invoke-Adb -Times 1 -Exactly -ParameterFilter {
+      $args[1] -like '*grep -vxF*-e com.whatsapp*' -and $args[1] -like '* -e com.google.android.gms*'
     }
   }
 }

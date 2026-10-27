@@ -1,0 +1,163 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "./AGENTS.md",
+    ".opencode/rules/*.md",
+    ".kilo/rules/*.md",
+    ".claude/rules/*.md",
+    "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
+    "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
+  ],
+  "skills": { "paths": [".kilo/skills"] },
+  "plugins": ["kilo-tools@git+https://github.com/Ven0m0/claude-config.git", "@tarquinen/opencode-dcp@3.2.0"],
+  "permissions": [
+    {
+      "action": "read",
+      "resource": "*.env",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "*.lock",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "*.lock",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "sudo *",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf /",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf /*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf ~",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": "rm -rf ~/*",
+      "effect": "deny"
+    },
+    {
+      "action": "shell",
+      "resource": ":(){:|:&};:",
+      "effect": "deny"
+    },
+    {
+      "action": "doom_loop",
+      "resource": "*",
+      "effect": "deny"
+    },
+    {
+      "action": "*",
+      "resource": "*",
+      "effect": "allow"
+    }
+  ],
+  "agents": {
+    "compaction": {
+      "model": "opencode/deepseek-v4.1-flash-free"
+    },
+    "debug": {
+      "model": "opencode/nemotron-3-ultra-free"
+    },
+    "code": {
+      "model": "opencode/deepseek-v4.1-flash-free"
+    },
+    "plan": {
+      "model": "opencode/glm-5.3-flash-free"
+    },
+    "ask": {
+      "model": "opencode/mimo-v2.6-flash-free"
+    }
+  },
+  "small_model": "opencode/nemotron-3.5-lightning-free",
+  "disabled_providers": ["openai", "google", "anthropic"],
+  "formatter": {
+    "biome": {
+      "command": ["bunx", "--bun", "@biomejs/biome", "check", "--write", "--format-with-errors=true", "$FILE"],
+      "extensions": [".json", ".jsonc", ".js", ".ts"]
+    },
+    "ruff": {
+      "command": ["ruff", "format", "$FILE"],
+      "extensions": [".py", ".pyi", ".pyc"]
+    }
+  },
+  "watcher": {
+    "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
+  },
+  "mcp": {
+    "servers": {
+      "codegraph": {
+        "type": "local",
+        "command": ["codegraph", "serve", "--mcp"],
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      },
+      "ref-tools": {
+        "type": "remote",
+        "url": "https://api.ref.tools/mcp",
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      },
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp",
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      },
+      "github": {
+        "type": "remote",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "disabled": false,
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:GITHUB_TOKEN}"
+        },
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      },
+      "exa": {
+        "type": "remote",
+        "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa",
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        }
+      },
+      "rea": {
+        "type": "local",
+        "command": ["cmd.exe", "/d", "/c", "bunx", "rea-agents@6.5.0", "mcp"]
+      }
+    }
+  },
+  "compaction": {
+    "auto": true
+  },
+  "model": "opencode/deepseek-v4.1-flash-free"
+}

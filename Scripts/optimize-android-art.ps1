@@ -8,8 +8,9 @@
 
   Steps:
     1. Cleanup: fstrim, idle maintenance, ART artifact cleanup, cache trim, external app caches.
-    2. Base: every installed package (user 0) with speed-profile. Uses a per-package loop because
-       'pm compile -a' aborts on the first package that is uninstalled for the user but still registered.
+    2. Base: every installed package (user 0) except the tuned lists, with speed-profile. Uses a per-package
+       loop because 'pm compile -a' aborts on the first package that is uninstalled for the user but still
+       registered.
     3. Full AOT: $FullAotPackages with everything-profile. Apps without a profile fall back to verify
        (no AOT code), so those are recompiled with speed, which needs no profile.
     4. Profile-only: $ProfileOnlyPackages (GMS) stay on speed-profile.
@@ -110,8 +111,10 @@ function Invoke-DeviceCleanup {
 
 function Invoke-BaseCompile {
   # Runs on the device in one adb call; no double quotes so Windows argument quoting stays out of the way.
+  # The tuned lists are left out because Invoke-TunedCompile recompiles them and would discard this work.
   $flags = $CompileFlags -join ' '
-  $remote = "for p in `$(pm list packages --user 0 | cut -d: -f2); do " +
+  $exclude = (($FullAotPackages + $ProfileOnlyPackages) | ForEach-Object -Process { "-e $_" }) -join ' '
+  $remote = "for p in `$(pm list packages --user 0 | cut -d: -f2 | grep -vxF $exclude); do " +
     "r=`$(pm compile $flags -m speed-profile `$p 2>&1 | tail -n 1); echo `$p `$r; done"
   $lines = Invoke-Adb shell $remote
   $failed = @($lines | Where-Object -FilterScript { $_ -notmatch ' Success$' })
