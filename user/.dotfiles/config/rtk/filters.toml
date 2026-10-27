@@ -104,3 +104,183 @@ max_lines = 60
 name = "drops blank lines"
 input = "1.0G ┌── a\n\n2.0G ├── b\n"
 expected = "1.0G ┌── a\n2.0G ├── b"
+
+[filters.pwsh]
+description = "Compact pwsh/powershell.exe output (Pester banner, blanks)"
+match_command = "^(pwsh|powershell)(\\.exe)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^(Starting discovery|Discovery found|Running tests|Starting test)"]
+max_lines = 200
+
+[[tests.pwsh]]
+name = "drops Pester banner and blanks"
+input = "Starting discovery in 1 files.\n\nDiscovery found 3 tests in 10ms.\nTests Passed: 3\n"
+expected = "Tests Passed: 3"
+
+[filters.mise]
+description = "Compact mise exec/run output"
+match_command = "^mise\\s+(exec|run|x)\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 150
+
+[filters.winget]
+description = "Compact winget output (spinners, progress bars)"
+match_command = "^winget(\\.exe)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^\\s*[-\\\\|/]\\s*$", "[\\x{2588}\\x{2592}]"]
+max_lines = 80
+
+[[tests.winget]]
+name = "drops spinner and progress bar lines"
+input = "  -\n  \\\n  ########  50%\nFound Git [Git.Git]\n  \u2588\u2588\u2592\u2592  40%\n"
+expected = "  ########  50%\nFound Git [Git.Git]"
+
+[filters.scoop]
+description = "Compact scoop output"
+match_command = "^scoop\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 80
+
+[filters.choco]
+description = "Compact chocolatey output"
+match_command = "^choco\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^Chocolatey v", "^Progress: "]
+max_lines = 80
+
+[[tests.choco]]
+name = "drops version banner and progress"
+input = "Chocolatey v2.3.0\nProgress: Downloading git... 50%\ngit 2.45.0\n"
+expected = "git 2.45.0"
+
+[filters.7z]
+description = "Compact 7z output"
+match_command = "^7z(\\.exe)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^7-Zip ", "^Scanning the drive"]
+max_lines = 60
+
+[[tests.7z]]
+name = "drops banner"
+input = "7-Zip 24.08 (x64) : Copyright\n\nScanning the drive:\nEverything is Ok\n"
+expected = "Everything is Ok"
+
+[filters.ffmpeg]
+description = "Compact ffmpeg/ffprobe output (build banner)"
+match_command = "^ff(mpeg|probe)(\\.exe)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^ff(mpeg|probe) version", "^\\s+(built with|configuration:|lib\\w+\\s+\\d)"]
+max_lines = 60
+
+[[tests.ffmpeg]]
+name = "drops build banner"
+input = "ffmpeg version 7.1 Copyright\n  built with gcc 14\n  configuration: --enable-x\n  libavutil      59. 39.100\nInput #0, mov\n"
+expected = "Input #0, mov"
+
+[filters.aria2c]
+description = "Compact aria2c output (progress lines)"
+match_command = "^aria2c\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^\\[#"]
+max_lines = 40
+
+[filters.hf]
+description = "Compact hf CLI output (progress bars)"
+match_command = "^hf\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "\\d+%\\|"]
+max_lines = 60
+
+[[tests.hf]]
+name = "drops tqdm bars"
+input = "Fetching 2 files:  50%|#####     | 1/2\nDone\n"
+expected = "Done"
+
+[filters.yq]
+description = "Compact yq output"
+match_command = "^yq\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 100
+
+[filters.frida]
+description = "Compact frida tool output (REPL banner)"
+match_command = "^frida(-ps|-ls-devices|-trace)?\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^\\s+(____|/ _|\\| \\(_|> _|/_/|\\. \\.)"]
+max_lines = 80
+
+[filters.java]
+description = "Compact java output"
+match_command = "^java\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 80
+
+[filters.apktool]
+description = "Compact apktool output (drops I: info lines, keeps W:/E:)"
+match_command = "^apktool\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^I: "]
+max_lines = 60
+
+[[tests.apktool]]
+name = "drops info lines keeps warnings"
+input = "I: Using Apktool 2.9\nI: Loading resource table...\nW: Could not decode\n"
+expected = "W: Could not decode"
+
+[filters.actionlint]
+description = "Compact actionlint output"
+match_command = "^actionlint\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 80
+
+[filters.shellcheck]
+description = "Compact shellcheck output"
+match_command = "^shellcheck\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 80
+
+[filters.ast-grep]
+description = "Compact ast-grep (sg) output"
+match_command = "^(sg|ast-grep)\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 150
+
+[filters.topgrade]
+description = "Compact topgrade output (separators)"
+match_command = "^topgrade\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^[\\x{2500}\\x{2015}-]{3,}"]
+max_lines = 80
+
+[filters.exiftool]
+description = "Compact exiftool output"
+match_command = "^exiftool\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 80
+
+[filters.fclones]
+description = "Compact fclones output"
+match_command = "^fclones\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$"]
+max_lines = 100
+
+[filters.dotbot]
+description = "Compact dotbot output (unchanged links)"
+match_command = "^dotbot\\b"
+strip_ansi = true
+strip_lines_matching = ["^\\s*$", "^Link exists", "^All links have been set up"]
+max_lines = 60
+
+[[tests.dotbot]]
+name = "drops unchanged-link noise"
+input = "Link exists ~/.a\n\nAll links have been set up\nAll commands have been executed\n"
+expected = "All commands have been executed"

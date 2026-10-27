@@ -634,6 +634,13 @@ function Start-Bootstrap {
             }
         },
         @{
+            Path               = 'rtk\config.toml'
+            Mode               = 'file'
+            Label              = 'rtk config'
+            ResolveDestination = { Join-Path $env:APPDATA 'rtk\config.toml' }
+            GetSkipReason      = { 'APPDATA not set' }
+        },
+        @{
             Path               = 'cargo\config.toml'
             Mode               = 'file'
             Label              = 'Cargo config'

@@ -76,6 +76,10 @@ Describe "Setup-Dotfiles.ps1" {
         It "Should track the rtk global filters source" {
             Test-Path -Path "$PSScriptRoot/../user/.dotfiles/config/rtk/filters.toml" | Should -BeTrue
         }
+
+        It "Should track the rtk config source" {
+            Test-Path -Path "$PSScriptRoot/../user/.dotfiles/config/rtk/config.toml" | Should -BeTrue
+        }
     }
 }
 
