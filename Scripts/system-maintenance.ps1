@@ -9,7 +9,7 @@
     Defrag  - optimize/retrim volumes (defrag.exe) and clean MSI Afterburner skins/docs (default)
     Disk    - interactive WinForms disk-cleanup GUI (cleanmgr categories + cache/log purge)
     Shader  - clear Steam/GPU shader, log, and crash caches
-    Extra   - DISM component/Wim/mountpoint cleanup, cleanmgr (all handlers except Downloads, File History
+    Extra   - DISM mountpoint cleanup, cleanmgr (all handlers except Downloads, File History
               versions, Windows.old, ESD files), cache rebuilds, BITS/DNS/temp/recycle-bin/event-log cleanup,
               Windows Update download cache purge, optional restore point
     DriverCleanup - remove orphaned/unused driver packages from the driver store
@@ -252,7 +252,7 @@ function Set-CleanmgrSelection {
 
 
 # ---------------------------------------------------------------------------
-# Extra action: DISM component cleanup, cache rebuilds, BITS/DNS/temp cleanup
+# Extra action: DISM mountpoint cleanup, cache rebuilds, BITS/DNS/temp cleanup
 # ---------------------------------------------------------------------------
 function Start-AdditionalMaintenance {
   [CmdletBinding()]
@@ -279,11 +279,11 @@ function Start-AdditionalMaintenance {
       }
   }
 
-  # DISM RestoreHealth and sfc live in fix-system.ps1 (repairs are not cleanup).
-  Write-Info "=== DISM Component Cleanup ==="
-  Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun `
-    -Result 'COMPLETE' -TimeoutSeconds 1800 `
-    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /StartComponentCleanup'
+  # DISM RestoreHealth, component cleanup and sfc live in fix-system.ps1.
+  Write-Info "=== DISM Mountpoint Cleanup ==="
+  Invoke-Operation -Name 'DISM_MountpointCleanup' -Results $Results -DryRun:$DryRun `
+    -Result 'COMPLETE' -TimeoutSeconds 300 `
+    -Action {} -Command 'DISM.exe' -ArgumentList '/Cleanup-Mountpoints'
 
   # Disk Cleanup handlers (Update Cleanup, WER, Delivery Optimization, setup logs, ...). Sageset id 70 keeps
   # this separate from the Disk GUI's id 69.

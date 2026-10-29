@@ -55,7 +55,7 @@ driver cleanup and the WaasMedic ownership step.
 | `Defrag` | `defrag.exe /O` then `/L` (retrim) on the volume; with `-AllVolumes` runs `/C /O` then `/C /L`. Then MSI cleanup if `-MsiDir` exists |
 | `Disk` | WinForms checklist of `cleanmgr` categories plus Event Viewer logs, Windows logs, TEMP |
 | `Shader` | Stops Steam, clears Steam/Epic caches and NVIDIA/AMD/Intel/D3D shader caches |
-| `Extra` | Restore point, DISM StartComponentCleanup (repairs: `fix-system.ps1`), then cache and log cleanup |
+| `Extra` | Restore point, DISM `/Cleanup-Mountpoints` (repairs and component cleanup: `fix-system.ps1`), then cache and log cleanup |
 | `DriverCleanup` | `rundll32 pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN` |
 | `All` | Defrag, MSI cleanup, Shader, Extra. Does not include Disk or DriverCleanup |
 
@@ -64,8 +64,8 @@ driver cleanup and the WaasMedic ownership step.
 - **MSI cleanup.** Copies `MSIMystic.usf`, `MSIWin11Dark.usf` and `defaultX.uxf` out of
   `Skins`, deletes `Skins`, `Localization`, `Doc` and `SDK\Doc`, recreates `Skins`, moves the
   three skins back, and removes the SDK and ReadMe Start Menu shortcuts.
-- **Extra repairs.** DISM RestoreHealth and `sfc /scannow` moved to `fix-system.ps1`
-  (`-Action System`). The DISM StartComponentCleanup step has a 1800 s timeout.
+- **Extra repairs.** DISM RestoreHealth, component cleanup and `sfc /scannow` live in
+  `fix-system.ps1` (`-Action System`). The DISM `/Cleanup-Mountpoints` step has a 300 s timeout.
 - **Extra cleanup list.** Windows Update download cache (with `wuauserv` stopped), Store cache
   (`wsreset -i`), BITS queue, font cache, icon and thumbnail cache (restarts `explorer`), DNS
   cache, temp folders, dev-tool caches (uv, bun, npm, mise, sccache, cargo, gradle; cargo-sweep trims stale `target\` artifacts under

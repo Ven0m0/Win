@@ -1952,7 +1952,16 @@ function Invoke-ServiceOperation {
 
     try {
         if ($wasRunning) {
-            Stop-Service -Name $Name -Force:$Force -ErrorAction Stop
+            # Plain Stop-Service re-emits "Waiting for service to stop..." forever when the service hangs
+            # in StopPending (e.g. wuauserv right after cleanmgr); bound the wait and fail instead.
+            Stop-Service -Name $Name -Force:$Force -NoWait -WarningAction SilentlyContinue -ErrorAction Stop
+            try {
+                $service.WaitForStatus('Stopped', [timespan]::FromSeconds(60))
+            }
+            catch [System.ServiceProcess.TimeoutException] {
+                Write-Warning "Service '$Name' did not stop within 60s (stuck in StopPending); skipping its action."
+                return
+            }
         }
 
         & $Action

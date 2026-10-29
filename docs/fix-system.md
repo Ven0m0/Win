@@ -49,7 +49,7 @@ Read-only diagnostics:
 
 | Action | What it does |
 | --- | --- |
-| `System` | 1 DISM CheckHealth (ScanHealth and RestoreHealth if corruption; retries `/LimitAccess` on exit 1392), 2 SFC, 3 `chkdsk /scan`, 4 network repairs, 5 WMI verify and salvage, 6 WU service reset, 7 SFC pass 2, 8 DISM StartComponentCleanup |
+| `System` | 1 DISM `/RestoreHealth /StartComponentCleanup /ResetBase` (one command), 2 SFC, 3 `chkdsk /scan`, 4 network repairs, 5 WMI verify and salvage, 6 WU service reset, 7 SFC pass 2 |
 | `WindowsUpdate` | Stops BITS/wuauserv/CryptSvc and others, clears temp, Prefetch and BITS downloader cache, renames `SoftwareDistribution` and `catroot2`, re-registers 12 DLLs, `bitsadmin /reset /allusers`, `netsh winsock reset`, `gpupdate /force`, restarts services |
 | `Health` | Physical disk health, volume free space under 10 percent, pending updates (COM search), Automatic services not running, temp dirs over 5 GB, startup items |
 | `All` | `System` with the WU reset skipped, then `WindowsUpdate`. Does not include Health |

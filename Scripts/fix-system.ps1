@@ -129,7 +129,6 @@ function Start-SystemFix {
     Network = 'SKIPPED'
     WMI     = 'SKIPPED'
     WUReset = 'SKIPPED'
-    Cleanup = 'SKIPPED'
     SFC2    = 'SKIPPED'
   }
 
@@ -143,58 +142,25 @@ function Start-SystemFix {
   }
   Add-Log "Repair started: QuickScan=$QuickScan, SkipDiskCheck=$SkipDiskCheck, SkipNetworkFix=$SkipNetworkFix, SkipWUReset=$SkipWUReset"
 
-  # Step 1: DISM Health Check
-  Write-Info "=== Step 1: DISM Health Check ==="
+  # Step 1: DISM restore + component cleanup in a single pass
+  Write-Info "=== Step 1: DISM RestoreHealth + Component Cleanup ==="
 
   if ($DryRun) {
     $results.DISM = 'DRY RUN'
-    Write-Warn "[DRY RUN] Would run DISM commands"
+    Write-Warn "[DRY RUN] Would run: DISM /Online /Cleanup-Image /RestoreHealth /StartComponentCleanup /ResetBase"
   }
   else {
-    Write-Info "DISM /Online /Cleanup-Image /CheckHealth"
-    $dismOutput = (& DISM.exe /Online /Cleanup-Image /CheckHealth 2>&1) -join "`n"
+    Write-Info "DISM /Online /Cleanup-Image /RestoreHealth /StartComponentCleanup /ResetBase (may take 15-30 minutes)..."
+    $dismOutput = (& DISM.exe /Online /Cleanup-Image /RestoreHealth /StartComponentCleanup /ResetBase 2>&1) -join "`n"
     $exitCode = $LASTEXITCODE
-    Add-Log "CheckHealth output: $dismOutput"
-    Write-Info "Exit code: $exitCode"
+    Add-Log "DISM output (exit $exitCode): $dismOutput"
 
-    # CheckHealth exits 0 even when it reports "The component store is repairable",
-    # so the output text is the only corruption signal.
-    if ($exitCode -eq 2 -or $dismOutput -match '\brepairable\b') {
-      Write-Warn "DISM CheckHealth: Corruption detected, running ScanHealth..."
-      Write-Info "DISM /Online /Cleanup-Image /ScanHealth"
-      $null = & DISM.exe /Online /Cleanup-Image /ScanHealth 2>&1
-
-      Write-Info "DISM /Online /Cleanup-Image /RestoreHealth"
-      $restoreOutput = & DISM.exe /Online /Cleanup-Image /RestoreHealth 2>&1
-      $restoreExitCode = $LASTEXITCODE
-      Add-Log "RestoreHealth output: $restoreOutput"
-
-      if ($restoreExitCode -eq 0 -or $restoreExitCode -eq 3010) {
-        Write-Success "DISM RestoreHealth completed"
-        $results.DISM = 'REPAIRED'
-      }
-      elseif ($restoreExitCode -eq 1392) {
-        Write-Warn "DISM RestoreHealth failed: File corruption, trying /LimitAccess..."
-        $limitOutput = & DISM.exe /Online /Cleanup-Image /RestoreHealth /LimitAccess 2>&1
-        Add-Log "RestoreHealth /LimitAccess: $limitOutput"
-        if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 3010) {
-          $results.DISM = 'REPAIRED (LimitAccess)'
-        }
-        else {
-          $results.DISM = "PARTIAL (Exit: $restoreExitCode)"
-        }
-      }
-      else {
-        Write-Warn "DISM RestoreHealth exit code: $restoreExitCode"
-        $results.DISM = "Exit Code: $restoreExitCode"
-      }
-    }
-    elseif ($exitCode -eq 0 -or $exitCode -eq 3010) {
-      Write-Success "DISM CheckHealth: No corruption found or already scheduled"
-      $results.DISM = 'HEALTHY'
+    if ($exitCode -eq 0 -or $exitCode -eq 3010) {
+      Write-Success "DISM RestoreHealth + component cleanup completed"
+      $results.DISM = 'COMPLETED'
     }
     else {
-      Write-Warn "DISM CheckHealth exit code: $exitCode"
+      Write-Warn "DISM exit code: $exitCode"
       $results.DISM = "Exit Code: $exitCode"
     }
   }
@@ -372,28 +338,6 @@ function Start-SystemFix {
       Write-Info "Running SFC /scannow (second pass)..."
       $results.SFC2 = Invoke-SfcScan
       Write-Info "SFC Pass 2 result: $($results.SFC2)"
-    }
-
-    # Step 8: Component Store Cleanup
-    Write-Info "=== Step 8: Component Store Cleanup ==="
-
-    if ($DryRun) {
-      $results.Cleanup = 'DRY RUN'
-      Write-Warn "[DRY RUN] Would run: DISM /Online /Cleanup-Image /StartComponentCleanup"
-    }
-    else {
-      Write-Info "Running DISM StartComponentCleanup (may take 15-30 minutes)..."
-      $null = & DISM.exe /Online /Cleanup-Image /StartComponentCleanup 2>&1
-      $cleanupExitCode = $LASTEXITCODE
-
-      if ($cleanupExitCode -eq 0 -or $cleanupExitCode -eq 3010) {
-        Write-Success "Component cleanup complete"
-        $results.Cleanup = 'COMPLETED'
-      }
-      else {
-        Write-Warn "Cleanup exit code: $cleanupExitCode"
-        $results.Cleanup = "Exit Code: $cleanupExitCode"
-      }
     }
   }
 
