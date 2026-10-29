@@ -31,10 +31,17 @@
 .PARAMETER IncludeSteamDownloads
   For the Shader action, also delete steamapps\downloading, which holds partial game downloads.
   Off by default because removing it forces those downloads to restart.
+.PARAMETER CargoProjectRoot
+  For the Extra action, root searched recursively by cargo-sweep (if installed) for Rust target dirs.
+  Defaults to $HOME\project.
+.PARAMETER CargoSweepDays
+  cargo-sweep removes build artifacts not used in this many days (default: 30).
 .PARAMETER DryRun
   Show what would run without executing. Defrag and Extra list each step; Shader, DriverCleanup,
   and Disk are skipped entirely. Suppresses the maintenance log file write for Extra.
   -WhatIf implies -DryRun, so no destructive step runs under it.
+.PARAMETER Help
+  Show this help (all options and examples) and exit.
 .EXAMPLE
   .\system-maintenance.ps1 -Action Defrag -AllVolumes
 .EXAMPLE
@@ -58,11 +65,19 @@ param(
   [string]$MsiDir = "${env:ProgramFiles(x86)}\MSI Afterburner",
   [switch]$NoRestorePoint,
   [switch]$IncludeSteamDownloads,
-  [switch]$DryRun
+  [string]$CargoProjectRoot = (Join-Path -Path $HOME -ChildPath 'project'),
+  [int]$CargoSweepDays = 30,
+  [switch]$DryRun,
+  [switch]$Help
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
+
+if ($Help) {
+  Get-Help -Name $PSCommandPath -Full
+  return
+}
 
 # -WhatIf must never reach robocopy/wevtutil/DISM, which do not honor ShouldProcess themselves.
 if ($WhatIfPreference) { $DryRun = [switch]$true }
@@ -264,22 +279,7 @@ function Start-AdditionalMaintenance {
       }
   }
 
-  # 2. Component store repair, then system file check. DISM runs first because sfc repairs
-  # system files from the component store - a corrupt store makes sfc's repairs fail.
-  # WARNING: DISM /RestoreHealth can take 30+ minutes and may require a reboot.
-  Write-Info "=== DISM RestoreHealth ==="
-  Write-Warn "NOTE: /RestoreHealth may take 30+ minutes and may require a reboot."
-  Invoke-Operation -Name 'DISM_RestoreHealth' -Results $Results -DryRun:$DryRun `
-    -Result 'COMPLETE' -TimeoutSeconds 1800 `
-    -Action {} -Command 'DISM.exe' -ArgumentList '/Online /Cleanup-Image /RestoreHealth'
-
-  Write-Info "=== System File Check (sfc /scannow) ==="
-  Invoke-Operation -Name 'SFC_ScanNow' -Results $Results -DryRun:$DryRun `
-    -Result 'COMPLETE' -TimeoutSeconds 1800 `
-    -Action {} -Command 'sfc.exe' -ArgumentList '/scannow'
-
-  # /Cleanup-Image accepts one operation per invocation, so RestoreHealth and
-  # StartComponentCleanup must run as separate DISM calls.
+  # DISM RestoreHealth and sfc live in fix-system.ps1 (repairs are not cleanup).
   Write-Info "=== DISM Component Cleanup ==="
   Invoke-Operation -Name 'DISM_ComponentCleanup' -Results $Results -DryRun:$DryRun `
     -Result 'COMPLETE' -TimeoutSeconds 1800 `
@@ -365,6 +365,7 @@ function Start-AdditionalMaintenance {
       @{ Tool = 'uv';  Arguments = @('cache', 'clean') }
       @{ Tool = 'bun'; Arguments = @('pm', 'cache', 'rm') }
       @{ Tool = 'npm'; Arguments = @('cache', 'clean', '--force') }
+      @{ Tool = 'mise'; Arguments = @('cache', 'clear') }
     )
     foreach ($entry in $cacheCommands) {
       if (-not (Get-Command -Name $entry.Tool -CommandType Application -ErrorAction SilentlyContinue)) {
@@ -386,6 +387,60 @@ function Start-AdditionalMaintenance {
       }
       Clear-DirectorySafe -Path "$gradleHome\caches"
     }
+    # sccache has no clean command (--zero-stats only resets counters); stop the server so it
+    # releases the cache files, then purge the dir.
+    $sccacheDir = $env:SCCACHE_DIR
+    if (-not $sccacheDir) { $sccacheDir = Join-Path -Path $env:LOCALAPPDATA -ChildPath 'Mozilla\sccache\cache' }
+    if (Test-Path -LiteralPath $sccacheDir) {
+      if (Get-Command -Name 'sccache' -CommandType Application -ErrorAction SilentlyContinue) {
+        $null = & sccache --stop-server 2>&1  # exits non-zero when no server is running
+      }
+      Clear-DirectorySafe -Path $sccacheDir
+    }
+    # cargo-sweep trims stale build artifacts in project target\ dirs; it does not touch ~/.cargo.
+    if ((Get-Command -Name 'cargo-sweep' -CommandType Application -ErrorAction SilentlyContinue) -and
+      (Test-Path -LiteralPath $CargoProjectRoot)) {
+      Write-Info "cargo sweep --recursive --time $CargoSweepDays $CargoProjectRoot"
+      $null = & cargo sweep --recursive --time $CargoSweepDays $CargoProjectRoot
+      if ($LASTEXITCODE -ne 0) {
+        Write-Warn "cargo sweep failed (exit $LASTEXITCODE)"
+      }
+    } else {
+      Write-Verbose 'Skipping cargo sweep: cargo-sweep not installed or project root missing'
+    }
+    # Registry/git caches are outside cargo-sweep's scope, so they are purged manually either way
+    # (re-fetched on demand). bin\ and registry\index are left alone so installed tools and offline
+    # resolution survive.
+    $cargoHome = $env:CARGO_HOME
+    if (-not $cargoHome) { $cargoHome = Join-Path -Path $HOME -ChildPath '.cargo' }
+    foreach ($sub in @('registry\cache', 'registry\src', 'git\db', 'git\checkouts')) {
+      $cargoDir = Join-Path -Path $cargoHome -ChildPath $sub
+      if (Test-Path -LiteralPath $cargoDir) { Clear-DirectorySafe -Path $cargoDir }
+    }
+  }
+
+  # 9c. Junk: crash dumps, error-report queues, delivery-optimization cache, stale logs
+  Invoke-Operation -Name 'JunkFiles' -Results $Results -DryRun:$DryRun -Result 'CLEARED' -Action {
+    $junkDirs = @(
+      "$env:LOCALAPPDATA\CrashDumps"
+      "$env:LOCALAPPDATA\Microsoft\Windows\WER\ReportArchive"
+      "$env:LOCALAPPDATA\Microsoft\Windows\WER\ReportQueue"
+      "$env:LOCALAPPDATA\Microsoft\Windows\INetCache"
+      "$env:ProgramData\Microsoft\Windows\WER\ReportArchive"
+      "$env:ProgramData\Microsoft\Windows\WER\ReportQueue"
+      "$env:SystemRoot\Minidump"
+      "$env:SystemRoot\LiveKernelReports"
+      "$env:SystemRoot\SoftwareDistribution\DeliveryOptimization"
+      ("$env:SystemRoot\ServiceProfiles\NetworkService\AppData\Local\Microsoft\Windows" +
+        "\DeliveryOptimization\Cache")
+    )
+    foreach ($dir in $junkDirs) {
+      if (Test-Path -LiteralPath $dir) { Clear-DirectorySafe -Path $dir }
+    }
+    Clear-PathSafe -Path "$env:SystemRoot\MEMORY.DMP"
+    Clear-PathSafe -Path "$env:SystemRoot\*.dmp"
+    Clear-PathSafe -Path "$env:SystemRoot\Logs\CBS\CbsPersist_*.cab"
+    Clear-PathSafe -Path "$env:SystemRoot\Logs\CBS\CbsPersist_*.log"
   }
 
   # 10. Empty Recycle Bin

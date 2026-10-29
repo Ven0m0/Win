@@ -251,6 +251,7 @@
     CargoPackages      = @(
         'cargo-binstall'
         'cargo-cache'
+        'cargo-sweep'
         'cargo-update'
         'cargo-edit'
         'agnix-cli'

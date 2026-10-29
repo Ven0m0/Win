@@ -87,10 +87,8 @@ Describe "Start-AdditionalMaintenance" {
             Start-AdditionalMaintenance -DryRun
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun } -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' -and $DryRun } `
-                -Times 1
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_RestoreHealth' -and $DryRun } `
-                -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' } -Times 0
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_RestoreHealth' } -Times 0
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } `
                 -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'Cleanmgr' -and $DryRun } -Times 1
@@ -100,6 +98,8 @@ Describe "Start-AdditionalMaintenance" {
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'IconCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DNSCache' -and $DryRun -eq $true } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'TempFiles' -and $DryRun -eq $true } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DevToolCaches' -and $DryRun } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'JunkFiles' -and $DryRun } -Times 1
         }
     }
 
@@ -123,7 +123,7 @@ Describe "Start-AdditionalMaintenance" {
             Start-AdditionalMaintenance -NoRestorePoint
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' } -Times 0
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' } -Times 1
         }
     }
 }

@@ -55,7 +55,7 @@ driver cleanup and the WaasMedic ownership step.
 | `Defrag` | `defrag.exe /O` then `/L` (retrim) on the volume; with `-AllVolumes` runs `/C /O` then `/C /L`. Then MSI cleanup if `-MsiDir` exists |
 | `Disk` | WinForms checklist of `cleanmgr` categories plus Event Viewer logs, Windows logs, TEMP |
 | `Shader` | Stops Steam, clears Steam/Epic caches and NVIDIA/AMD/Intel/D3D shader caches |
-| `Extra` | Restore point, DISM RestoreHealth, `sfc /scannow`, DISM StartComponentCleanup, then cache and log cleanup |
+| `Extra` | Restore point, DISM StartComponentCleanup (repairs: `fix-system.ps1`), then cache and log cleanup |
 | `DriverCleanup` | `rundll32 pnpclean.dll,RunDLL_PnpClean /DRIVERS /MAXCLEAN` |
 | `All` | Defrag, MSI cleanup, Shader, Extra. Does not include Disk or DriverCleanup |
 
@@ -64,11 +64,13 @@ driver cleanup and the WaasMedic ownership step.
 - **MSI cleanup.** Copies `MSIMystic.usf`, `MSIWin11Dark.usf` and `defaultX.uxf` out of
   `Skins`, deletes `Skins`, `Localization`, `Doc` and `SDK\Doc`, recreates `Skins`, moves the
   three skins back, and removes the SDK and ReadMe Start Menu shortcuts.
-- **Extra order.** DISM RestoreHealth runs before SFC because SFC repairs from the component
-  store. Each DISM/SFC step has a 1800 s timeout and can take 30+ minutes.
+- **Extra repairs.** DISM RestoreHealth and `sfc /scannow` moved to `fix-system.ps1`
+  (`-Action System`). The DISM StartComponentCleanup step has a 1800 s timeout.
 - **Extra cleanup list.** Windows Update download cache (with `wuauserv` stopped), Store cache
   (`wsreset -i`), BITS queue, font cache, icon and thumbnail cache (restarts `explorer`), DNS
-  cache, temp folders, Recycle Bin, `energy-report.html`, Application and System event logs.
+  cache, temp folders, dev-tool caches (uv, bun, npm, mise, sccache, cargo, gradle; cargo-sweep trims stale `target\` artifacts under
+  `-CargoProjectRoot` older than `-CargoSweepDays` when installed), junk (crash dumps, WER
+  queues, Delivery Optimization cache, INetCache, CBS leftovers), Recycle Bin, `energy-report.html`, Application and System event logs.
 - **Log.** Extra writes `maintenance-log-<timestamp>.txt` to `$env:TEMP` (not under `-DryRun`).
 - **Shader.** Reads the Steam path from `HKCU:\SOFTWARE\Valve\Steam`, parses
   `libraryfolders.vdf`, and stops Steam gracefully. The only app targeted is Counter-Strike 2
