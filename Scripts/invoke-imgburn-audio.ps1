@@ -250,7 +250,7 @@ if ($DataCd) {
     New-Item -Path $workDir -ItemType Directory -Force | Out-Null
     Add-Log -Text "Transcoding $($audioFiles.Length) track(s) to CD-DA WAV..."
 
-    $wavFiles = for ($i = 0; $i -lt $audioFiles.Length; $i++) {
+    $wavFiles = for (($i = 0), ($audioCount = $audioFiles.Length); $i -lt $audioCount; $i++) {
         $trackNum = '{0:D2}' -f ($i + 1)
         $wavPath = Join-Path -Path $workDir -ChildPath "track_$trackNum.wav"
         $ffmpegArgs = @(
@@ -280,7 +280,7 @@ if ($DataCd) {
         "TITLE `"$projectLabel`""
         "FILE `"$($wavFiles[0].FullName)`" WAVE"
     )
-    for ($i = 0; $i -lt $wavFiles.Length; $i++) {
+    for (($i = 0), ($wavCount = $wavFiles.Length); $i -lt $wavCount; $i++) {
         $trackNum = '{0:D2}' -f ($i + 1)
         $cueLines += "  TRACK $trackNum AUDIO"
         $cueLines += "    INDEX 01 00:00:00"

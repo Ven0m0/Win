@@ -245,13 +245,13 @@ Both scripts require administrator elevation and only touch `HKLM` power-related
 │   ├── powershell/               # PowerShell profile
 │   ├── windows-terminal/, cmd/, git/, ssh/, psmux/, ohmyposh/, vscode/
 │   ├── browser/                  # Firefox user.js, Brave policies
-│   ├── games/                    # arc-raiders, bf2, bo6, fortnite, minecraft
+│   ├── games/                    # arc-raiders, bf2, bo6, fortnite
 │   ├── emulators/                # dolphin, azaharplus, eden (seed-only)
 │   ├── nvidia/, obs/, bleachbit/, DDU/, cursors/, handbrake/, legcord/
 │   ├── claude/, kilo/, opencode/ # AI tool configs
 │   └── mise/, scoop/, winget-configs/, cargo/, bat/, rtk/, topgrade/, wsl/
 ├── install.conf.yaml             # dotbot configuration entry point
-├── mise.toml                     # Tool manifest and tasks (deploy, validate, ci, ...)
+├── mise.toml                     # Tool manifest and the deploy task
 ├── bootstrap.ps1                 # One-command internet bootstrap
 ├── .github/workflows/            # CI (ci, lint-format-test, ps-format, reg-validate)
 ├── .claude/                      # Claude Code agents, rules, skills
@@ -369,15 +369,9 @@ Files with a `##template` suffix are substituted by dotbot at deploy time.
 Before committing changes to any `Scripts/*.ps1` file:
 
 ```pwsh
-# Lint + Pester tests (mirrors CI)
-mise run validate
-
-# Or individually:
 Invoke-ScriptAnalyzer -Path Scripts -Recurse -Severity Error -Settings PSScriptAnalyzerSettings.psd1
 Invoke-Pester tests/*.Tests.ps1 -Output Detailed
 ```
-
-`mise run ci` runs the same checks as the GitHub Actions workflows.
 
 ## PowerShell Profile Features
 

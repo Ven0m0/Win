@@ -126,5 +126,5 @@ When a `.ps1` script is created or modified, this skill validates:
 
 - **AGENTS.md** — Authoritative style & convention guide
 - **Scripts/Common.ps1** — Shared utility functions (use these!)
-- **.github/workflows/powershell.yml** — PSScriptAnalyzer CI
+- **.github/workflows/ci.yml** — PSScriptAnalyzer + Pester CI
 - **.github/instructions/powershell.instructions.md** — Detailed standards

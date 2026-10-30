@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 function Write-ColorOutput {
     [CmdletBinding()]
     param(
-        [Parameter(Position = 0, ValueFromPipeline = $true)]
+        [Parameter(Position = 0, ValueFromPipeline)]
         [System.Object]$Object,
         [System.ConsoleColor]$ForegroundColor,
         [System.ConsoleColor]$BackgroundColor,
@@ -127,7 +127,7 @@ function Show-Menu {
         Write-ColorOutput ""
     }
 
-    for ($i = 0; $i -lt $Options.Count; $i++) {
+    for (($i = 0), ($optionCount = $Options.Count); $i -lt $optionCount; $i++) {
         Write-ColorOutput "$($i + 1). $($Options[$i])"
     }
     Write-ColorOutput ""
@@ -2730,7 +2730,7 @@ function Invoke-ToolAboveNormal {
             $pending = @('', '')
             $drain = {
                 param([bool]$Final)
-                for ($i = 0; $i -lt $readers.Count; $i++) {
+                for (($i = 0), ($readerCount = $readers.Count); $i -lt $readerCount; $i++) {
                     $parts = @(($pending[$i] + $readers[$i].ReadToEnd()) -split "\r?\n")
                     $last = $parts[$parts.Count - 1]
                     $pending[$i] = if ($Final) { '' } else { $last }

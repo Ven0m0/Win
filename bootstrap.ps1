@@ -78,7 +78,9 @@ function Install-WingetPackage {
         [Parameter(Mandatory)][string]$Id,
         [Parameter(Mandatory)][string]$Name
     )
-    if (Get-Command $Command -ErrorAction SilentlyContinue) {
+    $existing = Get-Command $Command -ErrorAction SilentlyContinue
+    # Fresh Windows ships a python.exe Store stub under WindowsApps that is not a real interpreter.
+    if ($existing -and $existing.Source -notlike '*\Microsoft\WindowsApps\*') {
         Write-Ok "$Name is already installed"
         return $true
     }
@@ -107,7 +109,7 @@ if (-not $isAdmin -or -not $runFromFile) {
     if (-not $runFromFile) {
         Write-Info 'Running from a pipe (iex): saving bootstrap.ps1 to a temp file to relaunch...'
         $tempName = 'bootstrap-' + [guid]::NewGuid().ToString('N') + '.ps1'
-        $scriptFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $tempName"
+        $scriptFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $tempName
         $ProgressPreference = 'SilentlyContinue'
         $rawUrl = 'https://raw.githubusercontent.com/Ven0m0/Win/main/bootstrap.ps1'
         Invoke-WebRequest -Uri $rawUrl -OutFile $scriptFile -UseBasicParsing
@@ -248,8 +250,9 @@ $setupParams = @{}
 foreach ($key in $PSBoundParameters.Keys) { $setupParams[$key] = $PSBoundParameters[$key] }
 if ($WhatIfPreference) { $setupParams['WhatIf'] = $true }
 
-$setupResult = & $setupScript @setupParams
-if (-not $setupResult) {
+& $setupScript @setupParams
+# Setup-Win11 reports through its exit code; it emits nothing on the pipeline.
+if ($LASTEXITCODE -ne 0) {
     Write-Fail 'Windows 11 setup reported failure(s). Review the summary above.'
     exit 1
 }

@@ -159,7 +159,7 @@ function Start-InstallPackage {
             Write-Status 'winget is available' -Status 'OK'
         } catch {
             Write-Status "winget not available: $_. Install from https://aka.ms/getwinget" -Status 'FAIL'
-            exit 1
+            throw "winget not available: $_"
         }
     }
 

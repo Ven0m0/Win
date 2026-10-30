@@ -89,7 +89,7 @@ Describe "Start-AdditionalMaintenance" {
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SFC_ScanNow' } -Times 0
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_RestoreHealth' } -Times 0
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' -and $DryRun } `
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_MountpointCleanup' -and $DryRun } `
                 -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'Cleanmgr' -and $DryRun } -Times 1
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'StoreCacheClear' -and $DryRun } -Times 1
@@ -123,7 +123,7 @@ Describe "Start-AdditionalMaintenance" {
             Start-AdditionalMaintenance -NoRestorePoint
 
             Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'SystemRestorePoint' } -Times 0
-            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_ComponentCleanup' } -Times 1
+            Should -Invoke Invoke-Operation -ParameterFilter { $Name -eq 'DISM_MountpointCleanup' } -Times 1
         }
     }
 }
@@ -267,7 +267,7 @@ Describe "Invoke-ShaderCacheCleanup" {
             Mock Get-Content { return @('"libraryfolders"', '{', '}') }
 
             Mock ConvertFrom-VDF {
-                $obj = New-Object PSObject
+                $obj = [pscustomobject]@{}
                 $inner = @{ "0" = @{ "path" = '"C:\SteamLibrary"' } }
                 Add-Member -InputObject $obj -MemberType ScriptMethod -Name Item -Value { param($i); $null = $i; return $this.Inner }
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name Inner -Value $inner

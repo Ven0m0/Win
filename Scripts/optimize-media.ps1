@@ -322,7 +322,7 @@ function Invoke-BatchTool {
         [long]$saved = 0
         if ($FilePath.Count -eq 0) { return $saved }
 
-        for ($offset = 0; $offset -lt $FilePath.Count; $offset += $batchSize) {
+        for (($offset = 0), ($fileCount = $FilePath.Count); $offset -lt $fileCount; $offset += $batchSize) {
             $chunk = @($FilePath[$offset..([Math]::Min($offset + $batchSize, $FilePath.Count) - 1)])
             $done = $offset + $chunk.Count
             Write-Progress -Activity $Activity -Status "$done/$($FilePath.Count)" `
@@ -392,7 +392,7 @@ function Invoke-ResizePass {
         # pixel decode, and %i echoes the path exactly as passed so tab-splitting the
         # output can't be confused by paths containing spaces.
         $oversized = [System.Collections.Generic.List[string]]::new()
-        for ($offset = 0; $offset -lt $FilePath.Count; $offset += $batchSize) {
+        for (($offset = 0), ($fileCount = $FilePath.Count); $offset -lt $fileCount; $offset += $batchSize) {
             $chunk = @($FilePath[$offset..([Math]::Min($offset + $batchSize, $FilePath.Count) - 1)])
             $done = $offset + $chunk.Count
             Write-Progress -Activity 'Scanning image dimensions' -Status "$done/$($FilePath.Count)" `

@@ -133,10 +133,12 @@ Describe 'Setup-ClaudeCode.ps1' {
                 } | ConvertTo-Json -Depth 5)
         }
 
-        It 'Fails fast when the claude CLI is not on PATH' {
+        It 'Skips with a warning when the claude CLI is not on PATH' {
             Mock Test-ClaudeCliAvailable { $false }
+            Mock Write-Warning { }
 
-            { Start-ClaudeCodeSetup } | Should -Throw -ExpectedMessage "*'claude' CLI not found*"
+            { Start-ClaudeCodeSetup } | Should -Not -Throw
+            Should -Invoke Write-Warning -Times 1 -Exactly -ParameterFilter { $Message -like "*'claude' CLI not found*" }
         }
 
         It 'Collects a failing step and still runs the rest' {

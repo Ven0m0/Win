@@ -52,7 +52,6 @@
 #   nvidia\msi-afterburner\                        → manual — copy skin files to MSI Afterburner Skins directory
 #   cursors\                                       → manual — run setup-cursors.cmd as admin
 #   kilo\lsp.json                                  → ~/.kilo/lsp.json
-#   games\minecraft\                               → manual — open .mrpack files with Prism Launcher or MultiMC
 #   wsl\                                           → %USERPROFILE%\.wslconfig (host) + staged ~/.config/wsl.conf for manual /etc/wsl.conf copy
 #   vscode\User\settings.json                      → %APPDATA%\Code\User\settings.json or %APPDATA%\VSCodium\User\settings.json
 #   vscode\extensions.txt                          → installed via code/codium --install-extension (not a file deploy)
@@ -66,7 +65,7 @@
       quiet: true
 # -SkipWingetTools is fixed here: Setup-Win11.ps1 phase 3 (Install-Packages.ps1) owns tool installs.
 - shell:
-    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -SkipWingetTools
+    - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-Dotfiles.ps1 -SkipWingetTools -Unattended
       description: "Deploy all tracked dotfiles configs (see source->target map above)"
     - command: pwsh -NoProfile -ExecutionPolicy Bypass -File Scripts/Setup-ClaudeCode.ps1
       description: "Install Claude Code marketplaces, plugins, and MCP servers"

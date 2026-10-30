@@ -822,7 +822,6 @@ function Start-Bootstrap {
                 param($sourceDir, $label)
                 if (-not $isAdmin) {
                     Write-Warning "  [SKIP] $label - requires administrator privileges (re-run elevated to apply)"
-                    $deployFailures.Add([pscustomobject]@{ Label = $label; Error = 'Skipped - requires administrator privileges' })
                     return
                 }
                 $script = Join-Path $sourceDir 'nvidia-settings.ps1'
@@ -864,12 +863,6 @@ function Start-Bootstrap {
                 param($sourceDir, $label)
                 Install-VSCodeExtensions -SourceDir $sourceDir -Label $label
             }
-        },
-        @{
-            Path  = 'games\minecraft'
-            Mode  = 'manual'
-            Label = 'Minecraft modpacks'
-            Note  = 'manual import required; open .mrpack files with Prism Launcher or MultiMC to install.'
         },
         @{
             Path   = 'wsl'
@@ -966,7 +959,7 @@ function Start-Bootstrap {
         if ($needsFix) {
             if ($PSCmdlet.ShouldProcess('Machine PATH', "Insert $localBinPath ahead of $wingetLinksPath")) {
                 if ($wingetIndex -ge 0) {
-                    $machineEntries = @($machineEntries[0..($wingetIndex - 1)]) + $localBinPath + @($machineEntries[$wingetIndex..($machineEntries.Count - 1)])
+                    $machineEntries = @($machineEntries | Select-Object -First $wingetIndex) + $localBinPath + @($machineEntries[$wingetIndex..($machineEntries.Count - 1)])
                 }
                 else {
                     $machineEntries = @($localBinPath) + $machineEntries

@@ -42,7 +42,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `tests/`                                  | Pester test files (`*.Tests.ps1`)                       |
 | `user/.dotfiles/config/`                  | Tracked dotfile content (deploy targets)                |
 | `install.conf.yaml`                       | Dotbot configuration                                    |
-| `mise.toml`                                | Tool manifest — Python/uv, pipx-managed dotbot, `mise run bootstrap`/`deploy`/`lint`/`format`/`validate`/`ci` tasks |
+| `mise.toml`                                | Tool manifest — Python/uv, uvx-run dotbot, `mise run bootstrap`/`deploy` task |
 | `Scripts/packages.psd1`                    | Canonical package catalog — winget/scoop/choco/Bun/npm/Cargo/PS-modules/DISM-features/Appx-removal |
 | `docs/`                                   | Per-script documentation (`docs/<script>.md`)           |
 | `.claude/`                                | Claude Code agents, commands, rules, skills             |
@@ -97,7 +97,7 @@ Key constraints:
 - Template files use `##template` suffix; dotbot handles substitution
 - Machine-local PS overrides: untracked `$HOME\.dotfiles\config\powershell\local.ps1`
 
-**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `games/minecraft/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `rtk/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`, `claude/`, `git/`, `ssh/`, `psmux/`, `obs/`
+**Tracked config areas** (`user/.dotfiles/config/`): `powershell/`, `nvidia/` (incl. `msi-afterburner/`, `nvidia-settings.ps1`), `games/arc-raiders/`, `games/bf2/`, `games/bo6/`, `games/fortnite/`, `emulators/` (dolphin, azaharplus, eden - seed-only: copied when absent, tracked copies have tokens/paths stripped), `bat/`, `cargo/`, `rtk/`, `windows-terminal/`, `cmd/`, `browser/`, `bleachbit/`, `DDU/`, `mise/`, `scoop/`, `winget-configs/`, `cursors/`, `kilo/`, `opencode/`, `wsl/`, `topgrade/`, `ohmyposh/`, `vscode/`, `legcord/`, `handbrake/`, `claude/`, `git/`, `ssh/`, `psmux/`, `obs/`
 
 ## Gotchas
 
@@ -127,7 +127,6 @@ Key constraints:
 | ---------------------- | ---------------------------- | --------------------------------------------- |
 | `ci.yml`               | push to/PR on `main`         | PSScriptAnalyzer + full Pester suite, posts check annotations/inline comments |
 | `lint-format-test.yml` | push/PR on `*.ps1`           | Format check + `dotbot --dry-run` + Setup-Dotfiles `-WhatIf` |
-| `powershell.yml`       | push/PR on `*.ps1`           | SARIF-based PSScriptAnalyzer (Security tab)   |
 | `ps-format.yml`        | push/PR on `*.ps1/psm1/psd1` | Formatting (indent, BOM, trailing whitespace) |
 | `reg-validate.yml`     | push/PR on `*.reg`           | Registry file validation                      |
 

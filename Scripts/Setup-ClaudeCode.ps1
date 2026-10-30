@@ -185,7 +185,9 @@ function Start-ClaudeCodeSetup {
     param()
 
     if (-not (Test-ClaudeCliAvailable)) {
-        throw "'claude' CLI not found on PATH. Install Claude Code first."
+        # A missing CLI must not fail the whole dotbot deploy (e.g. -SkipPackages on a fresh machine).
+        Write-Warning "  [SKIP] 'claude' CLI not found on PATH. Install Claude Code, then re-run this script."
+        return
     }
 
     Write-Host ''

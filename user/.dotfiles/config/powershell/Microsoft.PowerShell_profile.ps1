@@ -266,7 +266,7 @@ function touch {
         Create new files or update timestamps, accepting pipeline input
     #>
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Mandatory, ValueFromPipeline)]
         [string[]]$Path
     )
 
@@ -287,7 +287,7 @@ function touch {
             [System.Collections.Generic.List[string]]$existingPaths = [System.Collections.Generic.List[string]]::new()
             [System.Collections.Generic.List[string]]$newPaths = [System.Collections.Generic.List[string]]::new()
 
-            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+            for (($i = 0), ($pathCount = $allPaths.Count); $i -lt $pathCount; $i++) {
                 if ($exists[$i]) {
                     $existingPaths.Add($allPaths[$i])
                 } else {
@@ -317,7 +317,7 @@ function mkcd {
         Create directory and change into it, accepting pipeline input
     #>
     param(
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        [Parameter(Mandatory, ValueFromPipeline)]
         [string[]]$Path
     )
 
@@ -335,7 +335,7 @@ function mkcd {
         if ($allPaths -and $allPaths.Count -gt 0) {
             [array]$exists = Test-Path -LiteralPath $allPaths
 
-            for ($i = 0; $i -lt $allPaths.Count; $i++) {
+            for (($i = 0), ($pathCount = $allPaths.Count); $i -lt $pathCount; $i++) {
                 $p = $allPaths[$i]
                 if ($exists[$i]) {
                     Write-Warning "Directory $p already exists."

@@ -100,7 +100,11 @@ Describe "Clear-DirectorySafe" {
 
 Describe "Invoke-ServiceOperation" {
     It "Warns when the restart fails" {
-        Mock Get-Service { [pscustomobject]@{ Status = 'Running' } }
+        Mock Get-Service {
+            $svc = [pscustomobject]@{ Status = 'Running' }
+            $svc | Add-Member -MemberType ScriptMethod -Name WaitForStatus -Value { param($s, $t) }
+            $svc
+        }
         Mock Stop-Service { }
         Mock Start-Service { throw 'cannot start' }
         Mock Write-Warning { }

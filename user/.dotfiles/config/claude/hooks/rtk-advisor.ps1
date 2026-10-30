@@ -56,7 +56,7 @@ function Split-Pipeline {
   $stages = [System.Collections.Generic.List[string]]::new()
   $sb = [System.Text.StringBuilder]::new()
   $quote = [char]0
-  for ($i = 0; $i -lt $Cmd.Length; $i++) {
+  for (($i = 0), ($cmdLength = $Cmd.Length); $i -lt $cmdLength; $i++) {
     $c = $Cmd[$i]
     if ($c -eq '\' -and $quote -ne "'" -and $i + 1 -lt $Cmd.Length) {
       $null = $sb.Append($c).Append($Cmd[$i + 1])

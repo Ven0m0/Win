@@ -59,16 +59,42 @@ jobs:
 
           Write-Host "Analyzing $($psFiles.Count) file(s)..."
 
-          $params = @{ Path = $psFiles.FullName }
-          if ($settingsFile) { $params['Settings'] = $settingsFile }
+          # Community rules from the PowerShell Gallery; the settings file names the rules to run.
+          Install-Module Indented.ScriptAnalyzerRules -Scope CurrentUser -Force
 
-          $results = Invoke-ScriptAnalyzer @params -ErrorAction Continue
-          $issues  = $results | Where-Object { $_.Severity -in 'Error','Warning' }
+          # OptimizationRules is only published on a personal MyGet feed (not the Gallery), so pin the version.
+          # A feed outage must not fail the build: skip the pack and lint without its rule.
+          $ruleModules = @('Indented.ScriptAnalyzerRules')
+          try {
+            Register-PSRepository -Name ottomatt -SourceLocation 'https://www.myget.org/F/ottomatt/api/v2' `
+              -InstallationPolicy Trusted -ErrorAction Stop
+            Install-Module OptimizationRules -RequiredVersion 0.4.0 -Repository ottomatt -Scope CurrentUser `
+              -Force -ErrorAction Stop
+            $ruleModules += 'OptimizationRules'
+          } catch {
+            $err = $_
+            Write-Host "::warning::OptimizationRules unavailable, skipping Measure-OptimizeForStatement: $($err.Exception.Message)"
+          }
+
+          $ruleFiles = foreach ($name in $ruleModules) {
+            $module = Get-Module -ListAvailable $name | Select-Object -First 1
+            Join-Path $module.ModuleBase "$name.psm1"
+          }
+
+          $params = @{ CustomRulePath = @($ruleFiles) }
+          if ($settingsFile) { $params['Settings'] = $settingsFile }
+          if ($ruleModules -notcontains 'OptimizationRules') { $params['ExcludeRule'] = 'Measure-OptimizeForStatement' }
+
+          # -Path takes a single string: passing the whole array errors out and used to leave the results empty.
+          $results = foreach ($file in $psFiles.FullName) {
+            Invoke-ScriptAnalyzer -Path $file @params -ErrorAction Continue
+          }
+          $issues  = @($results | Where-Object { $_.Severity -in 'Error','Warning','ParseError' })
 
           # Emit GitHub workflow annotations
           foreach ($r in $issues) {
             $rel = ($r.ScriptPath -replace [regex]::Escape($PWD.Path + '\'), '') -replace '\\','/'
-            $lvl = if ($r.Severity -eq 'Error') { 'error' } else { 'warning' }
+            $lvl = if ($r.Severity -in 'Error','ParseError') { 'error' } else { 'warning' }
             Write-Host "::$lvl file=$rel,line=$($r.Line),col=$($r.Column)::[$($r.RuleName)] $($r.Message)"
           }
 

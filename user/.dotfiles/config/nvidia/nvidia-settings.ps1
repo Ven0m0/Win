@@ -25,6 +25,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Checked before elevating so machines without an NVIDIA GPU never see a UAC prompt or nvlddmkm writes.
+$hasNvidiaGpu = @(Get-CimInstance -ClassName Win32_VideoController -ErrorAction SilentlyContinue |
+  Where-Object { $_.Name -like '*NVIDIA*' }).Count -gt 0
+if (-not $hasNvidiaGpu) {
+  Write-Warning '  [SKIP] NVIDIA settings - no NVIDIA GPU detected.'
+  return
+}
+
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
   [Security.Principal.WindowsBuiltInRole]::Administrator
 )
@@ -56,12 +64,16 @@ function Resolve-NvidiaProfileInspector {
 
   $nvpiCmd = Get-Command -Name 'nvpi-r' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
   if (-not $nvpiCmd) {
-    throw 'nvpi-r.exe not found on PATH. Install NVPI Revamped first (winget install xHybred.NVPIRevamped, or run the package install step).'
+    return $null
   }
   return $nvpiCmd.Source
 }
 
 $inspectorExe = Resolve-NvidiaProfileInspector
+if (-not $inspectorExe) {
+  Write-Warning '  [SKIP] NVIDIA settings - nvpi-r.exe not found. Install NVPI Revamped (winget install xHybred.NVPIRevamped) and re-run.'
+  return
+}
 $profilesDir = Join-Path $PSScriptRoot '..\nvidia\profiles'
 $drsPath = 'C:\ProgramData\NVIDIA Corporation\Drs'
 

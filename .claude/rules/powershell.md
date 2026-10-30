@@ -251,6 +251,10 @@ Persisted credentials/secrets: `Export-Clixml`/`Import-Clixml` (DPAPI-protected,
 - `foreach` language construct is faster than `ForEach-Object` for in-memory collections
 - Rough ordering when it matters: language features > compiled .NET methods > script > cmdlet/pipeline calls
 - Measure before optimizing (`Measure-Command`); don't trade readability for a gain that won't matter at this repo's data sizes
+- Cache the bound of an indexed `for` loop: `for (($i = 0), ($count = $items.Count); $i -lt $count; $i++)`. The parentheses are required: unparenthesized `$i = 0, $count = ...` is a parse error (`OptimizationRules`: `Measure-OptimizeForStatement`)
+- `[pscustomobject]@{ ... }`, not `New-Object PSObject` (`AvoidNewObjectToCreatePSObject`)
+- Attribute booleans are expressionless: `[Parameter(Mandatory, ValueFromPipeline)]`, not `Mandatory = $true` (`UseExpressionlessArgumentsInTheParameterAttribute`)
+- No en/em dashes or smart quotes in code (`AvoidDashCharacters`, `AvoidSmartQuotes`); they break 5.1 parsing
 
 ---
 
@@ -277,6 +281,10 @@ if ($PSVersionTable.PSVersion.Major -ge 7) {
 ## 10. CI Reminders
 
 - Lint before committing: `Invoke-ScriptAnalyzer -Path <file> -Settings PSScriptAnalyzerSettings.psd1`
+- Community rules: `Install-Module Indented.ScriptAnalyzerRules -Scope CurrentUser`, then add
+  `-CustomRulePath (Join-Path (Get-Module -ListAvailable Indented.ScriptAnalyzerRules).ModuleBase 'Indented.ScriptAnalyzerRules.psm1')`
+  (the settings file already lists the rule names; the path is machine-specific, so it is passed, not stored). CI does this.
+  `OptimizationRules` 0.4.0 comes from the third-party MyGet feed `ottomatt` (not the Gallery); CI registers the feed and pins that version
 - Run tests when the changed area has coverage: `Invoke-Pester -Path tests/ -Output Minimal`
 - CI-enforced (pipeline fails): `PSAvoidGlobalAliases`, `PSAvoidUsingConvertToSecureStringWithPlainText`
 

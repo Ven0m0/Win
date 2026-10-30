@@ -18,6 +18,13 @@
     'PSUseConsistentWhitespace'
     'PSUseSupportsShouldProcess'
     'PSUseVerbosityForRequestedLevel'
+    # Community packs (Indented.ScriptAnalyzerRules, OptimizationRules). Only active when the caller passes
+    # -CustomRulePath; the module path differs per machine, so it cannot live in this file.
+    'AvoidDashCharacters'
+    'AvoidNewObjectToCreatePSObject'
+    'AvoidSmartQuotes'
+    'UseExpressionlessArgumentsInTheParameterAttribute'
+    'Measure-OptimizeForStatement'
   )
   # Rules to exclude (not applicable for this repo)
   ExcludeRules = @(

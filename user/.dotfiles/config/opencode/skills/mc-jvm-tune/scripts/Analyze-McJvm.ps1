@@ -307,9 +307,9 @@ if (-not $gcFile) {
       $ordered = @($steady | Sort-Object t)
       $young = @($ordered | Where-Object { $_.kind -like 'Young*' })
       if ($young.Count -gt 1) {
-        $gaps = for ($i = 1; $i -lt $young.Count; $i++) { $young[$i].t - $young[$i - 1].t }
+        $gaps = for (($i = 1), ($youngCount = $young.Count); $i -lt $youngCount; $i++) { $young[$i].t - $young[$i - 1].t }
         $alloc = 0
-        for ($i = 1; $i -lt $ordered.Count; $i++) { $alloc += [math]::Max(0, $ordered[$i].pre - $ordered[$i - 1].post) }
+        for (($i = 1), ($orderedCount = $ordered.Count); $i -lt $orderedCount; $i++) { $alloc += [math]::Max(0, $ordered[$i].pre - $ordered[$i - 1].post) }
         $dur = $ordered[-1].t - $ordered[0].t
         "Young GC every ~$([math]::Round((Get-Percentile ($gaps | Sort-Object) 50), 1)) s; allocation ~$([math]::Round($alloc / [math]::Max(1, $dur))) MB/s"
       }

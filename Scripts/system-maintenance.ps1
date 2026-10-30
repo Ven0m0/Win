@@ -567,7 +567,7 @@ function Start-UltimateDiskCleanup {
   $checkALL.ForeColor = 'White'
   $checkALL.AutoSize = $true
   $checkALL.add_CheckedChanged({
-    for ($i = 0; $i -lt $options.Count; $i++) {
+    for (($i = 0), ($optionCount = $options.Count); $i -lt $optionCount; $i++) {
       $checkedListBox.SetItemChecked($i, $checkALL.Checked)
     }
   })

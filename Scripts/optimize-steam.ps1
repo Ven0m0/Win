@@ -142,7 +142,7 @@ function writevdf($tree) {
 }
 
 function findentry([vdfnode]$node, [string]$name) {
-    for ($i = 0; $i -lt $node.entries.Count; $i++) { if ($node.entries[$i].name -ceq $name) { return $i } }
+    for (($i = 0), ($entryCount = $node.entries.Count); $i -lt $entryCount; $i++) { if ($node.entries[$i].name -ceq $name) { return $i } }
     -1
 }
 

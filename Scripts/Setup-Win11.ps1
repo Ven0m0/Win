@@ -164,6 +164,9 @@ function Start-SetupWin11 {
         }
     } else { Write-Status 'PowerShell 7+ is available' -Status 'OK' }
 
+    # Fresh winget installs only update the registry PATH; dotbot's `pwsh` steps need it in this process.
+    Update-EnvironmentPath
+
     if (-not (Get-Command mise -ErrorAction SilentlyContinue)) {
         Write-Status 'mise not found - run bootstrap.ps1 first (installs git/python/mise/uv and clones the repo)' -Status 'FAIL'
         return $false
@@ -223,9 +226,11 @@ function Start-SetupWin11 {
             & (Join-Path $repoRoot 'Scripts\Setup-ClaudeCode.ps1') -WhatIf
             Write-Status 'Bootstrap previewed (WhatIf)' -Status 'OK'
         } else {
-            mise install
+            # Out-Host keeps tool output out of this function's return value (a non-empty array is truthy).
+            mise trust | Out-Host
+            mise install | Out-Host
             if ($LASTEXITCODE -ne 0) { throw "mise install failed with exit code $LASTEXITCODE" }
-            mise run bootstrap
+            mise run bootstrap | Out-Host
             if ($LASTEXITCODE -ne 0) { throw "mise run bootstrap failed with exit code $LASTEXITCODE" }
             Write-Status 'Bootstrap completed' -Status 'OK'
         }
