@@ -16,6 +16,8 @@
     4. Profile-only: $ProfileOnlyPackages (GMS) stay on speed-profile.
     5. Report the resulting status of every package from steps 3 and 4.
 
+  Optional display tuning (only when -SessionProps is passed) runs before the compile steps.
+
   Needs adb in PATH and USB/wireless debugging enabled. No root needed.
 .PARAMETER Serial
   adb device serial. Optional when only one device is connected.
@@ -23,17 +25,48 @@
   Skip step 1.
 .PARAMETER SkipBase
   Skip step 2 (the slowest step).
+.PARAMETER SessionProps
+  Switch HWUI and RenderEngine to Vulkan (skiavk) with the same properties as the APO app's SkiaVK option.
+  Some apps misrender with it.
+.PARAMETER DisableAA
+  Turn off forced SSAA/SMAA/TAA/MSAA/FXAA (APO "Disable AA").
+.PARAMETER DisableVSync
+  Set the swap-interval/vsync debug properties to 0 (APO "Disable V-Sync"). Can cause tearing.
+.PARAMETER GpuAccel
+  Enable hardware acceleration debug properties plus performance tuning (APO "GPU & Hardware Accel").
+.PARAMETER Snapdragon
+  With -GpuAccel, also enable UBWC framebuffers (Qualcomm SoCs only).
+.PARAMETER TouchTuning
+  Apply the APO touch optimization properties. -TouchTimerMs sets the SurfaceFlinger touch timer.
+.PARAMETER RamGb
+  Apply the APO HWUI cache sizes for a device with this much RAM (2, 3, 4, 6, 8, 12, 16 or 24).
+
+  Any of the tuning switches above (and -SessionProps) sets properties that reset on reboot, then force-stops
+  every app and restarts SystemUI so they take effect, like the APO app does.
 .EXAMPLE
   .\optimize-android-art.ps1
 .EXAMPLE
   .\optimize-android-art.ps1 -SkipCleanup -SkipBase
   Only recompile the tuned app lists, e.g. after a few app updates.
+.EXAMPLE
+  .\optimize-android-art.ps1 -SkipCleanup -SkipBase -SessionProps
+  Enable Vulkan rendering (restarts SystemUI).
+.EXAMPLE
+  .\optimize-android-art.ps1 -SkipCleanup -SkipBase -SessionProps -DisableAA -DisableVSync -GpuAccel -RamGb 8
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
   [string]$Serial,
   [switch]$SkipCleanup,
-  [switch]$SkipBase
+  [switch]$SkipBase,
+  [switch]$SessionProps,
+  [switch]$DisableAA,
+  [switch]$DisableVSync,
+  [switch]$GpuAccel,
+  [switch]$Snapdragon,
+  [switch]$TouchTuning,
+  [ValidateRange(1, 5000)][int]$TouchTimerMs = 200,
+  [ValidateSet(2, 3, 4, 6, 8, 12, 16, 24)][int]$RamGb
 )
 
 . "$PSScriptRoot\Common.ps1"
@@ -43,16 +76,16 @@ $FullAotPackages = @(
   # System
   'com.android.systemui', 'com.nothing.launcher', 'com.android.settings', 'com.nothing.camera'
   # WebView and browsers
-  'com.google.android.webview.beta', 'io.github.jqssun.helium', 'com.brave.browser_beta'
+  'com.google.android.webview.beta', 'io.github.jqssun.helium', 'com.brave.browser'
   'io.github.forkmaintainers.iceraven'
   # Media
   'app.morphe.android.youtube', 'app.morphe.android.apps.youtube.music', 'com.vivi.vivimusic'
   'com.arn.scrobble'
   # Messaging and social
-  'dev.shiggy.cord', 'com.whatsapp', 'com.instafel.android', 'com.snapchat.android'
+  'com.discord.venus', 'com.whatsapp', 'com.instafel.android', 'com.snapchat.android'
   'com.zhiliaoapp.musically', 'com.reddit.frontpage'
   # Tools
-  'com.leanbitlab.leantype', 'com.hamondev.shevery', 'com.google.android.apps.maps'
+  'com.leanbitlab.leantype', 'af.shizuku.plus.api', 'com.google.android.apps.maps'
   'me.zhanghai.android.files', 'org.fossify.gallery', 'com.nextcloud.client'
   # Background and critical
   'org.breezyweather', 'app.revanced.android.gms', 'com.x8bit.bitwarden', 'com.freestylelibre3.app.de'
@@ -109,6 +142,110 @@ function Invoke-DeviceCleanup {
   Invoke-Adb shell $remote | Where-Object -FilterScript { $_ } | ForEach-Object -Process { Write-Info $_ }
 }
 
+# HWUI cache sizes per device RAM (GB), copied from the APO app:
+# text small W/H, text large W/H, layer, path, texture, r-buffer, drop shadow, texture flush rate.
+$RamProfiles = @{
+  2  = 512, 512, 1024, 512, 24, 16, 32, 4, 2, 0.3
+  3  = 512, 512, 1024, 512, 32, 16, 48, 4, 3, 0.35
+  4  = 1024, 512, 1024, 1024, 48, 24, 64, 6, 4, 0.4
+  6  = 1024, 512, 2048, 1024, 64, 32, 72, 6, 5, 0.4
+  8  = 1024, 1024, 2048, 1024, 96, 48, 96, 8, 6, 0.45
+  12 = 1024, 1024, 2048, 1024, 128, 64, 128, 8, 8, 0.5
+  16 = 2048, 1024, 2048, 2048, 160, 96, 160, 8, 10, 0.5
+  24 = 2048, 1024, 2048, 2048, 192, 128, 192, 8, 12, 0.5
+}
+
+function Get-DisplayTuningCommand {
+  <#
+  .SYNOPSIS
+    Returns the device shell commands for the selected tuning switches (same sets as the APO app).
+  #>
+  [OutputType([string[]])]
+  param()
+  $commands = [System.Collections.Generic.List[string]]::new()
+  if ($SessionProps) {
+    $commands.AddRange([string[]]@(
+        'device_config put systemui enable_hw_accelerated_canvas true'
+        'settings put global render_shadows_in_compositor 1'
+        'setprop debug.hwui.renderer skiavk'
+        'setprop debug.hwui.default_renderer skiavk'
+        'setprop debug.renderengine.backend skiavkthreaded'
+        'setprop debug.hwui.renderengine.backend skiavkthreaded'
+        'setprop debug.hwui.use_vulkan true'
+        'setprop debug.hwui.force_vulkan true'
+        'setprop debug.hwui.disable_opengl true'
+        'setprop debug.skia.vulkan_as_default true'
+        'setprop debug.sf.enable_hwc_vulkan true'
+        'setprop debug.renderthread.skia.reduceopstasksplitting true'
+        'setprop debug.renderengine.capture_skia_ms 0'
+        'setprop debug.renderengine.skia_atrace_enabled false'
+        'setprop debug.hwui.skia_use_perfetto_track_events false'
+        'setprop debug.hwui.skia_tracing_enabled false'
+      ))
+  }
+  if ($DisableAA) {
+    foreach ($mode in 'ssaa', 'smaa', 'taa', 'msaa', 'fxaa') {
+      $commands.Add("setprop debug.egl.force_$mode false")
+    }
+  }
+  if ($DisableVSync) {
+    $commands.AddRange([string[]]@(
+        'setprop debug.egl.swapinterval 0'
+        'setprop debug.gr.swapinterval 0'
+        'setprop debug.gpurend.vsync false'
+        'setprop debug.hwui.disable_vsync true'
+      ))
+  }
+  if ($GpuAccel) {
+    if ($Snapdragon) { $commands.Add('setprop debug.gralloc.enable_fb_ubwc 1') }
+    $commands.AddRange([string[]]@(
+        'setprop debug.performance.tuning 1'
+        'setprop debug.sf.hw 1'
+        'setprop debug.video.accelerate.hw 1'
+      ))
+  }
+  if ($TouchTuning) {
+    $commands.AddRange([string[]]@(
+        'setprop debug.sf.touch_latency_opt 1'
+        "setprop debug.sf.set_touch_timer_ms $TouchTimerMs"
+        'setprop touch.deviceType touchScreen'
+        'setprop touch.gestureMode spots'
+        'setprop touch.orientation.calibration none'
+        'setprop touch.pressure.calibration amplitude'
+        'setprop touch.pressure.scale 0.001'
+        'setprop touch.size.calibration diameter'
+        'setprop touch.size.scale 1'
+        'setprop touch.size.bias 0'
+        'setprop touch.size.isSummed 0'
+        'setprop MultitouchSettleInterval 1ms'
+        'setprop MultitouchMinDistance 1px'
+        'setprop TapInterval 1ms'
+        'setprop TapSlop 1px'
+      ))
+  }
+  if ($RamGb) {
+    $r = $RamProfiles[[int]$RamGb]
+    $names = 'text_small_cache_width', 'text_small_cache_height', 'text_large_cache_width',
+    'text_large_cache_height', 'layer_cache_size', 'path_cache_size', 'texture_cache_size',
+    'r_buffer_cache_size', 'gradient_cache_size', 'drop_shadow_cache_size', 'texture_cache_flushrate'
+    $values = $r[0..7] + 1 + $r[8..9]
+    for ($i = 0; $i -lt $names.Count; $i++) {
+      $commands.Add("setprop debug.hwui.$($names[$i]) $($values[$i])")
+    }
+  }
+  $commands.ToArray()
+}
+
+function Set-DisplayTuning {
+  $commands = @(Get-DisplayTuningCommand)
+  if ($commands.Count -eq 0) { return }
+  Write-Warn 'Tuning resets on reboot; all apps are force-stopped and SystemUI restarts to apply it'
+  # Reload like the APO app: apps and SystemUI only read these properties at start.
+  $reload = 'for p in $(pm list packages | cut -d: -f2); do am force-stop $p; done; am crash com.android.systemui'
+  $remote = ($commands -join '; ') + '; ' + $reload
+  Invoke-Adb shell $remote | Where-Object -FilterScript { $_ } | ForEach-Object -Process { Write-Info $_ }
+}
+
 function Invoke-BaseCompile {
   # Runs on the device in one adb call; no double quotes so Windows argument quoting stays out of the way.
   # The tuned lists are left out because Invoke-TunedCompile recompiles them and would discard this work.
@@ -148,6 +285,11 @@ function Start-AndroidArtOptimization {
   param()
 
   Test-AdbDevice
+  $tuning = $SessionProps -or $DisableAA -or $DisableVSync -or $GpuAccel -or $TouchTuning -or $RamGb
+  if ($tuning -and $PSCmdlet.ShouldProcess('device', 'Apply display tuning')) {
+    Write-Phase 'Display tuning'
+    Set-DisplayTuning
+  }
   if (-not $SkipCleanup -and $PSCmdlet.ShouldProcess('device', 'Clean up caches and storage')) {
     Write-Phase 'Cleanup'
     Invoke-DeviceCleanup

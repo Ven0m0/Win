@@ -32,7 +32,7 @@ Describe 'Invoke-TunedCompile' {
   }
 
   It 'falls back to speed when everything-profile ends on verify' {
-    Mock Invoke-Adb { 'package:dev.shiggy.cord' }
+    Mock Invoke-Adb { 'package:com.discord.venus' }
     Mock Invoke-PackageCompile {
       $status = if ($Filter -eq 'everything-profile') { 'verify' } else { $Filter }
       [pscustomobject]@{ Package = $Package; Result = 'Success'; Status = $status }
@@ -176,6 +176,86 @@ Describe 'Invoke-DeviceCleanup' {
   }
 }
 
+Describe 'Get-DisplayTuningCommand' {
+  BeforeEach {
+    $SessionProps = $DisableAA = $DisableVSync = $GpuAccel = $Snapdragon = $TouchTuning = [switch]$false
+    $TouchTimerMs = 200
+    $RamGb = 0
+  }
+
+  It 'returns nothing when no tuning is requested' {
+    @(Get-DisplayTuningCommand).Count | Should -Be 0
+  }
+
+  It 'sets the full skiavk property set for -SessionProps' {
+    $SessionProps = [switch]$true
+    $cmds = Get-DisplayTuningCommand
+    $cmds | Should -Contain 'setprop debug.hwui.renderer skiavk'
+    $cmds | Should -Contain 'setprop debug.renderengine.backend skiavkthreaded'
+    $cmds | Should -Contain 'setprop debug.sf.enable_hwc_vulkan true'
+  }
+
+  It 'turns off all five AA modes and vsync' {
+    $DisableAA = [switch]$true
+    $DisableVSync = [switch]$true
+    $cmds = Get-DisplayTuningCommand
+    $cmds | Should -Contain 'setprop debug.egl.force_fxaa false'
+    $cmds | Should -Contain 'setprop debug.hwui.disable_vsync true'
+    @($cmds | Where-Object { $_ -like 'setprop debug.egl.force_*' }).Count | Should -Be 5
+  }
+
+  It 'adds performance tuning, and UBWC only with -Snapdragon' {
+    $GpuAccel = [switch]$true
+    Get-DisplayTuningCommand | Should -Contain 'setprop debug.performance.tuning 1'
+    Get-DisplayTuningCommand | Should -Not -Contain 'setprop debug.gralloc.enable_fb_ubwc 1'
+    $Snapdragon = [switch]$true
+    Get-DisplayTuningCommand | Should -Contain 'setprop debug.gralloc.enable_fb_ubwc 1'
+  }
+
+  It 'uses the touch timer value' {
+    $TouchTuning = [switch]$true
+    $TouchTimerMs = 120
+    Get-DisplayTuningCommand | Should -Contain 'setprop debug.sf.set_touch_timer_ms 120'
+  }
+
+  It 'maps -RamGb to the APO cache sizes' {
+    $RamGb = 8
+    $cmds = Get-DisplayTuningCommand
+    $cmds | Should -Contain 'setprop debug.hwui.layer_cache_size 96'
+    $cmds | Should -Contain 'setprop debug.hwui.gradient_cache_size 1'
+    $cmds | Should -Contain 'setprop debug.hwui.texture_cache_flushrate 0.45'
+    $cmds.Count | Should -Be 11
+  }
+}
+
+Describe 'Set-DisplayTuning' {
+  BeforeAll {
+    Mock Write-Info { }
+    Mock Write-Warn { }
+  }
+
+  It 'does nothing when there are no commands' {
+    Mock Get-DisplayTuningCommand { }
+    Mock Invoke-Adb { }
+
+    Set-DisplayTuning
+
+    Should -Invoke Invoke-Adb -Times 0 -Exactly
+  }
+
+  It 'runs the commands then reloads apps and SystemUI in one adb call' {
+    Mock Get-DisplayTuningCommand { 'setprop debug.hwui.renderer skiavk', 'setprop debug.sf.hw 1' }
+    Mock Invoke-Adb { }
+
+    Set-DisplayTuning
+
+    Should -Invoke Invoke-Adb -Times 1 -Exactly -ParameterFilter {
+      $args[1] -like 'setprop debug.hwui.renderer skiavk; setprop debug.sf.hw 1; *am force-stop*am crash com.android.systemui'
+    }
+    Should -Invoke Write-Warn -Times 1 -Exactly
+  }
+}
+
 Describe 'Invoke-BaseCompile' {
   BeforeAll {
     Mock Write-Info { }
@@ -248,6 +328,7 @@ Describe 'Start-AndroidArtOptimization' {
     Mock Test-AdbDevice { }
     Mock Invoke-DeviceCleanup { }
     Mock Invoke-BaseCompile { }
+    Mock Set-DisplayTuning { }
     Mock Write-Phase { }
     Mock Write-Success { }
     Mock Write-Fail { }
@@ -257,9 +338,21 @@ Describe 'Start-AndroidArtOptimization' {
   BeforeEach {
     $SkipCleanup = [switch]$false
     $SkipBase = [switch]$false
+    $SessionProps = [switch]$false
+    $DisableAA = $DisableVSync = $GpuAccel = $TouchTuning = [switch]$false
+    $RamGb = 0
     Mock Invoke-TunedCompile {
       [pscustomobject]@{ Package = 'com.a'; Result = 'Success'; Status = 'speed' }
     }
+  }
+
+  It 'applies display tuning only when requested' {
+    Start-AndroidArtOptimization | Should -Be 0
+    Should -Invoke Set-DisplayTuning -Times 0 -Exactly
+
+    $SessionProps = [switch]$true
+    Start-AndroidArtOptimization | Should -Be 0
+    Should -Invoke Set-DisplayTuning -Times 1 -Exactly
   }
 
   It 'runs cleanup, base and tuned compile, then returns 0' {
