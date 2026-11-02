@@ -13,6 +13,8 @@
               versions, Windows.old, ESD files), cache rebuilds, BITS/DNS/temp/recycle-bin/event-log cleanup,
               Windows Update download cache purge, optional restore point
     DriverCleanup - remove orphaned/unused driver packages from the driver store
+    Installer - move orphaned .msi/.msp files out of C:\Windows\Installer (InstallerClean-style;
+              files registered with Windows Installer are never touched)
     All     - run Defrag, Shader, then Extra (Disk is interactive and must be selected explicitly)
 .PARAMETER Action
   Which maintenance task to run. Defaults to Defrag.
@@ -36,6 +38,9 @@
   Defaults to $HOME\project.
 .PARAMETER CargoSweepDays
   cargo-sweep removes build artifacts not used in this many days (default: 30).
+.PARAMETER InstallerBackupPath
+  For the Installer action, folder that receives orphaned installer files (moved, not deleted, so they
+  can be restored). Defaults to $HOME\Documents\InstallerClean-bak. Must not be inside C:\Windows\Installer.
 .PARAMETER DryRun
   Show what would run without executing. Defrag and Extra list each step; Shader, DriverCleanup,
   and Disk are skipped entirely. Suppresses the maintenance log file write for Extra.
@@ -56,7 +61,7 @@
   Justification = 'Read by the action functions via script scope')]
 [CmdletBinding(SupportsShouldProcess)]
 param(
-  [ValidateSet('Defrag', 'Disk', 'Shader', 'Extra', 'DriverCleanup', 'All')]
+  [ValidateSet('Defrag', 'Disk', 'Shader', 'Extra', 'DriverCleanup', 'Installer', 'All')]
   [string]$Action = 'Defrag',
   [string]$Volume = 'C:',
   [switch]$AllVolumes,
@@ -67,6 +72,7 @@ param(
   [switch]$IncludeSteamDownloads,
   [string]$CargoProjectRoot = (Join-Path -Path $HOME -ChildPath 'project'),
   [int]$CargoSweepDays = 30,
+  [string]$InstallerBackupPath = (Join-Path -Path $HOME -ChildPath 'Documents\InstallerClean-bak'),
   [switch]$DryRun,
   [switch]$Help
 )
@@ -290,11 +296,9 @@ function Start-AdditionalMaintenance {
   Write-Info "=== Disk Cleanup (cleanmgr) ==="
   Invoke-Operation -Name 'Cleanmgr' -Results $Results -DryRun:$DryRun -Result 'COMPLETE' -Action {
     $null = Set-CleanmgrSelection -Id 70 -Exclude $script:CleanmgrUnattendedExclude
+    # Not awaited: the Update Cleanup handler can run for 30+ minutes, and nothing later depends on it.
     $proc = Start-Process -FilePath 'cleanmgr.exe' -ArgumentList '/sagerun:70' -PassThru
-    if (-not $proc.WaitForExit(1800 * 1000)) {
-      Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-      throw 'cleanmgr timed out after 1800s'
-    }
+    Write-Info "cleanmgr started in background (PID $($proc.Id))"
   }
 
   # 2d. Windows Update download cache
@@ -370,6 +374,11 @@ function Start-AdditionalMaintenance {
     foreach ($entry in $cacheCommands) {
       if (-not (Get-Command -Name $entry.Tool -CommandType Application -ErrorAction SilentlyContinue)) {
         Write-Verbose "Skipping $($entry.Tool) cache: not installed"
+        continue
+      }
+      # uv blocks until other uv processes release the cache lock; skip instead of waiting.
+      if (($entry.Tool -eq 'uv') -and (Get-Process -Name 'uv', 'uvx' -ErrorAction SilentlyContinue)) {
+        Write-Warn 'Skipping uv cache clean: uv is in use'
         continue
       }
       Write-Info "$($entry.Tool) $($entry.Arguments -join ' ')"
@@ -844,6 +853,54 @@ function Start-DriverCleanup {
 
 
 # ---------------------------------------------------------------------------
+# Installer action: move orphaned .msi/.msp files out of C:\Windows\Installer
+# ---------------------------------------------------------------------------
+function Invoke-InstallerCleanup {
+  [CmdletBinding(SupportsShouldProcess)]
+  param(
+    [Parameter(Mandatory)]
+    [string]$BackupPath
+  )
+
+  $installerDir = Join-Path -Path $env:SystemRoot -ChildPath 'Installer'
+  if ($BackupPath.TrimEnd('\') -like "$installerDir*") {
+    throw "Backup path must be outside $installerDir"
+  }
+
+  # Ask Windows Installer for every cached package it still needs (products and patches, all contexts).
+  # An incomplete list would orphan live packages, so any COM failure aborts instead of continuing.
+  $msi = New-Object -ComObject WindowsInstaller.Installer
+  $registered = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+  foreach ($product in $msi.ProductsEx('', '', 7)) {
+    $null = $registered.Add([string]$product.InstallProperty('LocalPackage'))
+  }
+  foreach ($patch in $msi.PatchesEx('', '', 7, 15)) {
+    $null = $registered.Add([string]$patch.PatchProperty('LocalPackage'))
+  }
+  if ($registered.Count -eq 0) {
+    throw 'Windows Installer reported no registered packages; refusing to treat everything as orphaned.'
+  }
+
+  $orphans = @(Get-ChildItem -LiteralPath $installerDir -File -Force |
+    Where-Object { $_.Extension -in '.msi', '.msp' -and -not $registered.Contains($_.FullName) })
+  $totalMb = [math]::Round((($orphans | Measure-Object -Property Length -Sum).Sum) / 1MB, 1)
+  Write-Info "Installer: $($registered.Count) registered packages, $($orphans.Count) orphaned ($totalMb MB)"
+
+  foreach ($file in $orphans) {
+    if ($DryRun) {
+      Write-Information "DRY: Move-Item '$($file.FullName)' -> '$BackupPath'" -InformationAction Continue
+    } elseif ($PSCmdlet.ShouldProcess($file.FullName, "Move to $BackupPath")) {
+      if (-not (Test-Path -LiteralPath $BackupPath -PathType Container)) {
+        $null = New-Item -Path $BackupPath -ItemType Directory -Force
+      }
+      Move-Item -LiteralPath $file.FullName -Destination $BackupPath -Force
+    }
+  }
+  Write-Success 'Installer cleanup done.'
+}
+
+
+# ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
 if ($MyInvocation.InvocationName -ne '.') {
@@ -882,6 +939,9 @@ if ($MyInvocation.InvocationName -ne '.') {
       }
       'DriverCleanup' {
         Start-DriverCleanup
+      }
+      'Installer' {
+        Invoke-InstallerCleanup -BackupPath $InstallerBackupPath
       }
       'All' {
         if (-not $NoDefrag) {
