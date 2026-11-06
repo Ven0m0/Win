@@ -97,6 +97,8 @@ Rules that come from real incidents on pi4:
 
 - Back up any file before editing it: `sudo cp -a f f.bak-$(date +%F)`. Then validate
   (`php -l` for PHP, `nginx -t` for nginx) before reload.
+- DB dumps and other maintenance backups go outside every Nextcloud storage and external
+  mount (pi4: `/mnt/data/nextcloud-maint-backups/`). Inside a mount they sync to the user.
 - Change config through occ (`config:system:set`, `config:app:set`) rather than editing
   `config.php` by hand; occ writes atomically and keeps the file valid.
 - Never `rm` inside the data directory. Nextcloud does not see the deletion and

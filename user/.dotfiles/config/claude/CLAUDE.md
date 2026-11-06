@@ -10,7 +10,7 @@ Coordinate specialized agents, tools, and skills so work is completed accurately
 - Delegate specialized work to the most appropriate agent.
 - Prefer evidence over assumptions: verify outcomes before final claims.
 - Choose the lightest-weight path that preserves quality.
-- Consult official docs before implementing with SDKs/frameworks/APIs.
+- Consult official docs before implementing with SDKs/frameworks/APIs (see Docs Lookup).
 </operating_principles>
 
 <delegation_rules>
@@ -76,7 +76,15 @@ Say "setup omc" or run `/oh-my-claudecode:omc-setup`.
 
 ## Tool Preferences
 Prefer `fd`, `rg`, `jq`/`yq`, `uv` (python), `bun` (js/ts), `7z`, `markitdown` (doc conversion). Shell commands go through `rtk` (see RTK Usage); `eza`/`bat` only when rtk has no rule.
-For structural (AST) code search/rewrite, use `@ast-grep/cli` (`ast-grep` / `sg`) instead of regex `rg`.
+Use the fff MCP tools for all file search operations instead of default tools; if fff is not connected (it refuses a home-dir cwd), use `rtk rg` / `fd`. For structural (AST) code search/rewrite, use `@ast-grep/cli` (`ast-grep` / `sg`) instead of regex `rg`.
+Browser automation: always Patchright (stealth Playwright fork), never Playwright. MCP: `mcp__patchright__*` (Microsoft `@playwright/mcp` with npm overrides to `patchright-core`, in `~/.local/share/patchright-mcp`). Python: `from patchright.sync_api import ...` via `uv run --with patchright`. Node: `patchright` package. Never install `playwright`/`@playwright/mcp` standalone or re-enable the `playwright` plugin.
+
+## Docs Lookup (ref-tools, context7)
+Before using or changing any library, framework, SDK, API, CLI tool, or dependency, and before assuming how a tool or project works, check docs through MCP instead of answering from memory. Training data goes stale.
+- **ref-tools first** (`ref_search_documentation`, then `ref_read_url` for the exact page): more token-efficient, since it returns only the relevant page section.
+- **context7 as fallback** (`resolve-library-id`, then `query-docs`): use when ref-tools is not connected, returns nothing useful, or the library is missing there.
+- Use for: API syntax, config options, version migrations, library-specific errors, setup steps, and understanding an unfamiliar dependency or project before editing it. Read its manifest first so lookups target the pinned version.
+- Skip for: refactoring, scripts from scratch, business-logic debugging, code review, general programming concepts.
 
 ## Code Standards
 - Immutability: new objects, never mutate existing ones.
@@ -90,9 +98,16 @@ For structural (AST) code search/rewrite, use `@ast-grep/cli` (`ast-grep` / `sg`
 ## Communication Style
 - No emojis in code, comments, commits, or docs.
 - No em dashes; use hyphens or restructure.
-- Clear, direct language, no unnecessary embellishment.
 - Review first: when asked to review/analyze, do that and report findings before changing anything.
 - Humble language: don't claim "success" without verification. "Successfully" only when tests prove it.
+- Put the most important information last: the user reads the end of a reply first.
+- State each fact once. Plain, specific words; no overloaded terms, no analogies, no decorative headings or motivational filler.
+- Challenge wrong assumptions directly and say why. No flattery, praise, or agreement without a reason.
+- Banned phrases: "load-bearing", "worth stating plainly", "here's the honest truth", "the real tension", "carry the argument".
+- Answer the question asked: "No. The only match is the file itself." beats a preamble plus an offer to clean up adjacent files.
+- Do not widen scope into cleanup, refactoring, docs, or adjacent features unless asked.
+- Reference codes: when listing 3+ findings, decisions, options, risks, questions, or actions, label them `F1`, `D1`, `O1`, `R1`, `Q1`, `A1` and keep the same codes for the rest of the conversation. No codes for short answers.
+- Aliases (expand only when the whole message is the alias): `scr` = simplify, compress, and repeat the last response. `eli` = explain for an 18-year-old, simpler and shorter. `foc` = boil the response down to the signal that matters most. `ref` = rewrite the last response with reference codes.
 
 ## Memory (Mandatory)
 Obsidian vault at `$env:USERPROFILE\Nextcloud\obsidian-vault` is the **canonical durable brain** - it outranks project-scoped memory, the OMC notepad, and harness auto-memory for anything that should survive this session. Those are scratch; the vault is where it actually lives. This applies in every project, not only when the vault itself is the working directory.
@@ -106,15 +121,18 @@ Obsidian vault at `$env:USERPROFILE\Nextcloud\obsidian-vault` is the **canonical
 Use ctx_execute, ctx_execute_file, ctx_batch_execute, ctx_index, ctx_search, ctx_fetch_and_index to keep raw bytes out of context; derive answers in-sandbox.
 **Exception**: use native `WebSearch`/`WebFetch` directly, not `ctx_fetch_and_index`, when the task is a lookup/research question, not raw-byte processing.
 
+## Context Budget
+- Set a read budget before exploring: spec-driven build 8, bug fix at a known spot 5, refactor 1 per changed file, open exploration 15. Ask before exceeding it.
+- Read large outputs selectively (offset/limit, `rtk rg`), never whole.
+- `/clear` between subtasks; `/compact` near 50% context.
+
 ## RTK Usage (Max)
-- Prefix every shell command with `rtk` when a rule exists (`rtk git`, `rtk gh`, `rtk ls`, `rtk read`, `rtk diff`, `rtk json`, `rtk curl`, `rtk bun`, `rtk uv`, `rtk wc`, `rtk find`). Hook auto-rewrites safe shapes; write `rtk ...` explicitly when unsure.
+- Prefix every shell command with `rtk` when a rule exists (`rtk git`, `rtk gh`, `rtk ls`, `rtk read`, `rtk diff`, `rtk json`, `rtk curl`, `rtk bun`, `rtk uv`, `rtk wc`, `rtk find`). Hook auto-rewrites safe shapes; write `rtk ...` explicitly when unsure, and always for: `git commit`, `cargo build`, `uv run`, `ls -1`, `cat` (use `rtk read`), `du`, `shellcheck`, `bunx`.
 - Search: use `rtk rg` over `rtk grep`. `grep` only when `rg` cannot do it.
-- Pipes disable rtk for the whole command (top leak in `rtk discover`). Exception: in Bash, `cmd | head/tail -N` is auto-rewritten to `rtk cmd | head/tail -N` by `hooks/rtk-advisor.ps1`; any other tail stage (`wc`, `grep`, `sort`, `;` after head) is not. No `$(...)`/backticks, no `timeout` prefix: use native flags (`rtk read f --max-lines N`) and the tool's timeout param.
+- Pipes disable rtk for the whole command (top leak in `rtk discover`). Exception: in Bash, `cmd | head/tail -N` is auto-rewritten to `rtk cmd | head/tail -N` by `~/.claude/hooks/rtk-advisor.ps1`; any other tail stage (`wc`, `grep`, `sort`, `;` after head) is not. No `$(...)`/backticks, no `timeout` prefix: use native flags (`rtk read f --max-lines N`) and the tool's timeout param. Never add `2>&1 | tail`; rtk already truncates and filters output.
 - PowerShell: use `rtk ls`/`rtk read`/`rtk rg`/`rtk wc -l`, never `Get-ChildItem`/`Get-Content`/`Select-String`.
-- Never add `2>&1 | tail`; rtk already truncates and filters output.
 - Use `rtk proxy <cmd>` only when raw unfiltered output is needed for debugging.
 - Periodically run `rtk discover` and `rtk gain` to find missed rewrites; fix habits it reports.
-- Always write `rtk` explicitly for: `git commit`, `cargo build`, `uv run`, `ls -1`, `cat` (use `rtk read`), `du`, `shellcheck`, `bunx`.
 - User TOML filters (`~/AppData/Roaming/rtk/filters.toml`: ssh, adb, tasklist, wsl, unzip, sqlite3, yt-dlp, javap, tombi, uv lock, fd, dust) are auto-rewritten by the hook, but only while trusted: trust is a SHA-256 of the file, so after ANY edit run `rtk trust -y` from that directory or every filter silently turns off. Use `"\\b"` escapes (TOML basic strings). Filters under a builtin prefix (`git ls-files`, `cargo tree`) are shadowed and never apply.
 - Commit messages: `git commit -m "one line"` or `-F file`. Never `$(cat <<EOF ...)`; hook refuses it and the whole command loses rtk.
 
@@ -131,3 +149,60 @@ In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the re
 If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
 Decision tree for when to use it; invocation syntax and tool name are in the CodeGraph section below (auto-managed).
 <!-- CODEGRAPH_END -->
+
+<!-- icm:start -->
+## Persistent memory (ICM) — MANDATORY
+
+This project uses [ICM](https://github.com/rtk-ai/icm) for persistent memory across sessions.
+You MUST use it actively. Not optional.
+
+### Recall (before starting work)
+```bash
+icm.exe recall "query"                        # search memories
+icm.exe recall "query" -t "topic-name"        # filter by topic
+icm.exe recall-context "query" --limit 5      # formatted for prompt injection
+```
+
+### Store — MANDATORY triggers
+You MUST call `icm.exe store` when ANY of the following happens:
+1. **Error resolved** → `icm.exe store -t errors-resolved -c "description" -i high -k "keyword1,keyword2"`
+2. **Architecture/design decision** → `icm.exe store -t decisions-{project} -c "description" -i high`
+3. **User preference discovered** → `icm.exe store -t preferences -c "description" -i critical`
+4. **Significant task completed** → `icm.exe store -t context-{project} -c "summary of work done" -i high`
+5. **Conversation exceeds ~20 tool calls without a store** → store a progress summary
+
+Do this BEFORE responding to the user. Not after. Not later. Immediately.
+
+Do NOT store: trivial details, info already in this file, ephemeral state (build logs, git status).
+
+### Memoirs (permanent knowledge graphs)
+Use memoirs for durable, structured knowledge that outlasts individual memories.
+```bash
+icm.exe memoir create -n "my-memoir" -d "Description"   # create knowledge container
+icm.exe memoir add-concept -m "my-memoir" -n "concept" \
+-d "Dense definition" -l "type:decision,domain:arch" # add concept with labels
+icm.exe memoir link -m "my-memoir" --from "a" --to "b" \
+-r depends-on                                        # link concepts (relations:
+# part-of, depends-on, related-to,
+# contradicts, refines,
+# alternative-to, caused-by,
+# instance-of, superseded-by)
+icm.exe memoir export -m "my-memoir" -f ai                # dump as LLM-ready markdown
+icm.exe memoir search -m "my-memoir" "query"              # full-text search concepts
+icm.exe memoir list                                        # list all memoirs
+icm.exe memoir show "my-memoir"                            # stats + concept list
+icm.exe memoir inspect --memoir "my-memoir" "concept"      # full definition + graph
+icm.exe memoir refine --memoir "my-memoir" --name "concept" \
+--definition "new text"                              # update concept (bumps revision)
+```
+
+### Other commands
+```bash
+icm.exe forget <id>                          # remove a memory by ID
+icm.exe list --all                           # list all memories
+icm.exe list --topic <name>                  # list memories in a topic
+icm.exe update <id> -c "updated content"     # edit memory in-place
+icm.exe health                                # topic hygiene audit
+icm.exe topics                                # list all topics
+```
+<!-- icm:end -->

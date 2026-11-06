@@ -602,6 +602,8 @@ $__initQueue.Enqueue({
 })
 #endregion
 
+function hclaude { headroom wrap claude --memory --learn --code-memory none -- --allow-dangerously-skip-permissions @args }
+
 # DO NOT MODIFY -- coreutils -- 60b36fc6-2d59-49df-be51-28dd2f4c3c9a
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # Inlining the template into the profile shaves off ~10ms (25%).

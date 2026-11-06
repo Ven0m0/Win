@@ -192,6 +192,5 @@
   "effortLevel": "medium",
   "model": "opusplan",
   "prefersReducedMotion": true,
-  "skipDangerousModePermissionPrompt": true,
   "teammateMode": "auto"
 }

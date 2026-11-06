@@ -1,93 +1,25 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "./AGENTS.md",
-    ".opencode/rules/*.md",
-    ".kilo/rules/*.md",
-    ".claude/rules/*.md",
-    "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
-    "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
-  ],
-  "skills": { "paths": [".kilo/skills"] },
-  "plugins": [
-    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git#bb69605ce950800675eb7a27a4e40554b9732348",
-    "@tarquinen/opencode-dcp@3.2.0"
-  ],
-  "permissions": [
-    {
-      "action": "read",
-      "resource": "*.env",
-      "effect": "deny"
-    },
-    {
-      "action": "read",
-      "resource": "*.lock",
-      "effect": "deny"
-    },
-    {
-      "action": "edit",
-      "resource": "*.lock",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": "sudo *",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": "rm -rf /",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": "rm -rf /*",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": "rm -rf ~",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": "rm -rf ~/*",
-      "effect": "deny"
-    },
-    {
-      "action": "shell",
-      "resource": ":(){:|:&};:",
-      "effect": "deny"
-    },
-    {
-      "action": "doom_loop",
-      "resource": "*",
-      "effect": "deny"
-    },
-    {
-      "action": "*",
-      "resource": "*",
-      "effect": "allow"
-    }
-  ],
   "agents": {
+    "ask": {
+      "model": "opencode/mimo-v2.6-flash-free"
+    },
+    "code": {
+      "model": "opencode/deepseek-v4.1-flash-free"
+    },
     "compaction": {
       "model": "opencode/deepseek-v4.1-flash-free"
     },
     "debug": {
       "model": "opencode/nemotron-3-ultra-free"
     },
-    "code": {
-      "model": "opencode/deepseek-v4.1-flash-free"
-    },
     "plan": {
       "model": "opencode/glm-5.3-flash-free"
-    },
-    "ask": {
-      "model": "opencode/mimo-v2.6-flash-free"
     }
   },
-  "small_model": "opencode/nemotron-3.5-lightning-free",
+  "compaction": {
+    "auto": true
+  },
   "disabled_providers": ["openai", "google", "anthropic"],
   "formatter": {
     "biome": {
@@ -99,68 +31,156 @@
       "extensions": [".py", ".pyi", ".pyc"]
     }
   },
-  "watcher": {
-    "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
-  },
+  "instructions": [
+    "./AGENTS.md",
+    ".opencode/rules/*.md",
+    ".kilo/rules/*.md",
+    ".claude/rules/*.md",
+    "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
+    "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
+  ],
   "mcp": {
     "servers": {
       "codegraph": {
-        "type": "local",
         "command": ["codegraph", "serve", "--mcp"],
         "disabled": false,
         "timeout": {
           "catalog": 30000,
           "execution": 30000
-        }
-      },
-      "ref-tools": {
-        "type": "remote",
-        "url": "https://api.ref.tools/mcp",
-        "disabled": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        }
+        },
+        "type": "local"
       },
       "context7": {
-        "type": "remote",
-        "url": "https://mcp.context7.com/mcp",
         "disabled": false,
         "timeout": {
           "catalog": 30000,
           "execution": 30000
-        }
+        },
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "exa": {
+        "disabled": false,
+        "timeout": {
+          "catalog": 30000,
+          "execution": 30000
+        },
+        "type": "remote",
+        "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa"
+      },
+      "fff": {
+        "command": ["fff-mcp"],
+        "enabled": true,
+        "type": "local"
       },
       "github": {
-        "type": "remote",
-        "url": "https://api.githubcopilot.com/mcp/",
         "disabled": false,
-        "oauth": false,
         "headers": {
           "Authorization": "Bearer {env:GITHUB_TOKEN}"
         },
+        "oauth": false,
         "timeout": {
           "catalog": 30000,
           "execution": 30000
-        }
-      },
-      "exa": {
+        },
         "type": "remote",
-        "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa",
-        "disabled": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        }
-      },
-      "rea": {
-        "type": "local",
-        "command": ["cmd.exe", "/d", "/c", "bunx", "rea-agents@6.5.0", "mcp"]
+        "url": "https://api.githubcopilot.com/mcp/"
       }
+    },
+    "rea": {
+      "type": "local",
+      "enabled": true,
+      "timeout": 30000,
+      "command": [
+        "C:/Program Files/nodejs/node.exe",
+        "{env:USERPROFILE}/.bun/install/global/node_modules/rea-agents/scripts/rea.mjs",
+        "mcp"
+      ],
+      "environment": {
+        "GHIDRA_INSTALL_DIR": "{env:USERPROFILE}/tools/rea/ghidra_12.1.4_PUBLIC",
+        "JAVA_HOME": "{env:USERPROFILE}/tools/rea/jdk-21.0.12.1+1",
+        "REA_APKTOOL_COMMAND": "{env:USERPROFILE}/scoop/shims/apktool.cmd",
+        "REA_CAPINFOS_COMMAND": "{env:USERPROFILE}/scoop/apps/wireshark/current/capinfos.exe",
+        "REA_GHIDRA_STARTUP_TIMEOUT_MS": "1500000",
+        "REA_JADX_MCP_JAR": "{env:USERPROFILE}/.local/share/rea/android/jadx-headless-mcp-0.7.1-all.jar",
+        "REA_OBJDUMP_COMMAND": "{env:USERPROFILE}/scoop/apps/binutils/current/bin/objdump.exe",
+        "REA_TSHARK_COMMAND": "{env:USERPROFILE}/scoop/apps/wireshark/current/tshark.exe",
+        "REA_WABT_BIN_DIRECTORY": "{env:USERPROFILE}/scoop/apps/wabt/current"
+      }
+    },
+    "icm": {
+      "type": "local",
+      "command": ["{env:USERPROFILE}/AppData/Local/icm/bin/icm.exe", "serve"],
+      "enabled": true
     }
   },
-  "compaction": {
-    "auto": true
+  "model": "opencode/deepseek-v4.1-flash-free",
+  "permissions": [
+    {
+      "action": "read",
+      "effect": "deny",
+      "resource": "*.env"
+    },
+    {
+      "action": "read",
+      "effect": "deny",
+      "resource": "*.lock"
+    },
+    {
+      "action": "edit",
+      "effect": "deny",
+      "resource": "*.lock"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": "sudo *"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": "rm -rf /"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": "rm -rf /*"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": "rm -rf ~"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": "rm -rf ~/*"
+    },
+    {
+      "action": "shell",
+      "effect": "deny",
+      "resource": ":(){:|:&};:"
+    },
+    {
+      "action": "doom_loop",
+      "effect": "deny",
+      "resource": "*"
+    },
+    {
+      "action": "*",
+      "effect": "allow",
+      "resource": "*"
+    }
+  ],
+  "plugins": [
+    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git#11cc2d5c9ae61e398f2f2a3d6b4c728057be26ce",
+    "@tarquinen/opencode-dcp@3.2.0"
+  ],
+  "skills": {
+    "paths": [".kilo/skills"]
   },
-  "model": "opencode/deepseek-v4.1-flash-free"
+  "small_model": "opencode/nemotron-3.5-lightning-free",
+  "watcher": {
+    "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
+  }
 }
