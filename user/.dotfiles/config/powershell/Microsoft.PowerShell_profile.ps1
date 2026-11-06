@@ -12,6 +12,7 @@ $ProgressPreference = 'SilentlyContinue'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = 'true'
 $env:VCPKG_DISABLE_METRICS = 'true'
 $env:RTK_HOOK_AUDIT = '1'
+$env:HEADROOM_BEACON = 'off'
 
 # Async init queue: defers heavy prompt/module startup to idle time so the prompt appears
 # instantly. One queued step runs per PowerShell.OnIdle tick; the subscription
@@ -602,7 +603,8 @@ $__initQueue.Enqueue({
 })
 #endregion
 
-function hclaude { headroom wrap claude --memory --learn --code-memory none -- --allow-dangerously-skip-permissions @args }
+function hclaude { headroom wrap claude --memory --learn --code-memory none --code-graph -- --allow-dangerously-skip-permissions @args }
+function hopencode { headroom wrap opencode --no-serena --memory --learn --code-graph @args }
 
 # DO NOT MODIFY -- coreutils -- 60b36fc6-2d59-49df-be51-28dd2f4c3c9a
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

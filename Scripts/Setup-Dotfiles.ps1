@@ -699,14 +699,6 @@ function Start-Bootstrap {
             GetSkipReason      = { 'HOME not set' }
         },
         @{
-            Path               = 'opencode\plugins'
-            Mode               = 'directory'
-            Label              = 'opencode plugins'
-            Filter             = '*.ts'
-            ResolveDestination = { Join-Path $HOME '.config\opencode\plugins' }
-            GetSkipReason      = { 'HOME not set' }
-        },
-        @{
             Path   = 'claude\skills'
             Mode   = 'script'
             Label  = 'opencode skills'

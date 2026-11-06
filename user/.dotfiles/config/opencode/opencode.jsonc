@@ -1,5 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/deepseek-v4.1-flash-free",
+  "small_model": "opencode/nemotron-3.5-lightning-free",
   "agents": {
     "ask": {
       "model": "opencode/mimo-v2.6-flash-free"
@@ -21,6 +23,9 @@
     "auto": true
   },
   "disabled_providers": ["openai", "google", "anthropic"],
+  "experimental": {
+    "todo": true
+  },
   "formatter": {
     "biome": {
       "command": ["bunx", "--bun", "@biomejs/biome", "check", "--write", "--format-with-errors=true", "$FILE"],
@@ -32,46 +37,38 @@
     }
   },
   "instructions": [
-    "./AGENTS.md",
     ".opencode/rules/*.md",
     ".kilo/rules/*.md",
     ".claude/rules/*.md",
+    "~/.claude/rules/*.md",
     "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
     "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
   ],
   "mcp": {
+    "timeout": {
+      "catalog": 30000,
+      "execution": 600000
+    },
     "servers": {
       "codegraph": {
         "command": ["codegraph", "serve", "--mcp"],
         "disabled": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        },
         "type": "local"
       },
       "context7": {
         "disabled": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        },
         "type": "remote",
         "url": "https://mcp.context7.com/mcp"
       },
       "exa": {
         "disabled": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        },
         "type": "remote",
         "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa"
       },
       "fff": {
         "command": ["fff-mcp"],
-        "enabled": true,
-        "type": "local"
+        "type": "local",
+        "disabled": false
       },
       "github": {
         "disabled": false,
@@ -79,107 +76,269 @@
           "Authorization": "Bearer {env:GITHUB_TOKEN}"
         },
         "oauth": false,
-        "timeout": {
-          "catalog": 30000,
-          "execution": 30000
-        },
         "type": "remote",
         "url": "https://api.githubcopilot.com/mcp/"
+      },
+      "icm": {
+        "type": "local",
+        "command": ["C:/Users/Ven0m0/AppData/Local/icm/bin/icm.exe", "serve"],
+        "disabled": false
+      },
+      "obsidian-hybrid-search": {
+        "type": "local",
+        "command": [
+          "C:\\Users\\Ven0m0\\AppData\\Local\\mise\\installs\\node\\24.22.0\\node.exe",
+          "C:\\Users\\Ven0m0\\AppData\\Local\\obsidian-hybrid-search\\app\\node_modules\\obsidian-hybrid-search\\dist\\src\\server.js"
+        ],
+        "disabled": false,
+        "environment": {
+          "OBSIDIAN_VAULT_PATH": "C:\\Users\\Ven0m0\\Nextcloud\\obsidian-vault",
+          "OBSIDIAN_IGNORE_PATTERNS": ".obsidian/**,.claude/**,.claudian/**,.remember/**,Templates/**,*.canvas"
+        }
+      },
+      "patchright": {
+        "type": "local",
+        "command": ["node", "C:/Users/Ven0m0/.local/share/patchright-mcp/node_modules/@playwright/mcp/cli.js"],
+        "disabled": false
+      },
+      "rea": {
+        "type": "local",
+        "command": [
+          "C:/Program Files/nodejs/node.exe",
+          "C:/Users/Ven0m0/.bun/install/global/node_modules/rea-agents/scripts/rea.mjs",
+          "mcp"
+        ],
+        "environment": {
+          "GHIDRA_INSTALL_DIR": "C:/Users/Ven0m0/tools/rea/ghidra_12.1.4_PUBLIC",
+          "JAVA_HOME": "C:/Users/Ven0m0/tools/rea/jdk-21.0.12.1+1",
+          "REA_APKTOOL_COMMAND": "C:/Users/Ven0m0/scoop/shims/apktool.cmd",
+          "REA_CAPINFOS_COMMAND": "C:/Users/Ven0m0/scoop/apps/wireshark/current/capinfos.exe",
+          "REA_GHIDRA_STARTUP_TIMEOUT_MS": "1500000",
+          "REA_JADX_MCP_JAR": "C:/Users/Ven0m0/.local/share/rea/android/jadx-headless-mcp-0.7.1-all.jar",
+          "REA_OBJDUMP_COMMAND": "C:/Users/Ven0m0/scoop/apps/binutils/current/bin/objdump.exe",
+          "REA_TSHARK_COMMAND": "C:/Users/Ven0m0/scoop/apps/wireshark/current/tshark.exe",
+          "REA_WABT_BIN_DIRECTORY": "C:/Users/Ven0m0/scoop/apps/wabt/current"
+        },
+        "disabled": false,
+        "timeout": {
+          "execution": 1800000
+        }
       }
-    },
-    "rea": {
-      "type": "local",
-      "enabled": true,
-      "timeout": 30000,
-      "command": [
-        "C:/Program Files/nodejs/node.exe",
-        "{env:USERPROFILE}/.bun/install/global/node_modules/rea-agents/scripts/rea.mjs",
-        "mcp"
-      ],
-      "environment": {
-        "GHIDRA_INSTALL_DIR": "{env:USERPROFILE}/tools/rea/ghidra_12.1.4_PUBLIC",
-        "JAVA_HOME": "{env:USERPROFILE}/tools/rea/jdk-21.0.12.1+1",
-        "REA_APKTOOL_COMMAND": "{env:USERPROFILE}/scoop/shims/apktool.cmd",
-        "REA_CAPINFOS_COMMAND": "{env:USERPROFILE}/scoop/apps/wireshark/current/capinfos.exe",
-        "REA_GHIDRA_STARTUP_TIMEOUT_MS": "1500000",
-        "REA_JADX_MCP_JAR": "{env:USERPROFILE}/.local/share/rea/android/jadx-headless-mcp-0.7.1-all.jar",
-        "REA_OBJDUMP_COMMAND": "{env:USERPROFILE}/scoop/apps/binutils/current/bin/objdump.exe",
-        "REA_TSHARK_COMMAND": "{env:USERPROFILE}/scoop/apps/wireshark/current/tshark.exe",
-        "REA_WABT_BIN_DIRECTORY": "{env:USERPROFILE}/scoop/apps/wabt/current"
-      }
-    },
-    "icm": {
-      "type": "local",
-      "command": ["{env:USERPROFILE}/AppData/Local/icm/bin/icm.exe", "serve"],
-      "enabled": true
     }
   },
-  "model": "opencode/deepseek-v4.1-flash-free",
   "permissions": [
     {
-      "action": "read",
-      "effect": "deny",
-      "resource": "*.env"
+      "action": "*",
+      "resource": "*",
+      "effect": "allow"
     },
     {
       "action": "read",
-      "effect": "deny",
-      "resource": "*.lock"
+      "resource": "*.env",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "*.lock",
+      "effect": "deny"
     },
     {
       "action": "edit",
-      "effect": "deny",
-      "resource": "*.lock"
+      "resource": "*.lock",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": "sudo *"
+      "resource": "sudo *",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": "rm -rf /"
+      "resource": "rm -rf /",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": "rm -rf /*"
+      "resource": "rm -rf /*",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": "rm -rf ~"
+      "resource": "rm -rf ~",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": "rm -rf ~/*"
+      "resource": "rm -rf ~/*",
+      "effect": "deny"
     },
     {
       "action": "shell",
-      "effect": "deny",
-      "resource": ":(){:|:&};:"
+      "resource": ":(){:|:&};:",
+      "effect": "deny"
     },
     {
-      "action": "doom_loop",
-      "effect": "deny",
-      "resource": "*"
+      "action": "read",
+      "resource": "~/.git-credentials",
+      "effect": "deny"
     },
     {
-      "action": "*",
-      "effect": "allow",
-      "resource": "*"
+      "action": "edit",
+      "resource": "~/.git-credentials",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.claude/.credentials.json",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.claude/.credentials.json",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.ssh/id_*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.ssh/id_*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.mcp-auth/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.mcp-auth/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.gnupg/*",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.local/share/opencode/auth.json",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.local/share/opencode/auth.json",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.pi/agent/auth.json",
+      "effect": "deny"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.pi/agent/auth.json",
+      "effect": "deny"
+    },
+    {
+      "action": "read",
+      "resource": "~/.npmrc",
+      "effect": "ask"
+    },
+    {
+      "action": "edit",
+      "resource": "~/.npmrc",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push --force*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push *--force*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push -f*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git push * -f*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git reset --hard*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "git clean -fd*",
+      "effect": "ask"
+    },
+    {
+      "action": "shell",
+      "resource": "npm publish*",
+      "effect": "ask"
+    },
+    {
+      "action": "patchright_browser_install",
+      "resource": "*",
+      "effect": "deny"
     }
   ],
   "plugins": [
-    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git#11cc2d5c9ae61e398f2f2a3d6b4c728057be26ce",
-    "@tarquinen/opencode-dcp@3.2.0"
+    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git#05096b39cde03e1d9ab13a14d01c9813a15f85e3",
+    "@tarquinen/opencode-dcp@3.2.0",
+    "context-mode@2.1.4",
+    "opencode-ecosystem-manager@0.3.2",
+    "C:/Users/Ven0m0/.local/share/opencode-v2-lsp-support"
   ],
-  "skills": {
-    "paths": [".kilo/skills"]
+  "lsp": {
+    "bash": { "command": ["bash-language-server", "start"], "extensions": [".sh", ".bash", ".zsh", ".ksh"] },
+    "pyright": { "command": ["basedpyright-langserver", "--stdio"], "extensions": [".py", ".pyi"] },
+    "typescript": {
+      "command": ["vtsls", "--stdio"],
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"],
+      "initialization": {
+        "maxTsServerMemory": 4096,
+        "disableAutomaticTypeAcquisition": true
+      }
+    },
+    "rust": {
+      "command": ["rust-analyzer"],
+      "extensions": [".rs"],
+      "initialization": { "diagnostics": { "experimental": { "enable": true } } }
+    },
+    "tombi": { "command": ["tombi", "lsp"], "extensions": [".toml"] },
+    "json": {
+      "command": ["vscode-json-language-server", "--stdio"],
+      "extensions": [".json", ".jsonc"],
+      "initialization": { "json": { "validate": { "enable": true }, "schemas": [] } }
+    },
+    "yaml-ls": { "command": ["yaml-language-server", "--stdio"], "extensions": [".yaml", ".yml"] },
+    "html": { "command": ["vscode-html-language-server", "--stdio"], "extensions": [".html", ".htm"] },
+    "css": {
+      "command": ["vscode-css-language-server", "--stdio"],
+      "extensions": [".css", ".scss", ".less"],
+      "initialization": { "css": { "validate": true }, "scss": { "validate": true }, "less": { "validate": true } }
+    },
+    "dockerfile": { "command": ["docker-langserver", "--stdio"], "extensions": [".dockerfile", "Dockerfile"] },
+    "markdown-oxide": { "command": ["markdown-oxide"], "extensions": [".md"] },
+    "jdtls": { "command": ["jdtls"], "extensions": [".java"] }
   },
-  "small_model": "opencode/nemotron-3.5-lightning-free",
+  "skills": [".kilo/skills"],
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
   }
