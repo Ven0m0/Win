@@ -260,3 +260,37 @@ Describe "Install-GitHubRelease" {
                 -Switches '/c', 'exit 5' } | Should -Throw '*exited with code 5*'
     }
 }
+
+
+Describe "Invoke-Parallel" {
+    It "Returns results in input order across runspaces" {
+        # Later items finish first; output must still follow input order.
+        $r = @(Invoke-Parallel -InputObject (1..6) -ThrottleLimit 4 -ScriptBlock {
+                param($n)
+                Start-Sleep -Milliseconds ((7 - $n) * 30)
+                $n * 10
+            })
+        $r | Should -Be @(10, 20, 30, 40, 50, 60)
+    }
+
+    It "Captures the native exit code per item" {
+        $cmd = (Get-Command -Name cmd.exe -CommandType Application).Source
+        $items = @(0, 3 | ForEach-Object { [pscustomobject]@{ Cmd = $cmd; Code = $_ } })
+        $r = @(Invoke-Parallel -InputObject $items -ThrottleLimit 2 -ScriptBlock {
+                param($i)
+                $null = & $i.Cmd /c "exit $($i.Code)"
+                $LASTEXITCODE
+            })
+        $r | Should -Be @(0, 3)
+    }
+
+    It "Runs inline in the caller scope when ThrottleLimit is 1" {
+        $marker = 'inline'
+        $r = @(Invoke-Parallel -InputObject 'a' -ThrottleLimit 1 -ScriptBlock { param($x) "$x-$marker" })
+        $r | Should -Be 'a-inline'
+    }
+
+    It "Emits nothing for an empty input" {
+        @(Invoke-Parallel -InputObject @() -ThrottleLimit 4 -ScriptBlock { param($x) $x }).Count | Should -Be 0
+    }
+}

@@ -194,10 +194,16 @@ function Invoke-ScheduledTaskCleanup {
         "\Microsoft\Windows\NetTrace\GatherNetworkInfo"
     )
 
+    # One CIM enumeration instead of one Get-ScheduledTask call per task (~0.6s each).
+    $taskIndex = @{}
+    foreach ($existingTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue)) {
+        $taskIndex["$($existingTask.TaskPath)$($existingTask.TaskName)"] = $existingTask
+    }
+
     foreach ($taskPath in $tasksToDisable) {
         $parent = Split-Path $taskPath -Parent
         $leaf = Split-Path $taskPath -Leaf
-        $task = Get-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue
+        $task = $taskIndex["$parent\$leaf"]
         if ($task -and $task.State -ne "Disabled") {
             Write-Host "  Disabling: $taskPath" -ForegroundColor Yellow
             Disable-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue | Out-Null
@@ -418,10 +424,14 @@ function Restore-ScheduledTask {
         "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"
         "\Microsoft\Windows\Windows Error Reporting\QueueReporting"
     )
+    $taskIndex = @{}
+    foreach ($existingTask in @(Get-ScheduledTask -ErrorAction SilentlyContinue)) {
+        $taskIndex["$($existingTask.TaskPath)$($existingTask.TaskName)"] = $existingTask
+    }
     foreach ($tp in $tasksToEnable) {
         $parent = Split-Path $tp -Parent
         $leaf = Split-Path $tp -Leaf
-        $task = Get-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue
+        $task = $taskIndex["$parent\$leaf"]
         if ($task -and $task.State -eq "Disabled") {
             Write-Host "  Enabling: $tp" -ForegroundColor Green
             Enable-ScheduledTask -TaskPath "$parent\" -TaskName $leaf -ErrorAction SilentlyContinue | Out-Null

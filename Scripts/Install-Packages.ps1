@@ -238,19 +238,16 @@ function Start-InstallPackage {
         Write-Host ''
         Write-Host '[7.5/11] Setting up Notepad Replacer...' -ForegroundColor Cyan
 
-        $notepadPlusPlus = @(
+        # Read the Uninstall keys once and filter the same list twice.
+        $uninstallEntries = @(
             Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
                 -ErrorAction SilentlyContinue
             Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
                 -ErrorAction SilentlyContinue
-        ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -like 'Notepad++*' }
+        ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] }
 
-        $notepadReplacer = @(
-            Get-ItemProperty 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
-                -ErrorAction SilentlyContinue
-            Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' `
-                -ErrorAction SilentlyContinue
-        ) | Where-Object { $_ -and $_.PSObject.Properties['DisplayName'] -and $_.DisplayName -like 'Notepad Replacer*' }
+        $notepadPlusPlus = @($uninstallEntries | Where-Object { $_.DisplayName -like 'Notepad++*' })
+        $notepadReplacer = @($uninstallEntries | Where-Object { $_.DisplayName -like 'Notepad Replacer*' })
 
         if (-not $notepadPlusPlus) {
             Write-Status 'Notepad++ not found - skipping Notepad Replacer' -Status 'SKIP'

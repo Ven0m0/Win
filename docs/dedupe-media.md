@@ -19,8 +19,8 @@ wrong match is recoverable. The Recycle Bin has a per-volume size cap, though: a
 czkawka pass can push older recycled items out permanently, so "recoverable" only holds up
 to that cap.
 
-In each similar-file or duplicate-file group the newest file is kept (czkawka delete
-method `AEN`). Both fclones passes and all czkawka passes skip Nextcloud/Syncthing
+Similar-image and similar-video groups keep the biggest file (czkawka delete method `AEB`);
+duplicate-file groups keep the newest (`AEN`). Both fclones passes and all czkawka passes skip Nextcloud/Syncthing
 metadata, version history, trash bins, and partial-transfer files by default
 (`files_versions`, `files_trashbin`, `.nextcloud*`, `.stfolder`, `.stversions`,
 `.thumbnails`, `Thumbs.db`, `.cache`, `*.part`, `*.partial`); `-Exclude` appends more glob
@@ -63,7 +63,7 @@ Show full help and exit:
 | `-Force` | off | Skip the confirmation prompt when used with `-Apply` |
 | `-SkipExact` | off | Skip the fclones exact-duplicate pass |
 | `-IncludeDup` | off | Run the czkawka duplicate-file hash pass (redundant with fclones pass 1 by default) |
-| `-Exclude` | `@()` | Extra glob patterns matched against the full path, appended to the built-in Nextcloud/sync-metadata list |
+| `-Exclude` | `@()` | Extra glob patterns matched against the full path and skipped by every pass, appended to the built-in Nextcloud/sync-metadata list |
 | `-SkipImages` | off | Skip the czkawka similar-image pass |
 | `-SkipVideos` | off | Skip the czkawka similar-video pass (slowest pass) |
 | `-SkipEmptyFiles` | off | Skip the czkawka empty-file pass |
@@ -82,8 +82,8 @@ Supports `-WhatIf` / `-Confirm` (`SupportsShouldProcess`, `ConfirmImpact = 'High
   silently skipped.
 - fclones, czkawka, and any ffmpeg process czkawka spawns for the video pass all run at
   Above Normal CPU priority.
-- Preview totals may double-count exact duplicates when `-IncludeDup` is set: fclones only
-  simulates removal in a dry run, so the czkawka dup pass still sees and reports the same
-  files.
+- Preview totals may double-count exact duplicates: fclones only simulates removal in a dry
+  run, so the later czkawka passes (image, and dup with `-IncludeDup`) still see and count
+  the same files.
 
 Full parameter and example docs: `Get-Help .\Scripts\dedupe-media.ps1 -Full`.

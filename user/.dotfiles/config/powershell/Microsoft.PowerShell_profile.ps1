@@ -18,20 +18,42 @@ $env:HEADROOM_BEACON = 'off'
 # instantly. One queued step runs per PowerShell.OnIdle tick; the subscription
 # self-unregisters once the queue drains.
 [System.Collections.Queue]$global:__initQueue = [System.Collections.Queue]::new()
-if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
-    $__initQueue.Enqueue({
+# Cheap PATH probe for the few checks that must stay synchronous (eza, zoxide): a plain file-exists
+# scan avoids Get-Command's command-discovery setup cost. Removed after its last use below.
+$__hasExe = {
+    param([string]$Name)
+    $dirs = $env:Path.Split(';')
+    # .exe first: it is the common case and avoids ~10 extra stat calls per PATH entry.
+    $exts = [System.Collections.Generic.List[string]]::new()
+    $exts.Add('.exe')
+    foreach ($ext in "$env:PATHEXT".Split(';')) {
+        if ($ext -and $ext -ne '.EXE') { $exts.Add($ext) }
+    }
+    # Get-Command also resolves .ps1 shims on PATH.
+    $exts.Add('.ps1')
+    foreach ($ext in $exts) {
+        foreach ($dir in $dirs) {
+            if ($dir -and [System.IO.File]::Exists("$dir\$Name$ext")) { return $true }
+        }
+    }
+    return $false
+}
+# The tool-presence probes (Get-Command / Get-Module -ListAvailable) live inside the queued steps:
+# each costs tens of ms (PATH / PSModulePath scans) and nothing here is needed before the prompt.
+$__initQueue.Enqueue({
+    if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
         . ([scriptblock]::Create((oh-my-posh init pwsh --config (Join-Path $env:USERPROFILE ".config\ohmyposh\cobalt2.omp.json") | Out-String)))
         [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
-    })
-}
-if (Get-Command mise -ErrorAction SilentlyContinue) {
-    $__initQueue.Enqueue({
+    }
+})
+$__initQueue.Enqueue({
+    if (Get-Command mise -ErrorAction SilentlyContinue) {
         $miseInit = (& mise activate pwsh) | Out-String
         if ($miseInit) { . ([scriptblock]::Create($miseInit)) }
-    })
-}
-if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    $__initQueue.Enqueue({
+    }
+})
+$__initQueue.Enqueue({
+    if (Get-Module -ListAvailable -Name Terminal-Icons) {
         try {
             Import-Module -Name Terminal-Icons -ErrorAction Stop
         } catch {
@@ -43,8 +65,8 @@ if (Get-Module -ListAvailable -Name Terminal-Icons) {
             Remove-Item -Path (Join-Path $tiCache '*.xml') -Force -ErrorAction SilentlyContinue
             Import-Module -Name Terminal-Icons -ErrorAction SilentlyContinue
         }
-    })
-}
+    }
+})
 # Registration happens once, after zoxide (below) has had a chance to enqueue its own init step.
 
 #region UI Configuration
@@ -430,7 +452,7 @@ function k9 { Stop-Process -Name $args[0] }
 # Enhanced Listing
 function la { Get-ChildItem | Format-Table -AutoSize }
 function ll { Get-ChildItem -Force | Format-Table -AutoSize }
-if (Get-Command eza -ErrorAction SilentlyContinue) {
+if (& $__hasExe 'eza') {
     # ls is a built-in alias for Get-ChildItem; remove it so the function below takes over.
     Remove-Item -Path Alias:ls -Force -ErrorAction SilentlyContinue
     function ls { eza -la --group-directories-first --no-git @args }
@@ -566,15 +588,17 @@ if (Get-Module -Name PSReadLine) {
     Set-PSReadLineKeyHandler -Chord 'Ctrl+z' -Function Undo
     Set-PSReadLineKeyHandler -Chord 'Ctrl+y' -Function Redo
     # Allow local.ps1 to override prediction settings
-    if (Get-Command -Name 'Set-PredictionSource_Override' -ErrorAction SilentlyContinue) {
+    # Function: provider lookup; a failed Get-Command forces a full module-autoload scan (~60 ms).
+    if (Test-Path -Path 'Function:\Set-PredictionSource_Override') {
         Set-PredictionSource_Override
     }
 }
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+if (& $__hasExe 'zoxide') {
     $__initQueue.Enqueue({ . ([scriptblock]::Create((zoxide init --cmd z powershell | Out-String))) })
 } else {
     Write-Warning "zoxide not found. Install with: winget install -e --id ajeetdsouza.zoxide"
 }
+Remove-Item -Path 'Variable:\__hasExe'
 if ($__initQueue.Count -gt 0) {
     Register-EngineEvent -SourceIdentifier PowerShell.OnIdle -SupportEvent -Action {
         if ($__initQueue.Count -gt 0) {

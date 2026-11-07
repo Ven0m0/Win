@@ -322,6 +322,33 @@ Describe "Get-FolderSize" {
 
         $result | Should -Be 2
     }
+
+    It "Should match Get-ChildItem on a real tree: hidden files counted, junctions not followed" {
+        $root = Join-Path $TestDrive 'foldersize'
+        $linkTarget = Join-Path $TestDrive 'foldersize-outside'
+        $null = New-Item -ItemType Directory -Path (Join-Path $root 'sub\deep') -Force
+        $null = New-Item -ItemType Directory -Path $linkTarget -Force
+        [System.IO.File]::WriteAllBytes((Join-Path $root 'a.bin'), [byte[]]::new(1000))
+        [System.IO.File]::WriteAllBytes((Join-Path $root 'sub\deep\b.bin'), [byte[]]::new(600))
+        [System.IO.File]::WriteAllBytes((Join-Path $linkTarget 'c.bin'), [byte[]]::new(500))
+        $hidden = Join-Path $root 'hidden.bin'
+        [System.IO.File]::WriteAllBytes($hidden, [byte[]]::new(70))
+        [System.IO.File]::SetAttributes($hidden, [System.IO.FileAttributes]'Hidden,System')
+        $junction = Join-Path $root 'sub\junction'
+        $null = New-Item -ItemType Junction -Path $junction -Target $linkTarget
+
+        $expected = 0
+        foreach ($f in Get-ChildItem -Path $root -Recurse -File -Force) { $expected += $f.Length }
+
+        try {
+            $expected | Should -Be 1670
+            Get-FolderSize -Path $root -Unit 'B' | Should -Be $expected
+        }
+        finally {
+            # Delete the link itself so cleanup never recurses into the target.
+            [System.IO.Directory]::Delete($junction)
+        }
+    }
 }
 
 Describe "Clear-PathSafe" {

@@ -45,7 +45,6 @@ $ErrorActionPreference = 'Stop'
 $inv = [Globalization.CultureInfo]::InvariantCulture
 
 function Write-Section([string]$Title) { "`n=== $Title ===" }
-function ConvertTo-Double([string]$s) { [double]::Parse($s, $inv) }
 
 # FileShare.ReadWrite: the running game keeps latest.log and the active GC/JIT logs open for writing.
 function Read-SharedLine([string]$Path) {
@@ -184,7 +183,7 @@ if ($latest -and (Test-Path -LiteralPath $latest)) {
     if ($line -match 'Running (\d+)ms or \d+ ticks behind') { $behindMax = [math]::Max($behindMax, [double]$Matches[1]) }
     # Generic "took 2.4s" / "in 1500ms" lines: mods log their own load and reload times this way.
     if ($line -match '\b(?:took|in)\s+(\d+(?:\.\d+)?)\s?(ms|s)\b') {
-      $ms = (ConvertTo-Double $Matches[1]) * $(if ($Matches[2] -eq 's') { 1000 } else { 1 })
+      $ms = [double]::Parse($Matches[1], $inv) * $(if ($Matches[2] -eq 's') { 1000 } else { 1 })
       if ($ms -ge 1000) { $slow.Add([pscustomobject]@{ ms = $ms; line = $line.Trim().Substring(0, [math]::Min(110, $line.Trim().Length)) }) }
     }
   }
@@ -270,12 +269,12 @@ if (-not $gcFile) {
       $raw = $Matches[3]
       $kind = ($raw -replace '^Pause ', '' -replace '\s*\(G1 [^)]*\)', '' -replace '[()]', '' -replace '\s+', ' ').Trim()
       $pauses.Add([pscustomobject]@{
-        t = ConvertTo-Double $Matches[1]; kind = $kind; raw = $raw
-        pre = [int]$Matches[4]; post = [int]$Matches[5]; cap = [int]$Matches[6]; ms = ConvertTo-Double $Matches[7]
+        t = [double]::Parse($Matches[1], $inv); kind = $kind; raw = $raw
+        pre = [int]$Matches[4]; post = [int]$Matches[5]; cap = [int]$Matches[6]; ms = [double]::Parse($Matches[7], $inv)
       })
     } elseif ($line.Contains('Safepoint "') -and $line -match $rxSafe) {
       $safe.Add([pscustomobject]@{
-        t = ConvertTo-Double $Matches[1]; op = $Matches[2]
+        t = [double]::Parse($Matches[1], $inv); op = $Matches[2]
         reach = [double]$Matches[3] / 1e6; total = [double]$Matches[4] / 1e6
       })
     } elseif ($line.Contains('threshold: ') -and $line -match 'threshold: (\d+)B') {
@@ -373,7 +372,7 @@ if (-not $jitFile) {
   $compiles = 0; $notEntrant = 0; $trapCount = 0
   foreach ($line in (Read-SharedLine $jitFile.FullName)) {
     if ($line -notmatch $rxJit) { continue }
-    $bucket = [int]([math]::Floor((ConvertTo-Double $Matches[1]) / 300)) * 5
+    $bucket = [int]([math]::Floor([double]::Parse($Matches[1], $inv) / 300)) * 5
     $tier = $Matches[3]; $method = $Matches[4]; $tail = $Matches[6]
     if ($tail -match 'made not entrant') {
       $notEntrant++

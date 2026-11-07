@@ -28,7 +28,8 @@
     and libx265 otherwise (see -Encoder). x265 is tuned for SSIM at CRF 28,
     preset slow, with a 2-5s closed GOP so the result stays seekable/
     streamable at any framerate up to 60fps. ffzap wraps ffmpeg so
-    -ThreadCount videos encode concurrently instead of one at a time. Sources
+    -ThreadCount videos encode concurrently instead of one at a time (image tools
+    and ffprobe checks also fan out to -ThreadCount workers). Sources
     already encoded as HEVC or AV1 are skipped, as are files already named
     "*.h265.<ext>". -Denoise and -MaxVideoDimension are optional, off by
     default: they are the actual lever for shrinking already-compressed
@@ -107,7 +108,8 @@
 .PARAMETER ThreadCount
     Number of videos ffzap encodes concurrently. Default 4. ffzap is used as an
     ffmpeg wrapper for the video pass so multiple files encode in parallel
-    instead of one at a time.
+    instead of one at a time. Also bounds concurrent image tool processes
+    (cwebp, ffmpeg, jpegoptim, gifsicle, ImageMagick) and ffprobe checks.
 .PARAMETER KeepOriginals
     Keep the source video in place after a successful encode instead of moving
     it into -BackupPath. The folder will not shrink.
@@ -316,35 +318,51 @@ function Invoke-BatchTool {
         [Parameter(Mandatory)][string]$Tool,
         [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$ToolArgument,
         [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$FilePath,
-        [Parameter(Mandatory)][string]$Activity
+        [Parameter(Mandatory)][string]$Activity,
+        # Concurrent chunks; keep 1 for tools that already use every core (oxipng).
+        [ValidateRange(1, 256)][int]$ThrottleLimit = 1
     )
     process {
         [long]$saved = 0
         if ($FilePath.Count -eq 0) { return $saved }
 
-        for (($offset = 0), ($fileCount = $FilePath.Count); $offset -lt $fileCount; $offset += $batchSize) {
-            $chunk = @($FilePath[$offset..([Math]::Min($offset + $batchSize, $FilePath.Count) - 1)])
-            $done = $offset + $chunk.Count
-            Write-Progress -Activity $Activity -Status "$done/$($FilePath.Count)" `
-                -PercentComplete (($done / $FilePath.Count) * 100)
-            if (-not $PSCmdlet.ShouldProcess("$($chunk.Count) file(s)", $Activity)) { continue }
+        # Smaller chunks when parallel so a short file list still fans out across workers.
+        $chunkSize = $batchSize
+        if ($ThrottleLimit -gt 1) {
+            $chunkSize = [Math]::Max(1, [Math]::Min($batchSize, [int][Math]::Ceiling($FilePath.Count / $ThrottleLimit)))
+        }
 
+        $chunks = [System.Collections.Generic.List[object]]::new()
+        for (($offset = 0), ($fileCount = $FilePath.Count); $offset -lt $fileCount; $offset += $chunkSize) {
+            $chunk = @($FilePath[$offset..([Math]::Min($offset + $chunkSize, $fileCount) - 1)])
+            if (-not $PSCmdlet.ShouldProcess("$($chunk.Count) file(s)", $Activity)) { continue }
             [long]$before = 0
             foreach ($file in $chunk) {
-                $item = Get-Item -LiteralPath $file -ErrorAction SilentlyContinue
-                if ($item) { $before += $item.Length }
+                if ([System.IO.File]::Exists($file)) { $before += [System.IO.FileInfo]::new($file).Length }
             }
-            # Route the tool's stdout through Write-Host: left in the success stream it
-            # would be folded into this function's return value. stderr stays unredirected
-            # on purpose - 2>&1 under $ErrorActionPreference = 'Stop' turns a native tool's
-            # normal stderr chatter into a terminating NativeCommandError on PowerShell 5.1.
-            & $Tool @ToolArgument @chunk | ForEach-Object { Write-Host $_ }
+            $chunks.Add([pscustomobject]@{ Tool = $Tool; Arguments = $ToolArgument; Files = $chunk; Before = $before })
+        }
+
+        # Stdout is captured and replayed through Write-Host: left in the success stream it
+        # would be folded into this function's return value. stderr stays unredirected
+        # on purpose - 2>&1 under $ErrorActionPreference = 'Stop' turns a native tool's
+        # normal stderr chatter into a terminating NativeCommandError on PowerShell 5.1.
+        $work = {
+            param($c)
+            $toolArgs = $c.Arguments
+            $files = $c.Files
+            $lines = [System.Collections.Generic.List[string]]::new()
+            foreach ($line in @(& $c.Tool @toolArgs @files)) { $lines.Add("$line") }
             [long]$after = 0
-            foreach ($file in $chunk) {
-                $item = Get-Item -LiteralPath $file -ErrorAction SilentlyContinue
-                if ($item) { $after += $item.Length }
+            foreach ($f in $files) {
+                if ([System.IO.File]::Exists($f)) { $after += [System.IO.FileInfo]::new($f).Length }
             }
-            if ($after -lt $before) { $saved += ($before - $after) }
+            [pscustomobject]@{ Before = $c.Before; After = $after; Output = $lines.ToArray() }
+        }
+        Write-Progress -Activity $Activity -Status "$($FilePath.Count) file(s)"
+        foreach ($result in @(Invoke-Parallel -InputObject $chunks.ToArray() -ScriptBlock $work -ThrottleLimit $ThrottleLimit)) {
+            foreach ($line in $result.Output) { Write-Host $line }
+            if ($result.After -lt $result.Before) { $saved += ($result.Before - $result.After) }
         }
         Write-Progress -Activity $Activity -Completed
         $saved
@@ -382,7 +400,8 @@ function Invoke-ResizePass {
         [Parameter(Mandatory)][int]$MaxDimension,
         [Parameter(Mandatory)][string]$Magick,
         [Parameter(Mandatory)][string]$TargetPath,
-        [Parameter(Mandatory)][string]$BackupPath
+        [Parameter(Mandatory)][string]$BackupPath,
+        [ValidateRange(1, 256)][int]$ThreadCount = 1
     )
     process {
         [long]$saved = 0
@@ -420,7 +439,7 @@ function Invoke-ResizePass {
         }
         $saved += Invoke-BatchTool -Tool $Magick `
             -ToolArgument @('mogrify', '-resize', "${MaxDimension}x${MaxDimension}>") `
-            -FilePath $toResize.ToArray() -Activity 'Resizing images'
+            -FilePath $toResize.ToArray() -Activity 'Resizing images' -ThrottleLimit $ThreadCount
         $saved
     }
 }
@@ -474,7 +493,8 @@ function Invoke-WebpConvertPass {
         [AllowEmptyString()][string]$Exiftool,
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][string]$BackupPath,
-        [bool]$Force
+        [bool]$Force,
+        [ValidateRange(1, 256)][int]$ThreadCount = 1
     )
     process {
         [long]$saved = 0
@@ -483,51 +503,66 @@ function Invoke-WebpConvertPass {
         $cwebpArgs = if ($Lossless) { @('-lossless', '-z', '9') } else { @('-q', "$Quality", '-af', '-sharp_yuv') }
         $cwebpArgs += @('-metadata', 'all', '-mt', '-quiet')
 
-        # ponytail: one process per file, -m 6 -af is slow - a runspace pool is the upgrade
-        # path if a multi-thousand-file library makes this pass a bottleneck.
-        $i = 0
+        # Main thread: existence checks, ShouldProcess and size reads. The cwebp (+ exiftool)
+        # runs go through Invoke-Parallel, then results are applied here in input order.
+        $jobs = [System.Collections.Generic.List[object]]::new()
         foreach ($path in $FilePath) {
-            $i++
-            if ($i % 25 -eq 0 -or $i -eq $FilePath.Count) {
-                Write-Progress -Activity 'Converting to WebP' -Status "$i/$($FilePath.Count)" `
-                    -PercentComplete (($i / $FilePath.Count) * 100)
-            }
-            $file = Get-Item -LiteralPath $path -ErrorAction SilentlyContinue
-            if (-not $file) { continue }
-            $output = Join-Path -Path $file.DirectoryName -ChildPath "$($file.BaseName).webp"
-            if ((Test-Path -LiteralPath $output) -and -not $Force) {
+            if (-not [System.IO.File]::Exists($path)) { continue }
+            $file = [System.IO.FileInfo]::new($path)
+            $webpName = "$([System.IO.Path]::GetFileNameWithoutExtension($path)).webp"
+            $output = Join-Path -Path $file.DirectoryName -ChildPath $webpName
+            if ([System.IO.File]::Exists($output) -and -not $Force) {
                 Write-Verbose "Skipping $($file.Name): $output already exists."
                 continue
             }
             if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Convert to WebP (cwebp)')) { continue }
+            $jobs.Add([pscustomobject]@{
+                    Source = $file.FullName; Output = $output; Tmp = "$output.tmp"; Before = $file.Length
+                    Cwebp = $Cwebp; CwebpArgs = $cwebpArgs; Exiftool = $Exiftool; Force = $Force
+                })
+        }
 
-            $before = $file.Length
-            $tmp = "$output.tmp"
-            & $Cwebp @cwebpArgs $file.FullName -o $tmp
-            $tmpItem = Get-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
-            if (-not $tmpItem -or $tmpItem.Length -eq 0) {
-                Write-Warning "  [FAIL] convert $($file.Name)"
-                if ($tmpItem) { Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue }
+        $work = {
+            param($j)
+            $lines = [System.Collections.Generic.List[string]]::new()
+            $cwebpArgs = $j.CwebpArgs
+            foreach ($line in @(& $j.Cwebp @cwebpArgs $j.Source -o $j.Tmp)) { $lines.Add("$line") }
+            $len = -1L
+            if ([System.IO.File]::Exists($j.Tmp)) { $len = [System.IO.FileInfo]::new($j.Tmp).Length }
+            $status = 'ok'
+            if ($len -le 0) { $status = 'fail' }
+            elseif (-not $j.Force -and $len -ge $j.Before) { $status = 'nogain' }
+            elseif ($j.Exiftool) {
+                # cwebp -metadata all keeps only the ICC profile on Windows; copy EXIF/XMP
+                # (capture date, GPS, orientation) in separately so the archive doesn't lose them.
+                $exifOut = @(& $j.Exiftool -TagsFromFile $j.Source -exif:all -xmp:all -iptc:all `
+                        -overwrite_original -quiet -m $j.Tmp)
+                foreach ($line in $exifOut) { $lines.Add("$line") }
+                if ([System.IO.File]::Exists($j.Tmp)) { $len = [System.IO.FileInfo]::new($j.Tmp).Length }
+            }
+            [pscustomobject]@{
+                Source = $j.Source; Output = $j.Output; Tmp = $j.Tmp; Before = $j.Before
+                Status = $status; Length = $len; Lines = $lines.ToArray()
+            }
+        }
+        Write-Progress -Activity 'Converting to WebP' -Status "$($jobs.Count) file(s)"
+        $results = @(Invoke-Parallel -InputObject $jobs.ToArray() -ScriptBlock $work -ThrottleLimit $ThreadCount)
+        foreach ($r in $results) {
+            foreach ($line in $r.Lines) { Write-Host $line }
+            if ($r.Status -eq 'fail') {
+                Write-Warning "  [FAIL] convert $([System.IO.Path]::GetFileName($r.Source))"
+                if ([System.IO.File]::Exists($r.Tmp)) { Remove-Item -LiteralPath $r.Tmp -ErrorAction SilentlyContinue }
                 continue
             }
-            if (-not $Force -and $tmpItem.Length -ge $before) {
-                Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+            if ($r.Status -eq 'nogain') {
+                Remove-Item -LiteralPath $r.Tmp -ErrorAction SilentlyContinue
                 continue
             }
-
-            # cwebp -metadata all keeps only the ICC profile on Windows; copy EXIF/XMP
-            # (capture date, GPS, orientation) in separately so the archive doesn't lose them.
-            if ($Exiftool) {
-                & $Exiftool -TagsFromFile $file.FullName -exif:all -xmp:all -iptc:all `
-                    -overwrite_original -quiet -m $tmp
-                $tmpItem = Get-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+            Move-Item -LiteralPath $r.Tmp -Destination $r.Output -Force
+            if (Backup-MediaFile -FullName $r.Source -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
+                $saved += $r.Before
             }
-
-            Move-Item -LiteralPath $tmp -Destination $output -Force
-            if (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
-                $saved += $before
-            }
-            $saved -= $tmpItem.Length
+            $saved -= $r.Length
         }
         Write-Progress -Activity 'Converting to WebP' -Completed
         $saved
@@ -570,10 +605,18 @@ function Invoke-ImagePass {
         [string]$Ffmpeg,
         [bool]$StripMetadata,
         [bool]$ConvertToWebp,
-        [bool]$Force
+        [bool]$Force,
+        # Pre-enumerated files (single tree walk); enumerated here when not supplied.
+        [AllowEmptyCollection()][System.IO.FileInfo[]]$MediaFile,
+        [ValidateRange(1, 256)][int]$ThreadCount = 1
     )
     process {
-        $files = @(Get-MediaFile -TargetPath $TargetPath -Extension $imageExtensions)
+        if ($PSBoundParameters.ContainsKey('MediaFile')) {
+            $files = @($MediaFile)
+        }
+        else {
+            $files = @(Get-MediaFile -TargetPath $TargetPath -Extension $imageExtensions)
+        }
         if ($files.Count -eq 0) {
             Write-Host 'No image files found.' -ForegroundColor Yellow
             return 0L
@@ -627,33 +670,45 @@ function Invoke-ImagePass {
         }
         elseif ($byKind.ContainsKey('convert')) {
             $convertible = $byKind['convert']
-            $i = 0
+            $jobs = [System.Collections.Generic.List[object]]::new()
             foreach ($file in $convertible) {
-                $i++
-                if ($i % 25 -eq 0 -or $i -eq $convertible.Count) {
-                    Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Status "$i/$($convertible.Count)" `
-                        -PercentComplete (($i / $convertible.Count) * 100)
-                }
                 $output = Join-Path -Path $file.DirectoryName -ChildPath "$($file.BaseName).png"
-                if ((Test-Path -LiteralPath $output) -and -not $Force) {
+                if ([System.IO.File]::Exists($output) -and -not $Force) {
                     Write-Verbose "Skipping $($file.Name): $output already exists."
                     continue
                 }
                 if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Convert to PNG (ffmpeg)')) { continue }
-                $before = $file.Length
-                & $Ffmpeg -y -loglevel error -i $file.FullName $output
-                $outputItem = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
-                if ($LASTEXITCODE -ne 0 -or -not $outputItem -or $outputItem.Length -eq 0) {
-                    Write-Warning "  [FAIL] convert $($file.Name)"
-                    if ($outputItem) { Remove-Item -LiteralPath $output -ErrorAction SilentlyContinue }
+                $jobs.Add([pscustomobject]@{
+                        Ffmpeg = $Ffmpeg; Source = $file.FullName; Output = $output; Before = $file.Length
+                    })
+            }
+            $work = {
+                param($j)
+                $lines = [System.Collections.Generic.List[string]]::new()
+                foreach ($line in @(& $j.Ffmpeg -y -loglevel error -i $j.Source $j.Output)) { $lines.Add("$line") }
+                $exit = $LASTEXITCODE
+                $len = -1L
+                if ([System.IO.File]::Exists($j.Output)) { $len = [System.IO.FileInfo]::new($j.Output).Length }
+                [pscustomobject]@{
+                    Source = $j.Source; Output = $j.Output; Before = $j.Before
+                    ExitCode = $exit; Length = $len; Lines = $lines.ToArray()
+                }
+            }
+            Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Status "$($jobs.Count) file(s)"
+            $converted = @(Invoke-Parallel -InputObject $jobs.ToArray() -ScriptBlock $work -ThrottleLimit $ThreadCount)
+            foreach ($r in $converted) {
+                foreach ($line in $r.Lines) { Write-Host $line }
+                if ($r.ExitCode -ne 0 -or $r.Length -le 0) {
+                    Write-Warning "  [FAIL] convert $([System.IO.Path]::GetFileName($r.Source))"
+                    if ($r.Length -ge 0) { Remove-Item -LiteralPath $r.Output -ErrorAction SilentlyContinue }
                     continue
                 }
                 # The extension changes, so the source is not replaced in place: move it out.
-                if (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
-                    $saved += $before
+                if (Backup-MediaFile -FullName $r.Source -TargetPath $TargetPath -BackupPath $BackupPath -Move) {
+                    $saved += $r.Before
                 }
-                $saved -= $outputItem.Length
-                $pngPaths.Add($output)
+                $saved -= $r.Length
+                $pngPaths.Add($r.Output)
             }
             Write-Progress -Activity 'Converting BMP/TIFF to PNG' -Completed
         }
@@ -672,7 +727,7 @@ function Invoke-ImagePass {
                 }
                 foreach ($path in $pngPaths) { $resizeCandidates.Add($path) }
                 $saved += Invoke-ResizePass -FilePath $resizeCandidates.ToArray() -MaxDimension $MaxDimension `
-                    -Magick $magick -TargetPath $TargetPath -BackupPath $BackupPath
+                    -Magick $magick -TargetPath $TargetPath -BackupPath $BackupPath -ThreadCount $ThreadCount
             }
         }
 
@@ -688,12 +743,13 @@ function Invoke-ImagePass {
                         'EXIF (capture date, GPS, orientation) and XMP will be lost.')
                 }
                 $saved += Invoke-WebpConvertPass -FilePath $pngPaths.ToArray() -Quality $Quality -Lossless $true `
-                    -Cwebp $cwebpConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath -Force:$Force
+                    -Cwebp $cwebpConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
+                    -Force:$Force -ThreadCount $ThreadCount
                 if ($byKind.ContainsKey('jpeg')) {
-                    $jpegPaths = @($byKind['jpeg'] | ForEach-Object { $_.FullName })
+                    $jpegPaths = @($byKind['jpeg'].FullName)
                     $saved += Invoke-WebpConvertPass -FilePath $jpegPaths -Quality $Quality -Lossless $false `
                         -Cwebp $cwebpConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
-                        -Force:$Force
+                        -Force:$Force -ThreadCount $ThreadCount
                 }
             }
         }
@@ -729,7 +785,7 @@ function Invoke-ImagePass {
                     if ($StripMetadata) { $jpegoptimArgs += '-s' }
                     if ($Force) { $jpegoptimArgs += '-f' }
                     $saved += Invoke-BatchTool -Tool $jpegoptim -ToolArgument $jpegoptimArgs `
-                        -FilePath $jpegPaths.ToArray() -Activity 'Optimizing JPEG'
+                        -FilePath $jpegPaths.ToArray() -Activity 'Optimizing JPEG' -ThrottleLimit $ThreadCount
                 }
             }
         }
@@ -748,7 +804,7 @@ function Invoke-ImagePass {
                 $gifPaths = [System.Collections.Generic.List[string]]::new()
                 foreach ($file in $byKind['gif']) { $gifPaths.Add($file.FullName) }
                 $saved += Invoke-BatchTool -Tool $gifsicle -ToolArgument @('-O3', '-b') `
-                    -FilePath $gifPaths.ToArray() -Activity 'Optimizing GIF'
+                    -FilePath $gifPaths.ToArray() -Activity 'Optimizing GIF' -ThrottleLimit $ThreadCount
             }
         }
 
@@ -760,30 +816,41 @@ function Invoke-ImagePass {
                 Write-Warning 'cwebp not found; WEBP files left uncompressed.'
             }
             else {
-                # cwebp handles one file per invocation, so this pass stays a loop.
-                $webpFiles = $byKind['webp']
-                $i = 0
-                foreach ($file in $webpFiles) {
-                    $i++
-                    if ($i % 25 -eq 0 -or $i -eq $webpFiles.Count) {
-                        Write-Progress -Activity 'Optimizing WEBP' -Status "$i/$($webpFiles.Count)" `
-                            -PercentComplete (($i / $webpFiles.Count) * 100)
-                    }
+                # cwebp handles one file per invocation; the runs are fanned out below.
+                $webpJobs = [System.Collections.Generic.List[object]]::new()
+                foreach ($file in $byKind['webp']) {
                     if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Optimize WEBP (cwebp)')) { continue }
                     if (-not (Backup-MediaFile -FullName $file.FullName -TargetPath $TargetPath -BackupPath $BackupPath)) {
                         continue
                     }
-                    $before = $file.Length
-                    $tmp = "$($file.FullName).tmp.webp"
-                    & $cwebp -quiet -q $Quality $file.FullName -o $tmp
-                    $tmpItem = Get-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
-                    if (-not $tmpItem) { continue }
-                    if ($Force -or $tmpItem.Length -lt $before) {
-                        Move-Item -LiteralPath $tmp -Destination $file.FullName -Force
-                        if ($tmpItem.Length -lt $before) { $saved += ($before - $tmpItem.Length) }
+                    # Length is read fresh: the resize pass may have rewritten the file.
+                    $webpJobs.Add([pscustomobject]@{
+                            Cwebp = $cwebp; Quality = "$Quality"; Source = $file.FullName
+                            Tmp = "$($file.FullName).tmp.webp"
+                            Before = [System.IO.FileInfo]::new($file.FullName).Length
+                        })
+                }
+                $work = {
+                    param($j)
+                    $lines = [System.Collections.Generic.List[string]]::new()
+                    foreach ($line in @(& $j.Cwebp -quiet -q $j.Quality $j.Source -o $j.Tmp)) { $lines.Add("$line") }
+                    $len = -1L
+                    if ([System.IO.File]::Exists($j.Tmp)) { $len = [System.IO.FileInfo]::new($j.Tmp).Length }
+                    [pscustomobject]@{
+                        Source = $j.Source; Tmp = $j.Tmp; Before = $j.Before; Length = $len; Lines = $lines.ToArray()
+                    }
+                }
+                Write-Progress -Activity 'Optimizing WEBP' -Status "$($webpJobs.Count) file(s)"
+                $webpResults = @(Invoke-Parallel -InputObject $webpJobs.ToArray() -ScriptBlock $work -ThrottleLimit $ThreadCount)
+                foreach ($r in $webpResults) {
+                    foreach ($line in $r.Lines) { Write-Host $line }
+                    if ($r.Length -lt 0) { continue }
+                    if ($Force -or $r.Length -lt $r.Before) {
+                        Move-Item -LiteralPath $r.Tmp -Destination $r.Source -Force
+                        if ($r.Length -lt $r.Before) { $saved += ($r.Before - $r.Length) }
                     }
                     else {
-                        Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue
+                        Remove-Item -LiteralPath $r.Tmp -ErrorAction SilentlyContinue
                     }
                 }
                 Write-Progress -Activity 'Optimizing WEBP' -Completed
@@ -879,7 +946,7 @@ function Invoke-VideoEncode {
                 if ($Force) { $ffzapArgs += '--overwrite' }
                 # Route stdout through Write-Host: left in the success stream, ffzap's progress
                 # lines would be folded into the caller's return value.
-                & $Ffzap @ffzapArgs | ForEach-Object { Write-Host $_ }
+                foreach ($line in @(& $Ffzap @ffzapArgs)) { Write-Host $line }
                 if ($LASTEXITCODE -eq 0) { return }
                 Write-Warning "ffzap exited with code $LASTEXITCODE; falling back to ffmpeg for unfinished files."
             }
@@ -890,21 +957,34 @@ function Invoke-VideoEncode {
             finally {
                 Remove-Item -LiteralPath $listFile -ErrorAction SilentlyContinue
             }
-            $pending = @($Batch | Where-Object {
-                    $existing = Get-Item -LiteralPath $_.Output -ErrorAction SilentlyContinue
-                    -not $existing -or $existing.Length -eq 0
-                })
+            $pending = foreach ($item in $Batch) {
+                if (-not [System.IO.File]::Exists($item.Output) -or
+                    [System.IO.FileInfo]::new($item.Output).Length -eq 0) {
+                    $item
+                }
+            }
+            $pending = @($pending)
         }
         else {
-            Write-Info 'ffzap not available; encoding with ffmpeg one file at a time.'
+            Write-Info "ffzap not available; encoding with ffmpeg ($ThreadCount at a time)."
         }
 
-        $i = 0
-        foreach ($item in $pending) {
-            $i++
-            Write-Info "ffmpeg ($i/$($pending.Count)): $(Split-Path -Leaf $item.Source)"
+        $jobs = foreach ($item in $pending) {
+            [pscustomobject]@{ Ffmpeg = $Ffmpeg; Source = $item.Source; Output = $item.Output; Option = $FfmpegOption }
+        }
+        $work = {
+            param($j)
+            $option = $j.Option
+            $lines = [System.Collections.Generic.List[string]]::new()
             # -i must precede the codec options so they apply to the output, not the input.
-            & $Ffmpeg '-y' '-i' $item.Source @FfmpegOption $item.Output | ForEach-Object { Write-Host $_ }
+            foreach ($line in @(& $j.Ffmpeg '-y' '-i' $j.Source @option $j.Output)) { $lines.Add("$line") }
+            [pscustomobject]@{ Source = $j.Source; Lines = $lines.ToArray() }
+        }
+        $i = 0
+        foreach ($r in @(Invoke-Parallel -InputObject @($jobs) -ScriptBlock $work -ThrottleLimit $ThreadCount)) {
+            $i++
+            Write-Info "ffmpeg ($i/$($pending.Count)): $(Split-Path -Leaf $r.Source)"
+            foreach ($line in $r.Lines) { Write-Host $line }
         }
     }
 }
@@ -962,11 +1042,20 @@ function Invoke-VideoPass {
         [Parameter(Mandatory)][int]$ThreadCount,
         [Parameter(Mandatory)][string]$BackupPath,
         [bool]$KeepOriginals,
-        [bool]$Force
+        [bool]$Force,
+        # Pre-enumerated files (single tree walk); enumerated here when not supplied.
+        [AllowEmptyCollection()][System.IO.FileInfo[]]$MediaFile
     )
     process {
-        $files = @(Get-MediaFile -TargetPath $TargetPath -Extension $videoExtensions |
-                Where-Object { $_.Name -notmatch '(?i)\.(h265|av1|vp9)\.[^.]+$' })
+        if ($PSBoundParameters.ContainsKey('MediaFile')) {
+            $candidates = $MediaFile
+        }
+        else {
+            $candidates = Get-MediaFile -TargetPath $TargetPath -Extension $videoExtensions
+        }
+        $files = @(foreach ($candidate in $candidates) {
+                if ($candidate.Name -notmatch '(?i)\.(h265|av1|vp9)\.[^.]+$') { $candidate }
+            })
 
         $result = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; NoGain = 0; Reclaimed = 0L }
         if ($files.Count -eq 0) {
@@ -976,34 +1065,43 @@ function Invoke-VideoPass {
 
         Write-Phase "Re-encoding $($files.Count) video(s) in $TargetPath"
 
-        # Phase A: decide which files actually need encoding.
-        $batch = [System.Collections.Generic.List[PSCustomObject]]::new()
-        $i = 0
+        # Phase A: decide which files actually need encoding. Finished outputs are dropped
+        # first so they are never probed; the remaining codec probes run in parallel.
+        $toProbe = [System.Collections.Generic.List[object]]::new()
         foreach ($file in $files) {
-            $i++
-            if ($i % 25 -eq 0 -or $i -eq $files.Count) {
-                Write-Progress -Activity 'Scanning video codecs' -Status "$i/$($files.Count)" `
-                    -PercentComplete (($i / $files.Count) * 100)
-            }
-
-            # Re-encoding HEVC/AV1 costs quality and usually saves nothing.
-            $codec = (& $Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name `
-                    -of default=noprint_wrappers=1:nokey=1 $file.FullName | Select-Object -First 1)
-            if (-not $Force -and $codec -in 'hevc', 'av1') {
-                Write-Verbose "Skipping $($file.Name): already $codec."
-                $result.Skipped++
-                continue
-            }
-
             $output = Join-Path -Path $file.DirectoryName -ChildPath "$($file.BaseName)$($VideoProfile.Suffix)"
-            $existingOutput = Get-Item -LiteralPath $output -ErrorAction SilentlyContinue
-            if ($existingOutput -and $existingOutput.Length -gt 0 -and -not $Force) {
+            if (-not $Force -and [System.IO.File]::Exists($output) -and [System.IO.FileInfo]::new($output).Length -gt 0) {
                 Write-Verbose "Skipping $($file.Name): output exists (use -Force to overwrite)"
                 $result.Skipped++
                 continue
             }
+            $toProbe.Add([pscustomobject]@{ File = $file; Output = $output; Ffprobe = $Ffprobe })
+        }
 
-            $batch.Add([PSCustomObject]@{ Source = $file.FullName; Output = $output; Length = $file.Length })
+        # Re-encoding HEVC/AV1 costs quality and usually saves nothing; -Force bypasses the check.
+        $codecOf = @{}
+        if (-not $Force -and $toProbe.Count -gt 0) {
+            $probeWork = {
+                param($j)
+                $codec = @(& $j.Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name `
+                        -of default=noprint_wrappers=1:nokey=1 $j.File.FullName) | Select-Object -First 1
+                [pscustomobject]@{ Path = $j.File.FullName; Codec = "$codec" }
+            }
+            Write-Progress -Activity 'Scanning video codecs' -Status "$($toProbe.Count) file(s)"
+            foreach ($probe in @(Invoke-Parallel -InputObject $toProbe.ToArray() -ScriptBlock $probeWork -ThrottleLimit $ThreadCount)) {
+                $codecOf[$probe.Path] = $probe.Codec
+            }
+        }
+
+        $batch = [System.Collections.Generic.List[PSCustomObject]]::new()
+        foreach ($entry in $toProbe) {
+            $file = $entry.File
+            if (-not $Force -and $codecOf[$file.FullName] -in 'hevc', 'av1') {
+                Write-Verbose "Skipping $($file.Name): already $($codecOf[$file.FullName])."
+                $result.Skipped++
+                continue
+            }
+            $batch.Add([PSCustomObject]@{ Source = $file.FullName; Output = $entry.Output; Length = $file.Length })
         }
         Write-Progress -Activity 'Scanning video codecs' -Completed
 
@@ -1026,7 +1124,25 @@ function Invoke-VideoPass {
             -FfmpegOption $ffmpegOptions -OutputSuffix $VideoProfile.Suffix `
             -ThreadCount $ThreadCount -Force:$Force
 
-        # Phase C: validate each output and back up the source on success.
+        # Phase C: validate each output and back up the source on success. The readability
+        # probes run in parallel; backup and move stay sequential on this thread.
+        $toValidate = foreach ($item in $batch) {
+            if ([System.IO.File]::Exists($item.Output) -and [System.IO.FileInfo]::new($item.Output).Length -gt 0) {
+                [pscustomobject]@{ Ffprobe = $Ffprobe; Output = $item.Output }
+            }
+        }
+        $validateWork = {
+            param($j)
+            # A file ffprobe cannot read is not a replacement, however large it is.
+            $null = @(& $j.Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name `
+                    -of default=noprint_wrappers=1:nokey=1 $j.Output)
+            [pscustomobject]@{ Output = $j.Output; Readable = ($LASTEXITCODE -eq 0) }
+        }
+        $readable = @{}
+        foreach ($v in @(Invoke-Parallel -InputObject @($toValidate) -ScriptBlock $validateWork -ThrottleLimit $ThreadCount)) {
+            $readable[$v.Output] = $v.Readable
+        }
+
         $i = 0
         foreach ($item in $batch) {
             $i++
@@ -1035,14 +1151,9 @@ function Invoke-VideoPass {
                     -PercentComplete (($i / $batch.Count) * 100)
             }
 
-            $outputItem = Get-Item -LiteralPath $item.Output -ErrorAction SilentlyContinue
-            $outputReadable = $false
-            if ($outputItem -and $outputItem.Length -gt 0) {
-                # A file ffprobe cannot read is not a replacement, however large it is.
-                $null = & $Ffprobe -v error -select_streams v:0 -show_entries stream=codec_name `
-                    -of default=noprint_wrappers=1:nokey=1 $item.Output
-                $outputReadable = ($LASTEXITCODE -eq 0)
-            }
+            $outputItem = $null
+            if ([System.IO.File]::Exists($item.Output)) { $outputItem = [System.IO.FileInfo]::new($item.Output) }
+            $outputReadable = $readable.ContainsKey($item.Output) -and $readable[$item.Output]
 
             if (-not $outputReadable) {
                 Write-Warning "  [FAIL] ($i/$($batch.Count)) $(Split-Path -Leaf $item.Source)"
@@ -1112,10 +1223,25 @@ if ($MyInvocation.InvocationName -ne '.') {
     $bytesSaved = 0L
     $videoResult = [PSCustomObject]@{ Encoded = 0; Skipped = 0; Errors = 0; NoGain = 0; Reclaimed = 0L }
 
+    # One tree walk for both passes; each pass receives its own extension subset.
+    $wantedExtension = @()
+    if (-not $SkipImages) { $wantedExtension += $imageExtensions }
+    if (-not $SkipVideo) { $wantedExtension += $videoExtensions }
+    $imageFile = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+    $videoFile = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+    if ($wantedExtension.Count -gt 0) {
+        $videoSet = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($ext in $videoExtensions) { $null = $videoSet.Add(".$ext") }
+        foreach ($mediaItem in Get-MediaFile -TargetPath $resolvedPath -Extension $wantedExtension) {
+            if ($videoSet.Contains($mediaItem.Extension)) { $videoFile.Add($mediaItem) } else { $imageFile.Add($mediaItem) }
+        }
+    }
+
     if (-not $SkipImages) {
         $bytesSaved = Invoke-ImagePass -TargetPath $resolvedPath -Quality $ImageQuality -OxipngLevel $OxipngLevel `
             -MaxDimension $MaxDimension -BackupPath $resolvedBackupPath -Ffmpeg $ffmpeg `
-            -StripMetadata:$StripMetadata -ConvertToWebp:$ConvertToWebp -Force:$Force
+            -StripMetadata:$StripMetadata -ConvertToWebp:$ConvertToWebp -Force:$Force `
+            -MediaFile $imageFile.ToArray() -ThreadCount $ThreadCount
     }
 
     if (-not $SkipVideo) {
@@ -1165,7 +1291,8 @@ if ($MyInvocation.InvocationName -ne '.') {
         $videoResult = Invoke-VideoPass -TargetPath $resolvedPath -Ffmpeg $ffmpeg -Ffprobe $ffprobe -Ffzap $ffzap `
             -EncoderArgs $encoderArgs -VideoFilterArgs $videoFilterArgs -VideoProfile $videoProfile `
             -AudioBitrate $AudioBitrate -ThreadCount $ThreadCount `
-            -BackupPath $resolvedBackupPath -KeepOriginals:$KeepOriginals -Force:$Force
+            -BackupPath $resolvedBackupPath -KeepOriginals:$KeepOriginals -Force:$Force `
+            -MediaFile $videoFile.ToArray()
     }
 
     Write-Host ''

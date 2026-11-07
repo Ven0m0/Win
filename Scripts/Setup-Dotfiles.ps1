@@ -64,13 +64,17 @@ function Deploy-Config {
     }
 
     $destDir = Split-Path $Destination -Parent
-    $srcHash = (Get-FileHash $Source -Algorithm SHA256).Hash
-
+    # Hash only when the destination exists and has the same size: a missing or different-sized file
+    # always needs a copy, so hashing it (and the source) would be wasted I/O.
     if (Test-Path $Destination) {
-        $dstHash = (Get-FileHash $Destination -Algorithm SHA256).Hash
-        if ($srcHash -eq $dstHash) {
-            Write-Host "  [UP-TO-DATE] $Label" -ForegroundColor Gray
-            return
+        $sameSize = (Get-Item -Path $Source).Length -eq (Get-Item -Path $Destination).Length
+        if ($sameSize) {
+            $srcHash = (Get-FileHash $Source -Algorithm SHA256).Hash
+            $dstHash = (Get-FileHash $Destination -Algorithm SHA256).Hash
+            if ($srcHash -eq $dstHash) {
+                Write-Host "  [UP-TO-DATE] $Label" -ForegroundColor Gray
+                return
+            }
         }
     }
 

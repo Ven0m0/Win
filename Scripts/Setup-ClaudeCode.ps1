@@ -54,10 +54,15 @@ function Install-ClaudeMarketplace {
         [string]$Name,
 
         [Parameter(Mandatory)]
-        [string]$Repo
+        [string]$Repo,
+
+        # Pre-fetched 'claude plugin marketplace list' output; skips one CLI call per marketplace.
+        [AllowEmptyCollection()]
+        [string[]]$KnownList
     )
 
-    $known = & claude plugin marketplace list 2>$null
+    if ($PSBoundParameters.ContainsKey('KnownList')) { $known = $KnownList }
+    else { $known = & claude plugin marketplace list 2>$null }
     if ($known -match [regex]::Escape($Name)) {
         Write-Host "  [SKIP] Marketplace $Name - already known" -ForegroundColor Gray
         return
@@ -84,10 +89,15 @@ function Install-ClaudePlugin {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
-        [string]$PluginId
+        [string]$PluginId,
+
+        # Pre-fetched 'claude plugin list' output; skips one CLI call per plugin.
+        [AllowEmptyCollection()]
+        [string[]]$KnownList
     )
 
-    $known = & claude plugin list 2>$null
+    if ($PSBoundParameters.ContainsKey('KnownList')) { $known = $KnownList }
+    else { $known = & claude plugin list 2>$null }
     if ($known -match [regex]::Escape($PluginId)) {
         Write-Host "  [SKIP] Plugin $PluginId - already installed" -ForegroundColor Gray
         return
@@ -193,10 +203,12 @@ function Start-ClaudeCodeSetup {
     Write-Host ''
     Write-Host 'Claude Code marketplaces' -ForegroundColor Cyan
     $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+    # One CLI call (Node startup, ~1 s) for the whole loop instead of one per entry.
+    $knownMarketplaces = @(& claude plugin marketplace list 2>$null)
     foreach ($name in $settings.extraKnownMarketplaces.PSObject.Properties.Name) {
         $repo = $settings.extraKnownMarketplaces.$name.source.repo
         try {
-            Install-ClaudeMarketplace -Name $name -Repo $repo
+            Install-ClaudeMarketplace -Name $name -Repo $repo -KnownList $knownMarketplaces
         }
         catch {
             $failures.Add([pscustomobject]@{ Label = "Marketplace $name"; Error = $_.Exception.Message })
@@ -205,10 +217,11 @@ function Start-ClaudeCodeSetup {
 
     Write-Host ''
     Write-Host 'Claude Code plugins' -ForegroundColor Cyan
+    $knownPlugins = @(& claude plugin list 2>$null)
     foreach ($pluginId in $settings.enabledPlugins.PSObject.Properties.Name) {
         if (-not $settings.enabledPlugins.$pluginId) { continue }
         try {
-            Install-ClaudePlugin -PluginId $pluginId
+            Install-ClaudePlugin -PluginId $pluginId -KnownList $knownPlugins
         }
         catch {
             $failures.Add([pscustomobject]@{ Label = "Plugin $pluginId"; Error = $_.Exception.Message })

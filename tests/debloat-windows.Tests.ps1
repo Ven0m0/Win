@@ -112,3 +112,78 @@ Describe "Phase Functions Execution" {
         $env:SystemRoot = $script:origSystemRoot
     }
 }
+
+
+Describe "Scheduled task index lookup" {
+    BeforeAll {
+        # Stubs so the real cmdlets (and the system) are never touched; Pester mocks replace them below.
+        function Get-ScheduledTask { [CmdletBinding()] param($TaskPath, $TaskName) }
+        function Disable-ScheduledTask { [CmdletBinding()] param($TaskPath, $TaskName) }
+        function Enable-ScheduledTask { [CmdletBinding()] param($TaskPath, $TaskName) }
+
+        function New-FakeTask ([string]$Path, [string]$Name, [string]$State) {
+            [pscustomobject]@{ TaskPath = $Path; TaskName = $Name; State = $State }
+        }
+    }
+
+    BeforeEach {
+        Mock Disable-ScheduledTask {}
+        Mock Enable-ScheduledTask {}
+        # Folder queries (-TaskPath given) find nothing; only the single full enumeration returns tasks.
+        Mock Get-ScheduledTask { @() } -ParameterFilter { $TaskPath }
+    }
+
+    It "Disables only the matching enabled entry, once, and enumerates tasks once" {
+        Mock Get-ScheduledTask {
+            @(
+                (New-FakeTask '\Microsoft\Windows\Maps\' 'MapsToastTask' 'Ready'),
+                (New-FakeTask '\Microsoft\Windows\Maps\' 'SomeUnlistedTask' 'Ready'),
+                (New-FakeTask '\Microsoft\Windows\Shell\' 'FamilySafetyMonitor' 'Disabled')
+            )
+        } -ParameterFilter { -not $TaskPath }
+
+        Invoke-ScheduledTaskCleanup *> $null
+
+        Should -Invoke Disable-ScheduledTask -Times 1 -Exactly
+        Should -Invoke Disable-ScheduledTask -Times 1 -Exactly -ParameterFilter {
+            $TaskPath -eq '\Microsoft\Windows\Maps\' -and $TaskName -eq 'MapsToastTask'
+        }
+        Should -Invoke Get-ScheduledTask -Times 1 -Exactly -ParameterFilter { -not $TaskPath }
+    }
+
+    It "Matches task path and name case-insensitively" {
+        Mock Get-ScheduledTask {
+            @(New-FakeTask '\microsoft\WINDOWS\maps\' 'mapstoasttask' 'Ready')
+        } -ParameterFilter { -not $TaskPath }
+
+        Invoke-ScheduledTaskCleanup *> $null
+
+        Should -Invoke Disable-ScheduledTask -Times 1 -Exactly -ParameterFilter { $TaskName -eq 'MapsToastTask' }
+    }
+
+    It "Disables nothing when no listed task exists" {
+        Mock Get-ScheduledTask { @() } -ParameterFilter { -not $TaskPath }
+
+        Invoke-ScheduledTaskCleanup *> $null
+
+        Should -Invoke Disable-ScheduledTask -Times 0 -Exactly
+    }
+
+    It "Restore enables only disabled matching entries, once, case-insensitively" {
+        Mock Get-ScheduledTask {
+            @(
+                (New-FakeTask '\microsoft\windows\application experience\' 'startupapptask' 'Disabled'),
+                (New-FakeTask '\Microsoft\Windows\Customer Experience Improvement Program\' 'UsbCeip' 'Ready'),
+                (New-FakeTask '\Microsoft\Windows\Maps\' 'MapsToastTask' 'Disabled')
+            )
+        } -ParameterFilter { -not $TaskPath }
+
+        Restore-ScheduledTask *> $null
+
+        Should -Invoke Enable-ScheduledTask -Times 1 -Exactly
+        Should -Invoke Enable-ScheduledTask -Times 1 -Exactly -ParameterFilter {
+            $TaskPath -eq '\Microsoft\Windows\Application Experience\' -and $TaskName -eq 'StartupAppTask'
+        }
+        Should -Invoke Get-ScheduledTask -Times 1 -Exactly -ParameterFilter { -not $TaskPath }
+    }
+}

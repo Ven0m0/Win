@@ -81,6 +81,17 @@ Describe 'DisableUSBPowerManagement.ps1' -Skip:$notAdmin {
     Should -Invoke Set-CimInstance -Times 0
   }
 
+  It 'Skips power entries with a null InstanceName without aborting' {
+    $usbState.PowerMgmt = @(
+      [pscustomobject]@{ InstanceName = $null; Enable = $true }
+      [pscustomobject]@{ InstanceName = 'USB\VID_1234&PID_5678\SER1_0'; Enable = $true }
+    )
+
+    & $scriptPath
+
+    Should -Invoke Set-CimInstance -Times 1 -Exactly
+  }
+
   It 'Warns and exits 1 when a device cannot be updated' {
     Mock Set-CimInstance { throw 'not supported' }
 

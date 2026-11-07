@@ -1705,9 +1705,33 @@ function Get-FolderSize {
 
     if (!(Test-Path $Path)) { return 0 }
 
+    # PS7 only: EnumerationOptions with AttributesToSkip = ReparsePoint matches Get-ChildItem -Recurse
+    # (junctions/symlinks not followed, hidden/system files counted) and is ~6x faster. The
+    # SearchOption overload follows junctions, so 5.1 keeps Get-ChildItem. Rooted paths only (.NET
+    # ignores $PWD); on any enumeration error (inaccessible subtree, file path, wildcard) recount
+    # with Get-ChildItem.
     $total = 0
-    foreach ($file in Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue) {
-        $total += $file.Length
+    $fast = $false
+    if (($PSVersionTable.PSVersion.Major -ge 7) -and [System.IO.Path]::IsPathRooted($Path)) {
+        try {
+            $options = [System.IO.EnumerationOptions]::new()
+            $options.RecurseSubdirectories = $true
+            $options.AttributesToSkip = [System.IO.FileAttributes]::ReparsePoint
+            $options.IgnoreInaccessible = $false
+            foreach ($file in [System.IO.DirectoryInfo]::new($Path).EnumerateFiles('*', $options)) {
+                $total += $file.Length
+            }
+            $fast = $true
+        }
+        catch {
+            Write-Verbose "Fast folder enumeration failed, falling back: $($_.Exception.Message)"
+        }
+    }
+    if (-not $fast) {
+        $total = 0
+        foreach ($file in Get-ChildItem $Path -Recurse -File -Force -ErrorAction SilentlyContinue) {
+            $total += $file.Length
+        }
     }
 
     switch ($Unit) {
@@ -2564,7 +2588,65 @@ function Ensure-Directory {
     )
     if (-not (Test-Path -LiteralPath $Path)) {
         if ($PSCmdlet.ShouldProcess($Path, 'Create directory')) {
-            New-Item -ItemType Directory -Path $Path -Force | Out-Null
+            $null = New-Item -ItemType Directory -Path $Path -Force
+        }
+    }
+}
+
+function Invoke-Parallel {
+    <#
+    .SYNOPSIS
+        Runs a script block over items on a bounded RunspacePool (works on PowerShell 5.1 and 7+).
+    .DESCRIPTION
+        ForEach-Object -Parallel and Start-ThreadJob are not available on 5.1, so this uses a raw
+        RunspacePool. The script block runs in a fresh runspace: it must be self-contained (no
+        script functions or variables, only native tools and .NET), take the item as its first
+        parameter, and return plain data. Results are emitted in input order. With
+        -ThrottleLimit 1 or a single item the block runs inline in the caller's scope instead.
+    .PARAMETER InputObject
+        Items to process, one invocation each.
+    .PARAMETER ScriptBlock
+        Work to run; receives the item as its first argument (use param($Item)).
+    .PARAMETER ThrottleLimit
+        Maximum concurrent invocations.
+    .EXAMPLE
+        Invoke-Parallel -InputObject $paths -ThrottleLimit 4 -ScriptBlock { param($p) (Get-Item $p).Length }
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$InputObject,
+        [Parameter(Mandatory)][scriptblock]$ScriptBlock,
+        [ValidateRange(1, 256)][int]$ThrottleLimit = 4
+    )
+    process {
+        if ($InputObject.Count -eq 0) { return }
+        if ($ThrottleLimit -le 1 -or $InputObject.Count -eq 1) {
+            foreach ($item in $InputObject) { & $ScriptBlock $item }
+            return
+        }
+
+        # Re-created from text so the block carries no session-state affinity to this runspace.
+        $scriptText = $ScriptBlock.ToString()
+        $pool = [runspacefactory]::CreateRunspacePool(1, [Math]::Min($ThrottleLimit, $InputObject.Count))
+        $jobs = [System.Collections.Generic.List[object]]::new()
+        try {
+            $pool.Open()
+            foreach ($item in $InputObject) {
+                $shell = [powershell]::Create()
+                $shell.RunspacePool = $pool
+                $null = $shell.AddScript($scriptText).AddArgument($item)
+                $jobs.Add([pscustomobject]@{ Shell = $shell; Handle = $shell.BeginInvoke() })
+            }
+            foreach ($job in $jobs) {
+                $job.Shell.EndInvoke($job.Handle)
+                foreach ($err in $job.Shell.Streams.Error) {
+                    Write-Warning "Invoke-Parallel item failed: $($err.Exception.Message)"
+                }
+            }
+        }
+        finally {
+            foreach ($job in $jobs) { $job.Shell.Dispose() }
+            $pool.Dispose()
         }
     }
 }
@@ -2719,9 +2801,9 @@ function Invoke-ToolAboveNormal {
             # Read the redirect files as the process writes them (FileShare.ReadWrite so
             # the child keeps its own handle) instead of dumping everything after exit -
             # a multi-hour video pass otherwise shows nothing at all until it finishes.
-            $readers = @($stdOutFile, $stdErrFile) | ForEach-Object {
+            $readers = foreach ($readerPath in $stdOutFile, $stdErrFile) {
                 [System.IO.StreamReader]::new(
-                    [System.IO.File]::Open($_, [System.IO.FileMode]::Open,
+                    [System.IO.File]::Open($readerPath, [System.IO.FileMode]::Open,
                         [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite))
             }
 
@@ -2734,7 +2816,15 @@ function Invoke-ToolAboveNormal {
                     $parts = @(($pending[$i] + $readers[$i].ReadToEnd()) -split "\r?\n")
                     $last = $parts[$parts.Count - 1]
                     $pending[$i] = if ($Final) { '' } else { $last }
-                    $emit = if ($Final -and $last) { $parts } else { @($parts | Select-Object -SkipLast 1) }
+                    $emit = if ($Final -and $last) {
+                        $parts
+                    }
+                    elseif ($parts.Count -gt 1) {
+                        $parts[0..($parts.Count - 2)]
+                    }
+                    else {
+                        @()
+                    }
                     foreach ($line in $emit) {
                         $collected.Add($line)
                         Write-Host $line
@@ -2780,4 +2870,7 @@ function Invoke-ToolAboveNormal {
 }
 
 # Export functions
-try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }
+# Guard: outside a module Export-ModuleMember always throws, and the first throw costs ~60 ms at dot-source.
+if ($ExecutionContext.SessionState.Module) {
+  try { Export-ModuleMember -Function * } catch { Write-Verbose "Suppressed: $_" }
+}

@@ -27,11 +27,11 @@ function Exit-Hook ([string]$Message) {
 # Nearest ancestor directory containing $Relative, for repo-local config discovery.
 # Walks up from the edited file so results never depend on the session's cwd.
 function Find-AncestorPath ([string]$StartFile, [string]$Relative) {
-  $dir = Split-Path -Path $StartFile -Parent
+  $dir = [IO.Path]::GetDirectoryName($StartFile)
   while ($dir) {
-    $candidate = Join-Path -Path $dir -ChildPath $Relative
-    if (Test-Path -LiteralPath $candidate) { return $candidate }
-    $parent = Split-Path -Path $dir -Parent
+    $candidate = [IO.Path]::Combine($dir, $Relative)
+    if ([IO.File]::Exists($candidate) -or [IO.Directory]::Exists($candidate)) { return $candidate }
+    $parent = [IO.Path]::GetDirectoryName($dir)
     if ($parent -eq $dir) { break }
     $dir = $parent
   }
@@ -40,24 +40,40 @@ function Find-AncestorPath ([string]$StartFile, [string]$Relative) {
 
 $raw = [Console]::In.ReadToEnd()
 if (-not $raw) { exit 0 }
+# JsonDocument instead of ConvertFrom-Json (~40 ms cold start). It is strict and case-sensitive, so
+# anything it cannot read (odd casing, lone surrogates, no file_path) falls back to ConvertFrom-Json.
+$filePath = $null
 try {
-  $filePath = ($raw | ConvertFrom-Json).tool_input.file_path
+  $filePath = [System.Text.Json.JsonDocument]::Parse($raw).RootElement.GetProperty('tool_input').
+    GetProperty('file_path').GetString()
 } catch {
-  exit 0
+  $filePath = $null
 }
-if (-not $filePath -or -not (Test-Path -LiteralPath $filePath -PathType Leaf)) { exit 0 }
+if (-not $filePath) {
+  try {
+    $filePath = ($raw | ConvertFrom-Json).tool_input.file_path
+  } catch {
+    exit 0
+  }
+}
+# File.Exists instead of Test-Path: the first cmdlet call in a hook process costs ~30 ms, and most
+# edits (markdown, text, ...) need no cmdlet at all.
+if (-not $filePath -or -not [IO.File]::Exists($filePath)) { exit 0 }
 
 $ext = [IO.Path]::GetExtension($filePath).ToLowerInvariant()
 
 switch -Regex ($ext) {
 
   '^\.(ps1|psm1|psd1)$' {
-    if (-not (Get-Command -Name Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue)) { break }
     # A repo that wires PSScriptAnalyzer/Pester in its own settings already runs them; a second pass doubles edit latency.
+    # Checked before the Get-Command probe below, which loads PSScriptAnalyzer (~100 ms) as a side effect.
     $repoSettings = Find-AncestorPath -StartFile $filePath -Relative '.claude/settings.json'
-    $userSettings = Join-Path -Path $HOME -ChildPath '.claude/settings.json'
-    if ($repoSettings -and $repoSettings -ne $userSettings -and
-      (Select-String -LiteralPath $repoSettings -Pattern 'PSScriptAnalyzer' -Quiet)) { break }
+    $userSettings = [IO.Path]::Combine($HOME, '.claude/settings.json')
+    if ($repoSettings -and $repoSettings -ne $userSettings -and [IO.File]::Exists($repoSettings)) {
+      $settingsText = [IO.File]::ReadAllText($repoSettings)
+      if ($settingsText.IndexOf('PSScriptAnalyzer', [StringComparison]::OrdinalIgnoreCase) -ge 0) { break }
+    }
+    if (-not (Get-Command -Name Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue)) { break }
     $analyzer = @{ Path = $filePath }
     $settingsPath = Find-AncestorPath -StartFile $filePath -Relative 'PSScriptAnalyzerSettings.psd1'
     if ($settingsPath) { $analyzer.Settings = $settingsPath }

@@ -18,18 +18,34 @@
 
 $ErrorActionPreference = 'Stop'
 
-try {
-  $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
-} catch {
-  exit 0
+$raw = [Console]::In.ReadToEnd()
+# PS 7+: JsonDocument avoids ConvertFrom-Json's ~40 ms cold start, paid in every hook process. It is
+# strict and case-sensitive, so any failure or missing property falls back to ConvertFrom-Json.
+$fastJson = $PSVersionTable.PSVersion.Major -ge 7
+if ($fastJson) {
+  try {
+    $root = [System.Text.Json.JsonDocument]::Parse($raw).RootElement
+    $toolName = $root.GetProperty('tool_name').GetString()
+    if ($toolName -ne 'Bash' -and $toolName -ne 'PowerShell') {
+      exit 0
+    }
+    $command = $root.GetProperty('tool_input').GetProperty('command').GetString()
+  } catch {
+    $fastJson = $false
+  }
 }
-
-$toolName = $payload.tool_name
-if ($toolName -ne 'Bash' -and $toolName -ne 'PowerShell') {
-  exit 0
+if (-not $fastJson) {
+  try {
+    $payload = $raw | ConvertFrom-Json
+  } catch {
+    exit 0
+  }
+  $toolName = $payload.tool_name
+  if ($toolName -ne 'Bash' -and $toolName -ne 'PowerShell') {
+    exit 0
+  }
+  $command = $payload.tool_input.command
 }
-
-$command = $payload.tool_input.command
 if ([string]::IsNullOrWhiteSpace($command)) {
   exit 0
 }
@@ -40,7 +56,28 @@ function Get-RtkRewrite {
   # stdout carries only the rewritten command when one exists, and is empty
   # otherwise. Check stdout alone so the banner can never corrupt the result.
   param([string]$Cmd)
-  $out = (& rtk hook check -- $Cmd 2>$null | Out-String).Trim()
+  $proc = $null
+  if ($fastJson) {
+    # Process API: cheaper cold start than the native-command pipeline and touches no cmdlet.
+    # It resolves rtk.exe only; a missing exe (e.g. an rtk.cmd shim) falls back to the `&` call below.
+    try {
+      $psi = [System.Diagnostics.ProcessStartInfo]::new('rtk')
+      foreach ($arg in 'hook', 'check', '--', $Cmd) { $psi.ArgumentList.Add($arg) }
+      $psi.RedirectStandardOutput = $true
+      $psi.RedirectStandardError = $true
+      $psi.UseShellExecute = $false
+      $proc = [System.Diagnostics.Process]::Start($psi)
+    } catch {
+      $proc = $null
+    }
+  }
+  if ($proc) {
+    $null = $proc.StandardError.ReadToEndAsync()
+    $out = $proc.StandardOutput.ReadToEnd().Trim()
+    $proc.WaitForExit()
+  } else {
+    $out = ((& rtk hook check -- $Cmd 2>$null) -join "`n").Trim()
+  }
   # An already-rtk command comes back unchanged; that is not a rewrite.
   if ($out -and $out -ne $Cmd.Trim()) { $out } else { $null }
 }
@@ -125,22 +162,54 @@ if ($stages -and $stages.Count -gt 1) {
   $redirect = if ($stages[0] -match '2>&1\s*$') { ' 2>&1' } else { '' }
   $firstStage = $firstStage.Trim()
   $rewritten = if ($firstStage) { Get-RtkRewrite -Cmd $firstStage } else { $null }
-  $tails = $stages | Select-Object -Skip 1
+  $tails = $stages[1..($stages.Count - 1)]
   $tailPattern = '^\s*(head|tail)(\s+-[nc]\s*[+-]?\d+|\s+-\d+)?\s*$'
-  $allTailsDisplayOnly = @($tails | Where-Object { $_ -notmatch $tailPattern }).Count -eq 0
+  $allTailsDisplayOnly = $true
+  foreach ($tail in $tails) {
+    if ($tail -notmatch $tailPattern) {
+      $allTailsDisplayOnly = $false
+      break
+    }
+  }
   $canRewrite = $toolName -eq 'Bash' -and $messages.Count -eq 0 -and $command -notmatch '\n'
   if ($rewritten -and $allTailsDisplayOnly -and $canRewrite) {
     # Keep every other tool_input field (timeout, run_in_background, ...).
-    $newInput = $payload.tool_input
-    $newInput.command = $rewritten + $redirect + ' |' + ($tails -join '|')
-    $result = @{
-      hookSpecificOutput = @{
-        hookEventName            = 'PreToolUse'
-        permissionDecisionReason = 'rtk-advisor pipe rewrite'
-        updatedInput             = $newInput
+    $newCommand = $rewritten + $redirect + ' |' + ($tails -join '|')
+    if ($fastJson) {
+      # Utf8JsonWriter re-emits the original fields untouched; ConvertTo-Json costs ~40 ms cold.
+      $ms = [System.IO.MemoryStream]::new()
+      $writerOptions = [System.Text.Json.JsonWriterOptions]::new()
+      $writerOptions.Encoder = [System.Text.Encodings.Web.JavaScriptEncoder]::UnsafeRelaxedJsonEscaping
+      $writer = [System.Text.Json.Utf8JsonWriter]::new($ms, $writerOptions)
+      $writer.WriteStartObject()
+      $writer.WriteStartObject('hookSpecificOutput')
+      $writer.WriteString('hookEventName', 'PreToolUse')
+      $writer.WriteString('permissionDecisionReason', 'rtk-advisor pipe rewrite')
+      $writer.WriteStartObject('updatedInput')
+      foreach ($prop in $root.GetProperty('tool_input').EnumerateObject()) {
+        if ($prop.Name -eq 'command') {
+          $writer.WriteString('command', $newCommand)
+        } else {
+          $prop.WriteTo($writer)
+        }
       }
+      $writer.WriteEndObject()
+      $writer.WriteEndObject()
+      $writer.WriteEndObject()
+      $writer.Flush()
+      [Console]::Out.WriteLine([System.Text.Encoding]::UTF8.GetString($ms.ToArray()))
+    } else {
+      $newInput = $payload.tool_input
+      $newInput.command = $newCommand
+      $result = @{
+        hookSpecificOutput = @{
+          hookEventName            = 'PreToolUse'
+          permissionDecisionReason = 'rtk-advisor pipe rewrite'
+          updatedInput             = $newInput
+        }
+      }
+      Write-Output ($result | ConvertTo-Json -Compress -Depth 5)
     }
-    Write-Output ($result | ConvertTo-Json -Compress -Depth 5)
     exit 0
   }
   if ($rewritten) {
@@ -169,11 +238,13 @@ if ($messages.Count -eq 0) {
 }
 
 $context = $messages -join ' '
-$result = @{
-  hookSpecificOutput = @{
-    hookEventName    = 'PreToolUse'
-    additionalContext = "[rtk-advisor] $context"
-  }
+# Hand-escaped JSON string: ConvertTo-Json costs ~40 ms cold start for one flat object.
+$escaped = $context.Replace('\', '\\').Replace('"', '\"')
+$escaped = $escaped.Replace("`n", '\n').Replace("`r", '\r').Replace("`t", '\t')
+if ($escaped -cmatch '[\x00-\x1f]') {
+  $escaped = [regex]::Replace($escaped, '[\x00-\x1f]', { param($m) '\u{0:x4}' -f [int][char]$m.Value })
 }
-Write-Output ($result | ConvertTo-Json -Compress -Depth 5)
+# Console.Out, not Write-Output: the first cmdlet call in a hook process costs ~30 ms.
+[Console]::Out.WriteLine('{"hookSpecificOutput":{"hookEventName":"PreToolUse",' +
+  '"additionalContext":"[rtk-advisor] ' + $escaped + '"}}')
 exit 0

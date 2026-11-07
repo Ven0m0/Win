@@ -311,8 +311,8 @@ function Write-FilteredOutput {
         if (-not $line) { continue }
         $compact = $line.Trim()
         if ($compact -match '^[\\/\|\-]+$') { continue }
-        $nonAsciiCount = ($compact.ToCharArray() | Where-Object { [int]$_ -gt 127 }).Count
-        if ($nonAsciiCount -ge 3 -and $compact -notmatch '[A-Za-z0-9]') { continue }
+        # Regex count instead of a per-character pipeline; the cheap alphanumeric test short-circuits most lines.
+        if ($compact -notmatch '[A-Za-z0-9]' -and [regex]::Matches($compact, '[^\x00-\x7F]').Count -ge 3) { continue }
         if ($compact -match 'package\(s\) have version numbers that cannot be determined') { continue }
         if ($compact -match '^[\-=]{6,}$') { continue }
         Write-Host $line -ForegroundColor $Color

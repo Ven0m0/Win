@@ -13,8 +13,8 @@
     The czkawka duplicate-file pass is off by default: fclones already found
     every byte-identical file in pass 1, faster, so running it again is a
     second full-tree hash for no additional matches. -IncludeDup re-enables it.
-    Both fclones passes are scoped to media extensions, case-insensitively,
-    and skip Nextcloud/sync metadata (see -Exclude).
+    Both fclones passes are scoped to media extensions, case-insensitively.
+    Every pass skips Nextcloud/sync metadata (see -Exclude).
     The dup/image/video passes use Lanczos3 image resampling (highest-quality
     hashing input) and include files below czkawka's default minimum size, so
     small media is no longer silently skipped. Match strictness (ImageDifference,
@@ -23,8 +23,8 @@
     Only the fclones exact-duplicate pass deletes permanently (files are
     byte-identical). Every czkawka pass - dup, image, video, empty-files -
     moves matches to the Recycle Bin instead, so a wrong match is recoverable.
-    In each similar-file or duplicate-file group the newest file is kept
-    (czkawka delete method AEN).
+    Similar-image and similar-video groups keep the biggest file (czkawka
+    delete method AEB); duplicate-file groups keep the newest (AEN).
     fclones, czkawka, and any ffmpeg process czkawka spawns for the video
     pass all run at Above Normal CPU priority.
     fclones is installed automatically via scoop, czkawka via winget, if
@@ -46,7 +46,7 @@
     dup mode is a slower way of finding the same set.
 .PARAMETER Exclude
     Extra glob patterns matched against the full path and skipped by the
-    fclones passes, appended to the built-in Nextcloud/sync-metadata list.
+    every pass, appended to the built-in Nextcloud/sync-metadata list.
 .PARAMETER SkipImages
     Skip the czkawka similar-image pass.
 .PARAMETER SkipVideos
@@ -236,6 +236,7 @@ function Invoke-CzkawkaPass {
         [int]$Threshold,
         [int]$WindowCount,
         [string[]]$AllowedExtensions,
+        [string[]]$ExcludeGlob = @(),
         [switch]$MatchRotated,
         [switch]$CheckAudio,
         [Parameter(Mandatory)][string]$ReportPath,
@@ -253,13 +254,11 @@ function Invoke-CzkawkaPass {
         $cliArgs = [System.Collections.Generic.List[string]]::new()
         $cliArgs.Add($Mode)
         $cliArgs.Add('--directories'); $cliArgs.Add($TargetPath)
-        # ponytail: Nextcloud/sync metadata is excluded from the fclones passes only.
-        # czkawka is not installed on the machine this was written on and its
-        # excluded-items flag name was not verified, so nothing is guessed here.
-        # To wire it up: run `czkawka_cli dup --help`, confirm the flag (expected to be
-        # --excluded-items / --excluded-directories, taking comma-separated globs), then
-        # append $excludePatterns through a new -ExcludeGlob parameter exactly as
-        # Invoke-FclonesPass does.
+        foreach ($glob in $ExcludeGlob) {
+            # czkawka's '*' already crosses path separators, so '**' collapses to '*'. The flag
+            # does not split on commas (verified on 12.0.2), so it is repeated once per pattern.
+            $cliArgs.Add('--excluded-items'); $cliArgs.Add(($glob -replace '\*\*', '*'))
+        }
         foreach ($ext in $AllowedExtensions) {
             $cliArgs.Add('--allowed-extensions')
             $cliArgs.Add($ext)
@@ -290,8 +289,10 @@ function Invoke-CzkawkaPass {
             $cliArgs.Add('--delete-files')
         }
         else {
-            # AEN = keep the newest file in each group, remove the rest.
-            $cliArgs.Add('--delete-method'); $cliArgs.Add('AEN')
+            # Similar groups keep the biggest file (the newest is often a re-shared or
+            # re-encoded lower-quality copy); dup groups are identical, so keep the newest.
+            $keep = if ($Mode -eq 'dup') { 'AEN' } else { 'AEB' }
+            $cliArgs.Add('--delete-method'); $cliArgs.Add($keep)
         }
         if ($DryRun) {
             $cliArgs.Add('--dry-run')
@@ -358,42 +359,39 @@ if ($MyInvocation.InvocationName -ne '.') {
     $reclaimedBytes = 0.0
 
     if (-not $SkipExact) {
-        $mediaGlob = [System.Collections.Generic.List[string]]::new()
-        foreach ($ext in $mediaExtensions) {
-            $mediaGlob.Add("*.$ext")
-        }
+        $mediaGlob = foreach ($ext in $mediaExtensions) { "*.$ext" }
         $reclaimedBytes += Invoke-FclonesPass -Tool $fclones -TargetPath $resolvedPath -NameGlob $mediaGlob `
             -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "fclones-$stamp.txt") -DryRun $dryRun
     }
 
     if ($IncludeDup) {
         $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'dup' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-            -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
+            -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "dup-$stamp.txt") -DryRun $dryRun
     }
 
     if (-not $SkipImages) {
         $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'image' -TargetPath $resolvedPath `
-            -Threshold $ImageDifference -MatchRotated:$MatchRotated `
+            -Threshold $ImageDifference -MatchRotated:$MatchRotated -ExcludeGlob $excludePatterns `
             -ReportPath (Join-Path $reportDir "images-$stamp.txt") -DryRun $dryRun
     }
 
     if (-not $SkipVideos) {
         $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'video' -TargetPath $resolvedPath `
             -Threshold $VideoTolerance -WindowCount $VideoWindowCount -CheckAudio:$CheckAudio `
-            -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
+            -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "videos-$stamp.txt") -DryRun $dryRun
     }
 
     if (-not $SkipEmptyFiles) {
         $reclaimedBytes += Invoke-CzkawkaPass -Tool $czkawka -Mode 'empty-files' -TargetPath $resolvedPath -AllowedExtensions $mediaExtensions `
-            -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
+            -ExcludeGlob $excludePatterns -ReportPath (Join-Path $reportDir "empty-files-$stamp.txt") -DryRun $dryRun
     }
 
     Write-Host ''
     if ($dryRun) {
         Write-Host "Estimated space that would be freed: $(Format-Size $reclaimedBytes)" -ForegroundColor Green
-        if ($IncludeDup) {
+        if (-not $SkipExact) {
             Write-Host ('(Preview totals may double-count exact duplicates: fclones only simulates removal in a ' +
-                'dry run, so the -IncludeDup czkawka dup pass still sees and reports the same files.)') -ForegroundColor DarkGray
+                'dry run, so the later czkawka passes (image, and dup with -IncludeDup) still see and count the same files.)') -ForegroundColor DarkGray
         }
     }
     else {

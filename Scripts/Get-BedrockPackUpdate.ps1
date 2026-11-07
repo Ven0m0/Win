@@ -1255,6 +1255,47 @@ if ($modRoot -and (Test-Path -LiteralPath $modRoot)) {
   Write-Verbose "No mods directory, skipping mod checks: $modRoot"
 }
 
+# PS7+: look up the distinct mapped URLs concurrently. cfwidget can answer 202 and cost a 3 s wait per
+# project, so a sequential run is mostly waiting. Successes land in the cache and failures in
+# $upstreamError, which the loop below replays, so results and ordering match the sequential path.
+$upstreamError = @{}
+if ($PSVersionTable.PSVersion.Major -ge 7) {
+  $apiPattern = 'curseforge\.com/minecraft-bedrock/[^/?#]+/[^/?#]+|github\.com/[^/?#]+/[^/?#]+'
+  $mappedUrls = @(foreach ($pack in $installed) {
+      $mapped = $sources[$pack.Uuid]
+      if ($mapped -and $mapped.Url -match $apiPattern) { [string]$mapped.Url }
+    }) | Select-Object -Unique
+  if (@($mappedUrls).Count -ge 4) {
+    $lookupFunctions = @{}
+    foreach ($fn in 'Get-CurseForgeRelease', 'Get-GitHubRelease', 'Get-UpstreamRelease') {
+      $lookupFunctions[$fn] = (Get-Command -Name $fn -CommandType Function).ScriptBlock.ToString()
+    }
+    $fetched = $mappedUrls | ForEach-Object -ThrottleLimit 5 -Parallel {
+      $ErrorActionPreference = 'Stop'
+      $ProgressPreference = 'SilentlyContinue'
+      $VerbosePreference = $using:VerbosePreference
+      $url = $_
+      $functions = $using:lookupFunctions
+      foreach ($fn in $functions.Keys) {
+        Set-Item -Path "function:$fn" -Value ([scriptblock]::Create($functions[$fn]))
+      }
+      try {
+        [pscustomobject]@{ Url = $url; Upstream = (Get-UpstreamRelease -Url $url); Failed = $false; Error = $null }
+      } catch {
+        $err = $_
+        [pscustomobject]@{ Url = $url; Upstream = $null; Failed = $true; Error = $err.Exception.Message }
+      }
+    }
+    foreach ($item in $fetched) {
+      if ($item.Failed) {
+        $upstreamError[$item.Url] = $item.Error
+      } else {
+        $upstreamCache[$item.Url] = $item.Upstream
+      }
+    }
+  }
+}
+
 $results = foreach ($pack in $installed) {
   $entry = $sources[$pack.Uuid]
   $name = if ($entry -and $entry.Name) { $entry.Name } else { $pack.Name }
@@ -1292,6 +1333,10 @@ $results = foreach ($pack in $installed) {
 
   if ($upstreamCache.ContainsKey($entry.Url)) {
     $upstream = $upstreamCache[$entry.Url]
+  } elseif ($upstreamError.ContainsKey($entry.Url)) {
+    Write-Verbose "Lookup failed for '$name': $($upstreamError[$entry.Url])"
+    $upstream = $null
+    $lookupFailed = $true
   } else {
     try {
       $upstream = Get-UpstreamRelease -Url $entry.Url

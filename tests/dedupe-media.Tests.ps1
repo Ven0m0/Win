@@ -151,7 +151,16 @@ Describe 'dedupe-media.ps1' {
             $call | Should -BeLike '*Lanczos3*'
             $call | Should -BeLike '*mirror-flip-rotate90*'
             $call | Should -BeLike '*--dry-run*'
+            $call | Should -BeLike '*--delete-method AEB*'
+            $call | Should -Not -BeLike '*--excluded-items*'
             [math]::Round($bytes) | Should -Be ([math]::Round(97.66 * 1024))
+        }
+
+        It 'Translates fclones excludes to czkawka wildcards' {
+            $null = Invoke-CzkawkaPass -Tool $Czkawka -Mode image -TargetPath $Target -Threshold 5 `
+                -ExcludeGlob '**/files_versions/**', '**/Thumbs.db' -ReportPath (Join-Path $TestDrive 'r.txt') -DryRun $true
+
+            @(Get-StubCall 'czkawka_cli')[0] | Should -BeLike '*--excluded-items */files_versions/* --excluded-items */Thumbs.db*'
         }
 
         It 'Moves to the Recycle Bin (no --dry-run) when applying' {
@@ -159,6 +168,7 @@ Describe 'dedupe-media.ps1' {
                 -AllowedExtensions 'jpg' -ReportPath (Join-Path $TestDrive 'r.txt') -DryRun $false
 
             $call = @(Get-StubCall 'czkawka_cli')[0]
+            $call | Should -BeLike '*--delete-method AEN*'
             $call | Should -BeLike '*--move-to-trash*'
             $call | Should -Not -BeLike '*--dry-run*'
         }

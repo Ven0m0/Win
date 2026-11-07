@@ -45,20 +45,19 @@ if ($App -notcontains 'All') {
 # First 16 bytes of every SQLite 3 database file.
 $sqliteMagic = [byte[]](83, 81, 76, 105, 116, 101, 32, 102, 111, 114, 109, 97, 116, 32, 51, 0)
 
+# Reused across calls (the scan runs once per file, thousands of times in a browser profile).
+$sqliteHeader = [byte[]]::new(16)
+
 function Test-SqliteFile {
     param([string]$Path)
     try {
-        $buf = New-Object byte[] 16
         $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open,
             [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
         try {
-            if ($stream.Read($buf, 0, 16) -lt 16) { return $false }
+            if ($stream.Read($sqliteHeader, 0, 16) -lt 16) { return $false }
         }
         finally { $stream.Dispose() }
-        for ($i = 0; $i -lt 16; $i++) {
-            if ($buf[$i] -ne $sqliteMagic[$i]) { return $false }
-        }
-        return $true
+        return [System.Linq.Enumerable]::SequenceEqual($sqliteHeader, $sqliteMagic)
     }
     catch { return $false }
 }
