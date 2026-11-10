@@ -1,49 +1,58 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-Runs OpenCode against the local uncensored Qwen3.8 models served by llama-server.
+Runs OpenCode against a local uncensored model on the llama.cpp router: Gemma 4 31B by default.
 .DESCRIPTION
-Starts the llama.cpp router if it is not already up, selects the local provider through
-OPENCODE_CONFIG_CONTENT, and stops the server afterwards when this script started it. The model
-loads on first use: qwen3.8-35b-a3b (~33 tok/s, MoE with experts partly in RAM) by default, or
-qwen3.8-9b-exec (~67 tok/s, thinking off) with -Small.
-Traffic goes through a Headroom proxy (prompt compression) when it is installed; -NoHeadroom
-talks to llama-server directly. Headroom's own `wrap opencode` is not used: it rewrites the
-global opencode config and its transient proxy port, so this script runs a private proxy on
-127.0.0.1:8788 that the `headroom-local` provider points at.
-All other arguments are passed to opencode unchanged, for example -c to continue a session.
+Starts the llama.cpp router (llama-common.ps1) if it is not running, selects the local provider through
+OPENCODE_CONFIG_CONTENT and stops the router afterwards if this script started it. Default model is
+gemma-4-31b-heretic (dense 31B IQ4_XS, most layers in RAM, ~2 tok/s generation on the 8 GB GPU; run
+install-gemma.ps1 once to download it). -Qwen selects qwen3.8-35b-a3b (~33 tok/s, MoE with experts partly
+in RAM) and -Small selects qwen3.8-9b-exec (~67 tok/s, thinking off).
+Traffic goes through a Headroom proxy (prompt compression) when installed; -NoHeadroom talks to the server
+directly. Headroom's own `wrap opencode` is not used: it rewrites the global opencode config and uses a
+transient proxy port, so the script runs a private proxy that the headroom-local provider points at
+(127.0.0.1:8788).
+All arguments are passed to opencode unchanged, for example -c to continue a session.
+.PARAMETER Qwen
+Uses qwen3.8-35b-a3b instead of Gemma.
 .PARAMETER Small
-Uses qwen3.8-9b-exec instead of the 35B.
+Uses qwen3.8-9b-exec instead of Gemma.
 .PARAMETER KeepServer
-Leaves llama-server running when this script started it.
+Leaves the server running if this script started it.
 .PARAMETER NoHeadroom
-Skips the Headroom proxy and calls llama-server directly.
+Skips the Headroom proxy and calls the server directly.
+.PARAMETER ContextLength
+Gemma context window (16384-131072, default 131072).
 .PARAMETER RouterNCpuMoe
-Expert layers kept in RAM for the 35B (0-40, default 36).
+Expert layers of the 35B kept in RAM (0-40, default 36).
 .PARAMETER ExecCtx
-Context size for the 9B (16384-98304, default 65536).
+Context size of the 9B (16384-98304, default 65536).
 .EXAMPLE
 opencode-local
 .EXAMPLE
 opencode-local -Small -c
 .EXAMPLE
-opencode-local run "explain this repository"
+opencode-local run "explain repository"
 #>
 $ErrorActionPreference = 'Stop'
 . (Join-Path -Path $PSScriptRoot -ChildPath 'llama-common.ps1')
 
 # No param block: any [Parameter] attribute enables common parameters, which would capture
 # opencode flags. Only the switches below are consumed; everything else is forwarded verbatim.
+$Qwen = $false
 $Small = $false
 $KeepServer = $false
 $NoHeadroom = $false
 $NCpuMoe = 36
 $ExecCtx = 65536
+$ContextLength = 131072
 $OpenCodeArgs = [System.Collections.Generic.List[string]]::new()
 
 for ($index = 0; $index -lt $args.Count; $index++) {
   $argument = $args[$index]
-  if ($argument -eq '-Small') {
+  if ($argument -eq '-Qwen') {
+    $Qwen = $true
+  } elseif ($argument -eq '-Small') {
     $Small = $true
   } elseif ($argument -eq '-KeepServer') {
     $KeepServer = $true
@@ -55,6 +64,9 @@ for ($index = 0; $index -lt $args.Count; $index++) {
   } elseif ($argument -match '^-ExecCtx(?:=(\d+))?$') {
     $value = if ($Matches[1]) { $Matches[1] } elseif ($index + 1 -lt $args.Count) { $args[++$index] } else { '' }
     $ExecCtx = ConvertTo-RangeValue -Name '-ExecCtx' -Value $value -Minimum 16384 -Maximum 98304
+    } elseif ($argument -match '^-ContextLength(?:=(\d+))?$') {
+    $value = if ($Matches[1]) { $Matches[1] } elseif ($index + 1 -lt $args.Count) { $args[++$index] } else { '' }
+    $ContextLength = ConvertTo-RangeValue -Name '-ContextLength' -Value $value -Minimum 16384 -Maximum 131072
   } else {
     $OpenCodeArgs.Add($argument)
   }
@@ -70,11 +82,12 @@ function Test-HeadroomReady {
 function Start-HeadroomProxy {
   <#
   .SYNOPSIS
-  Starts `headroom proxy` for the local llama-server and waits until it reports ready.
+  Starts `headroom proxy` in front of a local OpenAI-compatible server and waits until it reports ready.
   #>
   [CmdletBinding(SupportsShouldProcess)]
   param (
-    [Parameter(Mandatory)][pscustomobject]$Layout,
+    [Parameter(Mandatory)][string]$UpstreamUrl,
+    [Parameter(Mandatory)][string]$LogDirectory,
     [Parameter(Mandatory)][int]$Port
   )
 
@@ -90,16 +103,14 @@ function Start-HeadroomProxy {
     return [pscustomobject]@{ Started = $false; Process = $null; Port = $Port }
   }
 
-  $null = New-Item -ItemType Directory -Force -Path $Layout.LogDirectory
+  $null = New-Item -ItemType Directory -Force -Path $LogDirectory
   $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
   $proxyProc = @{
     FilePath               = (Get-Command -Name 'headroom' -CommandType Application).Source
-    ArgumentList           = @(
-      'proxy', '--port', "$Port", '--openai-api-url', "$($Layout.Url)/v1"
-    )
+    ArgumentList           = @('proxy', '--port', "$Port", '--openai-api-url', "$UpstreamUrl/v1")
     WindowStyle            = 'Hidden'
-    RedirectStandardOutput = Join-Path -Path $Layout.LogDirectory -ChildPath "headroom-$stamp.out.log"
-    RedirectStandardError  = Join-Path -Path $Layout.LogDirectory -ChildPath "headroom-$stamp.err.log"
+    RedirectStandardOutput = Join-Path -Path $LogDirectory -ChildPath "headroom-$stamp.out.log"
+    RedirectStandardError  = Join-Path -Path $LogDirectory -ChildPath "headroom-$stamp.err.log"
     PassThru               = $true
   }
   $process = Start-Process @proxyProc
@@ -107,10 +118,10 @@ function Start-HeadroomProxy {
   $deadline = (Get-Date).AddSeconds(60)
   while (-not (Test-HeadroomReady -Url $url)) {
     if ($process.HasExited) {
-      throw "headroom proxy exited with code $($process.ExitCode); see $($Layout.LogDirectory)"
+      throw "headroom proxy exited with code $($process.ExitCode); see $LogDirectory"
     }
     if ((Get-Date) -gt $deadline) {
-      throw "headroom proxy did not become ready; see $($Layout.LogDirectory)"
+      throw "headroom proxy did not become ready; see $LogDirectory"
     }
     Start-Sleep -Milliseconds 500
   }
@@ -119,21 +130,25 @@ function Start-HeadroomProxy {
 }
 
 $layout = Get-LlamaLayout
-$router = Start-LlamaRouter -Layout $layout -NCpuMoe $NCpuMoe -ExecCtx $ExecCtx
-$model = if ($Small) { $layout.ExecModel } else { $layout.PlanModel }
+$model = if ($Small) { $layout.ExecModel } elseif ($Qwen) { $layout.PlanModel } else { $layout.GemmaModel }
+$server = Start-LlamaRouter -Layout $layout -NCpuMoe $NCpuMoe -ExecCtx $ExecCtx -GemmaCtx $ContextLength -Model $model
+$directProvider = 'llama-local'
+$proxyProvider = 'headroom-local'
+# 8788 is the port the headroom-local provider points at in the opencode config.
+$proxyPort = 8788
+$backendName = 'llama-server'
 
 $headroom = Get-Command -Name 'headroom' -CommandType Application -ErrorAction SilentlyContinue
 $proxy = $null
-$provider = 'llama-local'
+$provider = $directProvider
+$savedContent = $env:OPENCODE_CONFIG_CONTENT
 try {
   if ($headroom -and -not $NoHeadroom) {
-    # 8788 is the port the headroom-local provider points at in the opencode config.
-    $proxy = Start-HeadroomProxy -Layout $layout -Port 8788
-    $provider = 'headroom-local'
-    Write-Host "OpenCode -> Headroom (:$($proxy.Port)) -> llama-server (use -NoHeadroom to skip Headroom)."
+    $proxy = Start-HeadroomProxy -UpstreamUrl $layout.Url -LogDirectory $layout.LogDirectory -Port $proxyPort
+    $provider = $proxyProvider
+    Write-Host "OpenCode -> Headroom (:$($proxy.Port)) -> $backendName (use -NoHeadroom to skip Headroom)."
   }
 
-  $savedContent = $env:OPENCODE_CONFIG_CONTENT
   $env:OPENCODE_CONFIG_CONTENT = [ordered]@{
     model       = "$provider/$model"
     small_model = "$provider/$model"
@@ -151,7 +166,7 @@ try {
   if ($proxy -and $proxy.Started) {
     Stop-Process -Id $proxy.Process.Id -Force -ErrorAction SilentlyContinue
   }
-  if ($router.Started -and -not $KeepServer) {
+  if ($server.Started -and -not $KeepServer) {
     Stop-Process -Name 'llama-server' -Force -ErrorAction SilentlyContinue
   }
 }

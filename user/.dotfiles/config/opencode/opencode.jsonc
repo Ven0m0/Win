@@ -355,6 +355,12 @@
           "name": "Qwen3.8 9B exec (local)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 65536, "output": 8192 }
+        },
+        "gemma-4-31b-heretic": {
+          "modelID": "gemma-4-31b-heretic",
+          "name": "Gemma 4 31B ARA-heretic IQ4_XS (local, llama.cpp)",
+          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
+          "limit": { "context": 131072, "output": 8192 }
         }
       }
     },
@@ -374,6 +380,12 @@
           "name": "Qwen3.8 9B exec (Headroom)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 65536, "output": 8192 }
+        },
+        "gemma-4-31b-heretic": {
+          "modelID": "gemma-4-31b-heretic",
+          "name": "Gemma 4 31B ARA-heretic IQ4_XS (Headroom, llama.cpp)",
+          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
+          "limit": { "context": 131072, "output": 8192 }
         }
       }
     }

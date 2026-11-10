@@ -115,6 +115,7 @@ $RECYCLE.BIN/
 undefined/
 .opencode/memory/
 .remember/
+.headroom/
 
 ## Build artifacts
 psscriptanalyzer_report.json

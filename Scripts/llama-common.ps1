@@ -4,10 +4,11 @@
 Shared helpers that run the local llama.cpp router for claude-local.ps1 and opencode-local.ps1.
 .DESCRIPTION
 Dot-source this file, then call Get-LlamaLayout and Start-LlamaRouter. Both launchers drive one
-llama-server in router mode on 127.0.0.1:8080 with two uncensored Qwen3.8 models that load on
-demand, one at a time (8 GB GPU): qwen3.8-35b-a3b (planning, MoE experts partly in RAM) and
-qwen3.8-9b-exec (execution, fully on the GPU, thinking off). The preset ini is generated here so
-model paths can follow $HOME and the layer split can be tuned per launch.
+llama-server in router mode on 127.0.0.1:8080 with three uncensored models that load on demand,
+one at a time (8 GB GPU): gemma-4-31b-heretic (default, dense 31B, most layers in RAM),
+qwen3.8-35b-a3b (planning, MoE experts partly in RAM) and qwen3.8-9b-exec (execution, fully on
+the GPU, thinking off). The preset ini is generated here so model paths can follow $HOME and the
+layer split can be tuned per launch. A model section is written only when its GGUF exists.
 #>
 $ErrorActionPreference = 'Stop'
 
@@ -37,9 +38,11 @@ function Get-LlamaLayout {
     ExecFile        = Join-Path -Path $ModelsDirectory -ChildPath 'Qwen3.8-9B-Heretic\Qwen3.8-9B-heretic-uncensored.Q4_K_M.gguf'
     PlanTemplate    = Join-Path -Path $Directory -ChildPath 'qwen38-35b-chat-template.jinja'
     ExecTemplate    = Join-Path -Path $Directory -ChildPath 'qwen38-9b-chat-template.jinja'
+    GemmaFile       = Join-Path -Path $ModelsDirectory -ChildPath 'Gemma-4-31B-ARA-Heretic\gemma-4-31B-it-ARA-heretic.IQ4_XS.gguf'
     Url             = 'http://127.0.0.1:8080'
     PlanModel       = 'qwen3.8-35b-a3b'
     ExecModel       = 'qwen3.8-9b-exec'
+    GemmaModel      = 'gemma-4-31b-heretic'
   }
 }
 
@@ -72,10 +75,13 @@ function ConvertTo-RangeValue {
 function Write-LlamaPreset {
   <#
   .SYNOPSIS
-  Writes the router preset ini for both models.
+  Writes the router preset ini for every model whose GGUF exists.
   .DESCRIPTION
   Measured on the RTX 2080 Super: planning ~33 tok/s generation, ~630 tok/s prompt processing at
-  n-cpu-moe 36 (5-6.3 GB VRAM); execution ~67 tok/s at 6.4 GB VRAM.
+  n-cpu-moe 36 (5-6.3 GB VRAM); execution ~67 tok/s at 6.4 GB VRAM; Gemma 31B ~2.1 tok/s
+  generation, ~66 tok/s prompt processing (2.6k-token prompt, 128k window, 7 GB VRAM). Gemma with
+  -ub 1024 doubled prompt speed to 124 tok/s but cut generation to 1.6 tok/s; -ub 512 is kept
+  because Claude Code resends little new prompt per turn. MTP drafting and threads were not tried.
   #>
   [CmdletBinding()]
   param (
@@ -84,14 +90,17 @@ function Write-LlamaPreset {
     # Lower this to move more planning-model expert layers onto the GPU; 36 leaves ~1.9 GB free.
     [ValidateRange(0, 40)][int]$NCpuMoe = 36,
     # Execution window. The 9B KV cache is expensive, so 64k is the practical ceiling on 8 GB.
-    [ValidateRange(16384, 98304)][int]$ExecCtx = 65536
+    [ValidateRange(16384, 98304)][int]$ExecCtx = 65536,
+    # Gemma window; llama-server's fit logic offloads layers and KV cache as needed.
+    [ValidateRange(16384, 131072)][int]$GemmaCtx = 131072
   )
 
+  $gemma = ConvertTo-LlamaIniPath $Layout.GemmaFile
   $plan = ConvertTo-LlamaIniPath $Layout.PlanFile
   $exec = ConvertTo-LlamaIniPath $Layout.ExecFile
   $planTemplate = ConvertTo-LlamaIniPath $Layout.PlanTemplate
   $execTemplate = ConvertTo-LlamaIniPath $Layout.ExecTemplate
-  $ini = @"
+  $header = @"
 version = 1
 
 [*]
@@ -101,6 +110,8 @@ parallel = 1
 load-on-startup = false
 stop-timeout = 20
 
+"@
+  $planSection = @"
 [$($Layout.PlanModel)]
 model = $plan
 chat-template-file = $planTemplate
@@ -119,6 +130,8 @@ top-k = 20
 min-p = 0
 presence-penalty = 1.5
 
+"@
+  $execSection = @"
 [$($Layout.ExecModel)]
 model = $exec
 chat-template-file = $execTemplate
@@ -135,7 +148,29 @@ temp = 0.7
 top-p = 0.8
 top-k = 20
 min-p = 0
+
 "@
+  $gemmaSection = @"
+[$($Layout.GemmaModel)]
+model = $gemma
+; Dense 31B IQ4_XS is 16.9 GB, so it cannot fit in 8 GB VRAM; llama-server's fit logic
+; picks how many layers go on the GPU. Chat template comes from the GGUF (jinja = true above).
+fit = on
+batch-size = 1024
+ubatch-size = 512
+ctx-size = $GemmaCtx
+cache-type-k = q8_0
+cache-type-v = q8_0
+temp = 1.0
+top-p = 0.95
+top-k = 64
+
+"@
+  # Skip sections whose GGUF is absent so one missing model cannot block the others.
+  $ini = $header
+  if (Test-Path -LiteralPath $Layout.PlanFile) { $ini += $planSection }
+  if (Test-Path -LiteralPath $Layout.ExecFile) { $ini += $execSection }
+  if (Test-Path -LiteralPath $Layout.GemmaFile) { $ini += $gemmaSection }
   Set-Content -Path $Path -Value $ini -Encoding ascii
 }
 
@@ -189,23 +224,31 @@ function Start-LlamaRouter {
     [Parameter(Mandatory)][pscustomobject]$Layout,
     [ValidateRange(0, 40)][int]$NCpuMoe = 36,
     [ValidateRange(16384, 98304)][int]$ExecCtx = 65536,
-    [ValidateRange(30, 600)][int]$TimeoutSeconds = 360
+    [ValidateRange(16384, 131072)][int]$GemmaCtx = 131072,
+    # Model id the caller will use; only that model's files are required.
+    [Parameter(Mandatory)][string]$Model,
+    [ValidateRange(30, 900)][int]$TimeoutSeconds = 360
   )
 
   if (Test-LlamaRouter -Url $Layout.Url) {
+    # A router started from an older preset may lack the requested model; fail here, not inside the client.
+    $served = curl.exe -s -m 5 "$($Layout.Url)/models"
+    if ($served -notmatch [regex]::Escape("`"$Model`"")) {
+      throw "llama-server is running without $Model; stop it (Stop-Process -Name llama-server) and retry"
+    }
     return [pscustomobject]@{ Started = $false; Process = $null }
   }
 
-  $required = @(
-    $Layout.Server,
-    $Layout.PlanFile,
-    $Layout.ExecFile,
-    $Layout.PlanTemplate,
-    $Layout.ExecTemplate
-  )
-  $missing = @($required | Where-Object { -not (Test-Path -LiteralPath $_) })
+  $required = switch ($Model) {
+    $Layout.GemmaModel { @($Layout.GemmaFile) }
+    $Layout.PlanModel { @($Layout.PlanFile, $Layout.PlanTemplate) }
+    $Layout.ExecModel { @($Layout.ExecFile, $Layout.ExecTemplate) }
+    default { throw "Unknown model '$Model'" }
+  }
+  $missing = @(@($Layout.Server) + $required | Where-Object { -not (Test-Path -LiteralPath $_) })
   if ($missing.Count -gt 0) {
-    throw "Missing files:`n$($missing -join "`n")"
+    $hint = if ($Model -eq $Layout.GemmaModel) { "`nRun Scripts\install-gemma.ps1 to download it." } else { '' }
+    throw "Missing files:`n$($missing -join "`n")$hint"
   }
 
   # The planning model (~10 GB commit) plus the client and its MCP servers need ~14 GB of free
@@ -221,7 +264,7 @@ function Start-LlamaRouter {
 
   $null = New-Item -ItemType Directory -Force -Path $Layout.LogDirectory
   $presetFile = Join-Path -Path $Layout.LogDirectory -ChildPath 'models.generated.ini'
-  Write-LlamaPreset -Layout $Layout -Path $presetFile -NCpuMoe $NCpuMoe -ExecCtx $ExecCtx
+  Write-LlamaPreset -Layout $Layout -Path $presetFile -NCpuMoe $NCpuMoe -ExecCtx $ExecCtx -GemmaCtx $GemmaCtx
 
   if (-not $PSCmdlet.ShouldProcess($Layout.Server, 'Start llama-server router')) {
     return [pscustomobject]@{ Started = $false; Process = $null }
