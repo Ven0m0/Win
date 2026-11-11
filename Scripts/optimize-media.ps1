@@ -21,6 +21,9 @@
       - BMP/TIFF -> converted to PNG with ffmpeg and then run through the
         oxipng batch; the original is moved into -BackupPath because the
         extension changes.
+      - AVIF/GIF -> WebP: under -ConvertToWebp, AVIF (via ffmpeg) and GIF
+        (animated WebP, cwebp supports animation) are converted to WebP.
+        GIFs without -ConvertToWebp are losslessly optimized with gifsicle.
       - HEIC/HEIF are left untouched and reported: they are already
         HEVC-compressed, so a re-encode costs quality for almost no bytes.
     Videos are re-encoded to H.265 MP4 (10-bit, hvc1 tag, faststart,
@@ -78,13 +81,16 @@
     Pass -s to jpegoptim, discarding EXIF, GPS, and orientation. Off by
     default because that is silent data loss on a photo library.
 .PARAMETER ConvertToWebp
-    Convert JPEG and PNG to WebP instead of compressing them in their source
-    format. JPEG uses cwebp -q<ImageQuality> -m 6 -af -sharp_yuv (lossy,
-    -sharp_yuv avoids chroma bleed on edges/text). PNG uses cwebp -lossless
-    -z 9 (no further quality loss). Both keep all metadata (EXIF, GPS, ICC,
-    XMP). The result replaces the source only when smaller (see -Force); on
-    success the original is moved into -BackupPath, since the extension
-    changes. GIF, WEBP, AVIF, and HEIC/HEIF are unaffected.
+    Convert JPEG, PNG, GIF, and AVIF to WebP instead of compressing them in
+    their source format. JPEG uses cwebp -q<ImageQuality> -m 6 -af -sharp_yuv
+    (lossy, -sharp_yuv avoids chroma bleed on edges/text). PNG uses cwebp
+    -lossless -z 9 (no further quality loss). GIF is converted to animated
+    WebP (WebP supports animation) with cwebp -q<ImageQuality>. AVIF is
+    converted with ffmpeg (-c:v libwebp -q:v <ImageQuality>) because cwebp
+    cannot read AVIF. All keep all metadata (EXIF, GPS, ICC, XMP) where the
+    tooling supports it. The result replaces the source only when smaller
+    (see -Force); on success the original is moved into -BackupPath, since
+    the extension changes. WEBP and HEIC/HEIF are unaffected.
 .PARAMETER VideoQuality
     Quality target: libx265 crf, or the NVENC constant-quality value. 0
     (best/largest) to 51 (worst/smallest). Default 28. NVENC's -cq at the
@@ -452,12 +458,14 @@ function Invoke-WebpConvertPass {
     .SYNOPSIS
         Converts images to WebP, replacing the source, and returns bytes saved.
     .DESCRIPTION
-        cwebp handles one file per invocation. JPEG sources use a lossy
+        Converts one image to WebP per invocation. JPEG sources use a lossy
         -q<Quality> pass with -sharp_yuv (avoids chroma bleed on edges/text);
         PNG sources use -lossless -z 9, since a lossy re-encode of an
-        already-lossless source is the wrong tradeoff. The extension
-        changes, so on success the source is moved into -BackupPath rather
-        than replaced in place.
+        already-lossless source is the wrong tradeoff. GIF sources use cwebp
+        -q<Quality> and produce animated WebP (WebP supports animation). AVIF
+        sources are converted with ffmpeg (-c:v libwebp -q:v <Quality>) because
+        cwebp cannot read AVIF. The extension changes, so on success the source
+        is moved into -BackupPath rather than replaced in place.
 
         cwebp's own -metadata all silently keeps only the ICC profile on
         Windows builds ("only ICC profile extraction is currently supported
@@ -466,13 +474,15 @@ function Invoke-WebpConvertPass {
         -TagsFromFile, when exiftool is available. Without exiftool, the
         WebP keeps ICC only and a warning is written once.
     .PARAMETER FilePath
-        Candidate image paths (JPEG or PNG, per -Lossless).
+        Candidate image paths (JPEG, PNG, GIF, or AVIF).
     .PARAMETER Quality
-        cwebp quality factor, used only when -Lossless is $false.
+        cwebp/ffmpeg quality factor, used only when -Lossless is $false.
     .PARAMETER Lossless
-        $true for PNG (-lossless -z 9), $false for JPEG (-q<Quality>).
+        $true for PNG (-lossless -z 9), $false for JPEG/GIF (-q<Quality>).
     .PARAMETER Cwebp
         cwebp executable path.
+    .PARAMETER Ffmpeg
+        ffmpeg executable path, used for AVIF sources (cwebp cannot read AVIF).
     .PARAMETER Exiftool
         exiftool executable path, or $null/empty to skip EXIF/XMP copying.
     .PARAMETER TargetPath
@@ -490,6 +500,7 @@ function Invoke-WebpConvertPass {
         [Parameter(Mandatory)][int]$Quality,
         [Parameter(Mandatory)][bool]$Lossless,
         [Parameter(Mandatory)][string]$Cwebp,
+        [AllowEmptyString()][string]$Ffmpeg,
         [AllowEmptyString()][string]$Exiftool,
         [Parameter(Mandatory)][string]$TargetPath,
         [Parameter(Mandatory)][string]$BackupPath,
@@ -500,8 +511,9 @@ function Invoke-WebpConvertPass {
         [long]$saved = 0
         if ($FilePath.Count -eq 0) { return $saved }
 
-        $cwebpArgs = if ($Lossless) { @('-lossless', '-z', '9') } else { @('-q', "$Quality", '-af', '-sharp_yuv') }
-        $cwebpArgs += @('-metadata', 'all', '-mt', '-quiet')
+        # cwebp argument sets per source type. AVIF is not handled by cwebp at all
+        # (it cannot read AVIF) - those jobs use ffmpeg instead (see $work below).
+        $baseCwebpArgs = @('-metadata', 'all', '-mt', '-quiet')
 
         # Main thread: existence checks, ShouldProcess and size reads. The cwebp (+ exiftool)
         # runs go through Invoke-Parallel, then results are applied here in input order.
@@ -509,24 +521,46 @@ function Invoke-WebpConvertPass {
         foreach ($path in $FilePath) {
             if (-not [System.IO.File]::Exists($path)) { continue }
             $file = [System.IO.FileInfo]::new($path)
+            $ext = $file.Extension
             $webpName = "$([System.IO.Path]::GetFileNameWithoutExtension($path)).webp"
             $output = Join-Path -Path $file.DirectoryName -ChildPath $webpName
             if ([System.IO.File]::Exists($output) -and -not $Force) {
                 Write-Verbose "Skipping $($file.Name): $output already exists."
                 continue
             }
-            if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Convert to WebP (cwebp)')) { continue }
+            if (-not $PSCmdlet.ShouldProcess($file.FullName, 'Convert to WebP (cwebp/ffmpeg)')) { continue }
+
+            # GIF is converted to animated WebP (WebP supports animation): lossy
+            # -q pass without the JPEG-specific -af/-sharp_yuv flags. AVIF is
+            # handled by ffmpeg below, so it needs no cwebp args.
+            $cwebpArgs = if ($ext -eq '.avif') { $null }
+                elseif ($Lossless) { @('-lossless', '-z', '9') + $baseCwebpArgs }
+                elseif ($ext -eq '.gif') { @('-q', "$Quality") + $baseCwebpArgs }
+                else { @('-q', "$Quality", '-af', '-sharp_yuv') + $baseCwebpArgs }
+
+            # exiftool EXIF/XMP copy is meaningful for JPEG/PNG; skip it for
+            # GIF (animated WebP) and AVIF (ffmpeg path).
+            $jobExiftool = if ($ext -in '.gif', '.avif') { $null } else { $Exiftool }
+
             $jobs.Add([pscustomobject]@{
                     Source = $file.FullName; Output = $output; Tmp = "$output.tmp"; Before = $file.Length
-                    Cwebp = $Cwebp; CwebpArgs = $cwebpArgs; Exiftool = $Exiftool; Force = $Force
+                    Quality = $Quality; Cwebp = $Cwebp; Ffmpeg = $Ffmpeg; CwebpArgs = $cwebpArgs;
+                    Exiftool = $jobExiftool; Force = $Force; SourceExt = $ext
                 })
         }
 
         $work = {
             param($j)
             $lines = [System.Collections.Generic.List[string]]::new()
-            $cwebpArgs = $j.CwebpArgs
-            foreach ($line in @(& $j.Cwebp @cwebpArgs $j.Source -o $j.Tmp)) { $lines.Add("$line") }
+            if ($j.SourceExt -eq '.avif') {
+                # cwebp cannot read AVIF: ffmpeg decodes AVIF and encodes WebP in one step.
+                foreach ($line in @(& $j.Ffmpeg -hide_banner -loglevel error -y -i $j.Source `
+                        -c:v libwebp -q:v "$($j.Quality)" -an $j.Tmp)) { $lines.Add("$line") }
+            }
+            else {
+                $cwebpArgs = $j.CwebpArgs
+                foreach ($line in @(& $j.Cwebp @cwebpArgs $j.Source -o $j.Tmp)) { $lines.Add("$line") }
+            }
             $len = -1L
             if ([System.IO.File]::Exists($j.Tmp)) { $len = [System.IO.FileInfo]::new($j.Tmp).Length }
             $status = 'ok'
@@ -654,8 +688,15 @@ function Invoke-ImagePass {
         if ($byKind.ContainsKey('avif')) {
             [long]$avifBytes = 0
             foreach ($file in $byKind['avif']) { $avifBytes += $file.Length }
-            Write-Info ("$($byKind['avif'].Count) AVIF file(s) resized only if oversized " +
-                "($(Format-Size $avifBytes)): no AVIF re-encoder wired up here.")
+            if ($ConvertToWebp) {
+                Write-Info ("$($byKind['avif'].Count) AVIF file(s) will be converted to WebP " +
+                    "($(Format-Size $avifBytes)).")
+            }
+            else {
+                Write-Info ("$($byKind['avif'].Count) AVIF file(s) resized only if oversized, " +
+                    "left as AVIF otherwise ($(Format-Size $avifBytes)): pass -ConvertToWebp " +
+                    "to convert them to WebP via ffmpeg.")
+            }
         }
 
         [long]$saved = 0
@@ -733,8 +774,9 @@ function Invoke-ImagePass {
 
         if ($ConvertToWebp) {
             $cwebpConvert = Resolve-OrInstallTool -Name 'cwebp' -WingetId 'Google.Libwebp' -Optional
+            $ffmpegConvert = $Ffmpeg
             if (-not $cwebpConvert) {
-                Write-Warning 'cwebp not found; JPEG/PNG files left unconverted.'
+                Write-Warning 'cwebp not found; JPEG/PNG/GIF files left unconverted.'
             }
             else {
                 $exiftool = Resolve-OrInstallTool -Name 'exiftool' -WingetId 'OliverBetz.ExifTool' -Optional
@@ -743,13 +785,30 @@ function Invoke-ImagePass {
                         'EXIF (capture date, GPS, orientation) and XMP will be lost.')
                 }
                 $saved += Invoke-WebpConvertPass -FilePath $pngPaths.ToArray() -Quality $Quality -Lossless $true `
-                    -Cwebp $cwebpConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
+                    -Cwebp $cwebpConvert -Ffmpeg $ffmpegConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
                     -Force:$Force -ThreadCount $ThreadCount
                 if ($byKind.ContainsKey('jpeg')) {
                     $jpegPaths = @($byKind['jpeg'].FullName)
                     $saved += Invoke-WebpConvertPass -FilePath $jpegPaths -Quality $Quality -Lossless $false `
-                        -Cwebp $cwebpConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
+                        -Cwebp $cwebpConvert -Ffmpeg $ffmpegConvert -Exiftool $exiftool -TargetPath $TargetPath -BackupPath $BackupPath `
                         -Force:$Force -ThreadCount $ThreadCount
+                }
+                if ($byKind.ContainsKey('gif')) {
+                    $gifPaths = @($byKind['gif'].FullName)
+                    $saved += Invoke-WebpConvertPass -FilePath $gifPaths -Quality $Quality -Lossless $false `
+                        -Cwebp $cwebpConvert -Ffmpeg $ffmpegConvert -Exiftool $null -TargetPath $TargetPath -BackupPath $BackupPath `
+                        -Force:$Force -ThreadCount $ThreadCount
+                }
+                if ($byKind.ContainsKey('avif')) {
+                    if (-not $ffmpegConvert) {
+                        Write-Warning 'ffmpeg not found; AVIF files left unconverted.'
+                    }
+                    else {
+                        $avifPaths = @($byKind['avif'].FullName)
+                        $saved += Invoke-WebpConvertPass -FilePath $avifPaths -Quality $Quality -Lossless $false `
+                            -Cwebp $cwebpConvert -Ffmpeg $ffmpegConvert -Exiftool $null -TargetPath $TargetPath -BackupPath $BackupPath `
+                            -Force:$Force -ThreadCount $ThreadCount
+                    }
                 }
             }
         }
@@ -790,7 +849,7 @@ function Invoke-ImagePass {
             }
         }
 
-        if ($byKind.ContainsKey('gif')) {
+        if ($byKind.ContainsKey('gif') -and -not $ConvertToWebp) {
             # gifsicle is in neither the winget community repo nor scoop's main bucket, so
             # there is no -WingetId to give: it installs only if the scoop extras bucket is
             # already present, and otherwise degrades to a warning.
