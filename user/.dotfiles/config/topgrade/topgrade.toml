@@ -41,4 +41,5 @@ git = true
 quiet = true
 
 [commands]
+"uv pip global upgrade" = '. "$env:USERPROFILE\.venv\Scripts\Activate.ps1"; uv pip freeze | ForEach-Object { ($_ -split "==")[0] } | uv pip install -U -r -'
 "lobotomized-claude-code" = 'git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" fetch origin && git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" reset --hard origin/main && git -C "$env:USERPROFILE\.tweakcc\lobotomized-claude-code" clean -fd'
