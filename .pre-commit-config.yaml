@@ -48,11 +48,11 @@ repos:
       - id: check-illegal-windows-names
       - id: check-symlinks
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: "44.235.1"
+    rev: "44.235.2"
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.6.6
+    rev: v2.6.7
     hooks:
       - id: biome-ci
   - repo: https://github.com/python-jsonschema/check-jsonschema
