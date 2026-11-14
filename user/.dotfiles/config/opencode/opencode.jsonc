@@ -22,7 +22,7 @@
   "compaction": {
     "auto": true
   },
-  "disabled_providers": ["openai", "google", "anthropic"],
+  "disabled_providers": ["google", "anthropic"],
   "experimental": {
     "todo": true
   },
@@ -386,6 +386,57 @@
           "name": "Gemma 4 31B ARA-heretic IQ4_XS (Headroom, llama.cpp)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 131072, "output": 8192 }
+        }
+      }
+    },
+    "openai": {
+      "name": "OpenAI",
+      "env": ["OPENAI_API_KEY"],
+      "settings": {
+        "apiKey": "{env:OPENAI_API_KEY}"
+      },
+      "models": {
+        "gpt-5": {
+          "modelID": "gpt-5",
+          "name": "GPT-5",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 272000, "output": 65536 }
+        },
+        "gpt-5-mini": {
+          "modelID": "gpt-5-mini",
+          "name": "GPT-5 Mini",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 272000, "output": 65536 }
+        },
+        "gpt-5-nano": {
+          "modelID": "gpt-5-nano",
+          "name": "GPT-5 Nano",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 272000, "output": 65536 }
+        },
+        "o3": {
+          "modelID": "o3",
+          "name": "o3",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 200000, "output": 65536 }
+        },
+        "o4-mini": {
+          "modelID": "o4-mini",
+          "name": "o4-mini",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 200000, "output": 65536 }
+        },
+        "gpt-4o": {
+          "modelID": "gpt-4o",
+          "name": "GPT-4o",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 128000, "output": 16384 }
+        },
+        "gpt-4.1": {
+          "modelID": "gpt-4.1",
+          "name": "GPT-4.1",
+          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
+          "limit": { "context": 1000000, "output": 32768 }
         }
       }
     }
