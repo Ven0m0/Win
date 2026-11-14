@@ -43,3 +43,16 @@ Describe 'Invoke-InterruptPolicyRestore' {
             Should -Throw -ExpectedMessage '*Backup not found*'
     }
 }
+
+Describe 'Invoke-InterruptPolicyApply' {
+    It 'keeps the original value when applied twice' {
+        $file = Join-Path -Path $TestDrive -ChildPath 'apply.json'
+        Mock Set-RegistryValue { }
+        Mock Write-Info { }
+        $first = @([pscustomobject]@{ InstanceId = 'PCI\A'; Current = 2; Target = 5 })
+        Invoke-InterruptPolicyApply -Plan $first -Path $file
+        $second = @([pscustomobject]@{ InstanceId = 'PCI\A'; Current = 5; Target = 5 })
+        Invoke-InterruptPolicyApply -Plan $second -Path $file
+        @(Get-Content -LiteralPath $file -Raw | ConvertFrom-Json)[0].Current | Should -Be 2
+    }
+}

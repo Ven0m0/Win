@@ -91,9 +91,17 @@ function ConvertTo-RegExePath {
 function Invoke-InterruptPolicyApply {
     [CmdletBinding()]
     param ([Parameter(Mandatory)][object[]]$Plan, [Parameter(Mandatory)][string]$Path)
+    # Keep the first value ever saved per device so a second -Apply cannot overwrite the originals.
+    $kept = @{}
+    if (Test-Path -LiteralPath $Path) {
+      foreach ($old in @(Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json)) { $kept[$old.InstanceId] = $old }
+    }
+    $entries = foreach ($item in $Plan) {
+      if ($kept.ContainsKey($item.InstanceId)) { $kept[$item.InstanceId] }
+      else { [pscustomobject]@{ InstanceId = $item.InstanceId; Current = $item.Current } }
+    }
     # -InputObject keeps a one-device plan an array on 5.1, where piping would unwrap it
-    ConvertTo-Json -InputObject @($Plan | Select-Object -Property InstanceId, Current) -Depth 3 |
-      Set-Content -LiteralPath $Path -Encoding UTF8
+    ConvertTo-Json -InputObject @($entries) -Depth 3 | Set-Content -LiteralPath $Path -Encoding UTF8
     Write-Info "Previous values saved to $Path"
     foreach ($item in $Plan) {
       Set-RegistryValue -Path (ConvertTo-RegExePath -InstanceId $item.InstanceId) -Name DevicePolicy `

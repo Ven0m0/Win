@@ -23,4 +23,4 @@ Sets the per-device interrupt affinity policy (`DevicePolicy` under `Enum\<PnP i
 
 - No MSI-X detection: a NIC without MSI-X gets Spread too, which the issue says helps only with MSI-X.
 - Only the four classes above; other devices are untouched.
-- Running `-Apply` twice overwrites the backup with the already-changed values; `-Restore` then restores those, not the originals. Restore before re-applying.
+- The backup keeps the first value saved per device, so a repeated `-Apply` does not overwrite the originals. Delete the file after a `-Restore` if you want a fresh baseline.
