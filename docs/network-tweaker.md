@@ -43,6 +43,11 @@ RSS, power saving, IP interface (only if an IP version is selected) and advanced
   `RegistryTweaks`, never at load. Other handlers (`applyglobal`, `applyrsssettings`,
   `applypowersavingsettings`, `ApplyInterfaceSettings`, `HWSettings`) do not call it directly,
   so a session that only uses those makes no restore point.
+- **Backup and `-Restore`.** The same first-write hook also runs `Save-NetworkTweakBackup`, which exports the
+  Tcpip, Tcpip6, NDIS, AFD and adapter-class registry trees plus the global offload settings to
+  `%USERPROFILE%\Network-Tweaker-backup\<timestamp>\`. `Network-Tweaker.ps1 -Restore` (optionally
+  `-BackupPath <folder>`, supports `-WhatIf`) re-imports the newest snapshot and exits without opening the GUI.
+  Restart the adapters or reboot afterwards. A snapshot is only taken when a handler that calls the hook runs.
 - **Registry helper.** Many writes use `Set-RegistryValue` from `Common.ps1`; others use
   `New-ItemProperty` directly.
 - **AFD toggle behavior.** In `RegistryTweaks`, if an AFD value already exists the apply
@@ -53,8 +58,8 @@ RSS, power saving, IP interface (only if an IP version is selected) and advanced
 
 ## Limitations
 
-- No `-WhatIf`, no dry run, and no built-in undo beyond removing AFD values and re-setting
-  fields by hand. Use the restore point.
+- No dry run for the apply buttons. Undo is `-Restore` (registry trees and offload settings only; adapter
+  advanced properties changed through cmdlets are not snapshotted) or the restore point.
 - Some labels and dropdown text are in German ("Paketpriorität") and one combo item
   duplicates "5000" for Medium and High.
 - Code for locating the adapter, PnP device and registry key is outside the parts checked for

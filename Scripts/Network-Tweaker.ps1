@@ -3,7 +3,17 @@
 <#
 .NAME
     Tweaking Adapter
+.SYNOPSIS
+    Network tweak GUI. The first write of a session first snapshots every key and setting it can change;
+    -Restore puts that snapshot back and exits without opening the GUI.
 #>
+[CmdletBinding()]
+param (
+  # Re-apply the most recent snapshot (or the one named by -BackupPath) instead of opening the GUI
+  [switch]$Restore,
+  # Snapshot folder to restore; defaults to the newest under $env:USERPROFILE\Network-Tweaker-backup
+  [string]$BackupPath
+)
 
 $ProgressPreference = 'SilentlyContinue'
 
@@ -18,7 +28,88 @@ function Invoke-NetworkTweakRestorePoint {
     if (-not $Script:RestorePointCreated) {
         $Script:RestorePointCreated = $true
         New-RestorePoint -Description "Network-Tweaker - $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+        $null = Save-NetworkTweakBackup
     }
+}
+
+# Registry trees the tweaks write (TCP/IP, NDIS, AFD, and every adapter's driver keys).
+$Script:NetworkTweakKeys = [ordered]@{
+  Tcpip   = 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters'
+  Tcpip6  = 'HKLM\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters'
+  NDIS    = 'HKLM\SYSTEM\CurrentControlSet\Services\NDIS\Parameters'
+  AFD     = 'HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters'
+  Adapter = 'HKLM\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}'
+}
+$Script:NetworkTweakBackupRoot = Join-Path -Path $env:USERPROFILE -ChildPath 'Network-Tweaker-backup'
+
+function Save-NetworkTweakBackup {
+    <#
+    .SYNOPSIS
+        Export the registry trees and global offload settings the tweaks touch to a timestamped folder.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param ()
+    $dir = Join-Path -Path $Script:NetworkTweakBackupRoot -ChildPath (Get-Date -Format 'yyyyMMdd-HHmmss')
+    $null = New-Item -ItemType Directory -Path $dir -Force
+    foreach ($name in $Script:NetworkTweakKeys.Keys) {
+      $file = Join-Path -Path $dir -ChildPath "$name.reg"
+      & reg.exe export $Script:NetworkTweakKeys[$name] $file /y *> $null
+      if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Could not back up $($Script:NetworkTweakKeys[$name]) (exit $LASTEXITCODE)"
+      }
+    }
+    try {
+      Get-NetOffloadGlobalSetting |
+        Select-Object -Property * -ExcludeProperty CimClass, CimInstanceProperties, CimSystemProperties |
+        ConvertTo-Json -Depth 3 |
+        Set-Content -Path (Join-Path -Path $dir -ChildPath 'offload.json') -Encoding UTF8
+    } catch {
+      $err = $_
+      Write-Warning "Could not back up offload settings: $($err.Exception.Message)"
+    }
+    Write-Host "Network settings backed up to $dir (restore: Network-Tweaker.ps1 -Restore)"
+    $dir
+}
+
+function Restore-NetworkTweakBackup {
+    <#
+    .SYNOPSIS
+        Re-import a snapshot made by Save-NetworkTweakBackup and restore the offload settings.
+    #>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    param (
+      # Snapshot folder; the newest one is used when omitted
+      [string]$Path
+    )
+    if (-not $Path) {
+      $latest = Get-ChildItem -LiteralPath $Script:NetworkTweakBackupRoot -Directory -ErrorAction SilentlyContinue |
+        Sort-Object -Property Name -Descending | Select-Object -First 1
+      if (-not $latest) { throw "No Network-Tweaker backup found under $Script:NetworkTweakBackupRoot" }
+      $Path = $latest.FullName
+    }
+    if (-not (Test-Path -LiteralPath $Path -PathType Container)) { throw "Backup folder not found: $Path" }
+    if (-not $PSCmdlet.ShouldProcess($Path, 'Restore network registry keys and offload settings')) { return }
+    foreach ($reg in Get-ChildItem -LiteralPath $Path -Filter '*.reg') {
+      & reg.exe import $reg.FullName *> $null
+      if ($LASTEXITCODE -ne 0) { Write-Warning "reg import failed for $($reg.Name) (exit $LASTEXITCODE)" }
+    }
+    $json = Join-Path -Path $Path -ChildPath 'offload.json'
+    if (Test-Path -LiteralPath $json) {
+      $saved = Get-Content -LiteralPath $json -Raw | ConvertFrom-Json
+      $settable = (Get-Command -Name Set-NetOffloadGlobalSetting).Parameters.Keys
+      $offload = @{}
+      foreach ($prop in $saved.PSObject.Properties) {
+        if ($prop.Name -in $settable -and $null -ne $prop.Value) { $offload[$prop.Name] = $prop.Value }
+      }
+      if ($offload.Count -gt 0) { Set-NetOffloadGlobalSetting @offload }
+    }
+    Write-Host 'Restored. Restart the adapters or reboot for the driver keys to take effect.'
+}
+
+if ($Restore) {
+  Restore-NetworkTweakBackup -Path $BackupPath
+  return
 }
 
 Add-Type -AssemblyName System.Windows.Forms

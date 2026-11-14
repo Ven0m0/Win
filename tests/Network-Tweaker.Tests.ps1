@@ -156,3 +156,25 @@ Describe "Network-Tweaker.ps1 Set-DwordTweak" {
         }
     }
 }
+
+Describe "Network-Tweaker.ps1 backup and restore" {
+    BeforeAll {
+        $scriptPath = "$PSScriptRoot/../Scripts/Network-Tweaker.ps1"
+    }
+
+    It "-Restore with a missing backup folder throws before touching anything" -Skip:(-not $canLoadForms) {
+        { & $scriptPath -Restore -BackupPath (Join-Path -Path $TestDrive -ChildPath 'nope') } |
+            Should -Throw -ExpectedMessage '*Backup folder not found*'
+    }
+
+    It "Restore-NetworkTweakBackup -WhatIf imports nothing" -Skip:(-not $canLoadForms) {
+        & {
+            $ErrorActionPreference = 'Continue'
+            . $scriptPath 2>$null
+            Mock reg.exe { }
+            $null = New-Item -ItemType File -Path (Join-Path -Path $TestDrive -ChildPath 'Tcpip.reg')
+            Restore-NetworkTweakBackup -Path $TestDrive -WhatIf
+            Should -Invoke reg.exe -Times 0 -Exactly
+        }
+    }
+}
