@@ -154,6 +154,17 @@ function Install-Winget {
                 Write-Info "Downloading winget from $($asset.browser_download_url)..."
                 $tempFile = Join-Path $env:TEMP "winget.msixbundle"
                 Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempFile -UseBasicParsing
+                # This runs elevated: refuse to install an unverified package.
+                if ($asset.digest -notmatch '^sha256:(?<hash>[0-9a-fA-F]{64})$') {
+                    Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+                    throw "No sha256 digest published for $($asset.name); refusing to install it."
+                }
+                $actualHash = (Get-FileHash -LiteralPath $tempFile -Algorithm SHA256).Hash
+                if ($actualHash -ne $Matches.hash) {
+                    Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+                    throw "SHA256 mismatch for $($asset.name): expected $($Matches.hash), got $actualHash"
+                }
+                Write-Info 'SHA256 verified against release digest.'
                 Write-Info 'Installing winget (this may take a minute)...'
                 Add-AppxPackage -Path $tempFile -ErrorAction Stop
                 Remove-Item $tempFile -Force

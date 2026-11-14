@@ -392,6 +392,23 @@ function Start-InstallPackage {
         }
     }
 
+    # SHA256 of the reviewed installer scripts. These run elevated, so a changed upstream script is
+    # refused until someone reviews it and updates the hash (computed 2026-11-14).
+    $ScoopInstallerSha256 = '94f983b190438311e006b957db7c8422709e0ba62a6c2ac04e278164108f2512'
+    $ChocoInstallerSha256 = '44e045ed5350758616d664c5af631e7f2cd10165f5bf2bd82cbf3a0bb8f63462'
+
+    function Assert-InstallerHash {
+        param (
+            [Parameter(Mandatory)][string]$Path,
+            [Parameter(Mandatory)][string]$Sha256
+        )
+        $actual = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
+        if ($actual -ne $Sha256) {
+            Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+            throw "Installer SHA256 mismatch (expected $Sha256, got $actual). Review the new script, then update the pinned hash."
+        }
+    }
+
     # ============================================================================
     # Phase 8: Scoop installation, buckets, and packages
     # ============================================================================
@@ -405,6 +422,7 @@ function Start-InstallPackage {
                 $guid = [System.Guid]::NewGuid().ToString('N')
                 $scoopInstaller = Join-Path -Path $env:TEMP -ChildPath "install-scoop-$guid.ps1"
                 Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile $scoopInstaller
+                Assert-InstallerHash -Path $scoopInstaller -Sha256 $ScoopInstallerSha256
                 # This script is elevated and Scoop's installer refuses admin without -RunAsAdmin.
                 & $scoopInstaller -RunAsAdmin
                 Remove-Item -Path $scoopInstaller -Force -ErrorAction SilentlyContinue
@@ -465,6 +483,7 @@ function Start-InstallPackage {
                 $chocoInstaller = Join-Path -Path $env:TEMP -ChildPath 'choco-install.ps1'
                 Invoke-RestMethod -Uri 'https://community.chocolatey.org/install.ps1' `
                     -OutFile $chocoInstaller -ErrorAction Stop
+                Assert-InstallerHash -Path $chocoInstaller -Sha256 $ChocoInstallerSha256
                 & $chocoInstaller
                 Remove-Item -Path $chocoInstaller -Force -ErrorAction SilentlyContinue
                 Update-EnvironmentPath
