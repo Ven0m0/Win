@@ -478,6 +478,8 @@ function lazyg {
     gcom @args
     git push
 }
+# Pi agent (Oh My Pi, omp) through the Headroom proxy; headroom has no `wrap pi`, omp is its pi wrapper
+function pih { headroom wrap omp --code-graph --learn --memory @args }
 # Quick Access to System Information
 function sysinfo { Get-ComputerInfo }
 function uptime { (Get-Date) - (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime | Select-Object Days, Hours, Minutes, Seconds }

@@ -344,21 +344,15 @@
       "package": "@opencode/ai/providers/openai-compatible",
       "settings": { "baseURL": "http://127.0.0.1:8080/v1" },
       "models": {
-        "qwen3.8-35b-a3b": {
-          "modelID": "qwen3.8-35b-a3b",
-          "name": "Qwen3.8 35B-A3B (local)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 131072, "output": 8192 }
-        },
         "qwen3.8-9b-exec": {
           "modelID": "qwen3.8-9b-exec",
           "name": "Qwen3.8 9B exec (local)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 65536, "output": 8192 }
         },
-        "gemma-4-31b-heretic": {
-          "modelID": "gemma-4-31b-heretic",
-          "name": "Gemma 4 31B ARA-heretic IQ4_XS (local, llama.cpp)",
+        "qwen3.8-35b-a3b": {
+          "modelID": "qwen3.8-35b-a3b",
+          "name": "Qwen3.8 35B-A3B abliterated (local)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 131072, "output": 8192 }
         }
@@ -369,21 +363,15 @@
       "package": "@opencode/ai/providers/openai-compatible",
       "settings": { "baseURL": "http://127.0.0.1:8788/v1" },
       "models": {
-        "qwen3.8-35b-a3b": {
-          "modelID": "qwen3.8-35b-a3b",
-          "name": "Qwen3.8 35B-A3B (Headroom)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 131072, "output": 8192 }
-        },
         "qwen3.8-9b-exec": {
           "modelID": "qwen3.8-9b-exec",
           "name": "Qwen3.8 9B exec (Headroom)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 65536, "output": 8192 }
         },
-        "gemma-4-31b-heretic": {
-          "modelID": "gemma-4-31b-heretic",
-          "name": "Gemma 4 31B ARA-heretic IQ4_XS (Headroom, llama.cpp)",
+        "qwen3.8-35b-a3b": {
+          "modelID": "qwen3.8-35b-a3b",
+          "name": "Qwen3.8 35B-A3B abliterated (Headroom)",
           "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
           "limit": { "context": 131072, "output": 8192 }
         }

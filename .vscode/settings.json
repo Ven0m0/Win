@@ -3,5 +3,9 @@
     "basedpyright.analysis.extraPaths": [
         "meta/dotbot"
     ],
-    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv"
+    "python.defaultInterpreterPath": "${workspaceFolder}\\.venv",
+    "debug.javascript.defaultRuntimeExecutable": {
+        "pwa-node": "c:\\users\\ven0m0\\appdata\\local\\mise\\shims\\node"
+    },
+    "oxc.path.node": "c:\\users\\ven0m0\\appdata\\local\\mise\\shims\\node.exe"
 }
