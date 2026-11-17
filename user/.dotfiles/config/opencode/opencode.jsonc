@@ -22,18 +22,41 @@
   "compaction": {
     "auto": true
   },
-  "disabled_providers": ["google", "anthropic"],
+  "disabled_providers": [
+    "google"
+  ],
   "experimental": {
     "todo": true
   },
   "formatter": {
     "biome": {
-      "command": ["bunx", "--bun", "@biomejs/biome", "check", "--write", "--format-with-errors=true", "$FILE"],
-      "extensions": [".json", ".jsonc", ".js", ".ts"]
+      "command": [
+        "bunx",
+        "--bun",
+        "@biomejs/biome",
+        "check",
+        "--write",
+        "--format-with-errors=true",
+        "$FILE"
+      ],
+      "extensions": [
+        ".json",
+        ".jsonc",
+        ".js",
+        ".ts"
+      ]
     },
     "ruff": {
-      "command": ["ruff", "format", "$FILE"],
-      "extensions": [".py", ".pyi", ".pyc"]
+      "command": [
+        "ruff",
+        "format",
+        "$FILE"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi",
+        ".pyc"
+      ]
     }
   },
   "instructions": [
@@ -51,7 +74,11 @@
     },
     "servers": {
       "codegraph": {
-        "command": ["codegraph", "serve", "--mcp"],
+        "command": [
+          "codegraph",
+          "serve",
+          "--mcp"
+        ],
         "disabled": false,
         "type": "local"
       },
@@ -66,7 +93,9 @@
         "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa"
       },
       "fff": {
-        "command": ["fff-mcp"],
+        "command": [
+          "fff-mcp"
+        ],
         "type": "local",
         "disabled": false
       },
@@ -81,7 +110,10 @@
       },
       "icm": {
         "type": "local",
-        "command": ["C:/Users/Ven0m0/AppData/Local/icm/bin/icm.exe", "serve"],
+        "command": [
+          "C:/Users/Ven0m0/AppData/Local/icm/bin/icm.exe",
+          "serve"
+        ],
         "disabled": false
       },
       "obsidian-hybrid-search": {
@@ -98,7 +130,10 @@
       },
       "patchright": {
         "type": "local",
-        "command": ["node", "C:/Users/Ven0m0/.local/share/patchright-mcp/node_modules/@playwright/mcp/cli.js"],
+        "command": [
+          "node",
+          "C:/Users/Ven0m0/.local/share/patchright-mcp/node_modules/@playwright/mcp/cli.js"
+        ],
         "disabled": false
       },
       "rea": {
@@ -119,11 +154,20 @@
           "REA_TSHARK_COMMAND": "C:/Users/Ven0m0/scoop/apps/wireshark/current/tshark.exe",
           "REA_WABT_BIN_DIRECTORY": "C:/Users/Ven0m0/scoop/apps/wabt/current"
         },
-        "disabled": false,
+        "disabled": true,
         "timeout": {
           "execution": 1800000
         }
       }
+    },
+    "headroom": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\Ven0m0\\.local\\bin\\headroom.EXE",
+        "mcp",
+        "serve"
+      ],
+      "enabled": true
     }
   },
   "permissions": [
@@ -303,83 +347,293 @@
     "@tarquinen/opencode-dcp@3.2.0",
     "context-mode@2.1.4",
     "opencode-ecosystem-manager@0.3.2",
+    "cc-safety-net@2.7.12",
+    "envsitter-guard@0.1.1",
+    "opencode-handoff@0.7.0",
+    "opencode-dir-tree-tui@1.0.6",
+    "opencode-skills-tui@1.2.3",
     "C:/Users/Ven0m0/.local/share/opencode-v2-lsp-support"
   ],
   "lsp": {
-    "bash": { "command": ["bash-language-server", "start"], "extensions": [".sh", ".bash", ".zsh", ".ksh"] },
-    "pyright": { "command": ["basedpyright-langserver", "--stdio"], "extensions": [".py", ".pyi"] },
+    "bash": {
+      "command": [
+        "bash-language-server",
+        "start"
+      ],
+      "extensions": [
+        ".sh",
+        ".bash",
+        ".zsh",
+        ".ksh"
+      ]
+    },
+    "pyright": {
+      "command": [
+        "basedpyright-langserver",
+        "--stdio"
+      ],
+      "extensions": [
+        ".py",
+        ".pyi"
+      ]
+    },
     "typescript": {
-      "command": ["vtsls", "--stdio"],
-      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"],
+      "command": [
+        "vtsls",
+        "--stdio"
+      ],
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".mts",
+        ".cts",
+        ".mjs",
+        ".cjs"
+      ],
       "initialization": {
         "maxTsServerMemory": 4096,
         "disableAutomaticTypeAcquisition": true
       }
     },
     "rust": {
-      "command": ["rust-analyzer"],
-      "extensions": [".rs"],
-      "initialization": { "diagnostics": { "experimental": { "enable": true } } }
+      "command": [
+        "rust-analyzer"
+      ],
+      "extensions": [
+        ".rs"
+      ],
+      "initialization": {
+        "diagnostics": {
+          "experimental": {
+            "enable": true
+          }
+        }
+      }
     },
-    "tombi": { "command": ["tombi", "lsp"], "extensions": [".toml"] },
+    "tombi": {
+      "command": [
+        "tombi",
+        "lsp"
+      ],
+      "extensions": [
+        ".toml"
+      ]
+    },
     "json": {
-      "command": ["vscode-json-language-server", "--stdio"],
-      "extensions": [".json", ".jsonc"],
-      "initialization": { "json": { "validate": { "enable": true }, "schemas": [] } }
+      "command": [
+        "vscode-json-language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".json",
+        ".jsonc"
+      ],
+      "initialization": {
+        "json": {
+          "validate": {
+            "enable": true
+          },
+          "schemas": []
+        }
+      }
     },
-    "yaml-ls": { "command": ["yaml-language-server", "--stdio"], "extensions": [".yaml", ".yml"] },
-    "html": { "command": ["vscode-html-language-server", "--stdio"], "extensions": [".html", ".htm"] },
+    "yaml-ls": {
+      "command": [
+        "yaml-language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".yaml",
+        ".yml"
+      ]
+    },
+    "html": {
+      "command": [
+        "vscode-html-language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".html",
+        ".htm"
+      ]
+    },
     "css": {
-      "command": ["vscode-css-language-server", "--stdio"],
-      "extensions": [".css", ".scss", ".less"],
-      "initialization": { "css": { "validate": true }, "scss": { "validate": true }, "less": { "validate": true } }
+      "command": [
+        "vscode-css-language-server",
+        "--stdio"
+      ],
+      "extensions": [
+        ".css",
+        ".scss",
+        ".less"
+      ],
+      "initialization": {
+        "css": {
+          "validate": true
+        },
+        "scss": {
+          "validate": true
+        },
+        "less": {
+          "validate": true
+        }
+      }
     },
-    "dockerfile": { "command": ["docker-langserver", "--stdio"], "extensions": [".dockerfile", "Dockerfile"] },
-    "markdown-oxide": { "command": ["markdown-oxide"], "extensions": [".md"] },
-    "jdtls": { "command": ["jdtls"], "extensions": [".java"] }
+    "dockerfile": {
+      "command": [
+        "docker-langserver",
+        "--stdio"
+      ],
+      "extensions": [
+        ".dockerfile",
+        "Dockerfile"
+      ]
+    },
+    "markdown-oxide": {
+      "command": [
+        "markdown-oxide"
+      ],
+      "extensions": [
+        ".md"
+      ]
+    },
+    "jdtls": {
+      "command": [
+        "jdtls"
+      ],
+      "extensions": [
+        ".java"
+      ]
+    }
   },
   "providers": {
     "llama-local": {
       "name": "llama.cpp (local)",
       "package": "@opencode/ai/providers/openai-compatible",
-      "settings": { "baseURL": "http://127.0.0.1:8080/v1" },
+      "settings": {
+        "baseURL": "http://127.0.0.1:8080/v1"
+      },
       "models": {
+        "qwen3.8-35b-a3b": {
+          "modelID": "qwen3.8-35b-a3b",
+          "name": "Qwen3.8 35B-A3B (local)",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
         "qwen3.8-9b-exec": {
           "modelID": "qwen3.8-9b-exec",
           "name": "Qwen3.8 9B exec (local)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 65536, "output": 8192 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
         },
-        "qwen3.8-35b-a3b": {
-          "modelID": "qwen3.8-35b-a3b",
-          "name": "Qwen3.8 35B-A3B abliterated (local)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 131072, "output": 8192 }
+        "gemma-4-31b-heretic": {
+          "modelID": "gemma-4-31b-heretic",
+          "name": "Gemma 4 31B ARA-heretic IQ4_XS (local, llama.cpp)",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
         }
       }
     },
     "headroom-local": {
       "name": "llama.cpp via Headroom (local)",
       "package": "@opencode/ai/providers/openai-compatible",
-      "settings": { "baseURL": "http://127.0.0.1:8788/v1" },
+      "settings": {
+        "baseURL": "http://127.0.0.1:8788/v1"
+      },
       "models": {
+        "qwen3.8-35b-a3b": {
+          "modelID": "qwen3.8-35b-a3b",
+          "name": "Qwen3.8 35B-A3B (Headroom)",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
+        },
         "qwen3.8-9b-exec": {
           "modelID": "qwen3.8-9b-exec",
           "name": "Qwen3.8 9B exec (Headroom)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 65536, "output": 8192 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          }
         },
-        "qwen3.8-35b-a3b": {
-          "modelID": "qwen3.8-35b-a3b",
-          "name": "Qwen3.8 35B-A3B abliterated (Headroom)",
-          "capabilities": { "tools": true, "input": ["text"], "output": ["text"] },
-          "limit": { "context": 131072, "output": 8192 }
+        "gemma-4-31b-heretic": {
+          "modelID": "gemma-4-31b-heretic",
+          "name": "Gemma 4 31B ARA-heretic IQ4_XS (Headroom, llama.cpp)",
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 131072,
+            "output": 8192
+          }
         }
       }
     },
     "openai": {
       "name": "OpenAI",
-      "env": ["OPENAI_API_KEY"],
+      "env": [
+        "OPENAI_API_KEY"
+      ],
       "settings": {
         "apiKey": "{env:OPENAI_API_KEY}"
       },
@@ -387,50 +641,194 @@
         "gpt-5": {
           "modelID": "gpt-5",
           "name": "GPT-5",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 272000, "output": 65536 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 272000,
+            "output": 65536
+          }
         },
         "gpt-5-mini": {
           "modelID": "gpt-5-mini",
           "name": "GPT-5 Mini",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 272000, "output": 65536 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 272000,
+            "output": 65536
+          }
         },
         "gpt-5-nano": {
           "modelID": "gpt-5-nano",
           "name": "GPT-5 Nano",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 272000, "output": 65536 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 272000,
+            "output": 65536
+          }
         },
         "o3": {
           "modelID": "o3",
           "name": "o3",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 200000, "output": 65536 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 65536
+          }
         },
         "o4-mini": {
           "modelID": "o4-mini",
           "name": "o4-mini",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 200000, "output": 65536 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 200000,
+            "output": 65536
+          }
         },
         "gpt-4o": {
           "modelID": "gpt-4o",
           "name": "GPT-4o",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 128000, "output": 16384 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
         },
         "gpt-4.1": {
           "modelID": "gpt-4.1",
           "name": "GPT-4.1",
-          "capabilities": { "tools": true, "input": ["text", "image"], "output": ["text"] },
-          "limit": { "context": 1000000, "output": 32768 }
+          "capabilities": {
+            "tools": true,
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 32768
+          }
         }
       }
     }
   },
-  "skills": [".kilo/skills"],
+  "skills": [
+    ".kilo/skills"
+  ],
   "watcher": {
-    "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**", "__pycache__/**", ".ruff_cache/**"]
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      ".git/**",
+      ".venv/**",
+      "__pycache__/**",
+      ".ruff_cache/**"
+    ]
+  },
+  "provider": {
+    "amd-tokenlab": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "AMD Token Lab",
+      "options": {
+        "baseURL": "https://api.tokenlab.amd.com/v1",
+        "apiKey": "{env:TOKENLAB_API_KEY}"
+      },
+      "models": {
+        "Gemma-4-31B-IT": {
+          "name": "Gemma 4 31B IT",
+          "limit": {
+            "context": 262144,
+            "output": 16384
+          }
+        },
+        "DeepSeek-V4.1-Flash": {
+          "name": "DeepSeek V4.1 Flash"
+        },
+        "DeepSeek-V4-Flash": {
+          "name": "DeepSeek V4 Flash"
+        },
+        "Qwen3.8-27B": {
+          "name": "Qwen3.8 27B"
+        }
+      }
+    },
+    "headroom": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Headroom Proxy",
+      "options": {
+        "baseURL": "http://127.0.0.1:8787/v1"
+      },
+      "models": {
+        "gpt-4o": {
+          "name": "GPT-4o",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          }
+        },
+        "gpt-4.1": {
+          "name": "GPT-4.1",
+          "limit": {
+            "context": 1048576,
+            "output": 32768
+          }
+        }
+      }
+    }
   }
 }

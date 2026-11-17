@@ -2,6 +2,7 @@
 name: security-auditor
 description: Security-focused read-only audit of PowerShell scripts and configs. Use when asked to audit for credential leaks, hardcoded paths, unsafe registry ops, or input validation flaws. Does not make changes.
 tools: Read, Glob, Grep, WebFetch, WebSearch
+model: sonnet
 ---
 
 # Security Auditor Agent

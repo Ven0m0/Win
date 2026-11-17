@@ -1,6 +1,6 @@
 ---
 name: prism-instance-edit
-description: Safely edit PrismLauncher config (instance.cfg, prismlauncher.cfg) - checks the launcher is closed, backs up, edits, and re-reads to confirm the change survived. Use whenever editing a PrismLauncher instance's JVM args, memory, Java path, or other launcher settings. Complements mc-jvm-tune, which decides what to change.
+description: Safely edit PrismLauncher config (instance.cfg, prismlauncher.cfg) - checks the launcher is closed, backs up, edits, and re-reads to confirm the change survived. Use whenever editing a PrismLauncher instance's JVM args, memory, Java path, or other launcher settings. Complements mc-work, which decides what to change.
 ---
 
 # PrismLauncher config edit
@@ -26,5 +26,5 @@ Config locations:
 ## Gotchas
 
 - Do not edit while a game is running either; exit rewrites the file.
-- Tuning decisions (GC, heap sizes) belong to the `mc-jvm-tune` skill; this skill only covers the safe write.
+- Tuning decisions (GC, heap sizes) belong to the `mc-work` skill; this skill only covers the safe write.
 - Instance notes live in the Obsidian vault under `Projects/` (for example `prismlauncher-1.21.11.md`).

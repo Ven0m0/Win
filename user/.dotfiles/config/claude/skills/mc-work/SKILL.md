@@ -1,12 +1,14 @@
 ---
-name: mc-jvm-tune
+name: mc-work
 description: >
   Reads a PrismLauncher Minecraft instance's logs (latest.log, stderr_stream.log, crash-reports,
   hs_err, GC/safepoint/JIT logs, JFR) to find performance problems, separates JVM causes from
   mod/render causes, audits instance.cfg JvmArgs, and proposes an evidence-backed flag diff.
   Use for lag, stutter, frame spikes, bad 1% lows, slow startup, crashes or OOM, jvm-gc/.jfr logs,
   JvmArgs, G1, GraalVM flags, or "why is my modpack slow", even without naming a log. Edits
-  instance.cfg only after explicit approval, with a backup.
+  instance.cfg only after explicit approval, with a backup. Also covers mod crash triage and
+  mod updates/rollbacks for a Prism instance (read the crash report, check each jar's
+  fabric.mod.json depends/breaks and mixin targets, back up before swapping).
 disable-model-invocation: true
 allowed-tools: Read Edit Grep Glob Bash PowerShell AskUserQuestion
 metadata:
@@ -15,7 +17,7 @@ metadata:
   tags: "minecraft, prismlauncher, jvm, gc, jfr, performance"
 ---
 
-# mc-jvm-tune: find Minecraft performance problems in logs, then tune JvmArgs
+# mc-work: Minecraft instance work - performance/JVM tuning, crash triage, mod updates and rollbacks
 
 `$ARGUMENTS` is the instance directory (the folder holding `instance.cfg`), for example
 `C:\Users\<user>\AppData\Roaming\PrismLauncher\instances\1.21.11`. If it is empty, ask which
@@ -39,7 +41,7 @@ no mod removal, evidence-to-flag table, inert flag list, logging presets). Read 
 2. **Analyze.** Run the bundled script (read-only):
 
    ```powershell
-   & "$HOME\.claude\skills\mc-jvm-tune\scripts\Analyze-McJvm.ps1" -Instance "<instance dir>"
+   & "$HOME\.claude\skills\mc-work\scripts\Analyze-McJvm.ps1" -Instance "<instance dir>"
    ```
 
    It prints Config, latest.log, stderr_stream.log, Crashes, GC, Safepoints, JIT, and JFR sections,
@@ -74,7 +76,7 @@ no mod removal, evidence-to-flag table, inert flag list, logging presets). Read 
 
    ```powershell
    $candidate = '<candidate JvmArgs string>'
-   & "$HOME\.claude\skills\mc-jvm-tune\scripts\Analyze-McJvm.ps1" -Instance "<dir>" -ValidateArgs $candidate
+   & "$HOME\.claude\skills\mc-work\scripts\Analyze-McJvm.ps1" -Instance "<dir>" -ValidateArgs $candidate
    ```
 
    Pass the string through a variable and call with `&`: `pwsh -File ... -ValidateArgs "-XX:..."` fails
@@ -113,6 +115,6 @@ no mod removal, evidence-to-flag table, inert flag list, logging presets). Read 
 
 ## Scope
 
-Reads logs, crash reports and `instance.cfg`; changes only the `JvmArgs` line, and only after approval. It does not
+JVM tuning: reads logs, crash reports and `instance.cfg`; changes only the `JvmArgs` line, and only after approval.
+Mod work (crash triage, update, rollback): only when the user asks; close Prism/javaw first, back up jars and `.index/*.pw.toml` to a dated `mods-backup-*` folder, verify Modrinth SHA-512, and scan `depends`/`breaks` across all jars. Mixin targets are not covered by version ranges, so a launch is the only proof. Otherwise it does not
 touch mods, mod configs, `options.txt`, or the global `prismlauncher.cfg` unless the user asks for that file by name.
-The skill keeps its original name `mc-jvm-tune` so existing references and evals still resolve.

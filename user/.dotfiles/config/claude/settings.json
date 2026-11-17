@@ -60,6 +60,7 @@
 		],
 		"deny": [
 			"mcp__patchright__browser_install",
+			"mcp__claude_ai_github",
 			"Read(~/.git-credentials)",
 			"Edit(~/.git-credentials)",
 			"Read(~/.claude/.credentials.json)",
@@ -163,11 +164,23 @@
 				]
 			},
 			{
-				"matcher": "Bash",
+				"matcher": "Bash|PowerShell",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "$HOME/AppData/Local/icm/bin/icm.exe hook pre"
+						"command": "pwsh -nop -nol -f \"$HOME/.claude/hooks/guard-secrets.ps1\"",
+						"timeout": 60,
+						"statusMessage": "Scanning for secrets..."
+					}
+				]
+			},
+			{
+				"matcher": "Bash|PowerShell",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$HOME/.local/bin/headroom.EXE init hook ensure --profile init-user --marker headroom-init-claude",
+						"timeout": 60
 					}
 				]
 			}
@@ -182,14 +195,6 @@
 						"shell": "powershell",
 						"timeout": 90,
 						"statusMessage": "Validating edited file..."
-					}
-				]
-			},
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/AppData/Local/icm/bin/icm.exe hook post"
 					}
 				]
 			}
@@ -219,10 +224,12 @@
 				]
 			},
 			{
+				"matcher": "startup|resume",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "[[ -n $PI_CODING_AGENT && -z $PI_CLAUDE_HOOKS ]] && exit 0; exec $HOME/AppData/Local/icm/bin/icm.exe hook start"
+						"command": "$HOME/.local/bin/headroom.EXE init hook ensure --profile init-user --marker headroom-init-claude",
+						"timeout": 60
 					}
 				]
 			}
@@ -235,40 +242,11 @@
 						"command": "[[ -n $PI_CODING_AGENT && -z $PI_CLAUDE_HOOKS ]] && exit 0; exec codegraph prompt-hook"
 					}
 				]
-			},
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "[[ -n $PI_CODING_AGENT && -z $PI_CLAUDE_HOOKS ]] && exit 0; exec $HOME/AppData/Local/icm/bin/icm.exe hook prompt"
-					}
-				]
-			}
-		],
-		"PreCompact": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/AppData/Local/icm/bin/icm.exe hook compact"
-					}
-				]
-			}
-		],
-		"SessionEnd": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/AppData/Local/icm/bin/icm.exe hook end"
-					}
-				]
 			}
 		]
 	},
 	"enableWorkflows": true,
 	"workflowKeywordTriggerEnabled": false,
-	"showClearContextOnPlanAccept": true,
 	"statusLine": {
 		"type": "command",
 		"command": "\"C:\\Program Files\\nodejs\\node.exe\" \"$HOME/.claude/hud/omc-hud.mjs\""
@@ -288,17 +266,19 @@
 		"ty@claude-code-lsps": false,
 		"oh-my-claudecode@omc": true,
 		"remember@claude-plugins-official": false,
-		"bash-language-server@claude-code-lsps": true,
+		"bash-language-server@claude-code-lsps": false,
 		"clangd-lsp@claude-plugins-official": false,
 		"mdbase-lsp@claude-code-lsps": false,
-		"cli-anything@cli-anything": true,
+		"cli-anything@cli-anything": false,
 		"desktop-commander@claude-plugins-official": false,
 		"playwright@claude-plugins-official": false,
 		"powershell-editor-services@claude-config-marketplace": true,
 		"conserve@claude-night-market": true,
 		"mattpocock-skills@claude-plugins-official": true,
 		"vercel@anthropic-plugin-directory": false,
-		"jdtls@claude-code-lsps": true
+		"jdtls@claude-code-lsps": true,
+		"leyline@claude-night-market": true,
+		"headroom@headroom-marketplace": true
 	},
 	"extraKnownMarketplaces": {
 		"context-mode": {
@@ -342,6 +322,12 @@
 				"source": "github",
 				"repo": "athola/claude-night-market"
 			}
+		},
+		"headroom-marketplace": {
+			"source": {
+				"source": "github",
+				"repo": "headroomlabs-ai/headroom"
+			}
 		}
 	},
 	"alwaysThinkingEnabled": false,
@@ -353,9 +339,13 @@
 			"effortLevel": "medium"
 		},
 		"claude-sonnet-5-5": {
-			"effortLevel": "medium"
+			"effortLevel": "high"
+		},
+		"claude-fable-5-1": {
+			"effortLevel": "xhigh"
 		}
 	},
+	"showClearContextOnPlanAccept": true,
 	"askUserQuestionTimeout": "never",
 	"modelProposedGoals": "auto",
 	"pluginConfigs": {
@@ -377,7 +367,8 @@
 	"skipWorkflowUsageWarning": true,
 	"theme": "dark",
 	"autoCompactEnabled": true,
-	"teammateMode": "auto",
+	"teammateMode": "in-process",
+	"crossSessionInbound": "accept",
 	"autoMode": {
 		"environment": [
 			"### Org-wide (context, then trust, then sensitivity)",

@@ -1,5 +1,6 @@
 ---
 name: documentation-writer
+model: sonnet
 description: Write and maintain documentation. Use for updating AGENTS.md, README.md, inline comment-based help in PowerShell functions, and .claude/ guidance files. Does not run shell commands.
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch
 ---

@@ -1,6 +1,11 @@
 {
   "$schema": "https://opencode.ai/v2/cli.json",
   "session": {
-    "verbosity": "low"
+    "verbosity": "low",
+    "permissions": "autoaccept"
+  },
+  "theme": {
+    "mode": "dark",
+    "name": "opencode"
   }
 }

@@ -711,7 +711,7 @@ function Start-Bootstrap {
                 # Only the locally authored skills; the rest of ~/.claude/skills are links into ~/.agents/skills
                 # that the skills CLI manages, and opencode already reads ~/.claude/skills itself.
                 $skills = @(
-                    'adb', 'gha-lint', 'mc-jvm-tune', 'mc-repack-optimize', 'merge-to-main',
+                    'adb', 'gha-lint', 'mc-work', 'mc-repack-optimize', 'merge-to-main',
                     'nextcloud-remote', 'prism-instance-edit', 'ps-release-check',
                     'reverse-engineer-anything', 'ssh-lan'
                 )

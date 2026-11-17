@@ -2,6 +2,7 @@
 name: registry-change-reviewer
 description: Read-only review of Windows tweak scripts before they run - registry (HKLM/HKCU), services, scheduled tasks, app removal. Checks reversibility, backup or restore point, idempotence, and scope. Use before applying output from windows-optimizer or any script that edits the registry or services. Does not make changes.
 tools: Read, Glob, Grep
+model: sonnet
 ---
 
 # Registry Change Reviewer

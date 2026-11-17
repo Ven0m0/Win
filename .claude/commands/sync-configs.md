@@ -1,6 +1,6 @@
 ---
 description: Pull latest dotfile changes from remote and redeploy updated configs
-allowed-tools: Read, Bash
+allowed-tools: Read, Glob, Grep, Bash
 ---
 
 Pull the latest dotfile changes from the remote repository and redeploy updated configurations. $ARGUMENTS
