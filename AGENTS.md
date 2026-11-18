@@ -56,6 +56,7 @@ Configs live in `user/.dotfiles/config/` and deploy by hash (no symlinks).
 | `system-settings-manager.ps1` | Power, visual, privacy, GPU/display, keyboard tweaks         |
 | `system-maintenance.ps1`      | Maintenance hub (`-Action Defrag\|Disk\|Shader\|Extra\|All`) |
 | `system-update.ps1`           | Winget + scoop update runner                                 |
+| `dns-benchmark.ps1`           | Benchmark Cloudflare/Cloudflare Malware/AdGuard DNS over IPv4+IPv6 (read-only) |
 | `Network-Tweaker.ps1`         | TCP/IP and adapter optimizations                             |
 | `fix-system.ps1`              | Repair hub (`-Action System\|WindowsUpdate\|All`)            |
 | `Get-BedrockPackUpdate.ps1`   | Report of outdated Bedrock packs/mods in LeviLauncher (read-only by default). `-Update` auto-maps new packs into `bedrock-packs.psd1` (manifest URL, sibling re-release, CurseForge search with `$env:CURSEFORGE_API_KEY` or Bitwarden `api-keys`/`curseforge`), downloads updates, backs up old packs, repoints world pack lists; supports `-WhatIf` |

@@ -26,7 +26,7 @@
         GIFs without -ConvertToWebp are losslessly optimized with gifsicle.
       - HEIC/HEIF are left untouched and reported: they are already
         HEVC-compressed, so a re-encode costs quality for almost no bytes.
-    Videos are re-encoded to H.265 MP4 (10-bit, hvc1 tag, faststart,
+    Videos are re-encoded to H.265 MP4 (8-bit Main so Discord/browsers play it, hvc1 tag, faststart,
     web-optimized) with stereo Opus audio, using NVENC when the GPU offers it
     and libx265 otherwise (see -Encoder). x265 is tuned for SSIM at CRF 28,
     preset slow, with a 2-5s closed GOP so the result stays seekable/
@@ -1323,13 +1323,13 @@ if ($MyInvocation.InvocationName -ne '.') {
             # hevc_nvenc has no ssim tune (only hq/ll/ull/lossless) and rejects -x265-params.
             $encoderArgs = @(
                 '-c:v', 'hevc_nvenc', '-preset', 'p6', '-tune', 'hq', '-rc', 'vbr',
-                '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'p010le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120'
+                '-cq', "$VideoQuality", '-b:v', '0', '-pix_fmt', 'yuv420p', '-profile:v', 'main', '-tag:v', 'hvc1', '-g', '120'
             )
         }
         else {
             $encoderArgs = @(
                 '-c:v', 'libx265', '-preset', $X265Preset, '-tune', 'ssim', '-crf', "$VideoQuality",
-                '-pix_fmt', 'yuv420p10le', '-profile:v', 'main10', '-tag:v', 'hvc1', '-g', '120',
+                '-pix_fmt', 'yuv420p', '-profile:v', 'main', '-tag:v', 'hvc1', '-g', '120',
                 '-x265-params', $x265Params
             )
         }

@@ -51,7 +51,7 @@ on success the original is moved into `-BackupPath`, since the extension changes
 
 ## Video handling
 
-Videos are re-encoded to H.265 MP4 (10-bit, `hvc1` tag, faststart, web-optimized) with
+Videos are re-encoded to H.265 MP4 (8-bit Main, because 10-bit HEVC does not play in Discord or most browsers; `hvc1` tag, faststart, web-optimized) with
 stereo Opus audio, using NVENC when the GPU/ffmpeg offers `hevc_nvenc` and libx265
 otherwise (`-Encoder`). libx265 is tuned for SSIM at `-crf 28` / `-preset slow` (`-X265Preset`), with a
 closed 2-5s GOP (`-g 120`) so the output stays seekable and HTTP-range-streamable at any
