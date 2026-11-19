@@ -1220,7 +1220,7 @@ function Clear-DirectorySafe {
     if (!(Test-Path $Path)) { return }
 
     # Empty source lives outside the target: inside it, /MIR would purge the source mid-run.
-    $empty = Join-Path -Path $env:TEMP -ChildPath ("empty-" + [guid]::NewGuid().ToString('N'))
+    $empty = '{0}.empty-{1}' -f $Path.TrimEnd(''), [guid]::NewGuid().ToString('N')
     $null = New-Item -Path $empty -ItemType Directory -Force
 
     try {
@@ -1314,7 +1314,7 @@ function Remove-Glob {
 function Invoke-MemoryTrim {
     <#
     .SYNOPSIS
-        Trim working sets, flush the modified list, and purge the standby list (needs admin).
+        Combine pages, trim working sets, flush file cache/modified/standby lists and the registry cache (needs admin).
     .PARAMETER TypeName
         Name for the generated Add-Type class. Use a distinct name per call site
         within the same process to avoid colliding with an earlier Invoke-MemoryTrim.
@@ -1332,11 +1332,15 @@ public class $TypeName {
     public static extern uint NtSetSystemInformation(int infoClass, IntPtr buf, int len);
     [DllImport("ntdll.dll")]
     public static extern uint RtlAdjustPrivilege(int privilege, bool enable, bool currentThread, out bool previous);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetSystemFileCacheSize(UIntPtr min, UIntPtr max, uint flags);
 
-    // SeProfileSingleProcessPrivilege (13) must be enabled or every memory-list command fails.
-    public static uint EnablePrivilege() {
+    public static ulong PagesCombined;
+
+    // 13 = SeProfileSingleProcessPrivilege (memory lists), 5 = SeIncreaseQuotaPrivilege (file cache).
+    public static uint EnablePrivilege(int id) {
         bool previous;
-        return RtlAdjustPrivilege(13, true, false, out previous);
+        return RtlAdjustPrivilege(id, true, false, out previous);
     }
     // SystemMemoryListInformation (80); returns the NTSTATUS (0 = success).
     public static uint MemoryCommand(int command) {
@@ -1346,27 +1350,60 @@ public class $TypeName {
             return NtSetSystemInformation(80, buf, 4);
         } finally { Marshal.FreeHGlobal(buf); }
     }
+    // SystemCombinePhysicalMemoryInformation (130): MEMORY_COMBINE_INFORMATION_EX is 24 bytes on x64.
+    public static uint MemoryCombine() {
+        int size = IntPtr.Size == 8 ? 24 : 12;
+        IntPtr buf = Marshal.AllocHGlobal(size);
+        try {
+            for (int i = 0; i < size; i++) Marshal.WriteByte(buf, i, 0);
+            uint status = NtSetSystemInformation(130, buf, size);
+            if (status == 0) PagesCombined = (ulong)Marshal.ReadIntPtr(buf, IntPtr.Size).ToInt64();
+            return status;
+        } finally { Marshal.FreeHGlobal(buf); }
+    }
+    // Class without a buffer, e.g. SystemRegistryReconciliationInformation (155).
+    public static uint InfoCall(int cls) { return NtSetSystemInformation(cls, IntPtr.Zero, 0); }
+    // (-1, -1) empties the system file cache working set.
+    public static bool FlushFileCache() {
+        UIntPtr max = UIntPtr.Size == 8 ? new UIntPtr(ulong.MaxValue) : new UIntPtr(uint.MaxValue);
+        return SetSystemFileCacheSize(max, max, 0);
+    }
 }
 "@ -ErrorAction SilentlyContinue
 
     $memUtil = [type]$TypeName
-    $status = $memUtil::EnablePrivilege()
-    if ($status -ne 0) {
-        Write-Warning ("Could not enable SeProfileSingleProcessPrivilege: 0x{0:X8}" -f $status)
-        return
+    foreach ($privilege in 13, 5) {
+        $status = $memUtil::EnablePrivilege($privilege)
+        if ($status -ne 0) {
+            Write-Warning ("Could not enable privilege {0}: 0x{1:X8}" -f $privilege, $status)
+            return
+        }
     }
 
-    # RAMMap order: trim working sets, flush modified pages to standby, then purge standby.
+    # Mem Reduct order: combine pages, trim working sets, flush file cache, modified list, standby, registry.
     $steps = @(
-        @{ Command = 2; Target = 'All processes'; Action = 'Trim working sets' }
-        @{ Command = 3; Target = 'Modified list'; Action = 'Flush' }
-        @{ Command = 4; Target = 'Standby list'; Action = 'Purge' }
+        @{ Target = 'Memory pages'; Action = 'Combine'; Run = { $memUtil::MemoryCombine() }
+           MinBuild = 10240 }
+        @{ Target = 'All processes'; Action = 'Trim working sets'; Run = { $memUtil::MemoryCommand(2) } }
+        @{ Target = 'System file cache'; Action = 'Flush'; Run = {
+                if ($memUtil::FlushFileCache()) { 0 } else { [System.Runtime.InteropServices.Marshal]::GetLastWin32Error() }
+            } }
+        @{ Target = 'Modified list'; Action = 'Flush'; Run = { $memUtil::MemoryCommand(3) } }
+        @{ Target = 'Standby list'; Action = 'Purge'; Run = { $memUtil::MemoryCommand(4) } }
+        @{ Target = 'Registry cache'; Action = 'Flush'; Run = { $memUtil::InfoCall(155) } }
     )
     foreach ($step in $steps) {
+        if ($step.ContainsKey('MinBuild') -and [Environment]::OSVersion.Version.Build -lt $step.MinBuild) {
+            Write-Verbose "  $($step.Target): $($step.Action) skipped (needs Windows 10+)."
+            continue
+        }
         if (-not $PSCmdlet.ShouldProcess($step.Target, $step.Action)) { continue }
-        $status = $memUtil::MemoryCommand($step.Command)
+        $status = & $step.Run
         if ($status -eq 0) {
             Write-Verbose "  $($step.Target): $($step.Action) done."
+            if ($step.Action -eq 'Combine') {
+                Write-Verbose ("  Combined {0}" -f (Format-Size ([long]($memUtil::PagesCombined * 4096))))
+            }
         } else {
             Write-Warning ("{0} - {1} failed: 0x{2:X8}" -f $step.Target, $step.Action, $status)
         }

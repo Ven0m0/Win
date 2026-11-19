@@ -20,7 +20,7 @@
 
   Needs adb in PATH and USB/wireless debugging enabled. No root needed.
 .PARAMETER Serial
-  adb device serial. Optional when only one device is connected.
+  adb device serial. Optional when only one device (or one device over several transports) is connected.
 .PARAMETER SkipCleanup
   Skip step 1.
 .PARAMETER SkipBase
@@ -124,6 +124,18 @@ function Invoke-PackageCompile {
 function Test-AdbDevice {
   if (-not (Get-Command -Name adb -ErrorAction SilentlyContinue)) {
     throw 'adb not found in PATH. Install platform-tools (scoop install adb) and retry.'
+  }
+  if (-not $Serial) {
+    # Wireless debugging can list one phone twice (ip:port and mDNS); adb then refuses every call without -s.
+    $ids = @(Invoke-Adb devices | ForEach-Object -Process { if ($_ -match '^(\S+)\s+device$') { $Matches[1] } })
+    if ($ids.Count -gt 1) {
+      $serials = @($ids | ForEach-Object -Process { Invoke-Adb -s $_ get-serialno } | Select-Object -Unique)
+      if ($serials.Count -gt 1) {
+        throw "Several devices connected ($($ids -join ', ')); pick one with -Serial."
+      }
+      $Script:Serial = $ids[0]
+      Write-Info "Same device on $($ids.Count) transports; using $($ids[0])"
+    }
   }
   $state = Invoke-Adb get-state
   if ("$state" -ne 'device') {

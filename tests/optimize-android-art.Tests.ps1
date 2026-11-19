@@ -113,6 +113,41 @@ Describe 'Test-AdbDevice' {
 
     { Test-AdbDevice } | Should -Not -Throw
   }
+
+  Context 'one phone listed over two transports' {
+    BeforeEach {
+      Mock Get-Command { [pscustomobject]@{ Name = 'adb' } } -ParameterFilter { $Name -eq 'adb' }
+      Mock Write-Info { }
+      $listing = @{
+        ParameterFilter = { $args -contains 'devices' }
+        MockWith        = {
+          'List of devices attached'
+          '192.168.178.39:40871 device'
+          'adb-X._adb-tls-connect._tcp device'
+        }
+      }
+      Mock Invoke-Adb @listing
+      Mock Invoke-Adb { 'device' } -ParameterFilter { $args -contains 'get-state' }
+      $Script:Serial = $null
+    }
+
+    It 'pins the first transport when both report the same hardware serial' {
+      Mock Invoke-Adb { 'ABC123' } -ParameterFilter { $args -contains 'get-serialno' }
+
+      { Test-AdbDevice } | Should -Not -Throw
+      $Script:Serial | Should -Be '192.168.178.39:40871'
+    }
+
+    It 'throws when the transports belong to different devices' {
+      $serialno = @{
+        ParameterFilter = { $args -contains 'get-serialno' }
+        MockWith        = { if ($args -contains '192.168.178.39:40871') { 'ABC123' } else { 'XYZ789' } }
+      }
+      Mock Invoke-Adb @serialno
+
+      { Test-AdbDevice } | Should -Throw '*pick one with -Serial*'
+    }
+  }
 }
 
 Describe 'Invoke-PackageCompile' {

@@ -111,5 +111,6 @@ Describe 'clear-memory.ps1' -Skip:$notAdmin {
     Should -Invoke Stop-Process -Times 0
     Should -Invoke Invoke-MemoryTrim -Times 0
     Should -Invoke Clear-DirectorySafe -Times 0
+    Should -Invoke Get-FolderSize -Times 0
   }
 }

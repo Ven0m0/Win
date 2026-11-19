@@ -416,3 +416,35 @@ Describe "Clear-PathSafe" {
         Should -Invoke -CommandName Clear-DirectorySafe -Times 0
     }
 }
+
+
+Describe "Clear-DirectorySafe" {
+    It "Empties the folder and leaves no .empty- sibling behind" {
+        $target = Join-Path -Path $TestDrive -ChildPath 'cds'
+        $null = New-Item -Path (Join-Path $target 'sub') -ItemType Directory -Force
+        Set-Content -Path (Join-Path $target 'a.txt') -Value 'x'
+        Set-Content -Path (Join-Path (Join-Path $target 'sub') 'b.txt') -Value 'y'
+
+        Clear-DirectorySafe -Path $target
+
+        @(Get-ChildItem -LiteralPath $target -Force).Count | Should -Be 0
+        @(Get-ChildItem -LiteralPath $TestDrive -Filter '*.empty-*' -Force).Count | Should -Be 0
+    }
+}
+
+Describe "Invoke-MemoryTrim" {
+    BeforeAll {
+        $script:isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).
+            IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    }
+
+    It "Produces no warnings under -WhatIf" {
+        Invoke-MemoryTrim -TypeName "PesterTrimWhatIf$(Get-Random)" -WhatIf -WarningVariable w 3>$null
+        $w | Should -BeNullOrEmpty
+    }
+
+    It "Completes every step without warnings (elevated)" -Skip:(-not $script:isAdmin) {
+        Invoke-MemoryTrim -TypeName "PesterTrim$(Get-Random)" -WarningVariable w 3>$null
+        $w | Should -BeNullOrEmpty
+    }
+}

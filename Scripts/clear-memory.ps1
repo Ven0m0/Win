@@ -53,15 +53,15 @@ if ($PSCmdlet.ShouldProcess('All processes','Trim working sets and purge standby
     Start-Sleep -Milliseconds 500
 
     $memAfter = (Get-CimInstance -ClassName Win32_OperatingSystem).FreePhysicalMemory
-    $memFreed = ($memAfter - $memBefore) * 1KB
+    $memFreed = [math]::Max([long]0, [long](($memAfter - $memBefore) * 1KB))
     Write-Success "Free RAM after: $(Format-Size ($memAfter * 1KB))  (+$(Format-Size $memFreed) freed)"
 }
 
 foreach ($tempPath in @($env:TEMP, "$env:SystemRoot\Temp")) {
-    $before = Get-FolderSize -Path $tempPath -Unit B
     if ($PSCmdlet.ShouldProcess($tempPath, 'Clear temp folder')) {
+        $before = Get-FolderSize -Path $tempPath -Unit B
         Clear-DirectorySafe -Path $tempPath
+        $after = Get-FolderSize -Path $tempPath -Unit B
+        Write-Success "$tempPath : $(Format-Size ([math]::Max([long]0, [long]($before - $after)))) freed"
     }
-    $after = Get-FolderSize -Path $tempPath -Unit B
-    Write-Success "$tempPath : $(Format-Size ($before - $after)) freed"
 }
