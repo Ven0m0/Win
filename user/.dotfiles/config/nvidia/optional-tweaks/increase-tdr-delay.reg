@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+; ============================================================
+; Increase TDR delay to 8 s (Windows default: 2 s)
+; Gives the GPU more time before Windows resets the driver
+; Revert: delete the value (uncomment the line below)
+; ============================================================
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers]
+
+"TdrDelay"=dword:00000008
+
+; "TdrDelay"=-

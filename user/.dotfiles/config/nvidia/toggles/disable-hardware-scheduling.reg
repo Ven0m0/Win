@@ -3,7 +3,7 @@ Windows Registry Editor Version 5.00
 ; ============================================================
 ; Disable Hardware-Accelerated GPU Scheduling
 ; ============================================================
-; Reverts to CPU-based GPU scheduling (Windows default)
+; Reverts to CPU-based GPU scheduling (on Win11, hardware scheduling is on by default for supported GPUs)
 ; Use this if you experience issues with hardware scheduling
 ; ============================================================
 

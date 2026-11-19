@@ -13,9 +13,8 @@ nvidia/
 ├── NVProfileInspectorPerf.txt         # Profile Inspector setting notes
 ├── profiles/                          # NVIDIA Profile Inspector profiles
 │   └── new.nip                        # Main export: Base, Arc Raiders, BO6, Fortnite, Java, Minecraft, etc.
-├── toggles/                           # Standalone enable/disable .reg pairs (HDCP, MPO, NIS, HW scheduling, P-State lock, DLSS indicator)
-├── optional-tweaks/                   # Standalone opt-in .reg files (ECC, preemption, signature override, CUDA, OpenGL/Vulkan, ...)
-├── nvcpl/                             # NVIDIA Control Panel context-menu utilities
+├── toggles/                           # Standalone enable/disable .reg pairs (HDCP, MPO, NIS, HW scheduling, P-State lock, DLSS indicator, preemption)
+├── optional-tweaks/                   # Standalone opt-in .reg files (TDR delay, Windows Game Mode)
 └── msi-afterburner/                   # MSI Afterburner skin
 ```
 
@@ -131,14 +130,8 @@ For clean driver installs:
 apply individually with `regedit /s <file>`:
 
 - `toggles/` - enable/disable pairs: HDCP, MPO, NIS, hardware GPU scheduling, P-State 0 lock,
-  DLSS indicator.
-- `optional-tweaks/` - opt-in extras: shader memory, CUDA, OpenGL/Vulkan, display scaling/VRR,
-  Windows Game Mode, preemption on/off.
-
-Two risky, non-performance files are in `optional-tweaks/` and should not be bulk-imported:
-- `disable-ecc.reg` - only relevant for workstation GPUs (Quadro/Tesla); may cause instability.
-- `enable-signature-override.reg` - enables Windows test-signing and disables driver integrity
-  checks. Do not use unless modding drivers.
+  DLSS indicator, preemption.
+- `optional-tweaks/` - opt-in extras: TDR delay, Windows Game Mode.
 
 ## NVIDIA Profile Inspector
 
@@ -225,7 +218,7 @@ The `nvidia-performance-tweaks.reg` file consolidates these previously separate 
 - ~~Experimental Tweaks.reg~~ Merged
 - ~~HDCP.reg~~ Merged
 - ~~New NIS [Default].reg~~ Merged
-- Preemption disabled by default (edit the file directly to restore it)
+- Preemption disabled by default (revert with `toggles/enable-preemption.reg`)
 
 ### What's Included in Telemetry Cleanup
 
@@ -246,7 +239,7 @@ The `0000` is the first GPU. If you have multiple GPUs, adjust accordingly (`000
 ## Warnings & Disclaimers
 
 1. **HDCP Disabled:** DRM content (Netflix, etc.) won't work in browsers
-2. **Preemption Disabled:** May cause rare "driver stopped responding" errors
+2. **Preemption Disabled:** May cause rare "driver stopped responding" errors; revert with `toggles/enable-preemption.reg`
 3. Always backup registry before applying tweaks
 4. Reboot required after applying registry changes
 5. Test in your specific games — not all tweaks work for everyone

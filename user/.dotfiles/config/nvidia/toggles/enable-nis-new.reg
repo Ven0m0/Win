@@ -2,10 +2,14 @@ Windows Registry Editor Version 5.00
 
 ; ============================================================
 ; Enable NVIDIA Image Scaling (NIS) - New Version
-; ============================================================
-; For driver version 535+ (current standard)
-; NIS provides AI upscaling for games that don't support DLSS
+; 1 = NVIDIA Image Scaling (NIS), a spatial upscaler, driver 535+
+; Written to both FTS keys, as nvidia-settings.ps1 does
 ; ============================================================
 
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\FTS]
+
+"EnableGR535"=dword:00000001
+
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters\FTS]
+
 "EnableGR535"=dword:00000001

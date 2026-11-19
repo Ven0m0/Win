@@ -1,16 +1,19 @@
 Windows Registry Editor Version 5.00
 
 ; ============================================================
-; Enable GPU Preemption (Default Windows Behavior)
-; ============================================================
+; Enable GPU Preemption (restore Windows/driver defaults)
+; Deletes the values set by disable-preemption.reg
 ; Preemption allows the GPU to switch between tasks
-; Pros: Better multi-tasking, prevents TDR (driver timeout)
-; Cons: Slightly higher latency for games
-; Use this to RESTORE default behavior if you disabled it
 ; ============================================================
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm]
-"DisablePreemption"=dword:00000000
+
+"DisablePreemption"=-
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\Parameters]
+
+"DisablePreemption"=-
 
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler]
-"EnablePreemption"=dword:00000001
+
+"EnablePreemption"=-
